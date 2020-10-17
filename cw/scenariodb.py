@@ -1188,7 +1188,8 @@ def read_summary_classic(basepath: str, spath: str,
         cw.util.print_ex()
         return None, []
 
-    summaryinfos: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str, Optional[bytes], Optional[str]] = (
+    summaryinfos: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                        Optional[bytes], Optional[str]] = (
         os.path.dirname(basepath),
         TYPE_CLASSIC,
         os.path.basename(basepath),

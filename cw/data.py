@@ -21,7 +21,7 @@ from cw.util import synclock
 
 import typing
 from typing import BinaryIO, Callable, Dict, Generator, ItemsView, Iterable, Iterator, KeysView, List, NoReturn,\
-    Optional, Sequence, Set, Tuple, Union
+    Optional, Sequence, Set, Tuple, Type, Union
 
 _lock = threading.Lock()
 
@@ -33,6 +33,14 @@ _WSN_DATA_DIRS = ("area", "battle", "package", "castcard", "skillcard", "itemcar
 # ------------------------------------------------------------------------------
 
 class SystemData(object):
+    resource_cache: Dict[Union[str,
+                               Tuple[str, str, float, Union[bool, List[bool]]],
+                               Tuple[Tuple[int, int], Tuple[int, int, int, int], str,
+                                     Tuple[int, int, int, int]],
+                               Tuple[Type["cw.effectbooster._JpySubImage"], float, bool, str]],
+                         Union[pygame.Surface, Tuple[pygame.Surface, float]]]
+    ex_cache: Dict[str, List[Optional[Union[str, bytes]]]]
+
     def __init__(self, init: bool = True) -> None:
         """
         引数のゲームの状態遷移の情報によって読み込むxmlを変える。
@@ -63,6 +71,7 @@ class SystemData(object):
         self._items: Dict[int, Tuple[str, str]] = {}
         self._skills: Dict[int, Tuple[str, str]] = {}
         self._beasts: Dict[int, Tuple[str, str]] = {}
+        self.sparea_mcards: Dict[int, List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]]] = {}
 
         cw.cwpy.classicdata = None
 
@@ -90,7 +99,7 @@ class SystemData(object):
         self.party_environment_backpack = True
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None
         self.data_cache: Dict[str, CacheData] = {}
-        self.resource_cache: Dict[str, object] = {}
+        self.resource_cache = {}
         self.resource_cache_size = 0
         self.autostart_round = False
         self.breakpoints: Set[str] = set()
@@ -100,11 +109,10 @@ class SystemData(object):
         self.moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}
         self.instructions: List[str] = []
         self.specialchars = cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]("Resource/Image/Font")
-        self.sparea_mcards: Dict[int, List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]]] = {}
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
-        self.ex_cache: Dict[str, List[Optional[bytes]]] = {}
+        self.ex_cache = {}
 
         # クリア時のデバッグ情報。デバッグ情報ダイアログ表示で削除
         self.debuglog: Optional[cw.debug.logging.DebugLog] = None
@@ -492,7 +500,7 @@ class SystemData(object):
 
         self.resource_cache_size += size
 
-    def find_flag(self, path: str, is_differentscenario: bool, event: "cw.event.Event") -> Optional["Flag"]:
+    def find_flag(self, path: str, is_differentscenario: bool, event: Optional["cw.event.Event"]) -> Optional["Flag"]:
         """
         pathが指すフラグを返す。
         eventにローカル変数がある場合は優先する。
@@ -501,7 +509,7 @@ class SystemData(object):
             return event.flags[path]
         return self.flags.get(path, None) if not is_differentscenario else None
 
-    def find_step(self, path: str, is_differentscenario: bool, event: "cw.event.Event") -> Optional["Step"]:
+    def find_step(self, path: str, is_differentscenario: bool, event: Optional["cw.event.Event"]) -> Optional["Step"]:
         """
         pathが指すステップを返す。
         eventにローカル変数がある場合は優先する。
@@ -510,7 +518,8 @@ class SystemData(object):
             return event.steps[path]
         return self.steps.get(path, None) if not is_differentscenario else None
 
-    def find_variant(self, path: str, is_differentscenario: bool, event: "cw.event.Event") -> Optional["Variant"]:
+    def find_variant(self, path: str, is_differentscenario: bool,
+                     event: Optional["cw.event.Event"]) -> Optional["Variant"]:
         """
         pathが指すコモンを返す。
         eventにローカル変数がある場合は優先する。
@@ -927,7 +936,7 @@ class SystemData(object):
             name = "(読込失敗)"
         return name
 
-    def get_bgdata(self, e: Optional["CWPyElement"] = None) -> Iterable["CWPyElement"]:
+    def get_bgdata(self, e: Optional[Iterable["CWPyElement"]] = None) -> Iterable["CWPyElement"]:
         """背景のElementのリストを返す。
         e: BgImagesのElement。
         """
@@ -1213,7 +1222,7 @@ class ScenarioData(SystemData):
         # ロードしたデータファイルのキャッシュ
         self.data_cache: Dict[str, CacheData] = {}
         # ロードしたイメージ等のリソースのキャッシュ
-        self.resource_cache: Dict[str, object] = {}
+        self.resource_cache = {}
         self.resource_cache_size = 0
         # メッセージログ
         self.backlog: List[Union[cw.sprite.bill.Bill, cw.sprite.message.BacklogData]] = []
@@ -1224,7 +1233,7 @@ class ScenarioData(SystemData):
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
-        self.ex_cache: Dict[str, List[Optional[bytes]]] = {}
+        self.ex_cache = {}
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
         self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
@@ -2540,6 +2549,8 @@ class YadoDeletedPathSet(object):
 class YadoData(object):
     name: str
     skindirname: str
+    album: List["cw.header.AdventurerHeader"]
+    partys: List["cw.header.PartyHeader"]
     storehouse: List["cw.header.CardHeader"]
     partyrecord: List["cw.header.PartyRecordHeader"]
     recenthistory: "cw.setting.RecentHistory"
@@ -4008,6 +4019,12 @@ def find_scefullpath(scepath: str, spaths: List[str]) -> str:
 
 
 class Party(object):
+    name: str
+    money: int
+
+    members: List["cw.data.CWPyElementTree"]
+    backpack: List["cw.header.CardHeader"]
+
     is_suspendlevelup: bool
     sorted_backpack_by_order: bool
 
@@ -4027,7 +4044,7 @@ class Party(object):
         self.path = path
 
         # キャンセル可能な対象消去メンバ(互換機能)
-        self.vanished_pcards: List[cw.character.Character] = []
+        self.vanished_pcards: List[cw.sprite.card.PlayerCard] = []
 
         # パーティデータ(CWPyElementTree)
         self.data = yadoxml2etree(path)
@@ -4819,9 +4836,7 @@ class CWPyElement(_CWPyElementInterface, Sequence["CWPyElement"]):
         return self.element.__len__()
 
     def __bool__(self) -> bool:
-        import warnings
-        warnings.warn("CWPyElement.__bool__ has been deprected.")
-        return True
+        raise ValueError()
 
     @typing.overload
     def __getitem__(self, index: int) -> "CWPyElement": ...

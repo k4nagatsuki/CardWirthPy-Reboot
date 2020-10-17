@@ -3,12 +3,12 @@
 
 import ctypes
 
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 
 """色を反転する。
 """
-def to_negative(buf: bytes, size: Tuple[int, int]) -> bytes: ...
+def to_negative(buf: bytearray, size: Tuple[int, int]) -> None: ...
 
 
 """モザイクをかける。
@@ -57,7 +57,7 @@ def filter(buf: bytes, size: Tuple[int, int],
 
 """色領域を縁取りする。
 """
-def bordering(buf: bytes, size: Tuple[int, int]) -> bytes: ...
+def bordering(buf: bytes, size: Tuple[int, int]) -> List[int]: ...
 
 
 """CardWirth 1.50の挙動に合わせて加算合成を行う。
@@ -78,12 +78,12 @@ def blend_mult_1_50(buf: bytes, sbuf: bytes) -> bytes: ...
 """通常時のボタン画像からdisabled用の画像を作る。
 RGB値の範囲を 0～255 から min～max に変更する。
 """
-def to_disabledimage(buf: bytes, size: Tuple[int, int]) -> bytes: ...
+def to_disabledimage(buf: bytearray, size: Tuple[int, int]) -> None: ...
 
 
 """イメージに明るさを加える。
 """
-def add_lightness(buf: bytes, size: Tuple[int, int], lightness: int) -> bytes: ...
+def add_lightness(buf: bytearray, size: Tuple[int, int], lightness: int) -> None: ...
 
 
 """Windows BitmapのRLE4データをデコードする。
@@ -117,7 +117,7 @@ def blend_and_msg(buf: bytes, size: Tuple[int, int], sbuf: bytes, wincolour: Tup
 
 """RGB列のAND合成を行う。
 """
-def blend_and_rgb(dbuf: bytes, size: Tuple[int, int], buf: bytes) -> None: ...
+def blend_and_rgb(dbuf: bytearray, size: Tuple[int, int], buf: bytes) -> None: ...
 
 
 _FontInfo = ctypes.c_void_p

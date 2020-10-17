@@ -22,11 +22,15 @@ import pygame.locals
 import cw
 
 import typing
-from typing import List, Callable, Dict, KeysView, Generator, Generic, Iterable, Optional, Set, Tuple, TypeVar, Union
+from typing import List, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Set, Tuple,\
+    TypeVar, Union
 
 
 _KeyType = TypeVar("_KeyType")
 _ResType = TypeVar("_ResType")
+
+
+CWXEDITOR_RESOURCES: Dict[str, str]
 
 
 class NoFontError(ValueError):
@@ -300,21 +304,21 @@ class LocalSetting(object):
             fonttype = e.getattr(".", "type", "")
             name = e.text if e.text else ""
             pixels = e.getint(".", "pixels", defpixels)
-            bold = e.getattr(".", "bold", "")
-            if bold == "":
+            bold_s = e.getattr(".", "bold", "")
+            if bold_s == "":
                 bold = defbold
             else:
-                bold = cw.util.str2bool(bold)
-            bold_upscr = e.getattr(".", "expandedbold", "")
-            if bold_upscr == "":
+                bold = cw.util.str2bool(bold_s)
+            bold_upscr_s = e.getattr(".", "expandedbold", "")
+            if bold_upscr_s == "":
                 bold_upscr = defbold_upscr
             else:
-                bold_upscr = cw.util.str2bool(bold_upscr)
-            italic = e.getattr(".", "italic", "")
-            if italic == "":
+                bold_upscr = cw.util.str2bool(bold_upscr_s)
+            italic_s = e.getattr(".", "italic", "")
+            if italic_s == "":
                 italic = defitalic
             else:
-                italic = cw.util.str2bool(italic)
+                italic = cw.util.str2bool(italic_s)
                 table[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
 
         # 役割別フォント
@@ -336,6 +340,21 @@ class LocalSetting(object):
 
 
 class Setting(object):
+    msgs: "MsgDict"
+
+    sexes: List[cw.features.Sex]
+    sexcoupons: List[str]
+    periods: List[cw.features.Period]
+    periodcoupons: List[str]
+    natures: List[cw.features.Nature]
+    nagurecoupons: List[str]
+    races: List["cw.header.RaceHeader"]
+    unknown_race: "cw.header.UnknownRaceHeader"
+
+    skinsyscoupons: "SystemCoupons"
+
+    _classicstyletext: bool
+
     def __init__(self) -> None:
         # フレームレート
         self.fps = 60
@@ -361,13 +380,13 @@ class Setting(object):
         self.startupscene_init = self.startupscene
         self.lastyado = ""
         self.lastyado_init = self.lastyado
-        self.lastscenario = []
+        self.lastscenario: List[str] = []
         self.lastscenario_init = self.lastscenario[:]
         self.lastscenariopath = ""
         self.lastscenariopath_init = self.lastscenariopath
-        self.lastfindresult = []
+        self.lastfindresult: List[Union[cw.header.ScenarioHeader, str, cw.dialog.scenarioselect.FindResult]] = []
         self.lastfindresult_init = self.lastfindresult[:]
-        self.window_position = (None, None)
+        self.window_position: Tuple[Optional[int], Optional[int]] = (None, None)
         self.window_position_init = self.window_position
         self.expanddrawing = 1.0
         self.expanddrawing_init = self.expanddrawing
@@ -512,7 +531,7 @@ class Setting(object):
         self.autosave_partyrecord_init = self.autosave_partyrecord
         self.overwrite_partyrecord = True
         self.overwrite_partyrecord_init = self.overwrite_partyrecord
-        self.folderoftype = []
+        self.folderoftype: List[Tuple[str, str]] = []
         self.folderoftype_init = self.folderoftype[:]
         self.scenario_narrow = ""
         self.scenario_narrow_init = self.scenario_narrow
@@ -655,7 +674,7 @@ class Setting(object):
         self.level_adjustment_affect_personal_pocket_init = self.level_adjustment_affect_personal_pocket
 
         # 宿の表示順序
-        self.yado_order = {}
+        self.yado_order: Dict[str, int] = {}
         self.yado_order_init = self.yado_order.copy()
 
         # 絞り込み・整列などのコントロールの表示有無
@@ -705,11 +724,11 @@ class Setting(object):
         self.show_scenariotree_init = self.show_scenariotree
 
         # シナリオのインストール先(キー=ルートディレクトリ毎)
-        self.installed_dir = {}
+        self.installed_dir: Dict[str, List[str]] = {}
         self.installed_dir_init = self.installed_dir.copy()
 
         # カード編集ダイアログのブックマーク
-        self.bookmarks_for_cardedit = []
+        self.bookmarks_for_cardedit: List[Tuple[str, str]] = []
         self.bookmarks_for_cardedit_init = self.bookmarks_for_cardedit[:]
 
         if not init:
@@ -749,8 +768,8 @@ class Setting(object):
         self.lastscenario = []
         self.lastscenariopath = ""  # 経路が辿れない時に使用するフルパス
         # ウィンドウ位置
-        win_x = data.getint("WindowPosition", "left", -sys.maxsize - 1)
-        win_y = data.getint("WindowPosition", "top", -sys.maxsize - 1)
+        win_x: Optional[int] = data.getint("WindowPosition", "left", -sys.maxsize - 1)
+        win_y: Optional[int] = data.getint("WindowPosition", "top", -sys.maxsize - 1)
         if -sys.maxsize - 1 == win_x:
             win_x = None
         if -sys.maxsize - 1 == win_y:
@@ -877,7 +896,7 @@ class Setting(object):
         # メッセージログ表示形式
         self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type_init)
         # メッセージログに貼紙を表示する
-        self.display_bill_in_messagelog = data.gettext("DisplayBillInMessageLog", self.display_bill_in_messagelog_init)
+        self.display_bill_in_messagelog = data.getbool("DisplayBillInMessageLog", self.display_bill_in_messagelog_init)
 
         self.showfps = False
 
@@ -1092,12 +1111,12 @@ class Setting(object):
 
         # フォント表示例のフォーマット
         self.fontexampleformat = data.gettext("FontExampleFormat", self.fontexampleformat_init)
-        self.fontexamplepixelsize = data.gettext("FontExamplePixelSize", self.fontexamplepixelsize_init)
+        self.fontexamplepixelsize = data.getint("FontExamplePixelSize", self.fontexamplepixelsize_init)
 
         # シナリオのインストール先(キー=ルートディレクトリ)
-        e = data.find("InstalledPaths")
-        if e is not None:
-            for e_paths in e:
+        e_installedpaths = data.find("InstalledPaths")
+        if e_installedpaths is not None:
+            for e_paths in e_installedpaths:
                 assert isinstance(e_paths, cw.data.CWPyElement)
                 rootdir = e_paths.getattr(".", "root", "")
                 if not rootdir:
@@ -1109,9 +1128,9 @@ class Setting(object):
                 self.installed_dir[rootdir] = dirstack
 
         # カード編集ダイアログのブックマーク
-        e = data.find("BookmarksForCardEditor")
-        if e is not None:
-            for e_bookmark in e:
+        e_bookmarkforcardeditor = data.find("BookmarksForCardEditor")
+        if e_bookmarkforcardeditor is not None:
+            for e_bookmark in e_bookmarkforcardeditor:
                 assert isinstance(e_bookmark, cw.data.CWPyElement)
                 fpath = e_bookmark.text
                 name = e_bookmark.getattr(".", "name", "")
@@ -1252,13 +1271,13 @@ class Setting(object):
         # 定義されていなければスキンベースのもので代替する
 
         # 音声
-        self.sounds = {}
+        self.sound_table = {}
         for e in basedata.getfind("Sounds"):
-            self.sounds[e.getattr(".", "key", "")] = e.gettext(".", "")
+            self.sound_table[e.getattr(".", "key", "")] = e.gettext(".", "")
         for e in data.getfind("Sounds"):
-            self.sounds[e.getattr(".", "key", "")] = e.gettext(".", "")
+            self.sound_table[e.getattr(".", "key", "")] = e.gettext(".", "")
         # メッセージ
-        self.msgs = _MsgDict()
+        self.msgs = MsgDict()
         for e in basedata.getfind("Messages"):
             self.msgs[e.getattr(".", "key", "")] = e.gettext(".", "")
         for e in data.getfind("Messages"):
@@ -1273,11 +1292,11 @@ class Setting(object):
         self.skinsyscoupons = SystemCoupons(fpath="", data=syscoupons)
 
         # スキンローカル設定
-        data = data.find("Settings")
-        if data is None:
+        local_data = data.find("Settings")
+        if local_data is None:
             self.skin_local = self.local.copy()
         else:
-            self.skin_local.load(data)
+            self.skin_local.load(local_data)
 
     def _update_skin(self, path: str) -> cw.data.CWPyElementTree:
         """旧バージョンのデータの誤りを訂正する。
@@ -1301,7 +1320,7 @@ class Setting(object):
                 update = True
 
                 def update_mental(e: cw.data.CWPyElement) -> None:
-                    me = e.find("Mental")
+                    me = e.find_exists("Mental")
                     cautious = me.getattr(".", "cautious")
                     cheerful = me.getattr(".", "cheerful")
                     me.attrib["cautious"] = cheerful
@@ -1333,7 +1352,7 @@ class Setting(object):
                         for e in ste:
                             update_mental(e)
                     for e in ste:
-                        me: cw.data.CWPyElement = e.find("Mental")
+                        me = e.find_exists("Mental")
                         aggressive = me.getfloat(".", "aggressive")
                         brave = me.getfloat(".", "brave")
                         cautious = me.getfloat(".", "cautious")
@@ -1369,9 +1388,9 @@ class Setting(object):
                         if ext != ".xml":
                             continue
                         fpath = cw.util.join_paths(dpath, fname)
-                        e = cw.data.xml2etree(fpath)
+                        etree = cw.data.xml2etree(fpath)
                         updatemcards = False
-                        for me in e.getfind("MenuCards"):
+                        for me in etree.getfind("MenuCards"):
                             events: Optional[cw.data.CWPyElement] = me.find("Events")
                             if events is None or 1 != len(events):
                                 continue
@@ -1379,7 +1398,7 @@ class Setting(object):
                             igkeycode = events.gettext("Event/Ignitions/KeyCodes", "")
                             if ignum != "1" or igkeycode != "":
                                 continue
-                            post = me.find("Events/Event/Contents/Start/Contents/Post")
+                            post = me.find_exists("Events/Event/Contents/Start/Contents/Post")
                             posttype = post.getattr(".", "type", "")
                             if posttype != "Event":
                                 continue
@@ -1393,7 +1412,7 @@ class Setting(object):
                             events.clear()
                             updatemcards = True
                         if updatemcards:
-                            e.write_file()
+                            etree.write_file()
 
             if skinversion <= 6:
                 # dataVersion=6までは標準混乱カードの効果が
@@ -1409,14 +1428,14 @@ class Setting(object):
                 dst = "%s.v%s" % (fpath, iver)
                 dst = cw.util.dupcheck_plus(dst, yado=False)
                 shutil.copy2(fpath, dst)
-                e = cw.data.xml2etree(fpath)
-                avoid = e.getint("Property/Enhance", "avoid", -10)
+                etree = cw.data.xml2etree(fpath)
+                avoid = etree.getint("Property/Enhance", "avoid", -10)
                 if avoid == -5:
-                    e.edit("Property/Enhance", "-10", "avoid")
-                resist = e.getint("Property/Enhance", "resist", -10)
+                    etree.edit("Property/Enhance", "-10", "avoid")
+                resist = etree.getint("Property/Enhance", "resist", -10)
                 if resist == -5:
-                    e.edit("Property/Enhance", "-10", "resist")
-                e.write_file()
+                    etree.edit("Property/Enhance", "-10", "resist")
+                etree.write_file()
 
             if skinversion <= 8:
                 # dataVersion=8までは`03_YadoInitial.xml`
@@ -1427,9 +1446,8 @@ class Setting(object):
                 fpath = cw.util.join_paths(self.skindir, "Resource/Xml/Title/01_Title.xml")
                 if os.path.isfile(fpath):
                     # タイトル画面のカード位置を調節
-                    e = cw.data.xml2etree(fpath)
-                    e_mcards = e.find("MenuCards")
-                    assert isinstance(e_mcards, cw.data.CWPyElement)
+                    etree = cw.data.xml2etree(fpath)
+                    e_mcards = etree.find("MenuCards")
                     if e_mcards is not None and len(e_mcards) == 2 and \
                             e_mcards.getattr(".", "spreadtype", "") == "Custom" and \
                             e_mcards[0].getint("Property/Location", "left", 0) == 231 and \
@@ -1443,11 +1461,11 @@ class Setting(object):
                         dst = "%s.v%s" % (fpath, iver)
                         dst = cw.util.dupcheck_plus(dst, yado=False)
                         shutil.copy2(fpath, dst)
-                        e.edit("MenuCards/MenuCard[1]/Property/Location", "233", "left")
-                        e.edit("MenuCards/MenuCard[1]/Property/Location", "150", "top")
-                        e.edit("MenuCards/MenuCard[2]/Property/Location", "318", "left")
-                        e.edit("MenuCards/MenuCard[2]/Property/Location", "150", "top")
-                        e.write_file()
+                        etree.edit("MenuCards/MenuCard[1]/Property/Location", "233", "left")
+                        etree.edit("MenuCards/MenuCard[1]/Property/Location", "150", "top")
+                        etree.edit("MenuCards/MenuCard[2]/Property/Location", "318", "left")
+                        etree.edit("MenuCards/MenuCard[2]/Property/Location", "150", "top")
+                        etree.write_file()
 
                 fpath1 = "Data/SkinBase/Resource/Xml/Yado/03_YadoInitial.xml"
                 fpath2 = cw.util.join_paths(self.skindir, "Resource/Xml/Yado/03_YadoInitial.xml")
@@ -1455,7 +1473,7 @@ class Setting(object):
                     shutil.copy2(fpath1, fpath2)
                     fpath3 = cw.util.join_paths(self.skindir, "Resource/Xml/Yado/01_Yado.xml")
                     if os.path.isfile(fpath3):
-                        e = cw.data.xml2etree(fpath2)
+                        etree = cw.data.xml2etree(fpath2)
                         e3 = cw.data.xml2etree(fpath3)
                         e_playerselect = None
                         e_returntitle = None
@@ -1467,28 +1485,28 @@ class Setting(object):
                             elif command == "ShowDialog" and arg == "RETURNTITLE":
                                 e_returntitle = e_mcard
                         if e_playerselect is not None:
-                            e.edit("MenuCards/MenuCard[1]/Property/Name",
-                                   e_playerselect.gettext("Property/Name"))
-                            e.edit("MenuCards/MenuCard[1]/Property/ImagePath",
-                                   e_playerselect.gettext("Property/ImagePath"))
-                            e.edit("MenuCards/MenuCard[1]/Property/Description",
-                                   e_playerselect.gettext("Property/Description"))
+                            etree.edit("MenuCards/MenuCard[1]/Property/Name",
+                                       e_playerselect.gettext("Property/Name"))
+                            etree.edit("MenuCards/MenuCard[1]/Property/ImagePath",
+                                       e_playerselect.gettext("Property/ImagePath"))
+                            etree.edit("MenuCards/MenuCard[1]/Property/Description",
+                                       e_playerselect.gettext("Property/Description"))
                         if e_returntitle is not None:
-                            e.edit("MenuCards/MenuCard[2]/Property/Name",
-                                   e_returntitle.gettext("Property/Name"))
-                            e.edit("MenuCards/MenuCard[2]/Property/ImagePath",
-                                   e_returntitle.gettext("Property/ImagePath"))
-                            e.edit("MenuCards/MenuCard[2]/Property/Description",
-                                   e_returntitle.gettext("Property/Description"))
+                            etree.edit("MenuCards/MenuCard[2]/Property/Name",
+                                       e_returntitle.gettext("Property/Name"))
+                            etree.edit("MenuCards/MenuCard[2]/Property/ImagePath",
+                                       e_returntitle.gettext("Property/ImagePath"))
+                            etree.edit("MenuCards/MenuCard[2]/Property/Description",
+                                       e_returntitle.gettext("Property/Description"))
                         e_bgimgs = e3.find("BgImages")
                         if e_bgimgs is not None:
-                            e.remove(".", e.find("BgImages"))
-                            e.insert(".", e_bgimgs, 1)
+                            etree.remove(".", etree.find("BgImages"))
+                            etree.insert(".", e_bgimgs, 1)
                         e_event = e3.find("Events")
                         if e_event is not None:
-                            e.remove(".", e.find("Events"))
-                            e.append(".", e_event)
-                        e.write_file()
+                            etree.remove(".", etree.find("Events"))
+                            etree.append(".", e_event)
+                        etree.write_file()
 
             if skinversion <= 9:
                 fpath1 = "Data/SkinBase/Resource/Xml/Animation/Opening.xml"
@@ -1509,7 +1527,7 @@ class Setting(object):
                         e_source = data.find("Property/SourceOfMaterialsIsClassicEngine")
                         if e_source is None:
                             e_source = cw.data.make_element("SourceOfMaterialsIsClassicEngine", str(True))
-                            data.find("Property").append(e_source)
+                            data.find_exists("Property").append(e_source)
                             update = True
 
             if update:
@@ -1705,14 +1723,14 @@ class Setting(object):
         pass
 
 
-class _MsgDict(dict):
+class MsgDict(dict):
     def __init__(self) -> None:
         """
         存在しないメッセージIDが指定された時に
         エラーダイアログを表示するための拡張dict。
         """
         dict.__init__(self)
-        self._error_keys = set()
+        self._error_keys: Set[str] = set()
 
     def __getitem__(self, key: str) -> str:
         if key not in self:
@@ -1735,6 +1753,24 @@ class _MsgDict(dict):
 
 
 class Resource(object):
+    ext_img: int
+    fonts: "ResourceTable[str, cw.imageretouch.Font]"
+    facenames_lower: Set[str]
+    fontnames_init: Dict[str, str]
+    facenames_init: Dict[str, str]
+    cardbgs: "ResourceTable[str, pygame.Surface]"
+    wxcardbgs: "ResourceTable[str, wx.Bitmap]"
+    statuses: "ResourceTable[str, pygame.Surface]"
+    stones: "ResourceTable[str, pygame.Surface]"
+    wxstones: "ResourceTable[str, wx.Bitmap]"
+    cardnamecolorhints: "ResourceTable[str, int]"
+    dialogs: "ResourceTable[str, wx.Bitmap]"
+    pygamedialogs: "ResourceTable[str, pygame.Surface]"
+    buttons: "ResourceTable[str, wx.Bitmap]"
+    cursors: "ResourceTable[str, wx.Cursor]"
+    specialchars: "ResourceTable[str, Tuple[pygame.Surface, bool]]"
+    specialchars_is_changed: bool
+
     def __init__(self, setting: Optional[Setting]) -> None:
         if setting:
             self.init(setting)
@@ -1790,9 +1826,9 @@ class Resource(object):
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts, self.msg_exfonts = self.create_fonts()
         # StatusBarで使用するボタンイメージ
-        self._statusbtnbmp0 = {}
-        self._statusbtnbmp1 = {}
-        self._statusbtnbmp2 = {}
+        self._statusbtnbmp0: Dict[int, pygame.Surface] = {}
+        self._statusbtnbmp1: Dict[int, pygame.Surface] = {}
+        self._statusbtnbmp2: Dict[int, pygame.Surface] = {}
 
         self.actioncards: Dict[int, cw.header.CardHeader] = {}
         self.backpackcards: Dict[str, cw.header.CardHeader] = {}
@@ -1847,10 +1883,12 @@ class Resource(object):
         self.init_wxresources()
 
     def init_sounds(self) -> None:
+        setting = self.setting()
+        assert setting
         # その他のスキン付属効果音(辞書)
         self.skinsounds = self.get_skinsounds()
         # システム効果音(辞書)
-        self.sounds = self.get_sounds(self.setting(), self.skinsounds)
+        self.sounds = self.get_sounds(setting, self.skinsounds)
 
     def init_wxresources(self) -> None:
         """wx側のリソースを初期化。"""
@@ -1861,7 +1899,10 @@ class Resource(object):
         # デバッガで使う画像(辞書)
         self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
         self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
-        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp, can_loaded_scaledimage=False)
+
+        def ss(num: cw.Scalable) -> cw.Scalable:
+            return num
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, ss, can_loaded_scaledimage=False)
         # ダイアログで使うカーソル(辞書)
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
@@ -1880,7 +1921,10 @@ class Resource(object):
         cw.cwpy.exec_func(func)
         self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
         self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
-        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, lambda bmp: bmp, can_loaded_scaledimage=False)
+
+        def ss(num: cw.Scalable) -> cw.Scalable:
+            return num
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, ss, can_loaded_scaledimage=False)
 
     def get_fontpaths(self) -> Dict[str, str]:
         """
@@ -1955,7 +1999,7 @@ class Resource(object):
                         gdi32.AddFontResourceExW.argtypes = (ctypes.c_wchar_p, ctypes.wintypes.DWORD, ctypes.c_void_p)
                         gdi32.AddFontResourceExW(path, 0x10, 0)
                     else:
-                        gdi32.AddFontResourceW.argtypes = (ctypes.c_wchar_p)
+                        gdi32.AddFontResourceW.argtypes = (ctypes.c_wchar_p,)
                         gdi32.AddFontResourceW(path)
                         user32 = ctypes.windll.user32
                         HWND_BROADCAST = 0xFFFF
@@ -1976,7 +2020,10 @@ class Resource(object):
         システムフォントテーブルの設定を行う。
         設定したフォント名をフォントファイル名がkeyの辞書で返す。
         """
-        d = {}
+        setting = self.setting()
+        assert setting
+
+        d: Dict[str, str] = {}
 
         if sys.platform == "win32":
             Resource.install_defaultfonts(self.fontpaths, self.facenames, d)
@@ -1996,7 +2043,7 @@ class Resource(object):
 
         # 設定に応じた差し替え
         for basetype in d.keys():
-            font = self.setting().local.basefont[basetype]
+            font = setting.local.basefont[basetype]
             if font:
                 d[basetype] = font
 
@@ -2005,7 +2052,7 @@ class Resource(object):
     def clear_systemfonttable(self) -> None:
         if sys.platform == "win32" and not sys.getwindowsversion()[3] == 2:
             gdi32 = ctypes.WinDLL("gdi32")
-            gdi32.RemoveFontResourceA.argtypes = (ctypes.c_wchar_p)
+            gdi32.RemoveFontResourceA.argtypes = (ctypes.c_wchar_p,)
 
             for path in self.fontpaths.values():
                 gdi32.RemoveFontResourceA(path)
@@ -2018,11 +2065,14 @@ class Resource(object):
     def get_fontfromtype(self, name: str, fontinfo: Optional[Tuple[str, str, int, bool, bool, bool]] = None)\
             -> Tuple[str, int, bool, bool, bool]:
         """フォントタイプ名から抽象フォント名を取得する。"""
+        setting = self.setting()
+        assert setting
         if fontinfo is None:
-            fontinfo = self.setting().fonttypes.get(name, (name, "", -1, None, None, None))
+            fontinfo = setting.fonttypes.get(name, (name, "", -1, False, False, False))
+        assert fontinfo
         basename, fontname, pixels, bold, bold_upscr, italic = fontinfo
         if basename:
-            fontname = self.setting().basefont[basename]
+            fontname = setting.basefont[basename]
             if not fontname:
                 fontname = self.fontnames.get(basename, "")
         return fontname, pixels, bold, bold_upscr, italic
@@ -2049,6 +2099,7 @@ class Resource(object):
             # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
             #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
             if not pixelsize:
+                assert size is not None
                 pixelsize = int((1.0 / 72 * 96) * size + 0.5)
             elif adjustsizewx3:
                 # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
@@ -2099,74 +2150,78 @@ class Resource(object):
                                     "ResourceTable[str, cw.imageretouch.Font]"]:
         """ゲーム内で頻繁に使用するpygame.Fontはここで設定する。"""
         # 使用フォント(辞書)
-        fonts = ResourceTable[str, cw.imageretouch.Font]("Font", {}, lambda: None)
-        msg_exfonts = ResourceTable[str, cw.imageretouch.Font]("SyntheticFontsForMessage", {}, lambda: None)
+        setting = self.setting()
+        assert setting
+        def defvalue() -> NoReturn:
+            raise Exception()
+        fonts = ResourceTable[str, cw.imageretouch.Font]("Font", {}, defvalue)
+        msg_exfonts = ResourceTable[str, cw.imageretouch.Font]("SyntheticFontsForMessage", {}, defvalue)
         # 所持カードの使用回数描画用
-        t = self.setting().fonttypes["uselimit"]
+        t = setting.fonttypes["uselimit"]
         fonts.set("card_uselimit", self.create_font, "uselimit", t[0], t[1], t[2], t[3], t[4], t[5])
         # メニューカードの名前描画用
-        t = self.setting().fonttypes["cardname"]
+        t = setting.fonttypes["cardname"]
         fonts.set("mcard_name", self.create_font, "cardname", t[0], t[1], t[2], t[3], t[4], t[5])
         # プレイヤカードの名前描画用
-        t = self.setting().fonttypes["ccardname"]
+        t = setting.fonttypes["ccardname"]
         fonts.set("pcard_name", self.create_font, "ccardname", t[0], t[1], t[2], t[3], t[4], t[5])
         # プレイヤカードのレベル描画用
-        t = self.setting().fonttypes["level"]
+        t = setting.fonttypes["level"]
         fonts.set("pcard_level", self.create_font, "level", t[0], t[1], t[2], t[3], t[4], t[5])
         # メッセージウィンドウのテキスト描画用
-        t = self.setting().fonttypes["message"]
+        t = setting.fonttypes["message"]
         fonts.set("message", self.create_font, "message", t[0], t[1], t[2], t[3], t[4], t[5], nobold=True)
         # メッセージ用混植フォント
         for extype in ("fw_symbol", "fw_number", "fw_latin", "hiragana", "katakana", "hw_katakana",
                        "greek_and_cyrillic", "jis_kanji_1", "jis_kanji_2", "etc_kanji", "symbol",
                        "number", "latin"):
-            t = self.setting().msg_exfonts[extype]
+            t = setting.msg_exfonts[extype]
             msg_exfonts.set(extype, self.create_exfont, "message", fontinfo=t, basetable=fonts, nobold=True)
         # メッセージウィンドウの選択肢描画用
-        t = self.setting().fonttypes["selectionbar"]
+        t = setting.fonttypes["selectionbar"]
         fonts.set("selectionbar", self.create_font, "selectionbar", t[0], t[1], t[2], t[3], t[4], t[5])
         # 貼紙のシナリオ名描画用
-        t = self.setting().fonttypes["scenario"]
+        t = setting.fonttypes["scenario"]
         fonts.set("scenario", self.create_font, "scenario", t[0], t[1], 21-1, t[3], t[4], t[5])
         # 貼紙の本文描画用
-        t = self.setting().fonttypes["dlglist"]
+        t = setting.fonttypes["dlglist"]
         fonts.set("scenariodesc", self.create_font, "dlglist", t[0], t[1], 14-1, t[3], t[4], t[5])
         # 貼紙の対象レベル描画用
-        t = self.setting().fonttypes["targetlevel"]
+        t = setting.fonttypes["targetlevel"]
         fonts.set("targetlevel", self.create_font, "targetlevel", t[0], t[1], 16-1, t[3], t[4], t[5])
         # メッセージログのページ表示描画用
-        t = self.setting().fonttypes["logpage"]
+        t = setting.fonttypes["logpage"]
         fonts.set("backlog_page", self.create_font, "logpage", t[0], t[1], t[2], t[3], t[4], t[5])
         # カード価格表示用
-        t = self.setting().fonttypes["price"]
+        t = setting.fonttypes["price"]
         fonts.set("price", self.create_font, "price", t[0], t[1], t[2], t[3], t[4], t[5])
         # カード枚数描画用
-        t = self.setting().fonttypes["numcards"]
+        t = setting.fonttypes["numcards"]
         fonts.set("numcards", self.create_font, "numcards", t[0], t[1], t[2], t[3], t[4], t[5])
         fonts.set("numcards_personal", self.create_font, "numcards", t[0], t[1], t[2], t[3], t[4], t[5],
                   pixelsadd=min(0, -min(t[2]//2, t[2]-16)))
         # ステータスバーパネル描画用
-        t = self.setting().fonttypes["sbarpanel"]
+        t = setting.fonttypes["sbarpanel"]
         fonts.set("sbarpanel", self.create_font, "sbarpanel", t[0], t[1], t[2], t[3], t[4], t[5])
         # 進行状況・音量バー描画用
-        t = self.setting().fonttypes["sbarprogress"]
+        t = setting.fonttypes["sbarprogress"]
         fonts.set("sbarprogress", self.create_font, "sbarprogress", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーボタン描画用
-        t = self.setting().fonttypes["sbarbtn"]
+        t = setting.fonttypes["sbarbtn"]
         fonts.set("sbarbtn", self.create_font, "sbarbtn", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーボタン解説描画用
-        t = self.setting().fonttypes["sbardesc"]
+        t = setting.fonttypes["sbardesc"]
         fonts.set("sbardesc", self.create_font, "sbardesc", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータスバーボタン解説の表題描画用
-        t = self.setting().fonttypes["sbardesctitle"]
+        t = setting.fonttypes["sbardesctitle"]
         fonts.set("sbardesctitle", self.create_font, "sbardesctitle", t[0], t[1], t[2], t[3], t[4], t[5])
         # ステータス画像の召喚回数描画用
-        t = self.setting().fonttypes["statusnum"]
+        t = setting.fonttypes["statusnum"]
         fonts.set("statusimg1", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5])
-        t = self.setting().fonttypes["statusnum"]
+        t = setting.fonttypes["statusnum"]
         fonts.set("statusimg2", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5], pixelsadd=-2)
         fonts.set("statusimg3", self.create_font, "statusnum", t[0], t[1], t[2], t[3], t[4], t[5], pixelsadd=-4)
-        t = self.setting().fonttypes["screenshot"]
+        t = setting.fonttypes["screenshot"]
         fonts.set("screenshot", self.create_font, "screenshot", t[0], t[1], t[2], t[3], t[4], t[5])
         return fonts, msg_exfonts
 
@@ -2386,7 +2441,8 @@ class Resource(object):
             topright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
             bottomleft.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
             bottomright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            linecolor = (color[0], color[1], color[2], 255 - opacity)
+            linecolor: Union[Tuple[int, int, int, int],
+                             Tuple[int, int, int]] = (color[0], color[1], color[2], 255 - opacity)
         else:
             linecolor = color
 
@@ -2472,8 +2528,7 @@ class Resource(object):
     def get_resources(self, func: Callable[..., _ResType], dpath1: str, dpath2: str, ext: int,
                       mask: Optional[bool] = None,
                       ss: Optional[Callable[["cw.Scalable"], "cw.Scalable"]] = None,
-                      noresize: Union[type(()), Tuple[str, ...]] = (),
-                      nodbg: bool = False,
+                      noresize: Iterable[str] = (), nodbg: bool = False,
                       emptyfunc: Optional[Callable[[], _ResType]] = None, editor_res: Optional[str] = None,
                       warning: bool = True, can_loaded_scaledimage: bool = True) -> "ResourceTable":
         """
@@ -2517,6 +2572,7 @@ class Resource(object):
                             dlg.Destroy()
 
                     cw.cwpy.frame.exec_func(errfunc, os.path.basename(dpath1), key)
+                assert emptyfunc
                 return emptyfunc()
 
             if mask is None:
@@ -2529,9 +2585,15 @@ class Resource(object):
 
             if not noscale:
                 if not dbg and ss and key not in noresize:
-                    res = ss(res)
+                    assert isinstance(res, (pygame.Surface, wx.Bitmap))
+                    img = ss(res)
+                    assert isinstance(img, type(res))
+                    res = img
                 elif dbg and ss:
-                    res = cw.ppis(res)
+                    assert isinstance(res, (pygame.Surface, wx.Bitmap))
+                    img = cw.ppis(res)
+                    assert isinstance(img, type(res))
+                    res = img
 
             return res
 
@@ -2545,9 +2607,11 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         d = ResourceTable[str, cw.util.SoundInterface]("SystemSound", {}, empty_sound)
-        for key, sound in list(setting.sounds.items()):
+        key: str
+        sound: str
+        for key, sound in list(setting.sound_table.items()):
             if sound in skinsounds:
-                def func(sound: cw.util.SoundInterface) -> None:
+                def func(sound: str) -> None:
                     d.set(key, lambda: skinsounds[sound])
                 func(sound)
             else:
@@ -2569,13 +2633,13 @@ class Resource(object):
 
         return d
 
-    def get_msgs(self, setting: Setting) -> "ResourceTable[str, str]":
+    def get_msgs(self, setting: Setting) -> MsgDict:
         """
         システムメッセージを辞書で返す。
         """
         return setting.msgs
 
-    def get_buttons(self) -> "ResourceTable[str, pyagme.Surface]":
+    def get_buttons(self) -> "ResourceTable[str, pygame.Surface]":
         """
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2613,7 +2677,7 @@ class Resource(object):
                                           nokeyfunc=get_cursor)
         return d
 
-    def get_stones(self) -> "ResourceTable[str, pyagme.Surface]":
+    def get_stones(self) -> "ResourceTable[str, pygame.Surface]":
         """
         適性・カード残り回数の画像を読み込んで、
         pygameのサーフェスの辞書で返す。
@@ -2670,7 +2734,7 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_dialogs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pyagme.Surface]":
+    def get_dialogs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.Surface]":
         """
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2701,7 +2765,7 @@ class Resource(object):
                                   emptyfunc=emptyfunc)
 
     def get_debugs(self, load_image: Callable[..., _ResType], ss: Callable[["cw.Scalable"], "cw.Scalable"],
-                   can_loaded_scaledimage: bool = True) -> "ResourceTable[str, pyagme.Surface]":
+                   can_loaded_scaledimage: bool = True) -> "ResourceTable[str, pygame.Surface]":
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2714,7 +2778,9 @@ class Resource(object):
         dpath = "Data/Debugger"
 
         # 可能ならcwxeditor/resourceからアイコンを読み込む
-        editor_res = os.path.dirname(os.path.abspath(self.setting().editor))
+        setting = self.setting()
+        assert setting
+        editor_res: Optional[str] = os.path.dirname(os.path.abspath(setting.editor))
         editor_res = cw.util.join_paths(editor_res, "resource")
         if not os.path.isdir(editor_res):
             editor_res = None
@@ -2722,7 +2788,7 @@ class Resource(object):
         return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res,
                                   can_loaded_scaledimage=can_loaded_scaledimage)
 
-    def get_cardbgs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pyagme.Surface]":
+    def get_cardbgs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.Surface]":
         """
         カードの背景画像を読み込んで、pygameのサーフェス
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
@@ -2769,7 +2835,7 @@ class Resource(object):
         """文字描画領域の色を平均化した値を返す。
         """
         if bmp.get_width() <= cw.s(10) or bmp.get_height() <= cw.s(20):
-            return
+            return 255
         rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
@@ -2781,7 +2847,7 @@ class Resource(object):
         """文字描画領域の色を平均化した値を返す。
         """
         if wxbmp.GetWidth() <= cw.s(10) or wxbmp.GetHeight() <= cw.s(20):
-            return
+            return 255
         rect = wx.Rect(cw.s(5), cw.s(5), wxbmp.GetWidth() - cw.s(10), cw.s(15))
         sub = wxbmp.GetSubBitmap(rect)
         buf = array.array('B', '\0' * (rect[2] * rect[3] * 3))

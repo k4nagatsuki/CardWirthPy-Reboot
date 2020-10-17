@@ -98,7 +98,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
                                                    "", maximum=obj.maximum)
 
     @synclock(lock)
-    def progress(msg, progress: int = 1) -> None:
+    def progress(msg: str, progress: int = 1) -> None:
         obj.value += progress
         obj.msg = msg
 

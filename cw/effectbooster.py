@@ -10,7 +10,8 @@ import pygame.locals
 
 import cw
 
-from typing import Dict, List, Optional, Tuple
+import typing
+from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 
 
 class ScreenRescale(Exception):
@@ -93,6 +94,12 @@ class CutAnimation(AnimationCounter):
 
 
 class _JpySubImage(cw.image.Image):
+    image: pygame.Surface
+    savecache: int
+    visible: bool
+    position: Tuple[int, int]
+    position_noscale: Tuple[int, int]
+
     def __init__(self, config: "EffectBoosterConfig", section: str, cache: "JpyCache") -> None:
         self.configpath = config.path
         self.configdepth = config.dirdepth
@@ -127,7 +134,7 @@ class _JpySubImage(cw.image.Image):
         animeclip = config.get_ints(section, "animeclip", 4, None)
         self.animeclip = cw.s(animeclip) if animeclip else None
         self.animespeed = config.get_int(section, "animespeed", 0)
-        self.animeposition_noscale = config.get_ints(section, "animeposition", 2, None)
+        self.animeposition_noscale: Optional[Tuple[int, int]] = config.get_ints(section, "animeposition", 2, None)
         self.animeposition = cw.s(self.animeposition_noscale) if self.animeposition_noscale else None
         self.paintmode = config.get_int(section, "paintmode", 0)
 
@@ -136,7 +143,7 @@ class _JpySubImage(cw.image.Image):
         self.is_animated = False  # アニメーションが発生したか
         self.can_mask = True  # 加工でマスクが無効になっていないか
 
-    def draw2back(self, back: "cw.sprite.background.BackGround", mask: bool) -> None:
+    def draw2back(self, back: "JpyBackGroundImage", mask: bool) -> None:
         """背景に描画。"""
         assert isinstance(self, (JpyPartsImage, JpyBackGroundImage))
         if self.visible:
@@ -175,7 +182,8 @@ class _JpySubImage(cw.image.Image):
         # 一時描画
         elif self.animation:
             if self.animeposition_noscale and self.animemove:
-                pos_noscale = self.animeposition_noscale
+                assert self.animemove_noscale
+                pos_noscale: Tuple[int, int] = self.animeposition_noscale
                 pos_noscale = (pos_noscale[0] + self.animemove_noscale[0], pos_noscale[1] + self.animemove_noscale[1])
             elif self.animeposition_noscale:
                 pos_noscale = self.animeposition_noscale
@@ -183,6 +191,7 @@ class _JpySubImage(cw.image.Image):
                 pos_noscale = self.cache.load_position_noscale()
                 pos_noscale = (pos_noscale[0] + self.animemove_noscale[0], pos_noscale[1] + self.animemove_noscale[1])
             else:
+                assert self.position_noscale is not None
                 pos_noscale = self.position_noscale
 
             animespeed = cw.util.numwrap(self.animespeed, 0, 255)
@@ -513,6 +522,7 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyPartsImage
         if not hasattr(self, "backcolor"):
+            assert self.width is not None
             width = self.width if 0 <= self.width else image.get_width()
             height = self.height if 0 <= self.height else image.get_height()
             size = (width, height)
@@ -555,7 +565,7 @@ class _JpySubImage(cw.image.Image):
         # ファイル読み込み
         if os.path.isfile(path):
             image = None
-            mtime = 0
+            mtime = 0.0
             if os.path.isfile(path):
                 mtime = os.path.getmtime(path)
 
@@ -612,15 +622,19 @@ class _JpySubImage(cw.image.Image):
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
             image = self.cache.load_image(self.loadcache)
-        # 背景画像作成 for JpyBackgroundImage
+        # 背景画像作成 for JpyBackGroundImage
         elif hasattr(self, "backcolor"):
+            assert isinstance(self, JpyBackGroundImage)
+            assert self.width is not None
             width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
             height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
             size = (width, height)
             image = pygame.Surface(size).convert()
             image.fill(self.backcolor)
         # 背景画像作成 for JpyPartsImage
-        elif not hasattr(self, "backcolor") and -1 < self.height and -1 < self.width:
+        elif not hasattr(self, "backcolor") and -1 < self.height and self.width is not None and -1 < self.width:
+            assert isinstance(self, JpyPartsImage)
+            assert self.width is not None
             width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
             height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
             size = (width, height)
@@ -632,6 +646,7 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
+            assert self.width is not None
             imagesize = image.get_size()
             if self.width >= cw.s(0):
                 width = self.width
@@ -669,8 +684,8 @@ class _JpySubImage(cw.image.Image):
             return ("", False)
 
 
-def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int = -1,
-                   scedir: str = "") -> Tuple[str, int]:
+def get_filepath_s(configpath: str, dirdepth: int, filename: str, dirtype: int = -1,
+                   scedir: str = "") -> Tuple[str, bool]:
     """dirtypeに基づいて読み込むファイルのパスを取得する。"""
     if dirtype == -1:
         dirtype = 1
@@ -678,7 +693,7 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
     if not scedir:
         inusecard = cw.cwpy.event.get_inusecard()
         if cw.cwpy.event.in_inusecardevent and cw.cwpy.is_runningevent() and inusecard and\
-                inusecard.carddata.gettext("Property/Materials", ""):
+                inusecard.carddata is not None and inusecard.carddata.gettext("Property/Materials", ""):
             scedir = cw.util.join_yadodir(inusecard.carddata.gettext("Property/Materials", ""))
         else:
             scedir = cw.cwpy.sdata.scedir
@@ -738,6 +753,8 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
     elif dirtype == 4:
         if cw.cwpy.is_runningevent() and cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
             inusecard = cw.cwpy.event.get_inusecard()
+            assert inusecard
+            assert inusecard.carddata is not None
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 e_mates = inusecard.carddata.find("Property/Materials")
                 can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
@@ -767,6 +784,8 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
 
         if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
             inusecard = cw.cwpy.event.get_inusecard()
+            assert inusecard
+            assert inusecard.carddata is not None
             can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
         else:
             can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
@@ -789,7 +808,7 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
         dpath = ""
     else:
         if not configpath:
-            return ""
+            return ("", False)
         dpath = os.path.dirname(configpath)
 
     path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
@@ -798,6 +817,8 @@ def get_filepath_s(configpath: str, dirdepth: str, filename: str, dirtype: int =
 
     if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
         inusecard = cw.cwpy.event.get_inusecard()
+        assert inusecard
+        assert inusecard.carddata is not None
         can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
     else:
         can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
@@ -816,7 +837,7 @@ class JpyPartsImage(_JpySubImage):
             self.width = -1
         self.color = config.get_color(section, "color", (0, 0, 0))
         self.position_noscale = config.get_ints(section, "position", 2, (0, 0))
-        self.position = cw.s(self.position_noscale) if self.position_noscale else None
+        self.position = cw.s(self.position_noscale)
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
         self.transparent = config.get_bool(section, "transparent", True)
@@ -878,11 +899,13 @@ class JpyImage(cw.image.Image):
             for section in config.sections():
                 if not section == "init":
                     parts = JpyPartsImage(config, section, cache, mask)
-                    if parts.haswidth and parts.width < 0 and parts.dirtype == 2:
-                        # ドキュメントではwidthとheightは
-                        # 省略か-1指定で画像のサイズになると書かれているが、
-                        # 実際にはwidthが0未満かつdirtype=2だと処理が中断される
-                        break
+                    if parts.haswidth:
+                        assert parts.width is not None
+                        if parts.width < 0 and parts.dirtype == 2:
+                            # ドキュメントではwidthとheightは
+                            # 省略か-1指定で画像のサイズになると書かれているが、
+                            # 実際にはwidthが0未満かつdirtype=2だと処理が中断される
+                            break
                     parts.defaultcopymode = defaultcopymode
                     parts.starttick = starttick
                     parts.load(doanime)
@@ -930,8 +953,8 @@ class JpyCache(object):
     キャッシュした画像をセーブ・ロードする。
     """
     def __init__(self) -> None:
-        self.pos_noscale = None
-        self.img = {}
+        self.pos_noscale: Optional[Tuple[int, int]] = None
+        self.img: Dict[int, pygame.Surface] = {}
         # 一時描画を削除するために描画前背景を保存する
         self.before = None
         self.beforeback = None
@@ -973,7 +996,9 @@ class JpdcImage(cw.image.Image):
         if not doanime:
             doanime = AnimationCounter()
         config = EffectBoosterConfig(path, "jpdc:init")
-        x_noscale, y_noscale, w_noscale, h_noscale = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
+        ints = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
+        assert ints
+        x_noscale, y_noscale, w_noscale, h_noscale = ints
 
         x_noscale = max(0, x_noscale)
         y_noscale = max(0, y_noscale)
@@ -1062,7 +1087,7 @@ class JpdcImage(cw.image.Image):
 
                 npath = cw.util.get_keypath(path)
                 if npath in cw.cwpy.sdata.ex_cache:
-                    ex_cache = None
+                    ex_cache: Optional[List[Optional[Union[str, bytes]]]] = None
                 else:
                     ex_cache = [None] * len(cw.SCALE_LIST)
 
@@ -1089,6 +1114,7 @@ class JpdcImage(cw.image.Image):
                 if ex_cache is not None:
                     for i, cachepath in enumerate(ex_cache):
                         if cachepath:
+                            assert isinstance(cachepath, str)
                             try:
                                 with open(cachepath, "rb") as f:
                                     ex_cache[i] = f.read()
@@ -1096,12 +1122,14 @@ class JpdcImage(cw.image.Image):
                                     cw.util.remove(cachepath)
                             except IOError:
                                 cw.util.print_ex()
-                    cw.cwpy.sdata.ex_cache[npath] = tuple(ex_cache)
+                    cw.cwpy.sdata.ex_cache[npath] = ex_cache
 
                 pygame.image.save(saveimage_noscale, path)
 
                 if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
                     inusecard = cw.cwpy.event.get_inusecard()
+                    assert inusecard
+                    assert inusecard.carddata is not None
                     can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
                 else:
                     can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
@@ -1115,9 +1143,10 @@ class JpdcImage(cw.image.Image):
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
-                removekeys = []
+                removekeys: List[ Union[Tuple[str, str, float, Union[bool, List[bool]]],
+                                  Tuple[Type[_JpySubImage], float, bool, str]]] = []
                 for cachekey in cw.cwpy.sdata.resource_cache.keys():
-                    if isinstance(cachekey, tuple) and len(cachekey) == 5:
+                    if isinstance(cachekey, tuple) and len(cachekey) == 4:
                         if isinstance(cachekey[3], str) and\
                                 cw.util.splitext(cachekey[3])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)
@@ -1214,9 +1243,9 @@ class JptxImage(cw.image.Image):
                 self.fontpixels_noscale = fontpixels_noscale
                 self.fontcolor = fontcolor
                 self.fontface = fontface
-                self.oldfonts = []
+                self.oldfonts: List[Tuple[str, int, int, Tuple[int, int, int]]] = []
                 self.x = 0
-                self.y = 0
+                self.y = 0.0
                 self.w = 0
                 self.h = 0
                 self.tag = ""
@@ -1224,7 +1253,7 @@ class JptxImage(cw.image.Image):
                 self.tagonly = True
                 self.strike = False
                 self.create_font()
-                self.chars = []
+                self.chars: List[str] = []
 
             def create_font(self) -> None:
                 self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
@@ -1410,10 +1439,10 @@ class JptxImage(cw.image.Image):
                         info.fontface = attrs.get("fontface", face_def)
                         info.fontface = attrs.get("face", info.fontface)
                         info.create_font()
-                        color = attrs.get("fontcolor")
-                        color = attrs.get("color", color)
-                        if color:
-                            info.fontcolor = self.get_fontcolor(color, color_def)
+                        color_s = attrs.get("fontcolor")
+                        color_s = attrs.get("color", color_s)
+                        if color_s:
+                            info.fontcolor = self.get_fontcolor(color_s, color_def)
                     else:
                         info.fontface, info.fontpixels, info.fontpixels_noscale, color = info.oldfonts.pop()
                         info.create_font()
@@ -1510,7 +1539,7 @@ class JptxImage(cw.image.Image):
         else:
             return default
 
-    def parse_tag(self, tag: str) -> Tuple[str, str, Dict[str, str]]:
+    def parse_tag(self, tag: str) -> Tuple[bool, str, Dict[str, str]]:
         """HTMLタグをパースして、
         (スタートタグか否か, タグ名, 属性の辞書)のタプルを返す。
         """
@@ -1527,7 +1556,7 @@ class JptxImage(cw.image.Image):
 
         # タグの属性(辞書)
         groups = re.findall(r"[^\s=]+\s*=\s*[^\s=]+", tag)
-        attrs = {}
+        attrs: Dict[str, str] = {}
 
         for group in groups:
             key, value = group.split("=")
@@ -1544,18 +1573,18 @@ class EffectBoosterConfig(object):
         r_opt = re.compile(r'([^:=\s][^:=]*)\s*[:=]\s*(.*)$')
         self._orderedsecs = []
         self._sections = {}
-        cur_sec = {}
+        cur_sec: Dict[str, str] = {}
         jptxtxt = []
         in_jptxtxt = False
         ext = cw.util.splitext(path)[1].lower()
 
         with open(path, "rb") as f:
 
-            for line in f:
-                if not in_jptxtxt and line[0:1] in b'#;':
+            for line_b in f:
+                if not in_jptxtxt and line_b[0:1] in b'#;':
                     continue
 
-                line = str(line, cw.MBCS, "replace").replace("\r\n", "\n")
+                line = str(line_b, cw.MBCS, "replace").replace("\r\n", "\n")
                 lline = line.lower()
                 sline = line.strip()
 
@@ -1621,7 +1650,13 @@ class EffectBoosterConfig(object):
     def has_section(self, name: str) -> bool:
         return name in self._sections
 
-    def get(self, section: str, option: str, default: Optional[str] = None) -> str:
+    @typing.overload
+    def get(self, section: str, option: str, default: str) -> str: ...
+
+    @typing.overload
+    def get(self, section: str, option: str, default: None) -> Optional[str]: ...
+
+    def get(self, section: str, option: str, default: Optional[str] = None) -> Optional[str]:
         sec = self._sections.get(section, None)
 
         if sec:
@@ -1629,23 +1664,35 @@ class EffectBoosterConfig(object):
         else:
             return default
 
-    def get_int(self, section: str, option: str, default: Optional[int] = None) -> int:
+    @typing.overload
+    def get_int(self, section: str, option: str, default: int) -> int: ...
+
+    @typing.overload
+    def get_int(self, section: str, option: str, default: None) -> Optional[int]: ...
+
+    def get_int(self, section: str, option: str, default: Optional[int] = None) -> Optional[int]:
         try:
-            value = self.get(section, option, default)
-            if value == default:
+            s = self.get(section, option, None)
+            if s is None:
                 return default
-            value = value.strip()
+            value = s.strip()
             if value.endswith("px"):
                 return int(value[:-2])
             return int(value)
         except ValueError:
             return default
 
-    def get_bool(self, section: str, option: str, default: Optional[bool] = None) -> bool:
-        return bool(self.get_int(section, option, default))
+    def get_bool(self, section: str, option: str, default: bool) -> bool:
+        return bool(self.get_int(section, option, 1 if default else 0))
+
+    @typing.overload
+    def get_color(self, section: str, option: str, default: Tuple[int, int, int]) -> Tuple[int, int, int]: ...
+
+    @typing.overload
+    def get_color(self, section: str, option: str, default: None) -> Optional[Tuple[int, int, int]]: ...
 
     def get_color(self, section: str, option: str,
-                  default: Optional[Tuple[int, int, int]] = None) -> Tuple[int, int, int]:
+                  default: Optional[Tuple[int, int, int]] = None) -> Optional[Tuple[int, int, int]]:
         # 仕様にはないがCardWirthの実装では次の名称が有効
         colortable = {
                        "black":   (0x00, 0x00, 0x00),
@@ -1666,8 +1713,8 @@ class EffectBoosterConfig(object):
                        "white":   (0xFF, 0xFF, 0xFF),
                       }
         try:
-            s = self.get(section, option, default)
-            if s == default:
+            s = self.get(section, option, None)
+            if s is None:
                 return default
             s = s.lower()
             if s in colortable:
@@ -1679,10 +1726,35 @@ class EffectBoosterConfig(object):
         except ValueError:
             return default
 
-    def get_ints(self, section: str, option: str, length: int, default: Tuple[int, ...] = None) -> Tuple[int, ...]:
+    @typing.overload
+    def get_ints(self, section: str, option: str, length: Literal[2],
+                 default: Tuple[int, int]) -> Tuple[int, int]: ...
+
+    @typing.overload
+    def get_ints(self, section: str, option: str, length: Literal[2],
+                 default: None) -> Optional[Tuple[int, int]]: ...
+
+    @typing.overload
+    def get_ints(self, section: str, option: str, length: Literal[3],
+                 default: Tuple[int, int, int]) -> Tuple[int, int, int]: ...
+
+    @typing.overload
+    def get_ints(self, section: str, option: str, length: Literal[3],
+                 default: None) -> Optional[Tuple[int, int, int]]: ...
+
+    @typing.overload
+    def get_ints(self, section: str, option: str, length: Literal[4],
+                 default: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]: ...
+
+    @typing.overload
+    def get_ints(self, section: str, option: str, length: Literal[4],
+                 default: None) -> Optional[Tuple[int, int, int, int]]: ...
+
+    def get_ints(self, section: str, option: str, length: int,
+                 default: Tuple[int, ...] = None) -> Optional[Tuple[int, ...]]:
         try:
-            s = self.get(section, option, default)
-            if s == default:
+            s = self.get(section, option, None)
+            if s is None:
                 return default
 
             seq = []

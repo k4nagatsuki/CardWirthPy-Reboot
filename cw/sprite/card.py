@@ -1113,7 +1113,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.data = cw.data.xml2etree(element=e)
         self.fpath = self.data.fpath
         # CharacterCard初期化
-        character.Enemy.__init__(self)
+        character.Enemy.__init__(self, self.data)
         self.update_skin()
         self.deck.set(self, draw=False)
 
@@ -1277,7 +1277,7 @@ class FriendCard(CWPyCard, character.Friend):
 
         self.fpath = self.data.fpath
         # CharacterCard初期化
-        character.Friend.__init__(self)
+        character.Friend.__init__(self, data)
         self.deck.set(self, draw=False)
         # カード画像
         self.imgpaths = []

@@ -59,7 +59,7 @@ else:
     filesystem_encoding = sys.getfilesystemencoding()
 
 # CWPyThread
-cwpy = thread.CWPy()
+cwpy: thread.CWPy = thread.CWPy()
 
 # ファイル出力スレッド
 fsync = util.FileSync()
@@ -103,7 +103,7 @@ SCALE_LIST = (2, 4, 8, 16)
 
 # 特殊エリアのID
 AREAS_SP = (-1, -2, -3, -4, -5)
-AREAS_TRADE = (-1, -2, -5)       # カード移動操作エリア
+AREAS_TRADE: Tuple[int, int, int] = (-1, -2, -5)    # カード移動操作エリア
 AREA_TRADE1 = -1                 # カード移動操作エリア(宿・パーティなし時)
 AREA_TRADE2 = -2                 # カード移動操作エリア(宿・パーティロード中時)
 AREA_TRADE3 = -5                 # カード移動操作エリア(キャンプエリア)

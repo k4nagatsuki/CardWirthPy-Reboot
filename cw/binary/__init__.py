@@ -26,7 +26,10 @@ class ConvertingThread(threading.Thread):
         self.complete = False
 
     def run(self) -> None:
-        self.path = self.cwdata.convert()
+        if isinstance(self.cwdata, (cwyado.CWYado, cwscenario.CWScenario)):
+            self.path = self.cwdata.convert()
+        else:
+            self.cwdata.convert()
         self.complete = True
 
 

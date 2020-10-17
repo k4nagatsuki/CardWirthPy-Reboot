@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Union
+from typing import Optional, Union
 
 
 class BgImage(base.CWBinaryBase):
@@ -106,7 +106,7 @@ class BgImage(base.CWBinaryBase):
             else:
                 raise ValueError("Background type: %s" % (bgtype))
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -162,6 +162,8 @@ class BgImage(base.CWBinaryBase):
                     e = cw.data.make_element("Gradient", attrs={"direction": dire})
                     e.append(makecolor("EndColor", self.color2))
                     self.data.append(e)
+            else:
+                raise ValueError("%s is Invalid Background Type" % self.type)
 
             e = cw.data.make_element("Flag", self.flag)
             self.data.append(e)
@@ -189,7 +191,7 @@ class BgImage(base.CWBinaryBase):
 
         # 背景画像
         imgpath = ""
-        mask = cw.util.str2bool(data.get("mask", False))
+        mask = data.getbool(".", "mask", False)
 
         # テキストセル
         text = ""
@@ -212,21 +214,21 @@ class BgImage(base.CWBinaryBase):
         color2 = (0, 0, 0, 255)
 
         def getcolor(e, defcolor):
-            r = int(e.get("r", str(defcolor[0])))
-            g = int(e.get("g", str(defcolor[1])))
-            b = int(e.get("b", str(defcolor[2])))
-            a = int(e.get("a", str(defcolor[3])))
+            r = e.getint(".", "r", defcolor[0])
+            g = e.getint(".", "g", defcolor[1])
+            b = e.getint(".", "b", defcolor[2])
+            a = e.getint(".", "a", defcolor[3])
             return (r, g, b, a)
 
         for e in data:
             if e.tag == "Flag":
                 flag = e.text
             elif e.tag == "Location":
-                left = int(e.get("left"))
-                top = int(e.get("top"))
+                left = e.getint(".", "left")
+                top = e.getint(".", "top")
             elif e.tag == "Size":
-                width = int(e.get("width"))
-                height = int(e.get("height"))
+                width = e.getint(".", "width")
+                height = e.getint(".", "height")
 
             elif data.tag == "BgImage":
                 if e.tag == "ImagePath":
@@ -238,19 +240,19 @@ class BgImage(base.CWBinaryBase):
                     text = e.text
                 elif e.tag == "Font":
                     fontface = e.text
-                    fontsize = int(e.get("size", fontsize))
+                    fontsize = e.getint(".", "size", fontsize)
                     for e_font in e:
                         if e_font.tag == "Color":
                             color = getcolor(e_font, color)
-                    bold = cw.util.str2bool(e.get("bold", bold))
-                    italic = cw.util.str2bool(e.get("italic", italic))
-                    underline = cw.util.str2bool(e.get("underline", underline))
-                    strike = cw.util.str2bool(e.get("strike", strike))
+                    bold =e.getbool(".", "bold", bold)
+                    italic = e.getbool(".", "italic", italic)
+                    underline = e.getbool(".", "underline", underline)
+                    strike = e.getbool(".", "strike", strike)
                 elif e.tag == "Vertical":
                     vertical = cw.util.str2bool(e.text)
                 elif e.tag == "Bordering":
                     btype = base.CWBinaryBase.unconv_borderingtype(e.get("type", "None"))
-                    bwidth = int(e.get("width", "1"))
+                    bwidth = e.getint(".", "width", 1)
                     for e_bdr in e:
                         if e_bdr.tag == "Color":
                             bcolor = getcolor(e_bdr, bcolor)

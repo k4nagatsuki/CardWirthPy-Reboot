@@ -20,7 +20,7 @@ _WAIT_CHARS_BEFORE_SPACE = "・´｀：；ー―～…‥’”）〕］｝〉�
 
 
 class MessageWindow(base.CWPySprite):
-    def __init__(self, text: str, names: List[str],
+    def __init__(self, text: str, names: List[Tuple[int, str]],
                  imgpaths: Optional[Iterable[Tuple[cw.image.ImageInfo,
                                                    bool,
                                                    Optional[Union[cw.character.Character, cw.header.CardHeader]],
@@ -35,7 +35,7 @@ class MessageWindow(base.CWPySprite):
                  steptable: Optional[Dict[str, cw.data.Step]] = None,
                  varianttable: Optional[Dict[str, cw.data.Variant]] = None,
                  backlog: bool = False, result: Optional[Union[int, cw.event.EffectBreakError]] = None,
-                 showing_result: int = -1, versionhint: str = "",
+                 showing_result: int = -1, versionhint: Tuple[str, str, bool, bool, bool] = None,
                  specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]] = None,
                  trim_top_noscale: int = 0, columns: int = 1, spcharinfo: Optional[Set[int]] = None,
                  centering_x: bool = False, centering_y: bool = False,
@@ -786,7 +786,7 @@ class MessageWindow(base.CWPySprite):
 
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names: List[str], text: str = "", pos_noscale: Optional[Tuple[int, int]] = None,
+    def __init__(self, names: List[Tuple[int, str]], text: str = "", pos_noscale: Optional[Tuple[int, int]] = None,
                  size_noscale: Optional[Tuple[int, int]] = None, backlog: bool = False,
                  result: Optional[Union[int, cw.event.EffectBreakError]] = None, showing_result: int = -1,
                  columns: int = 1, barspchr: bool = True,

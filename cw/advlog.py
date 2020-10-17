@@ -9,7 +9,7 @@ import threading
 
 import cw
 
-from typing import Callable, List, Optional, TextIO, Tuple, Union
+from typing import Callable, Iterable, List, Optional, TextIO, Tuple, Union
 
 VOID = 0
 INITIAL = 1
@@ -24,11 +24,14 @@ SEPARATOR = 7
 class AdventurerLogger(object):
 
     def __init__(self) -> None:
-        self._logger = None
+        self._logger: Optional[Logger] = None
         self._enable = False
         self._last_logtype = VOID
 
     def start_scenario(self) -> None:
+        assert cw.cwpy.ydata
+        assert cw.cwpy.ydata.party
+
         self.resume_scenario("")
 
         lines = []
@@ -78,8 +81,9 @@ class AdventurerLogger(object):
         # あるはずなので、重複チェックはせず、
         # 同一ファイル名の場合は意図的に上書きする。
         if not logfilepath:
-            titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
-            logfilepath = cw.util.format_title(cw.cwpy.setting.playlogformat, titledicfn)
+            titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+            assert isinstance(titledic, tuple)
+            logfilepath = cw.util.format_title(cw.cwpy.setting.playlogformat, titledic[1])
         self.logfilepath = logfilepath
 
         # プレイログ作成開始
@@ -124,6 +128,7 @@ class AdventurerLogger(object):
     def _put_logtype(self, logtype: int) -> None:
         if self._enable:
             if self._last_logtype != VOID:
+                assert self._logger
                 if self._last_logtype == MESSAGE and logtype != MESSAGE:
                     # メッセージが途切れた所で区切り線を出力する
                     self._logger.queue.put_nowait(("-" * cw.LOG_SEPARATOR_LEN_SHORT, None))
@@ -136,7 +141,21 @@ class AdventurerLogger(object):
         else:
             self._last_logtype = VOID
 
-    def _put(self, logtype: int, data: Optional[str], func: Optional[Callable[..., str]] = None,
+    def _put(self, logtype: int, data: Union[Optional[str],
+                                             int,
+                                             Iterable[str],
+                                             Tuple[str, str, bool, Optional[str], str, bool],
+                                             Tuple[str, int, int, int, int, bool],
+                                             Tuple[str, int, int, bool],
+                                             Tuple[str, int, bool],
+                                             Tuple[str, str, int, str, int, bool],
+                                             Tuple[str, str, int, bool],
+                                             Tuple[str, bool, bool, bool],
+                                             Tuple[str, bool, bool],
+                                             Tuple[str, bool],
+                                             Tuple[str, cw.data.CWPyElement, bool],
+                                             Tuple[str, int, int, int, int]],
+             func: Optional[Callable[..., Optional[str]]] = None,
              usecard: bool = False) -> None:
         if logtype in (MOTION, MOTION_IN_BATTLE) and not usecard:
             if not (cw.cwpy.event.in_cardeffectmotion or cw.cwpy.event.in_inusecardevent):
@@ -194,16 +213,18 @@ class AdventurerLogger(object):
                 return "%sは逃走した。" % (pname)
             else:
                 return "%sは逃走を試みたが、失敗した。" % (pname)
+        assert cw.cwpy.ydata
+        assert cw.cwpy.ydata.party
         self._put(SYSTEM, (cw.cwpy.ydata.party.name, success), runaway)
 
     def start_round(self, roundval: int) -> None:
         self._put(SYSTEM, roundval, lambda roundval: "<<<< ラウンド %s >>>>" % (roundval))
 
-    def _motion_type(self) -> None:
+    def _motion_type(self) -> int:
         return MOTION_IN_BATTLE if cw.cwpy.is_battlestatus() else MOTION
 
     def use_card(self, ccard: cw.character.Character, header: cw.header.CardHeader,
-                 targets: List["cw.sprite.card.CWPyCard"]) -> None:
+                 targets: Union["cw.sprite.card.CWPyCard", List["cw.sprite.card.CWPyCard"]]) -> None:
         def use_card(params: Tuple[str, str, bool, str, str, bool]) -> str:
             (castname, cardname, isbeast, targetname, targettype, is_battlestatus) = params
             if is_battlestatus:
@@ -342,11 +363,11 @@ class AdventurerLogger(object):
         self._put(self._motion_type(), (target.name, value, newlife, oldlife, target.maxlife,
                                         self.in_cardeffectmotion()), damage_motion)
         if dissleep:
-            def dissleep(params: Tuple[str, bool]) -> str:
+            def dissleep_func(params: Tuple[str, bool]) -> str:
                 (name, in_cardeffectmotion) = params
                 s = "%sは目を覚ました。" % (name)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
-            self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), dissleep)
+            self._put(self._motion_type(), (target.name, self.in_cardeffectmotion()), dissleep_func)
 
     def absorb_motion(self, user: Optional[cw.character.Character], healvalue: int, newulife: int, oldulife: int,
                       target: cw.character.Character, value: int, newlife: int, oldlife: int, dissleep: bool) -> None:
@@ -648,11 +669,13 @@ class AdventurerLogger(object):
         self._deal_motion(target, is_inactive, is_battlestatus, -1)
 
     def dealskillcard_motion(self, target: cw.character.Character, is_inactive: bool, is_battlestatus: bool) -> None:
-        def dealskillcard_motion(params: Tuple[str, bool, bool, bool]) -> str:
+        def dealskillcard_motion(params: Tuple[str, bool, bool, bool]) -> Optional[str]:
             (name, is_inactive, is_battlestatus, in_cardeffectmotion) = params
             if not is_inactive and is_battlestatus:
                 s = "%sに特殊技能カードが配付された。" % (name)
                 return self.wrap_effectmotion(s, in_cardeffectmotion)
+            else:
+                return None
         self._put(self._motion_type(), (target.name, is_inactive, is_battlestatus, self.in_cardeffectmotion()),
                   dealskillcard_motion)
 
@@ -742,6 +765,7 @@ class AdventurerLogger(object):
 
 
 class Logger(threading.Thread):
+    queue: queue.Queue
 
     def __init__(self, fpath: str, enable: bool) -> None:
         threading.Thread.__init__(self)

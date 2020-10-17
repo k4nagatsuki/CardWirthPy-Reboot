@@ -673,16 +673,25 @@ class EffectMotion(object):
             self._vocation_level = get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
             self._level = ccard.level if ccard else 0
         else:
-            assert self.cardheader
-            assert isinstance(self.user, cw.character.Character)
             # 使用者の行動力修正
-            self._enhance_act = self.user.get_enhance_act() if self.is_enhance_act else 0
+            if self.is_enhance_act:
+                assert isinstance(self.user, cw.character.Character)
+                self._enhance_act = self.user.get_enhance_act()
+            else:
+                self._enhance_act = 0
             # 使用者の適性値(効果コンテントの場合は"6")
-            self._vocation_val = self.cardheader.get_vocation_val(self.user) if self.cardheader else 6
+            if self.cardheader:
+                assert isinstance(self.user, cw.character.Character)
+                self._vocation_val = self.cardheader.get_vocation_val(self.user)
+            else:
+                self._vocation_val = 6
             # 使用者の適性レベル(効果コンテントの場合は"2")
             # スキルカードの場合は行動力修正の影響を受ける
-            self._vocation_level = self.cardheader.get_vocation_level(self.user, enhance_act=self.is_enhance_act)\
-                if self.cardheader else 2
+            if self.cardheader:
+                assert isinstance(self.user, cw.character.Character)
+                self._vocation_level = self.cardheader.get_vocation_level(self.user, enhance_act=self.is_enhance_act)
+            else:
+                self._vocation_level = 2
             # 使用者のレベルもしくは効果コンテントの対象レベル
             self._level = cw.util.numwrap(self.user.level if self.user else self._targetlevel, -65536, 65536)
 
@@ -1532,7 +1541,7 @@ class EffectMotion(object):
         return True
 
 
-def get_vocation_val(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, str], enhance_act: bool = False) -> int:
+def get_vocation_val(ccard: "cw.character.Character", vocation: Tuple[str, str], enhance_act: bool = False) -> int:
     """
     適性値(身体特性+精神特性の合計値)を返す。
     enhance_act : 行動力を加味する場合、True
@@ -1561,7 +1570,7 @@ def get_vocation_val(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, st
     return cw.util.numwrap(n, -65536, 65536)
 
 
-def get_vocation_level(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, str], enhance_act: bool = False) -> int:
+def get_vocation_level(ccard: "cw.character.Character", vocation: Tuple[str, str], enhance_act: bool = False) -> int:
     """
     適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
     enhance_act : 行動力を加味する場合、True
@@ -1601,7 +1610,7 @@ def get_vocation_level(ccard: "cw.sprite.card.PlayerCard", vocation: Tuple[str, 
 # ------------------------------------------------------------------------------
 
 def get_effectivetargets(header: "cw.header.CardHeader",
-                         targets: Iterable["cw.character.Character"]) -> List["cw.character.Character"]:
+                         targets: Iterable["cw.sprite.card.CWPyCard"]) -> List["cw.sprite.card.CWPyCard"]:
     """
     カード効果が有効なターゲットのリストを返す。
     header: CardHeader
@@ -1622,6 +1631,7 @@ def get_effectivetargets(header: "cw.header.CardHeader",
         # カード効果を上から順に見ていき、対象の存在する効果があれば
         # その効果の対象群を返す
         for motion in motions:
+            assert isinstance(t, cw.character.Character)
             if t.is_effective(header, motion):
                 sets.add(t)
                 break

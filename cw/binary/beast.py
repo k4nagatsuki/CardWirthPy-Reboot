@@ -17,6 +17,8 @@ class BeastCard(base.CWBinaryBase):
     from . import cast
     from . import effectmotion
 
+    limit: int
+
     def __init__(self, parent: Optional[Union[cast.CastCard, effectmotion.EffectMotion]], f: "cw.binary.cwfile.CWFile",
                  yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
                  image_export: bool = True, summoneffect: bool = False) -> None:

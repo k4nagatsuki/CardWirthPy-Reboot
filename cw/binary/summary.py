@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class Summary(base.CWBinaryBase):
     """見出しデータ(Summary.wsm)。
@@ -53,7 +55,7 @@ class Summary(base.CWBinaryBase):
         self.skintype = ""
         self.tags = ""
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -106,9 +108,9 @@ class Summary(base.CWBinaryBase):
         required_coupons = ""
         required_coupons_num = 0
         area_id = 0
-        steps = []
-        flags = []
-        variants = []
+        steps: Optional[cw.data.CWPyElement] = None
+        flags: Optional[cw.data.CWPyElement] = None
+        variants: Optional[cw.data.CWPyElement] = None
         level_min = 0
         level_max = 0
 
@@ -145,13 +147,19 @@ class Summary(base.CWBinaryBase):
         f.write_string(required_coupons, True)
         f.write_dword(required_coupons_num)
         f.write_dword(area_id + 40000)
-        f.write_dword(len(steps))
-        for step in steps:
-            Step.unconv(f, step)
-        f.write_dword(len(flags))
-        for flag in flags:
-            Flag.unconv(f, flag)
-        for variant in variants:
+        if steps is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(steps))
+            for step in steps:
+                Step.unconv(f, step)
+        if flags is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(flags))
+            for flag in flags:
+                Flag.unconv(f, flag)
+        if variants is not None and len(variants):
             f.check_wsnversion("4", "コモン")
         f.write_dword(0)  # 不明
         f.write_dword(level_min)
@@ -166,7 +174,7 @@ class Step(base.CWBinaryBase):
         self.default = f.dword()
         self.variable_names = [f.string() for _cnt in range(10)]
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -225,7 +233,7 @@ class Flag(base.CWBinaryBase):
         self.default = f.boolean()
         self.variable_names = [f.string() for _cnt in range(2)]
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:

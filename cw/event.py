@@ -22,7 +22,7 @@ class EventInterface(object):
         # 現在起動中のイベントのリスト(Event)
         self._nowrunningevents: List[Event] = []
         # 現在起動中のパッケージイベントの辞書(keyはパッケージID)
-        self.nowrunningpacks: Dict[int, EventEngine] = {}
+        self.nowrunningpacks: Dict[int, Tuple[cw.data.CWPyElement, Tuple[str, str, bool, bool, bool]]] = {}
         # デバッガで表示する呼出履歴
         self.stackinfo: List[Optional[Union[Event, Tuple[Event, cw.data.CWPyElement, int]]]] = [None] * 16
         self.stackinfo_len = 0
@@ -78,7 +78,8 @@ class EventInterface(object):
         self._nowrunningevents.append(event)
 
     def replace_event(self, event: "Event",
-                      versionhint_base: Optional[Tuple[int, Tuple[str, str, bool, bool, bool]]] = None) -> None:
+                      versionhint_base: Optional[Tuple[int,
+                                                       Optional[Tuple[str, str, bool, bool, bool]]]] = None) -> None:
         """パッケージへのリンクによって
         実行中のイベントを置換する。
         """
@@ -426,7 +427,7 @@ class EventInterface(object):
         if dbg:
             dbg.pop_stackinfo_cwpy()
 
-    def replace_stackinfo(self, index: int, item: Tuple["Event", cw.data.CWPyElement, int]) -> None:
+    def replace_stackinfo(self, index: int, item: Union["Event", Tuple["Event", cw.data.CWPyElement, int]]) -> None:
         """呼び出し履歴の途中または末尾を置換する。"""
         assert isinstance(cw.cwpy.event.stackinfo[self.stackinfo_len+index], cw.event.Event)
         self.stackinfo[self.stackinfo_len+index] = item
@@ -734,6 +735,7 @@ class EffectBreakError(EventError):
 
 
 class Event(object):
+    is_active: bool
     packageid: int
     keycode_matching: str
     line_index: int
@@ -766,7 +768,7 @@ class Event(object):
         self.line_index = 0
         # (パッケージ, 呼出前のcur_content, 呼出前のversionhint)
         # パッケージがNoneならスタートの呼び出し
-        self.nowrunningcontents: List[Tuple[Event,
+        self.nowrunningcontents: List[Tuple[Optional[Event],
                                             cw.data.CWPyElement,
                                             int,
                                             Optional[Tuple[str, str, bool, bool, bool]]]] = []
@@ -779,7 +781,7 @@ class Event(object):
         # パッケージイベントであればパッケージIDを設定
         self.packageid = 0
         # 実行後に互換性情報を書き戻す必要があれば設定
-        self._versionhint_base: Optional[Tuple[int, Tuple[str, str, bool, bool, bool]]] = None
+        self._versionhint_base: Optional[Tuple[int, Optional[Tuple[str, str, bool, bool, bool]]]] = None
 
         self._stored_specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]] = None
 
@@ -821,7 +823,7 @@ class Event(object):
         self.skip_action = False
 
     def copy_from(self, event: "Event",
-                  versionhint_base: Optional[Tuple[int, Tuple[str, str, bool, bool, bool]]] = None) -> None:
+                  versionhint_base: Optional[Tuple[int, Optional[Tuple[str, str, bool, bool, bool]]]] = None) -> None:
         """実行中の処理をパッケージのイベントに差し替えるため、
         eventの情報をこのEventへコピーする。
         """
@@ -1278,7 +1280,9 @@ class Targeting(object):
     カード等の効果対象の処理を行う。
     """
     def __init__(self,
-                 user: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"],
+                 user: Optional[Union["cw.sprite.card.PlayerCard",
+                                      "cw.sprite.card.EnemyCard",
+                                      "cw.sprite.card.FriendCard"]],
                  targets: List["cw.sprite.card.CWPyCard"],
                  setcardtarget: bool) -> None:
         self.user = user
@@ -1356,7 +1360,7 @@ class Targeting(object):
             self._target_index = 0
         self._target_updated = False
 
-    def get_nexttarget(self) -> Optional["cw.character.Character"]:
+    def get_nexttarget(self) -> Optional["cw.sprite.card.CWPyCard"]:
         self.update_targets()
         if self._target_index < len(self.targets):
             target = self.targets[self._target_index]
@@ -1530,7 +1534,7 @@ class CardEvent(Event, Targeting):
             target.clear_cardtarget()
 
         # ズームアウトアニメーション
-        if self.user.zoomimgs:
+        if isinstance(self.user, cw.sprite.card.CWPyCard) and self.user.zoomimgs:
             cw.animation.animate_sprite(self.user, "zoomout", battlespeed=cw.cwpy.is_battlestatus())
 
         # 互換性マークを削除

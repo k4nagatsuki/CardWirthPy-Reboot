@@ -398,7 +398,7 @@ def get_xmltemplate(name: str) -> str:
     return globals()[name]
 
 
-def get_xmltext(name: str, d: Dict[str, Union[str, int]]) -> str:
+def get_xmltext(name: str, d: Dict[str, str]) -> str:
     s = get_xmltemplate(name)
     return Template(s).safe_substitute(d)
 

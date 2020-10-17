@@ -17,8 +17,8 @@ class CWBinaryBase(object):
                  yadodata: bool = False, materialdir: str = "Material", image_export: bool = True) -> None:
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
-        if hasattr(f, "name"):
-            self.fpath = f.name
+        if hasattr(f, "filename"):
+            self.fpath = f.filename
         else:
             self.fpath = ""
         self.materialbasedir = ""

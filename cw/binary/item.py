@@ -15,7 +15,9 @@ class ItemCard(base.CWBinaryBase):
     from . import adventurer
     from . import cast
 
-    def __init__(self, parent: Union[adventurer.Adventurer, cast.CastCard], f: "cw.binary.cwfile.CWFile",
+    limit: int
+
+    def __init__(self, parent: Optional[Union[adventurer.Adventurer, cast.CastCard]], f: "cw.binary.cwfile.CWFile",
                  yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
                  image_export: bool = True) -> None:
         from . import effectmotion

@@ -9,7 +9,7 @@ import subprocess
 
 import cw
 
-from typing import List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 
 def find_skin(name: str, author: str, skintype: str = "") -> List[str]:
@@ -112,7 +112,7 @@ def is_skin(path: str) -> bool:
                     z.close()
 
         elif lpath.endswith(".cab"):
-            return cw.util.cab_hasfile(path, "Skin.xml")
+            return bool(cw.util.cab_hasfile(path, "Skin.xml"))
 
     return False
 
@@ -126,21 +126,33 @@ INSTALL_PROGRESS = 3
 INSTALL_PROGRESS_ARCHIVE = 5
 
 
-def install_skin(path: str, tempdir: str,
-                 progress: type(lambda msg, progress=0: None) = lambda msg, progress=0: None) -> str:
+def _progress_with_msg(msg: str, progress: int = 1) -> None:
+    pass
+
+
+def install_skin(path: str, tempdir: str, progress: Callable[[str, int], None] = _progress_with_msg) -> str:
     """
     pathのスキンをインストールする。
     """
-    tempdir2 = None
+    tempdir2: Optional[str] = None
     try:
         if os.path.isfile(path):
             # アーカイブを展開する
-            progress("%s を展開中..." % os.path.basename(path))
+            iscab = False
+
+            def decompress(path: str, tempdir: str, startup: Callable[[int], None],
+                           progress: Callable[[int], bool]) -> str:
+                if iscab:
+                    return cw.util.decompress_zip(path, tempdir, startup=startup, progress=progress)
+                else:
+                    return cw.util.decompress_cab(path, tempdir, startup=startup, progress=progress)
+
+            progress("%s を展開中..." % os.path.basename(path), 1)
             lpath = path.lower()
             if lpath.endswith(".zip") or lpath.endswith(".lzh"):
-                decompress = cw.util.decompress_zip
+                iscab = False
             elif lpath.endswith(".cab"):
-                decompress = cw.util.decompress_cab
+                iscab = True
             else:
                 raise SkinInstallError("%s はスキンではありません。" % os.path.basename(path))
 
@@ -153,12 +165,13 @@ def install_skin(path: str, tempdir: str,
             def startup(num: int) -> None:
                 obj.file_count = num
                 s = "%s を展開中... (%s/%s)" % (os.path.basename(path), obj.decompress_count, obj.file_count)
-                progress(s, progress=0)
+                progress(s, 1)
 
-            def progress_arc(num: int) -> None:
+            def progress_arc(num: int) -> bool:
                 obj.decompress_count = num
                 s = "%s を展開中... (%s/%s)" % (os.path.basename(path), obj.decompress_count, obj.file_count)
-                progress(s, progress=0)
+                progress(s, 1)
+                return False
 
             try:
                 tempdir2 = decompress(path, tempdir, startup=startup, progress=progress_arc)
@@ -179,8 +192,8 @@ def install_skin(path: str, tempdir: str,
         else:
             skinpath = cw.util.join_paths(path, "Skin.xml")
 
-        progress("スキン情報を読み込んでいます...")
-        rootattrs = {}
+        progress("スキン情報を読み込んでいます...", 1)
+        rootattrs: Dict[str, str] = {}
         try:
             etree = cw.data.xml2etree(skinpath, tag="Property")
         except Exception:
@@ -200,9 +213,9 @@ def install_skin(path: str, tempdir: str,
             name = basedata.gettext("Name", "")
             author = basedata.gettext("Author", "")
             skintype = basedata.gettext("Type", "")
-            base = find_skin(name, author, skintype)
-            if base:
-                base = cw.util.join_paths("Data/Skin", base[0])
+            base_l = find_skin(name, author, skintype)
+            if base_l:
+                base: Optional[str] = cw.util.join_paths("Data/Skin", base_l[0])
             else:
                 baseinfo = " スキン名 = %s" % (name if name else "(無し)")
                 baseinfo += "\n 作者名 = %s" % (author if author else "(無し)")
@@ -217,12 +230,12 @@ def install_skin(path: str, tempdir: str,
         dpath = cw.util.dupcheck_plus(dpath, False)
         try:
             if base:
-                progress("「%s」のベーススキンをコピーしています..." % sname)
+                progress("「%s」のベーススキンをコピーしています..." % sname, 1)
                 shutil.copytree(base, dpath)
-                progress("「%s」のデータをコピーしています..." % sname)
+                progress("「%s」のデータをコピーしています..." % sname, 1)
                 cw.util.copytree_overwrite(os.path.dirname(skinpath), dpath)
             else:
-                progress("「%s」のデータをコピーしています..." % sname, progress=2)
+                progress("「%s」のデータをコピーしています..." % sname, 2)
                 shutil.copytree(os.path.dirname(skinpath), dpath)
             return dpath
         except Exception:
@@ -232,7 +245,7 @@ def install_skin(path: str, tempdir: str,
 
     finally:
         if tempdir2:
-            progress("一時ファイルを削除しています...")
+            progress("一時ファイルを削除しています...", 1)
             cw.util.remove(tempdir2)
 
 

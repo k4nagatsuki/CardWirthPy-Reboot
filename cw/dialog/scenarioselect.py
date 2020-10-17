@@ -45,7 +45,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
     _arrange_bookmark: wx.MenuItem
 
     def __init__(self, parent: wx.TopLevelWindow, db: cw.scenariodb.Scenariodb, lastscenario: List[str],
-                 lastscenariopath: str, lastfindresult: List[str]) -> None:
+                 lastscenariopath: str,
+                 lastfindresult: List[Union[cw.header.ScenarioHeader, str, "FindResult"]]) -> None:
         from . import scenarioinstall
 
         assert cw.cwpy.ydata

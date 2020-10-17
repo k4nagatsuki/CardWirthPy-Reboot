@@ -721,6 +721,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
             for i, scale in enumerate(itertools.chain((1,), cw.SCALE_LIST)):
                 data2 = caches[i]
                 if data2:
+                    assert isinstance(data2, bytes)
                     data = data2
                     up_scr2 = scale
                 if scale == up_scr:
@@ -3737,7 +3738,7 @@ assert format_title("1\\%2\\[3\\]4\\\\", {}) == "1%2[3]4\\"
 # ------------------------------------------------------------------------------
 
 def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
-               maskpos: Union[Tuple[int, int], str] = (0, 0), f: Optional[io.RawIOBase] = None, retry: bool = True,
+               maskpos: Union[Tuple[int, int], str] = (0, 0), f: Optional[BinaryIO] = None, retry: bool = True,
                can_loaded_scaledimage: bool = True,
                noscale: bool = False, up_scr: Optional[Union[int, float]] = None) -> wx.Bitmap:
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""

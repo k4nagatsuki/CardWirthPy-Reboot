@@ -7,27 +7,30 @@ import wx
 
 import cw
 
-from typing import Union, List
+from typing import Generic, List, TypeVar
+
+CardHeaderType = TypeVar("CardHeaderType", cw.header.CardHeader, cw.header.InfoCardHeader)
 
 
 # ------------------------------------------------------------------------------
 # カード情報ダイアログ　スーパークラス
 # ------------------------------------------------------------------------------
 
-class CardInfo(wx.Dialog):
+class CardInfo(wx.Dialog, Generic[CardHeaderType]):
     """
     カード情報ダイアログ　スーパークラス
     """
-    list: List[Union[cw.header.CardHeader, cw.header.InfoCardHeader]]
+    selection: CardHeaderType
+    list: List[CardHeaderType]
     index: int
 
     def __init__(self, parent: wx.TopLevelWindow, scedir: str = "") -> None:
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
-        self.cwpy_debug = False
+        self.cwpy_debug: bool = False
         self.csize = self.GetClientSize()
-        self.scedir = scedir
+        self.scedir: str = scedir
 
         # フォントによってダイアログサイズを決定する
         dc = wx.ClientDC(self)
@@ -168,7 +171,7 @@ class CardInfo(wx.Dialog):
             dc = wx.PaintDC(self.toppanel)
 
         # カード画像
-        negaflag = self.selection
+        negaflag = self.selection.negaflag
         self.selection.negaflag = False
         bmp = self.selection.cardimg.get_cardwxbmp(self.selection)
         self.selection.negaflag = negaflag
@@ -242,6 +245,7 @@ class CardInfo(wx.Dialog):
 class MenuCardInfo(CardInfo):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         # カード情報
+        assert isinstance(cw.cwpy.selection, cw.header.CardHeader)
         self.selection = cw.cwpy.selection
         self.list = [mcard for mcard in cw.cwpy.get_mcards("visiblemenucards") if mcard.desc]
         self.index = self.list.index(self.selection)
@@ -274,9 +278,8 @@ class MenuCardInfo(CardInfo):
 # ------------------------------------------------------------------------------
 
 class YadoCardInfo(CardInfo):
-    def __init__(self, parent: wx.TopLevelWindow,
-                 clist: Union[List[cw.header.CardHeader], List[cw.header.InfoCardHeader]],
-                 selection: Union[cw.header.CardHeader, cw.header.InfoCardHeader], scedir: str = "") -> None:
+    def __init__(self, parent: wx.TopLevelWindow, clist: List[CardHeaderType], selection: CardHeaderType,
+                 scedir: str = "") -> None:
         # カード情報
         self.selection = selection
         self.list = clist

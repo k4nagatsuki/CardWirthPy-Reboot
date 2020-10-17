@@ -188,11 +188,11 @@ class AdventurerData(object):
         self.str = 0
         self.vit = 0
         self.min = 0
-        self.aggressive = 0
-        self.cheerful = 0
-        self.brave = 0
-        self.cautious = 0
-        self.trickish = 0
+        self.aggressive = 0.0
+        self.cheerful = 0.0
+        self.brave = 0.0
+        self.cautious = 0.0
+        self.trickish = 0.0
         self.avoid = 0
         self.resist = 0
         self.defense = 0

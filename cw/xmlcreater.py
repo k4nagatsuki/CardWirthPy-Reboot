@@ -5,7 +5,8 @@ import os
 
 import cw
 
-from typing import Dict, List, Optional, Sequence, Tuple
+import typing
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 
 def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
@@ -116,11 +117,11 @@ def create_environment(name: str, dpath: str, skindirname: str, is_autoloadparty
          "is_autoloadparty": str(is_autoloadparty)}
 
     copy_yadoimgpaths(dpath, imgpaths)
-    imgpaths = [cw.binary.xmltemplate.get_xmltext("ImagePath",
-                                                  {"path": cw.binary.util.repl_escapechar(info.path),
-                                                   "postype": info.postype,
-                                                   "indent": "   "}) for info in imgpaths]
-    d["imgpaths"] = "\n" + "\n".join(imgpaths)
+    imgpaths_s = [cw.binary.xmltemplate.get_xmltext("ImagePath",
+                                                    {"path": cw.binary.util.repl_escapechar(info.path),
+                                                     "postype": info.postype,
+                                                     "indent": "   "}) for info in imgpaths]
+    d["imgpaths"] = "\n" + "\n".join(imgpaths_s)
 
     path = cw.util.join_paths(dpath, "Environment.xml")
     _create_xml("Environment", path, d)
@@ -388,7 +389,7 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
         element.append(e)
     # メッセージログに貼紙を表示する
     if setting.display_bill_in_messagelog != setting.display_bill_in_messagelog_init:
-        e = cw.data.make_element("DisplayBillInMessageLog", bool(setting.display_bill_in_messagelog))
+        e = cw.data.make_element("DisplayBillInMessageLog", str(setting.display_bill_in_messagelog))
         element.append(e)
 
     # スキンによってシナリオの選択開始位置を変更する
@@ -668,12 +669,12 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
 
     # 圧縮されたシナリオの展開データ保存数
     if setting.recenthistory_limit != setting.recenthistory_limit_init:
-        e = cw.data.make_element("RecentHistoryLimit", setting.recenthistory_limit)
+        e = cw.data.make_element("RecentHistoryLimit", str(setting.recenthistory_limit))
         element.append(e)
 
     # マウスホイールによる全体音量の増減量
     if setting.volume_increment != setting.volume_increment_init:
-        e = cw.data.make_element("VolumeIncrement", setting.volume_increment)
+        e = cw.data.make_element("VolumeIncrement", str(setting.volume_increment))
         element.append(e)
 
     # キーコード等の効果が無くても常にカードを消費するか
@@ -1008,7 +1009,7 @@ def create_adventurer(data: "cw.dialog.create.AdventurerData") -> str:
 
     # クーポン
     def get_coupon(name: str, value: int) -> str:
-        d = {"name": cw.binary.util.repl_escapechar(name), "value": value, "indent": "   "}
+        d = {"name": cw.binary.util.repl_escapechar(name), "value": str(value), "indent": "   "}
         s = cw.binary.xmltemplate.get_xmltext("Coupon", d)
         return s
     coupons = [get_coupon(name, value) for name, value in data.coupons]
@@ -1053,6 +1054,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
     """
     シナリオのプレイデータを記録したXMLファイルを作成する。
     """
+    assert cw.cwpy.ydata
+    assert cw.cwpy.ydata.party
     element = cw.data.make_element("ScenarioLog")
     # Property
     e_prop = cw.data.make_element("Property")
@@ -1108,12 +1111,15 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
-    def make_colorelement(name: str, color: Tuple[int, int, int]) -> cw.data.CWPyElement:
+    def make_colorelement(name: str,
+                          color: Union[Tuple[int, int, int, int], Tuple[int, int, int]]) -> cw.data.CWPyElement:
         e = cw.data.make_element(name, attrs={"r": str(color[0]),
                                               "g": str(color[1]),
                                               "b": str(color[2])})
         if 4 <= len(color):
-            e.set("a", str(color[3]))
+            # BUG: error: Tuple index out of range (mypy 0.782)
+            # e.set("a", str(color[3]))
+            e.set("a", str(typing.cast(Tuple[int, int, int, int], color)[3]))
         else:
             e.set("a", "255")
         return e
@@ -1176,6 +1182,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                     elif isinstance(item.data, cw.data.Party):
                         e_name.set("type", "Party")
                     elif isinstance(item.data, cw.character.Player) and item.data in cw.cwpy.get_pcards():
+                        assert isinstance(item.data, cw.sprite.card.PlayerCard)
                         e_name.set("type", "Player")
                         e_name.set("number", str(cw.cwpy.get_pcards().index(item.data)+1))
                     elif isinstance(item.data, cw.data.Flag):

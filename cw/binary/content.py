@@ -744,8 +744,8 @@ class Content(base.CWBinaryBase):
             if dialogs is None:
                 f.write_dword(0)
             else:
-                f.write_dword(len(e))
-                for e_dialog in e:
+                f.write_dword(len(dialogs))
+                for e_dialog in dialogs:
                     cw.binary.dialog.Dialog.unconv(f, e_dialog)
         elif tag == "Set" and ctype == "StepUp":
             f.write_string(data.get("step"))

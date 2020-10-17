@@ -21,7 +21,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
         self.status = ""
         self.old_status = ""
         self.anitype = ""
-        self.start_animation = 0
+        self.start_animation = 0.0
         self.skipped = False
         self.frame = 0
 

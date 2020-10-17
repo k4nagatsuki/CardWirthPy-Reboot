@@ -48,7 +48,7 @@ class Frame(wx.Frame):
         self.kill_list: List[wx.Dialog] = []
         self.db = None
 
-        self._cardholder: Optional[cw.dialog.cardcontrol.CardHolder] = None
+        self._cardholder: Optional[cw.dialog.cardcontrol.SelectCard] = None
         self._handview: Optional[cw.dialog.cardcontrol.HandView] = None
         self._infoview: Optional[cw.dialog.cardcontrol.InfoView] = None
         self._replcardholder: Optional[cw.dialog.cardcontrol.ReplCardHolder] = None
@@ -208,7 +208,7 @@ class Frame(wx.Frame):
                 if not self or rsrc is not cw.cwpy.rsrc:
                     return
                 if not self._cardholder:
-                    self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "CARDPOCKET")
+                    self._cardholder = cw.dialog.cardcontrol.SelectCard(self, "CARDPOCKET")
             cw.cwpy.frame.exec_func(func1, self)
 
             @synclock(cw.thread.init_rsrc)
@@ -902,7 +902,7 @@ class Frame(wx.Frame):
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         if not self._cardholder:
-            self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK")
+            self._cardholder = cw.dialog.cardcontrol.SelectCard(self, "BACKPACK")
         self._cardholder.reconstruct_cardholder("BACKPACK", selection, preinfo, areaid=areaid)
         self.move_dlg(self._cardholder, (0, cw.ppis(-63)))
 
@@ -912,7 +912,7 @@ class Frame(wx.Frame):
         selection, preinfo = self._get_cardcontrolparams()
         areaid = self.change_cardcontrolarea()
         if not self._cardholder:
-            self._cardholder = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE")
+            self._cardholder = cw.dialog.cardcontrol.SelectCard(self, "STOREHOUSE")
         self._cardholder.reconstruct_cardholder("STOREHOUSE", selection, preinfo, areaid=areaid)
         self.move_dlg(self._cardholder, (0, cw.ppis(-63)))
 
@@ -931,7 +931,7 @@ class Frame(wx.Frame):
         else:
             areaid = self.change_cardcontrolarea()
         if not self._cardholder:
-            self._cardholder = cw.dialog.cardcontrol.CardHolder(self, callname)
+            self._cardholder = cw.dialog.cardcontrol.SelectCard(self, callname)
         self._cardholder.reconstruct_cardholder(callname, selection, preinfo, areaid=areaid)
         self.move_dlg(self._cardholder, (0, cw.ppis(-63)))
 

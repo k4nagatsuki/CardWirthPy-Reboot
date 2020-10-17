@@ -3,7 +3,9 @@
 
 import os
 import sys
+import ctypes
 import random
+
 import wx
 import pygame
 from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SUB,\
@@ -11,23 +13,21 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 
 import cw
 
-import typing
 from typing import Callable, Dict, List, Optional, Tuple
 
 
 try:
     if sys.platform == "darwin":
-        from . import _imageretouch_mac as _imageretouch
+        from . import _imageretouch_mac
     elif sys.maxsize == 0x7fffffff:
-        from . import _imageretouch32 as _imageretouch
+        from . import _imageretouch32
     elif sys.maxsize == 0x7fffffffffffffff:
-        from . import _imageretouch64 as _imageretouch
+        from . import _imageretouch64
 except ImportError as ex:
     print("failed to load _imageretouch module. %s" % (ex))
-    _imageretouch = object()
 
 
-def _retouch(func: Callable[[bytes, Tuple[int, int], typing.Any], bytes], image: pygame.Surface,
+def _retouch(func: Callable[..., bytes], image: pygame.Surface,
              *args) -> pygame.Surface:
     """_imageretouchの関数のラッパ。
     func: _imageretouchの関数オブジェクト。
@@ -112,10 +112,13 @@ def to_negative_for_wxcard(wxbmp: wx.Bitmap, framewidth: int = 0) -> wx.Bitmap:
         subbmp = wxbmp.GetSubBitmap(wx.Rect(x, y, w, h))
         buf_bytes = cw.util.wxbmp_to_buffer(subbmp)
         buf = bytearray(buf_bytes)
-        try:
-            func = _imageretouch.to_negative
-            func(buf, (w, h))
-        except Exception:
+        if sys.platform == "darwin":
+            _imageretouch_mac.to_negative(buf, (w, h))
+        elif sys.maxsize == 0x7fffffff:
+            _imageretouch32.to_negative(buf, (w, h))
+        elif sys.maxsize == 0x7fffffffffffffff:
+            _imageretouch64.to_negative(buf, (w, h))
+        else:
             buf = bytearray([255-a for a in buf])
         wximg = wx.ImageFromBuffer(w, h, buf)
         subbmp = wx.Bitmap(wximg)
@@ -151,9 +154,13 @@ def add_mosaic(image: pygame.Surface, value: int) -> pygame.Surface:
     image: 対象イメージ
     value: モザイクをかける度合い(0～255)
     """
-    try:
-        func = _imageretouch.add_mosaic
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.add_mosaic
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.add_mosaic
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.add_mosaic
+    else:
         return _add_mosaic(image, value)
 
     return _retouch(func, image, value)
@@ -190,9 +197,13 @@ def to_binaryformat(image: pygame.Surface, value: int,
     value: 閾値(-1～255)。-1の場合はbasecolor以外が黒になる
     basecolor: 閾値が-1の時に使用され、この色以外が黒になる
     """
-    try:
-        func = _imageretouch.to_binaryformat
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.to_binaryformat
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.to_binaryformat
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.to_binaryformat
+    else:
         return _to_binaryformat(image, value, basecolor)
 
     return _retouch(func, image, value, basecolor)
@@ -237,9 +248,13 @@ def add_noise(image: pygame.Surface, value: int, colornoise: bool = False) -> py
     value: ノイズの度合い(-1～255)
     colornoise: カラーノイズか否か
     """
-    try:
-        func = _imageretouch.add_noise
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.add_noise
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.add_noise
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.add_noise
+    else:
         return _add_noise(image, value, colornoise)
 
     return _retouch(func, image, value, colornoise)
@@ -304,9 +319,13 @@ def exchange_rgbcolor(image: pygame.Surface, colormodel: str) -> pygame.Surface:
     """
     colormodel = colormodel.lower()
 
-    try:
-        func = _imageretouch.exchange_rgbcolor
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.exchange_rgbcolor
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.exchange_rgbcolor
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.exchange_rgbcolor
+    else:
         return _exchange_rgbcolor(image, colormodel)
 
     return _retouch(func, image, colormodel)
@@ -359,9 +378,13 @@ def to_grayscale(image: pygame.Surface) -> pygame.Surface:
     """グレイスケール化したpygame.Surfaceを返す。
     image: 対象イメージ
     """
-    try:
-        func = _imageretouch.to_sepiatone
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.to_sepiatone
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.to_sepiatone
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.to_sepiatone
+    else:
         return to_sepiatone(image, (0, 0, 0))
 
     return _retouch(func, image, (0, 0, 0))
@@ -372,9 +395,13 @@ def to_sepiatone(image: pygame.Surface, color: Tuple[int, int, int] = (30, 0, -3
     image: 対象イメージ
     color: グレイスケール化した画像に付加する色。(r, g, b)のタプル
     """
-    try:
-        func = _imageretouch.to_sepiatone
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.to_sepiatone
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.to_sepiatone
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.to_sepiatone
+    else:
         return _to_sepiatone(image, color)
 
     return _retouch(func, image, color)
@@ -432,9 +459,13 @@ def spread_pixels(image: pygame.Surface) -> pygame.Surface:
     """ピクセル拡散させたpygame.Surfaceを返す。
     image: pygame.Surface
     """
-    try:
-        func = _imageretouch.spread_pixels
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.spread_pixels
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.spread_pixels
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.spread_pixels
+    else:
         return _spread_pixels(image)
 
     return _retouch(func, image)
@@ -471,9 +502,13 @@ def _filter(image: pygame.Surface, weight: Tuple[Tuple[int, int, int], Tuple[int
     offset: オフセット(整数)
     div: 除数(整数)
     """
-    try:
-        func = _imageretouch.filter
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.filter
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.filter
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.filter
+    else:
         return _filter2(image, weight, offset, div)
 
     return _retouch(func, image, weight, offset, div)
@@ -671,9 +706,13 @@ def add_border(img: pygame.Surface, bordercolor: Tuple[int, int, int], borderwid
     bordercolor: 縁取り色(R,G,B)。
     borderwidth: 縁取りの太さ。
     """
-    try:
-        func = _imageretouch.bordering
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.bordering
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.bordering
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.bordering
+    else:
         func = _bordering
 
     buf = pygame.image.tostring(img, "RGBA")
@@ -690,7 +729,7 @@ def add_border(img: pygame.Surface, bordercolor: Tuple[int, int, int], borderwid
             pygame.draw.ellipse(img, bordercolor, pygame.Rect(x - hbw, y - hbw, borderwidth, borderwidth))
 
 
-def _bordering(data: str, size: Tuple[int, int]) -> List[int]:
+def _bordering(buf: bytes, size: Tuple[int, int]) -> List[int]:
     w = size[0]
     h = size[1]
 
@@ -701,7 +740,7 @@ def _bordering(data: str, size: Tuple[int, int]) -> List[int]:
     bottom = 0
     for i in range(w * h):
         iData = i * 4
-        color[i] = ord(data[iData+3]) == 0
+        color[i] = buf[iData+3] == 0
         if color[i]:
             x = i % w
             y = i // w
@@ -761,29 +800,50 @@ def blend_1_50(dest: pygame.Surface, pos: Tuple[int, int], source: pygame.Surfac
     rect2 = pygame.Rect(pos2, rect.size)
     source2 = source.subsurface(rect2)
 
-    try:
-        if flag in (BLEND_ADD, BLEND_RGBA_ADD):
-            func = _imageretouch.blend_add_1_50
-        elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
-            func = _imageretouch.blend_sub_1_50
-        elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
-            func = _imageretouch.blend_mult_1_50
+    func: Optional[Callable[[bytes, bytes], bytes]]
+    if flag in (BLEND_ADD, BLEND_RGBA_ADD):
+        if sys.platform == "darwin":
+            func = _imageretouch_mac.blend_add_1_50
+        elif sys.maxsize == 0x7fffffff:
+            func = _imageretouch32.blend_add_1_50
+        elif sys.maxsize == 0x7fffffffffffffff:
+            func = _imageretouch64.blend_add_1_50
         else:
-            assert False
+            func = None
+    elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
+        if sys.platform == "darwin":
+            func = _imageretouch_mac.blend_sub_1_50
+        elif sys.maxsize == 0x7fffffff:
+            func = _imageretouch32.blend_sub_1_50
+        elif sys.maxsize == 0x7fffffffffffffff:
+            func = _imageretouch64.blend_sub_1_50
+        else:
+            func = None
+    elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
+        if sys.platform == "darwin":
+            func = _imageretouch_mac.blend_mult_1_50
+        elif sys.maxsize == 0x7fffffff:
+            func = _imageretouch32.blend_mult_1_50
+        elif sys.maxsize == 0x7fffffffffffffff:
+            func = _imageretouch64.blend_mult_1_50
+        else:
+            func = None
+    else:
+        assert False
 
+    if func:
         sbuf = pygame.image.tostring(source2, "RGBA")
-
         outimage = _retouch(func, sub, sbuf)
-    except Exception:
+    else:
         if flag in (BLEND_ADD, BLEND_RGBA_ADD):
-            func = _blend_add_1_50
+            func2 = _blend_add_1_50
         elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
-            func = _blend_sub_1_50
+            func2 = _blend_sub_1_50
         elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
-            func = _blend_mult_1_50
+            func2 = _blend_mult_1_50
         else:
             assert False
-        outimage = func(sub, source)
+        outimage = func2(sub, source)
 
     dest.blit(outimage, rect.topleft, None, 0)
 
@@ -863,9 +923,13 @@ def to_disabledimage(wxbmp: wx.Bitmap, maskpos: Tuple[int, int] = (0, 0)) -> wx.
     通常時のボタン画像からdisabled用の画像を作る。
     RGB値の範囲を 0～255 から min～max に変更する。
     """
-    try:
-        func = _imageretouch.to_disabledimage
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.to_disabledimage
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.to_disabledimage
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.to_disabledimage
+    else:
         func = _to_disabledimage
 
     wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
@@ -909,9 +973,13 @@ def to_disabledsurface(image: pygame.Surface) -> pygame.Surface:
 def add_lightness_for_wxbmp(wxbmp: wx.Bitmap, lightness: int, maskpos: Tuple[int, int] = (0, 0)) -> wx.Bitmap:
     """イメージに明るさを加える。
     """
-    try:
-        func = _imageretouch.add_lightness
-    except Exception:
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.add_lightness
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.add_lightness
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.add_lightness
+    else:
         func = _add_lightness
 
     wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
@@ -953,7 +1021,15 @@ def colorwrap(num: int) -> int:
 def decode_rle4data(data: bytes, h: int, bpl: int) -> bytes:
     """Windows BitmapのRLE4データをデコードする。
     """
-    return _imageretouch.decode_rle4data(data, h, bpl)
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.decode_rle4data
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.decode_rle4data
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.decode_rle4data
+    else:
+        raise ValueError()
+    return func(data, h, bpl)
 
 
 def patch_alphadata(image: pygame.Surface, ext: str, data: bytes) -> pygame.Surface:
@@ -968,9 +1044,23 @@ def patch_alphadata(image: pygame.Surface, ext: str, data: bytes) -> pygame.Surf
 
         ext = ext.lower()
         if ext == ".bmp":
-            has_alpha = _imageretouch.has_alphabmp32
+            if sys.platform == "darwin":
+                has_alpha = _imageretouch_mac.has_alphabmp32
+            elif sys.maxsize == 0x7fffffff:
+                has_alpha = _imageretouch32.has_alphabmp32
+            elif sys.maxsize == 0x7fffffffffffffff:
+                has_alpha = _imageretouch64.has_alphabmp32
+            else:
+                raise ValueError()
         else:
-            has_alpha = _imageretouch.has_alpha
+            if sys.platform == "darwin":
+                has_alpha = _imageretouch_mac.has_alpha
+            elif sys.maxsize == 0x7fffffff:
+                has_alpha = _imageretouch32.has_alpha
+            elif sys.maxsize == 0x7fffffffffffffff:
+                has_alpha = _imageretouch64.has_alpha
+            else:
+                raise ValueError()
 
         if (ext == ".bmp" and cw.image.get_bicompression(data) == 3) or not has_alpha(buf):
             # アルファ値が存在しないので予備領域を無視
@@ -987,7 +1077,15 @@ def mul_wxalpha(wximg: wx.Image, alpha: int) -> wx.Image:
     buf = wximg.GetAlphaBuffer()
     assert len(buf) == wximg.GetWidth() * wximg.GetHeight()
     buf = bytearray(buf)
-    _imageretouch.mul_alphaonly(buf, alpha)
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.mul_alphaonly
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.mul_alphaonly
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.mul_alphaonly
+    else:
+        raise ValueError()
+    func(buf, alpha)
     wximg.SetAlphaBuffer(buf)
     return wximg
 
@@ -1018,13 +1116,20 @@ def blit_2bitbmp_to_card(dest: pygame.Surface, source: pygame.Surface, pos: Tupl
         rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
         source2 = source.subsurface(rect2)
 
-        try:
-            func = _imageretouch.blend_and
+        func: Optional[Callable[[bytes, Tuple[int, int], bytes], bytes]]
+        if sys.platform == "darwin":
+            func = _imageretouch_mac.blend_and
+        elif sys.maxsize == 0x7fffffff:
+            func = _imageretouch32.blend_and
+        elif sys.maxsize == 0x7fffffffffffffff:
+            func = _imageretouch64.blend_and
+        else:
+            func = None
 
+        if func:
             sbuf = pygame.image.tostring(source2, "RGBA")
-
             outimage = _retouch(func, sub, sbuf)
-        except Exception:
+        else:
             dest.blit(source, pos)
             return
 
@@ -1047,13 +1152,20 @@ def blit_2bitbmp_to_message(dest: pygame.Surface, source: pygame.Surface, pos: T
         rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
         source2 = source.subsurface(rect2)
 
-        try:
-            func = _imageretouch.blend_and_msg
+        func: Optional[Callable[[bytes, Tuple[int, int], bytes, Tuple[int, int, int]], bytes]]
+        if sys.platform == "darwin":
+            func = _imageretouch_mac.blend_and_msg
+        elif sys.maxsize == 0x7fffffff:
+            func = _imageretouch32.blend_and_msg
+        elif sys.maxsize == 0x7fffffffffffffff:
+            func = _imageretouch64.blend_and_msg
+        else:
+            func = None
 
+        if func:
             sbuf = pygame.image.tostring(source2, "RGBA")
-
             outimage = _retouch(func, sub, sbuf, wincolour)
-        except Exception:
+        else:
             dest.blit(source, pos)
             return
 
@@ -1110,11 +1222,20 @@ def wxblit_2bitbmp_to_card(dc: wx.MemoryDC, dest: wx.Bitmap, wxbmp: wx.Bitmap, x
         buf = bytearray(buf1)
         assert len(dbuf) == len(buf)
         assert len(dbuf) == len(alphabuf)*3
-        try:
-            func = _imageretouch.blend_and_rgb
-            func(dbuf, (w, h), buf)
 
-        except Exception:
+        func: Optional[Callable[[bytearray, Tuple[int, int], bytes], None]]
+        if sys.platform == "darwin":
+            func = _imageretouch_mac.blend_and_rgb
+        elif sys.maxsize == 0x7fffffff:
+            func = _imageretouch32.blend_and_rgb
+        elif sys.maxsize == 0x7fffffffffffffff:
+            func = _imageretouch64.blend_and_rgb
+        else:
+            func = None
+
+        if func:
+            func(dbuf, (w, h), buf)
+        else:
             dbuf = bytearray([a_b[0] & a_b[1] for a_b in zip(buf, dbuf)])
 
         wximg = wx.ImageFromBuffer(rect.Width, rect.Height, dbuf, alphaBuffer=bytearray(alphabuf) if alphabuf else None)
@@ -1194,8 +1315,17 @@ class Font(object):
                     return
 
         if sys.platform == "win32":
-            try:
-                func = _imageretouch.font_new
+            func: Optional[Callable[[bytes, int, bool, bool], Optional[ctypes.c_void_p]]]
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_new
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_new
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_new
+            else:
+                func = None
+
+            if func:
                 self.font = None
                 self.font2x = None
                 self.font_notitalic = None
@@ -1206,7 +1336,7 @@ class Font(object):
                 self.underline = False
                 self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic)
                 self.fontinfo2x = func(face.encode("utf-8"), pixels*2, bold, italic)
-            except Exception:
+            else:
                 self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
         else:
             self.font, self.font2x, self.font_notitalic = _create_mfont(face, pixels, bold, italic, sys=True)
@@ -1218,8 +1348,16 @@ class Font(object):
     def dispose(self) -> None:
         if not self.font and self.fontinfo:
             assert self.fontinfo2x
-            _imageretouch.font_del(self.fontinfo)
-            _imageretouch.font_del(self.fontinfo2x)
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_del
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_del
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_del
+            else:
+                assert False
+            func(self.fontinfo)
+            func(self.fontinfo2x)
             self.fontinfo = None
             self.fontinfo2x = None
             self._cache = {}
@@ -1227,8 +1365,16 @@ class Font(object):
     def __del__(self) -> None:
         if not self.font and self.fontinfo:
             assert self.fontinfo2x
-            _imageretouch.font_del(self.fontinfo)
-            _imageretouch.font_del(self.fontinfo2x)
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_del
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_del
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_del
+            else:
+                assert False
+            func(self.fontinfo)
+            func(self.fontinfo2x)
             self.fontinfo = None
             self.fontinfo2x = None
             self._cache = {}
@@ -1248,9 +1394,19 @@ class Font(object):
             self.font2x.set_bold(v)
             self.font_notitalic.set_bold(v)
         else:
+            assert self.fontinfo is not None
+            assert self.fontinfo2x is not None
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_bold
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_bold
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_bold
+            else:
+                assert False
             self.bold = v
-            _imageretouch.font_bold(self.fontinfo, v)
-            _imageretouch.font_bold(self.fontinfo2x, v)
+            func(self.fontinfo, v)
+            func(self.fontinfo2x, v)
 
     def get_italic(self) -> bool:
         if self.font:
@@ -1265,9 +1421,19 @@ class Font(object):
             self.font.set_italic(v)
             self.font2x.set_italic(v)
         else:
+            assert self.fontinfo is not None
+            assert self.fontinfo2x is not None
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_italic
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_italic
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_italic
+            else:
+                assert False
             self.italic = v
-            _imageretouch.font_italic(self.fontinfo, v)
-            _imageretouch.font_italic(self.fontinfo2x, v)
+            func(self.fontinfo, v)
+            func(self.fontinfo2x, v)
 
     def get_underline(self) -> bool:
         if self.font:
@@ -1284,9 +1450,19 @@ class Font(object):
             self.font2x.set_underline(v)
             self.font_notitalic.set_underline(v)
         else:
+            assert self.fontinfo is not None
+            assert self.fontinfo2x is not None
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_underline
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_underline
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_underline
+            else:
+                assert False
             self.underline = v
-            _imageretouch.font_underline(self.fontinfo, v)
-            _imageretouch.font_underline(self.fontinfo2x, v)
+            func(self.fontinfo, v)
+            func(self.fontinfo2x, v)
 
     def get_height(self) -> int:
         if self.font:
@@ -1300,20 +1476,47 @@ class Font(object):
         if self.font:
             return self.font.get_linesize()
         else:
-            return _imageretouch.font_height(self.fontinfo)
+            assert self.fontinfo is not None
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_height
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_height
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_height
+            else:
+                assert False
+            return func(self.fontinfo)
 
     def size(self, text: str) -> Tuple[int, int]:
         if self.font:
             return self.font.size(text)
         else:
-            return _imageretouch.font_imagesize(self.fontinfo, text.encode("utf-8"), False)
+            assert self.fontinfo is not None
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_imagesize
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_imagesize
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_imagesize
+            else:
+                assert False
+            return func(self.fontinfo, text.encode("utf-8"), False)
 
     def size_withoutoverhang(self, text: str) -> Tuple[int, int]:
         if self.font:
             assert self.font_notitalic
             return self.font_notitalic.size(text)
         else:
-            return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
+            assert self.fontinfo is not None
+            if sys.platform == "darwin":
+                func = _imageretouch_mac.font_size
+            elif sys.maxsize == 0x7fffffff:
+                func = _imageretouch32.font_size
+            elif sys.maxsize == 0x7fffffffffffffff:
+                func = _imageretouch64.font_size
+            else:
+                assert False
+            return func(self.fontinfo, text.encode("utf-8"))
 
     def render(self, text: str, antialias: bool, colour: Tuple[int, int, int]) -> pygame.Surface:
         return self._render_impl(text, antialias, colour, False)
@@ -1354,15 +1557,28 @@ class Font(object):
                     image2.blit(bmp, (1, 0))
                     bmp = image2
         elif antialias:
+            assert self.fontinfo2x is not None
+            assert self.fontinfo is not None
+            if sys.platform == "darwin":
+                font_imagesize = _imageretouch_mac.font_imagesize
+                font_render = _imageretouch_mac.font_render
+            elif sys.maxsize == 0x7fffffff:
+                font_imagesize = _imageretouch32.font_imagesize
+                font_render = _imageretouch32.font_render
+            elif sys.maxsize == 0x7fffffffffffffff:
+                font_imagesize = _imageretouch64.font_imagesize
+                font_render = _imageretouch64.font_render
+            else:
+                assert False
             b_text = text.encode("utf-8")
-            size = _imageretouch.font_imagesize(self.fontinfo2x, b_text, antialias)
-            buf = _imageretouch.font_render(self.fontinfo2x, b_text, antialias, colour[:3])
+            size = font_imagesize(self.fontinfo2x, b_text, antialias)
+            buf = font_render(self.fontinfo2x, b_text, antialias, colour[:3])
             # BUG: Windows 10 1709で、フォント「游明朝」で「ーム」を含む文字列のサイズが
             #      ランダムに変動してしまう不具合を暫定的に回避する
             size = (len(buf) // size[1] // 4, size[1])
             assert len(buf) == size[0]*size[1]*4
             image = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
-            size2 = _imageretouch.font_imagesize(self.fontinfo, b_text, antialias)
+            size2 = font_imagesize(self.fontinfo, b_text, antialias)
             if sbold:
                 size = (size[0]+4, size[1])
                 image2 = pygame.Surface(size).convert_alpha()
@@ -1374,13 +1590,25 @@ class Font(object):
 
             bmp = pygame.transform.smoothscale(image, size2)
         else:
+            assert self.fontinfo is not None
+            if sys.platform == "darwin":
+                font_imagesize = _imageretouch_mac.font_imagesize
+                font_render = _imageretouch_mac.font_render
+            elif sys.maxsize == 0x7fffffff:
+                font_imagesize = _imageretouch32.font_imagesize
+                font_render = _imageretouch32.font_render
+            elif sys.maxsize == 0x7fffffffffffffff:
+                font_imagesize = _imageretouch64.font_imagesize
+                font_render = _imageretouch64.font_render
+            else:
+                assert False
             b_text = text.encode("utf-8")
             # BUG: font_render()からタプルを返そうとするとbufがGCで
             #      回収されなくなってしまうため、bufのみを返すようにし、
             #      (w, h)取得用にfont_imagesize()を用意してある
-            # buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
-            size = _imageretouch.font_imagesize(self.fontinfo, b_text, antialias)
-            buf = _imageretouch.font_render(self.fontinfo, b_text, antialias, colour[:3])
+            # buf, size = font_render(self.fontinfo, str, antialias, colour[:3])
+            size = font_imagesize(self.fontinfo, b_text, antialias)
+            buf = font_render(self.fontinfo, b_text, antialias, colour[:3])
             # BUG: Windows 10 1709で、フォント「游明朝」で「ーム」を含む文字列のサイズが
             #      ランダムに変動してしまう不具合を暫定的に回避する
             size = (len(buf) // size[1] // 4, size[1])

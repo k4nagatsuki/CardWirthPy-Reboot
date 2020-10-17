@@ -973,7 +973,7 @@ class Debugger(wx.Frame):
             self.view_stacktrace.pop_stackinfo_cwpy()
 
     def replace_stackinfo_cwpy(self, index: int,
-                               item: Tuple[cw.event.Event, cw.data.CWPyElement, int]) -> None:
+                               item: Union[cw.event.Event, Tuple[cw.event.Event, cw.data.CWPyElement, int]]) -> None:
         assert threading.currentThread() is cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
@@ -2011,7 +2011,16 @@ class VariableListCtrl(wx.ListCtrl):
             cw.cwpy.play_sound("signal")
             if update:
                 cw.cwpy.event.refresh_variablelist()
+                self._update_variablesowner()
         cw.cwpy.exec_func(func)
+
+    def _update_variablesowner(self):
+        if cw.cwpy.event.in_inusecardevent:
+            inusecard = cw.cwpy.event.get_inusecard()
+            assert inusecard
+            owner = inusecard.get_owner()
+            if isinstance(owner, cw.character.Player):
+                owner.data.is_edited = True
 
     def OnDClick(self, event: wx.MouseEvent) -> None:
         # On DClick Item
@@ -2039,11 +2048,13 @@ class VariableListCtrl(wx.ListCtrl):
                         item.set(value)
                         item.redraw_cards()
                         item.write_value()
+                        self._update_variablesowner()
                     cw.cwpy.exec_func(func_flag, item, local, not bool(dlg.GetSelection()))
                 elif isinstance(item, cw.data.Step):
                     def func_step(item: cw.data.Step, local: bool, value: int) -> None:
                         item.set(value)
                         item.write_value()
+                        self._update_variablesowner()
                     cw.cwpy.exec_func(func_step, item, local, dlg.GetSelection())
 
             dlg.Destroy()
@@ -2054,6 +2065,7 @@ class VariableListCtrl(wx.ListCtrl):
             def func(item: cw.data.Variant, local: bool, value: Union[str, decimal.Decimal, bool]) -> None:
                 item.set(value)
                 item.write_value()
+                self._update_variablesowner()
             cw.cwpy.exec_func(func, variant, local, dlg.value)
         dlg.Destroy()
 
@@ -2556,7 +2568,7 @@ class EventView(wx.ScrolledWindow):
                     return
 
                 if event and cur_content in self.items:
-                    assert cur_content
+                    assert cur_content is not None
                     if self.current_content == cur_content:
                         self.processing = processing
                         return

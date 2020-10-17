@@ -5,7 +5,8 @@ import wx
 
 import cw
 
-from typing import Iterable, Optional, Tuple, Union
+import typing
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 
 # ------------------------------------------------------------------------------
@@ -18,9 +19,12 @@ class Message(wx.Dialog):
     mode=1は「はい」「いいえ」。mode=2は「閉じる」。
     mode=3は、choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
     """
+    buttons: Sequence[Union[wx.BitmapButton, wx.Button]]
+
     def __init__(self, parent: wx.TopLevelWindow, name: str, text: str, mode: int = 2,
                  choices: Optional[Iterable[Union[Tuple[str, int, int, str],
-                                                  Tuple[str, int, int]]]] = None) -> None:
+                                                  Tuple[str, int, int],
+                                                  Tuple[str, int]]]] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -51,14 +55,18 @@ class Message(wx.Dialog):
         elif self.mode == 3:
             # 任意
             self.buttons = []
+            assert choices is not None
             for d in choices:
                 if len(d) == 4:
-                    s, sid, width, desc = d
+                    # BUG: Need more than 3 values to unpack (4 expected) (mypy 0.782)
+                    s, sid, width, desc = typing.cast(Tuple[str, int, int, str], d)
                 elif len(d) == 3:
-                    s, sid, width = d
+                    # BUG: Too many values to unpack (3 expected, 4 provided) (mypy 0.782)
+                    s, sid, width = typing.cast(Tuple[str, int, int], d)
                     desc = ""
                 else:
-                    s, sid = d
+                    # BUG: Too many values to unpack (2 expected, 4 provided) (mypy 0.782)
+                    s, sid = typing.cast(Tuple[str, int], d)
                     desc = ""
                     width = -1
 
@@ -178,7 +186,8 @@ class SysMessage(wx.Dialog):
     """
     def __init__(self, parent: wx.TopLevelWindow, name: str, text: str,
                  choices: Optional[Iterable[Union[Tuple[str, int, int, str],
-                                                  Tuple[str, int, int]]]] = None,
+                                                  Tuple[str, int, int],
+                                                  Tuple[str, int]]]] = None,
                  checkboxes: Optional[Iterable[Tuple[str, str, bool]]] = None) -> None:
         if choices:
             style = wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX
@@ -191,8 +200,8 @@ class SysMessage(wx.Dialog):
         text = cw.util.wordwrap(text, cw.ppis(345), lambda s: dc.GetTextExtent(s)[0])
         self._st_text = wx.StaticText(self, -1, text)
 
-        self._check_table = {}
-        self._checkboxes = []
+        self._check_table: Dict[str, bool] = {}
+        self._checkboxes: List[Tuple[str, wx.CheckBox]] = []
         if checkboxes:
             for key, text, value in checkboxes:
                 def func(key: str) -> None:
@@ -212,12 +221,15 @@ class SysMessage(wx.Dialog):
         if choices:
             for d in choices:
                 if len(d) == 4:
-                    s, sid, width, desc = d
+                    # BUG: Need more than 3 values to unpack (4 expected) (mypy 0.782)
+                    s, sid, width, desc = typing.cast(Tuple[str, int, int, str], d)
                 elif len(d) == 3:
-                    s, sid, width = d
+                    # BUG: Too many values to unpack (3 expected, 4 provided) (mypy 0.782)
+                    s, sid, width = typing.cast(Tuple[str, int, int], d)
                     desc = ""
                 else:
-                    s, sid = d
+                    # BUG: Too many values to unpack (2 expected, 4 provided) (mypy 0.782)
+                    s, sid = typing.cast(Tuple[str, int], d)
                     desc = ""
                     width = -1
 

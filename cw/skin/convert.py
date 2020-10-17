@@ -8,8 +8,10 @@ import struct
 import threading
 
 import cw
+from . import win32res
 
-from typing import Dict, Tuple
+import typing
+from typing import Dict, Iterable, Optional, Sequence, Tuple, Union
 
 IMGTBL = {
     "BUTTON_ARROW": "Button/ARROW",
@@ -216,7 +218,7 @@ class Converter(threading.Thread):
         self.complete = False
         self.errormessage = ""
 
-        self.res = None
+        self.res: Optional[win32res.Win32Res] = None
         self.version = (1, 2, 8, 0)
         self.init(exe)
 
@@ -239,11 +241,11 @@ class Converter(threading.Thread):
                 f.close()
 
             self.res = cw.skin.win32res.Win32Res(self.exe)
-            self.version = self.res.get_rcdata(cw.skin.win32res.RT_VERSION, 1)
-            if not self.version:
+            version_rc = self.res.get_rcdata(cw.skin.win32res.RT_VERSION, 1)
+            if not version_rc:
                 raise Exception()
-            self.version = struct.Struct("<HHHH").unpack(self.version[48:56])
-            self.version = (self.version[1], self.version[0], self.version[3], self.version[2])
+            version_t = struct.Struct("<HHHH").unpack(version_rc[48:56])
+            self.version = (version_t[1], version_t[0], version_t[3], version_t[2])
 
         self.datadir = self.find_datadir()
         self.scenariodir = self.find_scenariodir()
@@ -252,11 +254,11 @@ class Converter(threading.Thread):
         self.initialcash = self.find_initialcash()
 
         self.data = cw.data.xml2etree("Data/SkinBase/Skin.xml")
-        self.data.find("Property/Name").text = self.find_skinname()
-        self.data.find("Property/Type").text = self.skintype
-        self.data.find("Property/Author").text = self.find_author()
-        self.data.find("Property/Description").text = cw.util.encodewrap(self.find_description())
-        self.data.find("Property/InitialCash").text = str(self.initialcash)
+        self.data.find_exists("Property/Name").text = self.find_skinname()
+        self.data.find_exists("Property/Type").text = self.skintype
+        self.data.find_exists("Property/Author").text = self.find_author()
+        self.data.find_exists("Property/Description").text = cw.util.encodewrap(self.find_description())
+        self.data.find_exists("Property/InitialCash").text = str(self.initialcash)
 
         self.actioncard = self._get_resources("ActionCard")
         self.gameover = self._get_resources("GameOver")
@@ -269,9 +271,9 @@ class Converter(threading.Thread):
         self._get_sounds()
         self._get_messages()
         self._get_cards()
-        self.adventurersinn = None
+        self.adventurersinn: Optional[str] = None
         self._get_bgs()
-        self.partyinfo_res = None
+        self.partyinfo_res: Optional[str] = None
         self._get_partyinfo()
 
     def _get_resources(self, dpath: str) -> Dict[str, cw.data.CWPyElementTree]:
@@ -367,6 +369,7 @@ class Converter(threading.Thread):
         # バイナリ断片を手がかりにして特性値を探す。
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
+        assert self.res
         key = b"TStatusItem\x81\x89"  # "TStatusItem♂"
         index = self.exebinary.find(key) + len(key) - len("\x81\x89")
 
@@ -386,12 +389,12 @@ class Converter(threading.Thread):
                     name = n[:i]
                 else:
                     name = n
-                data.find("./Name").text = str(name, cw.MBCS).strip(" 　")
+                data.find_exists("./Name").text = str(name, cw.MBCS).strip(" 　")
 
                 # 身体能力
                 p = physical.unpack(self.exebinary[index:index + 2 * 6])
                 index += 2 * 6
-                e = data.find("./Physical")
+                e = data.find_exists("./Physical")
                 if isnature:
                     e.set("dex", str(p[0] - 6))
                     e.set("agl", str(p[1] - 6))
@@ -410,7 +413,7 @@ class Converter(threading.Thread):
                 # 精神能力
                 p = mental.unpack(self.exebinary[index:index + 2 * 5])
                 index += 2 * 5
-                e = data.find("./Mental")
+                e = data.find_exists("./Mental")
                 e.set(slist[0], str(p[0] / sperb))
                 e.set(slist[1], str(p[3] / sperb))
                 e.set(slist[2], str(p[2] / sperb))
@@ -454,43 +457,44 @@ class Converter(threading.Thread):
 
             # 型の派生元を設定
             # 英明型 <- 標準型,万能型
-            e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[1]")
-            e.text = self.data.find("Natures/Nature[1]/Name").text
-            e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[2]")
-            e.text = self.data.find("Natures/Nature[2]/Name").text
+            e = self.data.find_exists("Natures/Nature[8]/BaseNatures/BaseNature[1]")
+            e.text = self.data.find_exists("Natures/Nature[1]/Name").text
+            e = self.data.find_exists("Natures/Nature[8]/BaseNatures/BaseNature[2]")
+            e.text = self.data.find_exists("Natures/Nature[2]/Name").text
             # 無双型 <- 勇将型,豪傑型
-            e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[1]")
-            e.text = self.data.find("Natures/Nature[3]/Name").text
-            e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[2]")
-            e.text = self.data.find("Natures/Nature[4]/Name").text
+            e = self.data.find_exists("Natures/Nature[9]/BaseNatures/BaseNature[1]")
+            e.text = self.data.find_exists("Natures/Nature[3]/Name").text
+            e = self.data.find_exists("Natures/Nature[9]/BaseNatures/BaseNature[2]")
+            e.text = self.data.find_exists("Natures/Nature[4]/Name").text
             # 天才型 <- 知将型,策士型
-            e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[1]")
-            e.text = self.data.find("Natures/Nature[5]/Name").text
-            e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[2]")
-            e.text = self.data.find("Natures/Nature[6]/Name").text
+            e = self.data.find_exists("Natures/Nature[10]/BaseNatures/BaseNature[1]")
+            e.text = self.data.find_exists("Natures/Nature[5]/Name").text
+            e = self.data.find_exists("Natures/Nature[10]/BaseNatures/BaseNature[2]")
+            e.text = self.data.find_exists("Natures/Nature[6]/Name").text
 
             # 解説文
             entrydlg = self.res.get_tpf0form(b"TENTRYDLG")
             if entrydlg:
-                typesheet = entrydlg["EntryDlg"]["PageControl"]["TypeSheet"]
+                typesheet = win32res.find_res(entrydlg, (b"EntryDlg", b"PageControl", b"TypeSheet"),
+                                              win32res.ResTable())
                 # 標準型
-                e = self.data.find("Natures/Nature[1]/Description")
-                e.text = typesheet["Type3Label"]["Caption"]
+                e = self.data.find_exists("Natures/Nature[1]/Description")
+                e.text = win32res.find_res(typesheet, (b"Type3Label", b"Caption"), e.text)
                 # 万能型
-                e = self.data.find("Natures/Nature[2]/Description")
-                e.text = typesheet["Type2Label"]["Caption"]
+                e = self.data.find_exists("Natures/Nature[2]/Description")
+                e.text = win32res.find_res(typesheet, (b"Type2Label", b"Caption"), e.text)
                 # 勇将型
-                e = self.data.find("Natures/Nature[3]/Description")
-                e.text = typesheet["Type1Label"]["Caption"]
+                e = self.data.find_exists("Natures/Nature[3]/Description")
+                e.text = win32res.find_res(typesheet, (b"Type1Label", b"Caption"), e.text)
                 # 豪傑型
-                e = self.data.find("Natures/Nature[4]/Description")
-                e.text = typesheet["Type0Label"]["Caption"]
+                e = self.data.find_exists("Natures/Nature[4]/Description")
+                e.text = win32res.find_res(typesheet, (b"Type0Label", b"Caption"), e.text)
                 # 知将型
-                e = self.data.find("Natures/Nature[5]/Description")
-                e.text = typesheet["Type4Label"]["Caption"]
+                e = self.data.find_exists("Natures/Nature[5]/Description")
+                e.text = win32res.find_res(typesheet, (b"Type4Label", b"Caption"), e.text)
                 # 策士型
-                e = self.data.find("Natures/Nature[6]/Description")
-                e.text = typesheet["Type5Label"]["Caption"]
+                e = self.data.find_exists("Natures/Nature[6]/Description")
+                e.text = win32res.find_res(typesheet, (b"Type5Label", b"Caption"), e.text)
             else:
                 print("TENTRYDLG")
         except Exception:
@@ -501,7 +505,7 @@ class Converter(threading.Thread):
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
-            sounds = self.data.find("Sounds")
+            sounds = self.data.find_exists("Sounds")
 
             def get_keybefore(e: cw.data.CWPyElement, key: bytes, length: int, less: int = 0) -> None:
                 index = self.exebinary.find(key)
@@ -604,11 +608,11 @@ class Converter(threading.Thread):
                         keycode, index = self._get_text(index)
                         keycodes.append(keycode)
                     data = self.actioncard[cardkey]
-                    data.find("Property/Name").text = name
-                    data.find("Property/Description").text = desc
-                    data.find("Property/SoundPath").text = sound1
-                    data.find("Property/SoundPath2").text = sound2
-                    data.find("Property/KeyCodes").text = cw.util.encodewrap("\n".join(keycodes))
+                    data.find_exists("Property/Name").text = name
+                    data.find_exists("Property/Description").text = desc
+                    data.find_exists("Property/SoundPath").text = sound1
+                    data.find_exists("Property/SoundPath2").text = sound2
+                    data.find_exists("Property/KeyCodes").text = cw.util.encodewrap("\n".join(keycodes))
                     return index
 
                 # カード交換
@@ -638,14 +642,14 @@ class Converter(threading.Thread):
                 # の順で文字列を取得する
                 index += len(key)
 
-                def get_menucard(area: cw.data.ElementTree, index: int) -> int:
+                def get_menucard(area: Iterable[Tuple[cw.data.CWPyElementTree, int]], index: int) -> int:
                     name, index = self._get_text(index, True)
                     desc, index = self._get_text(index, True)
                     _image, index = self._get_text(index)
                     for data in area:
-                        e = data[0].find("MenuCards/*[%s]" % (data[1]))
-                        e.find("Property/Name").text = name
-                        e.find("Property/Description").text = desc
+                        e = data[0].find_exists("MenuCards/*[%s]" % (data[1]))
+                        e.find_exists("Property/Name").text = name
+                        e.find_exists("Property/Description").text = desc
                     return index
 
                 # スタート
@@ -722,6 +726,7 @@ class Converter(threading.Thread):
     def _get_messages(self) -> None:
         if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
+        assert self.res
         try:
             # ゲームオーバー
             key = b"\0IMAGE_OVER\0"
@@ -735,16 +740,18 @@ class Converter(threading.Thread):
 
                 data = self.gameover["01_GameOver"]
                 # ゲームオーバー時のメッセージコンテント
-                e = data.find("Events/Event//Talk")
-                e.find("Text").text = cw.util.encodewrap("\n\n\n" + msg)
-                e.find("Contents/Post[1]").set("name", goyado)
-                e.find("Contents/Post[2]").set("name", load)
-                e.find("Contents/Post[4]").set("name", end)
+                e = data.find_exists("Events/Event//Talk")
+                e.find_exists("Text").text = cw.util.encodewrap("\n\n\n" + msg)
+                e.find_exists("Contents/Post[1]").set("name", goyado)
+                e.find_exists("Contents/Post[2]").set("name", load)
+                e.find_exists("Contents/Post[4]").set("name", end)
 
             msgtable = {}
 
             # リソースからメッセージを取得
-            rsrcmsgs = {
+            rsrcmsgs: Dict[str, Optional[Union[bytes,
+                                               Tuple[bytes, Tuple[str, str]],
+                                               Tuple[bytes, Tuple[str, str], Tuple[str, str]]]]] = {
                 "message": b"TCAUTIONDLG/CautionDlg/Caption",
                 "decide": b"TBOOKDLG/BookDlg/PartyPanel/Party_OpenBtn/Caption",
                 "yes": b"TCAUTIONDLG/CautionDlg/YesBtn/Caption",
@@ -823,36 +830,48 @@ class Converter(threading.Thread):
                 rsrcmsgs["desc_party_money"] = \
                     b"TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/Hint"
 
-            rcdata = {}
-            for key, path in rsrcmsgs.items():
-                repls = []
-                if not isinstance(path, bytes):
-                    repls = path[1:]
-                    path = path[0]
-                rsrcmsgs[key] = None
-                path = path.split(b"/")
-                if path[0] in rcdata:
-                    table = rcdata[path[0]]
+            rcdata: Dict[bytes, win32res.ResTable] = {}
+            table: Optional[Union[str, win32res.ResTable]]
+            for key_s, path_l in rsrcmsgs.items():
+                repls: Sequence[Tuple[str, str]] = []
+                if isinstance(path_l, bytes):
+                    path = path_l
                 else:
-                    table = self.res.get_tpf0form(path[0])
-                    rcdata[path[0]] = table
+                    assert isinstance(path_l, tuple)
+                    repls = path_l[1:]
+                    path = path_l[0]
+                rsrcmsgs[key_s] = None
+                path_seq = path.split(b"/")
+                if path_seq[0] in rcdata:
+                    table = rcdata[path_seq[0]]
+                else:
+                    table = self.res.get_tpf0form(path_seq[0])
+                    if table:
+                        rcdata[path_seq[0]] = table
                 if table:
-                    for i in range(1, len(path)):
-                        if path[i] in table:
-                            table = table[path[i]]
+                    for i in range(1, len(path_seq)):
+                        if not isinstance(table, win32res.ResTable):
+                            table = None
+                            break
+                        if path_seq[i] in table.table:
+                            table_u = table.table[path_seq[i]]
+                            assert isinstance(table_u, (str, win32res.ResTable))
+                            table = table_u
                         else:
                             table = None
                             break
-                    if table:
+                    if isinstance(table, str):
                         for repl in repls:
                             table = table.replace(repl[0], repl[1])
-                        msgtable[key] = table.strip(" 　")
+                        msgtable[key_s] = table.strip(" 　")
+                    else:
+                        print(path_seq)
                 else:
-                    print(path)
+                    print(path_seq)
 
             # バイナリ断片を手がかりにメッセージを取得
             # (key, 0=keyの前方を探す/1=後方を探す, index移動量, Prefix)
-            cribs = {
+            cribs: Dict[str, Optional[Union[Tuple[bytes, int, int], Tuple[bytes, int, int, str]]]] = {
                 "select_base_title": (b"\0IMAGE_COMMAND0\0IMAGE_DEBUG\0", 0, -8),
                 "cards_hand": (b"\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0",
                                0, -104, "%s"),
@@ -911,28 +930,30 @@ class Converter(threading.Thread):
                      b"\x8D\xC4\x8A\x4A\x82\xB5\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81\x42\x00",
                      1, 187, "%s"),
             }
-            for key, data in cribs.items():
-                cribs[key] = None
-                index = self.exebinary.find(data[0])
+            for key_s, crib in cribs.items():
+                assert crib
+                cribs[key_s] = None
+                index = self.exebinary.find(crib[0])
                 if 0 <= index:
-                    if data[1] == 1:
+                    if crib[1] == 1:
                         # 後方
-                        index += len(data[0])
+                        index += len(crib[0])
                     # 位置調整
-                    index += data[2]
+                    index += crib[2]
                     s, index = self._get_text(index)
-                    if len(data) >= 4:
-                        s = data[3] + s
-                    msgtable[key] = s.strip(" 　")
+                    if len(crib) >= 4:
+                        # BUG: error: Tuple index out of range (mypy 0.782)
+                        s = typing.cast(Tuple[bytes, int, int, str], crib)[3] + s
+                    msgtable[key_s] = s.strip(" 　")
 
             # 一分テキストの調整
-            for key in ("cards_backpack", "cards_storehouse", "info_card"):
-                if key in msgtable:
-                    s = msgtable[key]
+            for key_s in ("cards_backpack", "cards_storehouse", "info_card"):
+                if key_s in msgtable:
+                    s = msgtable[key_s]
                     index = s.find(" - ")
                     if 0 <= index:
                         index += len(" - ")
-                        msgtable[key] = s[index:]
+                        msgtable[key_s] = s[index:]
 
             # まとまったテキストを探す
             msglist1 = []
@@ -1079,15 +1100,15 @@ class Converter(threading.Thread):
                 "level_up": "\n\n\n#I" + msglist1[69],
                 "extension_title": msglist9[2] + "%s" + msglist9[3],
             }
-            for key, msg in cribs2.items():
-                msgtable[key] = msg.strip(" 　")
+            for key_s, msg in cribs2.items():
+                msgtable[key_s] = msg.strip(" 　")
 
-            e_message = self.data.find("Messages")
+            e_message = self.data.find_exists("Messages")
             for e in e_message:
-                key = e.get("key")
-                if key in msgtable:
+                key_s = e.get("key")
+                if key_s in msgtable:
                     # ベースからメッセージを変更
-                    e.text = msgtable[key]
+                    e.text = msgtable[key_s]
 
         except Exception:
             cw.util.print_ex()
@@ -1128,8 +1149,8 @@ class Converter(threading.Thread):
 
             # SkinBaseから変更の無いメッセージは削除しておく
             basedata = cw.data.xml2etree("Data/SkinBase/Skin.xml")
-            base_message = basedata.find("Messages")
-            e_message = self.data.find("Messages")
+            base_message = basedata.find_exists("Messages")
+            e_message = self.data.find_exists("Messages")
             assert len(base_message) == len(e_message)
             removelist = []
             msgtable = {}
@@ -1145,7 +1166,7 @@ class Converter(threading.Thread):
             e_source = self.data.find("Property/SourceOfMaterialsIsClassicEngine")
             if e_source is None:
                 e_source = cw.data.make_element("SourceOfMaterialsIsClassicEngine")
-                self.data.find("Property").append(e_source)
+                self.data.find_exists("Property").append(e_source)
             self.data.edit("Property/SourceOfMaterialsIsClassicEngine", str(True))
 
             self.data.fpath = cw.util.join_paths(dpath, "Skin.xml")
@@ -1159,7 +1180,9 @@ class Converter(threading.Thread):
             self._write_data(dpath, self.yado)
             self._write_data(dpath, self.specialcard)
 
-            imgtbl = IMGTBL.copy()
+            imgtbl: Dict[str, Union[str, Sequence[str]]] = {}
+            for key, value in IMGTBL.items():
+                imgtbl[key] = value
 
             if self.partyinfo_res:
                 if self.partyinfo_res.startswith("IMAGE_"):
@@ -1260,12 +1283,13 @@ class Converter(threading.Thread):
 
             # Resource/Image/*
             for resname, target in imgtbl.items():
-                res = self.res.get_bitmap(resname)
-                if res is None:
+                assert self.res
+                res_bitmap = self.res.get_bitmap(resname)
+                if res_bitmap is None:
                     print("Resource not found: %s" % (resname))
                     continue
                 if isinstance(target, str):
-                    targets = [target]
+                    targets: Sequence[str] = [target]
                 else:
                     targets = target
                 for target2 in targets:
@@ -1274,14 +1298,15 @@ class Converter(threading.Thread):
                     if not os.path.isdir(resdir):
                         os.makedirs(resdir)
                     with open(fpath, "wb") as f:
-                        f.write(res)
+                        f.write(res_bitmap)
                         f.flush()
                         f.close()
                     f = None
 
             for resname, target in curtbl.items():
-                res = self.res.get_cursor(resname)
-                if res is None:
+                assert self.res
+                res_cursor = self.res.get_cursor(resname)
+                if res_cursor is None:
                     print("Cursor not found: %s" % (resname))
                     continue
                 fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
@@ -1289,35 +1314,33 @@ class Converter(threading.Thread):
                 if not os.path.isdir(resdir):
                     os.makedirs(resdir)
                 with open(fpath, "wb") as f:
-                    f.write(res)
+                    f.write(res_cursor)
                     f.flush()
                     f.close()
                 f = None
 
             for respath, target in glyphtbl.items():
+                assert self.res
                 respaths = respath.split(b"/")
-                resname = respaths[0]
-                res = self.res.get_tpf0form(resname)
+                tpf0form = self.res.get_tpf0form(respaths[0])
+                if not tpf0form:
+                    print("Glyph not found: %s" % str(respath, "utf-8"))
+                    continue
 
-                for name in respaths[1:]:
-                    name = str(name, cw.MBCS)
-                    if not (name in res):
-                        res = None
-                        break
-                    res = res[name]
-                if not res:
+                res_b = win32res.find_res(tpf0form, respaths[1:], b"")
+                if not res_b:
                     print("Glyph not found: %s" % str(respath, "utf-8"))
                     continue
                 fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
                     os.makedirs(resdir)
-                if res[1:8] == b"TBitmap":
-                    res = res[12:]
+                if res_b[1:8] == b"TBitmap":
+                    res_b = res_b[12:]
                 else:
-                    res = res[4:]
+                    res_b = res_b[4:]
                 with open(fpath, "wb") as f:
-                    f.write(res)
+                    f.write(res_b)
                     f.flush()
                     f.close()
                 f = None
@@ -1415,19 +1438,22 @@ class Converter(threading.Thread):
             for key, target in imgtbl.items():
                 fpath = cw.util.join_paths(resdir, key + ".bmp")
                 if os.path.isfile(fpath):
+                    assert isinstance(target, str)
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                     shutil.copyfile(fpath, dist)
                 fpath = cw.util.join_paths(resdir, key + ".png")
                 if os.path.isfile(fpath):
+                    assert isinstance(target, str)
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".png")
                     shutil.copyfile(fpath, dist)
                     # ".bmp"より".png"を優先する(アレンジパック対応)
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                     if os.path.isfile(dist):
                         cw.util.remove(dist)
-            for key, target in curtbl.items():
-                fpath = cw.util.join_paths(resdir, key + ".cur")
+            for resname, target in curtbl.items():
+                fpath = cw.util.join_paths(resdir, resname + ".cur")
                 if os.path.isfile(fpath):
+                    assert isinstance(target, str)
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
                     shutil.copyfile(fpath, dist)
 

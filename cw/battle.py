@@ -29,6 +29,9 @@ class BattleDefeatError(BattleError):
 
 
 class BattleEngine(object):
+    round: int
+    in_roundevent: bool
+
     def __init__(self, data: "cw.data.CWPyElement") -> None:
         """
         戦闘関係のデータ・処理をまとめたクラス。

@@ -306,7 +306,7 @@ class BackGround(base.CWPySprite):
 
     def load(self, elements: Iterable[cw.data.CWPyElement], doanime: bool = True,
              ttype: Tuple[str, Union[str, int]] = ("Default", "Default"), bginhrt: bool = True,
-             nocheckvisible: bool = False, redraw: bool = True) -> None:
+             nocheckvisible: bool = False, redraw: bool = True) -> bool:
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
@@ -1813,7 +1813,7 @@ class NumberOfCards(base.CWPySprite):
 
 
 class PriceOfCard(base.CWPySprite):
-    def __init__(self, mcard: "cw.sprite.card.CWPyCard", header: cw.header.CardHeader,
+    def __init__(self, mcard: "cw.sprite.card.CWPyCard", header: Optional[cw.header.CardHeader],
                  spritegrp: pygame.sprite.LayeredDirty) -> None:
         """カード価格を表示するスプライト。
         mcard: 「売却」カード。
@@ -1828,7 +1828,7 @@ class PriceOfCard(base.CWPySprite):
         self.layer = (mcard.layer[0], mcard.layer[1], mcard.layer[2], mcard.layer[3]+1)
         spritegrp.add(self, layer=self.layer)
 
-    def set_header(self, header: cw.header.CardHeader) -> None:
+    def set_header(self, header: Optional[cw.header.CardHeader]) -> None:
         self.header = header
         self.update_scale()
 

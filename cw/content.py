@@ -3,21 +3,25 @@
 
 import os
 import sys
+import decimal
 import itertools
+
 import wx
 import pygame
 import pygame.locals
 
 import cw
 
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 
 class EventContentBase(object):
+    _init_values: bool
+
     def __init__(self, data: cw.data.CWPyElement, is_changestate: bool) -> None:
         self.data = data
-        self._author = None
-        self._scenario = None
+        self._author: Optional[str] = None
+        self._scenario: Optional[str] = None
         self._inusecard = False
         self.is_changestate = is_changestate
 
@@ -39,17 +43,20 @@ class EventContentBase(object):
         else:
             return child.get("name", default)
 
-    def get_children(self) -> Union[Tuple[cw.data.CWPyElement, ...], cw.data.CWPyElement]:
+    def get_children(self) -> Iterable[cw.data.CWPyElement]:
         event = cw.cwpy.event.get_event()
         if not event:
             return ()
         line_index = event.line_index
+        assert self.data is not None
+        assert self.data.cwxparent is not None
         if self.data.cwxparent.tag == "ContentsLine" and line_index+1 < len(self.data.cwxparent):
-            elements = (self.data.cwxparent[line_index+1],)
+            elements: Optional[Iterable[cw.data.CWPyElement]] = (self.data.cwxparent[line_index+1],)
         else:
             elements = self.data.find("Contents")
             if elements is None:
                 elements = ()
+        assert elements is not None
         return elements
 
     def get_children_num(self) -> int:
@@ -57,6 +64,8 @@ class EventContentBase(object):
         if not event:
             return 0
         line_index = event.line_index
+        assert self.data is not None
+        assert self.data.cwxparent is not None
         if self.data.cwxparent.tag == "ContentsLine" and line_index+1 < len(self.data.cwxparent):
             return 1
         else:
@@ -66,13 +75,13 @@ class EventContentBase(object):
         return 0
 
     @staticmethod
-    def get_transitiontype_static(data: cw.data.CWPyElement) -> Tuple[str, int]:
+    def get_transitiontype_static(data: cw.data.CWPyElement) -> Tuple[str, Union[str, int]]:
         """トランジション効果のデータのタプル((効果名, 速度))を返す。
         ChangeBgImage, ChangeArea, Redisplayコンテント参照。
         """
         tname = data.get("transition", "Default")
         if tname == "Default":
-            tspeed = "Default"
+            tspeed: Union[str, int] = "Default"
         else:
             tspeed = data.get("transitionspeed", "Default")
             try:
@@ -82,7 +91,7 @@ class EventContentBase(object):
 
         return (tname, tspeed)
 
-    def get_transitiontype(self) -> Tuple[str, int]:
+    def get_transitiontype(self) -> Tuple[str, Union[str, int]]:
         """トランジション効果のデータのタプル((効果名, 速度))を返す。
         ChangeBgImage, ChangeArea, Redisplayコンテント参照。
         """
@@ -93,7 +102,7 @@ class EventContentBase(object):
             return
         self._init_values = True
         self.initvalue = self.data.getint(".", "initialValue", 0)
-        self.coupons = {}
+        self.coupons: Dict[str, int] = {}
         for e in self.data.getfind("Coupons", raiseerror=False):
             self.coupons[e.text] = self.coupons.get(e.text, 0) + e.getint(".", "value", 0)
 
@@ -293,7 +302,8 @@ class EventContentBase(object):
 # ------------------------------------------------------------------------------
 
 class BranchContent(EventContentBase):
-    _index_table: Dict[str, int]
+    _boolean_table: Optional[Union[Tuple[int, int], List[Tuple[Optional[EventContentBase], int]]]]
+    _index_table: Optional[Union[Dict[Union[str, int], int], List[Tuple[Optional[EventContentBase], int]]]]
 
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
@@ -366,10 +376,12 @@ class BranchContent(EventContentBase):
                 success = not success
             if success:
                 flag = True
-                if h and h.get_owner() and isinstance(h.get_owner(), cw.character.Character):
-                    cw.cwpy.event.set_selectedmember(h.get_owner())
+                if h and h.get_owner():
+                    owner = h.get_owner()
+                    if isinstance(owner, cw.character.Character):
+                        cw.cwpy.event.set_selectedmember(owner)
         else:
-            selectedmember = None
+            selectedmember: Optional[cw.character.Character] = None
             targets = cw.cwpy.event.get_targetscope(scope)
             cardnum = 0
             header = None
@@ -433,9 +445,10 @@ class BranchContent(EventContentBase):
                 if selectedmember:
                     cw.cwpy.event.set_selectedmember(selectedmember)
                 elif not someone:
-                    selectedmember = cw.cwpy.event.get_targetmember("Random")
-                    if selectedmember:
-                        cw.cwpy.event.set_selectedmember(selectedmember)
+                    ccard = cw.cwpy.event.get_targetmember("Random")
+                    if ccard:
+                        assert isinstance(ccard, cw.character.Character)
+                        cw.cwpy.event.set_selectedmember(ccard)
                     else:
                         # BUG: 全員隠蔽状態の時は成功する(CardWirth 1.50)
                         flag = True
@@ -449,8 +462,10 @@ class BranchContent(EventContentBase):
             if self._boolean_checked:
                 # Check系のイベントコンテントが絡む場合は
                 # indexが変化している可能性がある
+                assert isinstance(self._boolean_table, list)
                 index = cw.IDX_TREEEND
                 i = 0
+                name: Union[str, int]
                 for checker, name in self._boolean_table:
                     if checker and checker.action() != 0:
                         continue
@@ -459,6 +474,7 @@ class BranchContent(EventContentBase):
                         break
                     i += 1
             else:
+                assert isinstance(self._boolean_table, tuple)
                 if flag:
                     index = self._boolean_table[0]
                 else:
@@ -509,15 +525,17 @@ class BranchContent(EventContentBase):
 
         return index
 
-    def get_value_index(self, value: str) -> int:
+    def get_value_index(self, value: Union[int, str]) -> int:
         if self._index_table:
             # キャッシュした結果を使用する
             if self._index_checked:
                 # Check系のイベントコンテントが絡む場合は
                 # indexが変化している可能性がある
+                assert isinstance(self._index_table, list)
                 index = cw.IDX_TREEEND
                 idx_default = cw.IDX_TREEEND
                 i = 0
+                name: Union[str, int]
                 for checker, name in self._index_table:
                     if checker and checker.action() != 0:
                         continue
@@ -530,6 +548,7 @@ class BranchContent(EventContentBase):
                 if index == cw.IDX_TREEEND:
                     index = idx_default
             else:
+                assert isinstance(self._index_table, dict)
                 index = self._index_table.get(value, cw.IDX_TREEEND)
                 if index == cw.IDX_TREEEND:
                     index = self._index_default
@@ -873,9 +892,9 @@ class BranchBattleContent(BranchContent):
         try:
             resid = int(self.get_contentname(child))
         except Exception:
-            resid = "Default"
+            resid = -1
 
-        if resid == "Default":
+        if resid == -1:
             s = "その他"
         else:
             name = cw.cwpy.sdata.get_battlename(resid)
@@ -897,6 +916,7 @@ class BranchAreaContent(BranchContent):
             return 0
 
         if cw.cwpy.battle and cw.cwpy.sdata:
+            assert cw.cwpy.sdata.pre_battleareadata
             areaid, _bgmpath, _battlebgmpath = cw.cwpy.sdata.pre_battleareadata
             value = areaid
         else:
@@ -911,9 +931,9 @@ class BranchAreaContent(BranchContent):
         try:
             resid = int(self.get_contentname(child))
         except Exception:
-            resid = "Default"
+            resid = -1
 
-        if resid == "Default":
+        if resid == -1:
             s = "その他"
         else:
             name = cw.cwpy.sdata.get_areaname(resid)
@@ -960,14 +980,18 @@ class BranchStatusContent(BranchContent):
             someone = False
 
         # 対象メンバ取得
-        targets = cw.cwpy.event.get_targetmember(targetm)
+        targets_u = cw.cwpy.event.get_targetmember(targetm)
 
-        if targets is None:
+        if targets_u is None:
             # 対象が存在しない場合は無条件に失敗
             return self.get_boolean_index(False)
 
-        if not isinstance(targets, list):
-            targets = [targets]
+        if isinstance(targets_u, list):
+            targets: List[cw.character.Character] = []
+            targets.extend(targets_u)
+        else:
+            assert isinstance(targets_u, cw.character.Character)
+            targets = [targets_u]
 
         # 能力判定
         flag = True if targets else False
@@ -1023,6 +1047,8 @@ class BranchGossipContent(BranchContent):
 
     def action(self) -> int:
         """ゴシップ分岐コンテント。"""
+        if not cw.cwpy.ydata:
+            return 0
         if self.spchars:
             gossip, _namelist = cw.sprite.message.rpl_specialstr(self.gossip, localvariables=True)
         else:
@@ -1048,6 +1074,8 @@ class BranchCompleteStampContent(BranchContent):
 
     def action(self) -> int:
         """終了シナリオ分岐コンテント。"""
+        if not cw.cwpy.ydata:
+            return 0
         scenario = self.data.get("scenario", "")
         flag = cw.cwpy.ydata.has_compstamp(scenario)
         return self.get_boolean_index(flag)
@@ -1109,6 +1137,7 @@ class BranchLevelContent(BranchContent):
             pcard = cw.cwpy.event.get_targetmember("Selected")
             if not pcard:
                 return self.get_boolean_index(False)
+            assert isinstance(pcard, cw.character.Character)
             level = pcard.level
 
         flag = bool(level >= value)
@@ -1177,7 +1206,10 @@ class BranchCouponContent(BranchContent):
                 scope = "Party"
 
         # 所持判定
-        targets = cw.cwpy.event.get_targetscope(scope, unreversed)
+        targets: List[cw.character.Character] = []
+        for ccard in cw.cwpy.event.get_targetscope(scope, unreversed):
+            assert isinstance(ccard, cw.character.Character)
+            targets.append(ccard)
 
         # BUG: CardWirthでは複数の判定対象が想定される条件
         #      (「選択中のメンバ」以外)で、全員隠蔽等で
@@ -1311,6 +1343,10 @@ class BranchMoneyContent(BranchContent):
 
     def action(self) -> int:
         """所持金存在分岐コンテント。"""
+        if not cw.cwpy.ydata:
+            return 0
+        if not cw.cwpy.ydata.party:
+            return 0
         money = self.data.getint(".", "value", 0)
         flag = bool(cw.cwpy.ydata.party.money >= money)
         return self.get_boolean_index(flag)
@@ -1335,7 +1371,7 @@ class BranchFlagContent(BranchContent):
         diffsc = self.is_differentscenario()
         flag = cw.cwpy.sdata.find_flag(self.flag, diffsc, cw.cwpy.event.get_nowrunningevent())
         if flag is not None:
-            index = self.get_boolean_index(flag)
+            index = self.get_boolean_index(flag.value)
         elif self.get_children_num():
             # フラグが存在しない場合は
             # 常に最初の子コンテントが選ばれる
@@ -1440,13 +1476,9 @@ class BranchMultiStepContent(BranchContent):
         if step is not None:
             try:
                 value = int(self.get_contentname(child, "Default"))
-            except Exception:
-                value = "Default"
-
-            if value == "Default":
-                valuename = "その他"
-            else:
                 valuename = step.get_valuename(value)
+            except Exception:
+                valuename = "その他"
 
             return "%s = %s" % (step.name, valuename)
         else:
@@ -1509,13 +1541,16 @@ class BranchAbilityContent(BranchContent):
         someone = self.someone
 
         # 対象メンバ取得
-        targets = cw.cwpy.event.get_targetmember(targetm)
+        targets_u = cw.cwpy.event.get_targetmember(targetm)
+        targets: List[cw.character.Character]
 
-        if not isinstance(targets, list):
-            if targets is None:
-                targets = []
-            else:
-                targets = [targets]
+        if isinstance(targets_u, list):
+            targets = targets_u
+        elif targets_u is None:
+            targets = []
+        else:
+            assert not isinstance(targets_u, cw.header.CardHeader)
+            targets = [targets_u]
 
         # 能力判定
         flag = False
@@ -1598,10 +1633,12 @@ class BranchRandomSelectContent(BranchContent):
             methodname = "is_%s" % status.lower()
 
         # 対象メンバ取得
-        targets = []
+        targets: List[cw.character.Character] = []
         for scope in ("Party", "Enemy", "Npc"):  # 順序はPC→敵→同行NPCに固定
             if scope in ranges:
-                targets.extend(cw.cwpy.event.get_targetscope(scope, True))
+                for ccard in cw.cwpy.event.get_targetscope(scope, True):
+                    assert isinstance(ccard, cw.character.Character)
+                    targets.append(ccard)
 
         # レベル・状態判定
         targets2 = []
@@ -1628,7 +1665,7 @@ class BranchRandomSelectContent(BranchContent):
 
         return self.get_boolean_index(selectedmember is not None)
 
-    def get_castranges(self) -> Tuple[str, ...]:
+    def get_castranges(self) -> Set[str]:
         ranges = set()
         for e in self.data.getfind("CastRanges"):
             ranges.add(e.gettext(".", ""))
@@ -1714,7 +1751,7 @@ class BranchKeyCodeContent(BranchContent):
 
     def action(self) -> int:
         """キーコード所持分岐コンテント(1.30)。"""
-        selectedmember = None
+        selectedmember: Optional[cw.character.Character] = None
         header = None
         success = False
 
@@ -1722,35 +1759,44 @@ class BranchKeyCodeContent(BranchContent):
             # 選択カードのキーコードを判定(Wsn.3)
             selcard = cw.cwpy.event.get_selectedcard()
             if selcard:
+                owner = selcard.get_owner()
                 if (selcard.type == "SkillCard" and self.skill) or \
                         (selcard.type == "ItemCard" and self.item) or \
                         (selcard.type == "BeastCard" and self.beast) or \
                         (self.hand and cw.cwpy.is_battlestatus() and
-                         isinstance(selcard.get_owner(), cw.character.Character) and
-                         any([h.ref_original == selcard.ref_original for h in selcard.get_owner().deck.hand])):
+                         isinstance(owner, cw.character.Character) and
+                         any([h.ref_original == selcard.ref_original for h in owner.deck.hand])):
                     if self.keycode in selcard.get_keycodes():
                         header = selcard
-                        if isinstance(header.get_owner(), cw.character.Character):
-                            selectedmember = header.get_owner()
+                        owner = header.get_owner()
+                        if isinstance(owner, cw.character.Character):
+                            selectedmember = owner
             success = bool(header)
             if self.invert:
                 # 判定条件の反転(Wsn.4)
                 success = not success
         else:
             # 対象メンバ取得
-            targets = []
+            targets: List[Union[cw.character.Character, cw.data.Party]] = []
             if self.targetkc == "Selected":
-                target = cw.cwpy.event.get_targetmember(self.targetkc)
-                if target is None:
+                target_u = cw.cwpy.event.get_targetmember(self.targetkc)
+                if target_u is None:
                     return self.get_boolean_index(False)
-                targets.append(target)
+                assert isinstance(target_u, cw.character.Character)
+                targets.append(target_u)
             elif self.targetkc == "Random":
-                targets.extend(cw.cwpy.event.get_targetmember("Party"))
+                target_u = cw.cwpy.event.get_targetmember("Party")
+                assert isinstance(target_u, list)
+                targets.extend(target_u)
             elif self.targetkc == "Backpack":
-                targets.append(cw.cwpy.ydata.party)
+                if cw.cwpy.ydata and cw.cwpy.ydata.party:
+                    targets.append(cw.cwpy.ydata.party)
             elif self.targetkc == "PartyAndBackpack":
-                targets.extend(cw.cwpy.event.get_targetmember("Party"))
-                targets.append(cw.cwpy.ydata.party)
+                if cw.cwpy.ydata and cw.cwpy.ydata.party:
+                    target_u = cw.cwpy.event.get_targetmember("Party")
+                    assert isinstance(target_u, list)
+                    targets.extend(target_u)
+                    targets.append(cw.cwpy.ydata.party)
 
             # キーコード所持判定
             for target in targets:
@@ -1810,6 +1856,7 @@ class BranchRoundContent(BranchContent):
 
         flag = False
         if cw.cwpy.is_battlestatus():
+            assert cw.cwpy.battle
             round2 = cw.cwpy.battle.round
             if comparison == "=":
                 flag = (round1 == round2)
@@ -1851,8 +1898,8 @@ def _get_couponscope(scope: str) -> Tuple[str, bool, bool]:
     return scope, someone, unreversed
 
 
-def _has_coupon(targets: Iterable[cw.character.Character], names: str, scope: str, someone: bool, allmatch: bool,
-                multi: bool, invert: bool = False) -> bool:
+def _has_coupon(targets: Iterable[cw.character.Character], names: Iterable[str], scope: str, someone: bool,
+                allmatch: bool, multi: bool, invert: bool = False) -> bool:
     if not names:
         return False
 
@@ -1914,9 +1961,11 @@ class BranchMultiCouponContent(BranchContent):
     def action(self) -> int:
         """クーポン多岐分岐コンテント(Wsn.2)。"""
         # 所持判定
-        targets = cw.cwpy.event.get_targetscope(self.scope, self.unreversed)
+        targets = []
+        for ccard in cw.cwpy.event.get_targetscope(self.scope, self.unreversed):
+            assert isinstance(ccard, cw.character.Character)
+            targets.append(ccard)
 
-        seq = []
         index = 0
         idx_default = cw.IDX_TREEEND
         for e in self.get_children():
@@ -1995,7 +2044,10 @@ class BranchVariantContent(BranchContent):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         BranchContent.__init__(self, data)
         self.expression = self.data.gettext("Expression", "")
-        self.parsed_expression = None
+        self.parsed_expression: Optional[List[Union[cw.calculator.ValueType,
+                                                    cw.calculator.Function,
+                                                    cw.calculator.UnaryOperator,
+                                                    cw.calculator.Operator]]] = None
 
     def action(self) -> int:
         """コモン分岐コンテント(Wsn.4)。"""
@@ -2006,6 +2058,7 @@ class BranchVariantContent(BranchContent):
                 return self.get_boolean_index(False)
             variant = cw.calculator.eval_expr(self.parsed_expression, self.is_differentscenario())
             if variant.type == "Boolean":
+                assert isinstance(variant.value, bool)
                 index = self.get_boolean_index(variant.value)
             else:
                 self.variant_error(msg="計算結果 %s は真偽値ではありません。" % variant.string_value())
@@ -2042,19 +2095,23 @@ class CallStartContent(EventContentBase):
         """スタートコールコンテント。
         別のスタートコンテントのツリーイベントをコールする。
         """
-        event = cw.cwpy.event.get_event()
         trees = cw.cwpy.event.get_trees()
+        assert trees is not None
 
         if self.startname in trees:
             event = cw.cwpy.event.get_event()
+            assert event
 
             if 0 < self.get_children_num():
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
                     s = "イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
                     cw.cwpy.call_modaldlg("ERROR", text=s)
                     raise cw.event.EffectBreakError()
+                assert event.cur_content is not None
                 event.nowrunningcontents.append((None, event.cur_content, event.line_index, None))
-                item = (cw.cwpy.event.get_nowrunningevent(), event.cur_content, event.line_index)
+                nowrunning = cw.cwpy.event.get_nowrunningevent()
+                assert nowrunning
+                item = (nowrunning, event.cur_content, event.line_index)
                 cw.cwpy.event.append_stackinfo(item)
             event.cur_content = trees[self.startname]
             event.line_index = 0
@@ -2083,6 +2140,7 @@ class CallPackageContent(EventContentBase):
 
         resid = self.data.getint(".", "call", 0)
         event = cw.cwpy.event.get_event()
+        assert event
         call = bool(event.nowrunningcontents)
         call |= 0 < self.get_children_num()
 
@@ -2124,13 +2182,18 @@ def call_package(resid: int, call: bool) -> bool:
     if not cw.cwpy.event.get_event():
         # 実行中のイベントが無い場合は直接実行する
         cw.cwpy.event.append_event(packevent)
-        cw.cwpy.event.get_event().start()
+        event = cw.cwpy.event.get_event()
+        assert event
+        event.start()
         return True
 
     event = cw.cwpy.event.get_event()
+    assert event
     versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
     nowrunning = cw.cwpy.event.get_nowrunningevent()
+    assert nowrunning
     if call:
+        assert event.cur_content is not None
         event.nowrunningcontents.append((packevent, event.cur_content, event.line_index, versionhint_base))
         cw.cwpy.event.append_event(packevent)
         packevent.parent = cw.cwpy.event.get_event()
@@ -2141,6 +2204,7 @@ def call_package(resid: int, call: bool) -> bool:
     else:
         cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()
+        assert event
         cw.cwpy.event.replace_stackinfo(-1, event)
     event.cur_content = packevent.starttree
     event.line_index = 0
@@ -2206,12 +2270,12 @@ class ChangeAreaContent(EventContentBase):
     def action(self) -> int:
         """エリア変更コンテント。"""
         if self.is_differentscenario():
-            return None
+            return -1
 
         resid = self.data.getint(".", "id", 0)
 
         if not check_areaid(resid):
-            return None
+            return -1
 
         ttype = self.get_transitiontype()
         name = cw.cwpy.sdata.get_areaname(resid)
@@ -2226,7 +2290,7 @@ class ChangeAreaContent(EventContentBase):
                 cw.cwpy.play_sound("error")
             else:
                 end_scenario(False)
-        return None
+        return -1
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
         resid = self.data.getint(".", "id", 0)
@@ -2240,7 +2304,7 @@ class ChangeAreaContent(EventContentBase):
 
 def check_areaid(resid: int) -> bool:
     """不正なエリアIDでないかチェックし、問題無ければTrueを返す。"""
-    if cw.cwpy.status == "Yado" and\
+    if cw.cwpy.status == "Yado" and cw.cwpy.ydata and\
             not (cw.SKIN_AREAS_MIN <= resid <= cw.SKIN_AREAS_MAX) and\
             not (resid == 1 and not cw.cwpy.ydata.party) and\
             not (resid == 2 and cw.cwpy.ydata.party):
@@ -2339,7 +2403,10 @@ class CheckVariantContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         self.expression = self.data.gettext("Expression", "")
-        self.parsed_expression = None
+        self.parsed_expression: Optional[List[Union[cw.calculator.ValueType,
+                                                    cw.calculator.Function,
+                                                    cw.calculator.UnaryOperator,
+                                                    cw.calculator.Operator]]] = None
 
     def action(self) -> int:
         """コモン判定コンテント(Wsn.4)。"""
@@ -2371,7 +2438,7 @@ class EffectContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
         # 各種データ取得
-        d = {}
+        d = cw.effectmotion.EffectParams()
         d["level"] = self.data.getint(".", "level", 0)
         d["successrate"] = self.data.getint(".", "successrate", 0)
         d["effecttype"] = self.data.get("effecttype", "Physic")
@@ -2420,22 +2487,25 @@ class EffectContent(EventContentBase):
 
         if self.ignite:
             # キーコード(Wsn.2)
-            self.keycodes = self.data.gettext("KeyCodes", "")
-            self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
+            keycodes = self.data.gettext("KeyCodes", "")
+            self.keycodes = cw.util.decodetextlist(keycodes) if keycodes else []
 
         # 称号所有者が適用範囲の時の称号名(Wsn.2)
         self.holdingcoupon = self.data.get("holdingcoupon", "")
 
     def action(self) -> int:
         """効果コンテント。"""
+        target: Optional[Union[cw.character.Character, List[cw.character.Character], cw.header.CardHeader]]
         if self.targetm == "CardTarget":
             # カードの使用対象(Wsn.2)
+            target = []
             if cw.cwpy.event.get_inusecard():
                 e_effectevent = cw.cwpy.event.get_effectevent()
+                assert e_effectevent
                 e_effectevent.update_targets()
-                target = e_effectevent.targets
-            else:
-                target = []
+                for card in e_effectevent.targets:
+                    assert isinstance(card, cw.character.Character)
+                    target.append(card)
         else:
             target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
             if self.targetm == "Selected" and target and\
@@ -2454,13 +2524,17 @@ class EffectContent(EventContentBase):
         if self.ignite:
             event = cw.cwpy.event.get_event()
             if cw.cwpy.event.in_inusecardevent:
-                cardversion = cw.cwpy.event.get_inusecard().wsnversion
+                inusecard = cw.cwpy.event.get_inusecard()
+                assert inusecard
+                cardversion: Optional[str] = inusecard.wsnversion
 
             else:
                 cardversion = None
 
-        def initial_effect(targets: cw.sprite.card.CWPyCard,
-                           tevent: cw.event.Targeting) -> Iterable[cw.sprite.card.CWPyCard]:
+        tevent: cw.event.Targeting
+
+        def initial_effect(targets: List[cw.sprite.card.CWPyCard],
+                           tevent: Optional[cw.event.Targeting]) -> List[cw.sprite.card.CWPyCard]:
             if not self.initialeffect:
                 return targets
 
@@ -2489,6 +2563,7 @@ class EffectContent(EventContentBase):
                 try:
                     if self.ignite:
                         # キーコードイベント(Wsn.2)
+                        assert event
                         runevent = event.ignition_characterevent(target, unconscious_flag, self.keycodes)
                         if runevent:
                             runevent.run_scenarioevent()
@@ -2524,6 +2599,7 @@ class EffectContent(EventContentBase):
 
                     # キーコード成功・失敗イベント(Wsn.2)
                     if self.ignite and not deadevent:
+                        assert event
                         runevent = event.ignition_successevent(target, success, self.keycodes)
                         if runevent:
                             runevent.run_scenarioevent()
@@ -2536,11 +2612,14 @@ class EffectContent(EventContentBase):
                 cw.cwpy.play_sound_with(self.eff.soundpath, subvolume=self.eff.volume, loopcount=self.eff.loopcount,
                                         channel=self.eff.channel, fade=self.eff.fade)
                 self.eff.animate(target)
-                cw.cwpy.event.get_effectevent().mcards.discard(target)
+                targeting = cw.cwpy.event.get_effectevent()
+                assert targeting
+                targeting.mcards.discard(target)
                 if self.ignite:
+                    assert event
                     runevent = event.ignition_menucardevent(target, keycodes=self.keycodes)
                 else:
-                    runevent = False
+                    runevent = None
                 if runevent:
                     assert isinstance(runevent, cw.event.Event)
                     runevent.run_scenarioevent()
@@ -2550,8 +2629,12 @@ class EffectContent(EventContentBase):
 
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
-            targets = target
+            targets: List[cw.sprite.card.CWPyCard] = []
+            for ccard in target:
+                assert isinstance(ccard, cw.sprite.card.CWPyCard)
+                targets.append(ccard)
         else:
+            assert isinstance(target, cw.sprite.card.CWPyCard)
             targets = [target]
 
         if not targets:
@@ -2568,7 +2651,7 @@ class EffectContent(EventContentBase):
                 if e_effectevent:
                     e_effectevent.update_targets()
                     e_targets = e_effectevent.targets
-                    e_mcards = e_effectevent.mcards
+                    e_mcards: Optional[Set[cw.sprite.card.CWPyCard]] = e_effectevent.mcards
                     e_outoftargets = []
                     e_eventtarget = None
                     for t in e_effectevent.coupon_owners:
@@ -2583,11 +2666,12 @@ class EffectContent(EventContentBase):
                 else:
                     e_mcards = None
                     e_eventtarget = None
-                    for t in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
-                        if isinstance(t, cw.character.Character):
-                            if t.has_coupon("＠イベント対象"):
-                                e_eventtarget = t
-                                t.remove_coupon("＠イベント対象")
+                    for t2 in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
+                        if isinstance(t2, cw.character.Character):
+                            if t2.has_coupon("＠イベント対象"):
+                                assert isinstance(t2, cw.sprite.card.CWPyCard)
+                                e_eventtarget = t2
+                                t2.remove_coupon("＠イベント対象")
                                 break
 
                 # 効果イベントの差し替え
@@ -2600,6 +2684,7 @@ class EffectContent(EventContentBase):
                 tevent.targets_to_coupon()
 
                 # エリアイベント(Wsn.2)
+                assert cw.cwpy.sdata.events
                 runevent = cw.cwpy.sdata.events.check_keycodes(self.keycodes)
                 if runevent:
                     runevent.run_scenarioevent()
@@ -2759,6 +2844,7 @@ class EndContent(EventContentBase):
         """
         complete = self.data.getbool(".", "complete", False)
         end_scenario(complete)
+        return -1
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
         complete = self.data.getbool(".", "complete", False)
@@ -2770,6 +2856,11 @@ class EndContent(EventContentBase):
 
 
 def end_scenario(complete: bool) -> None:
+    if not cw.cwpy.ydata:
+        return
+    if not cw.cwpy.ydata.party:
+        return
+
     if cw.cwpy.ydata and cw.cwpy.ydata.party and not cw.cwpy.ydata.party.members:
         # 全員対象消去されて発生した敗北イベント中にシナリオクリア
         cw.cwpy.set_gameover()
@@ -2881,12 +2972,16 @@ class GetContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
 
-    def get_cards(self, cardtype: str) -> int:
+    def get_cards(self, cardtype: str) -> None:
         """対象範囲のインスタンスに設定枚数のカードを配布する。
         cardtype: "SkillCard" or "ItemCard" or "BeastCard"
         """
         if self.is_differentscenario():
-            return 0
+            return
+        if not cw.cwpy.ydata:
+            return
+        if not cw.cwpy.ydata.party:
+            return
 
         # 各種属性値取得
         resid = self.data.getint(".", "id", 0)
@@ -2911,6 +3006,8 @@ class GetContent(EventContentBase):
             raise ValueError("%s is invalid cardtype" % cardtype)
 
         def is_nocache(target: Union[cw.character.Character, List[cw.header.CardHeader]]) -> bool:
+            assert cw.cwpy.ydata
+            assert cw.cwpy.ydata.party
             tobackpack = cw.cwpy.ydata.party.backpack == target
             if not tobackpack and isinstance(target, cw.character.Character):
                 tobackpack = target.get_cardpocketspace()[pocket] <= len(target.get_pocketcards(pocket))
@@ -2920,15 +3017,17 @@ class GetContent(EventContentBase):
             # 選択カードとの交換(Wsn.3)
             selcard = cw.cwpy.event.get_selectedcard()
             if not selcard:
-                return 0
+                return
+            assert isinstance(selcard, cw.header.CardHeader)
             target = selcard.get_owner()
+            assert target
             nocache = is_nocache(target)
             e = getdata(resid, nocache=nocache)
             if e is None:
-                return 0
+                return
             if e.tag != selcard.type:
                 # カード種別不一致
-                return 0
+                return
             assert selcard.type != "ActionCard"
             if isinstance(target, cw.character.Character):
                 if selcard.type == "SkillCard":
@@ -2951,7 +3050,7 @@ class GetContent(EventContentBase):
                     nocache = is_nocache(target)
                     e = getdata(resid, nocache=nocache)
                     if e is None:
-                        return 0
+                        return
                     e_flags = e.find("Flags")
                     e_steps = e.find("Steps")
                     e_variants = e.find("Variants")
@@ -2974,6 +3073,8 @@ def get_card(etree: cw.data.CWPyElementTree, target: Union[cw.character.Characte
     target: Character or list(Backpack, Storehouse)
     summon: 召喚かどうか。付帯召喚設定は強制的にクリアされる。
     """
+    if not cw.cwpy.ydata:
+        return
     # 対象カード名取得
     name = etree.gettext("Property/Name", "noname")
     name = cw.util.repl_dischar(name)
@@ -3022,7 +3123,7 @@ def get_card(etree: cw.data.CWPyElementTree, target: Union[cw.character.Characte
         dstdir = cw.util.dupcheck_plus(dstdir)
         cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=False,
                                can_loaded_scaledimage=etree.getbool(".", "scaledimage", False))
-        header.imgpaths = cw.image.get_imageinfos(etree.find("Property"))
+        header.imgpaths = cw.image.get_imageinfos(etree.find_exists("Property"))
 
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder,
                   sort=False, party=party, from_getcontent=from_getcontent, update_image=update_image)
@@ -3048,8 +3149,8 @@ class GetSkillContent(GetContent):
             else:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
-                num = "%s枚" % (num)
-                return "%sが特殊技能カード『%s』を%s取得" % (scope, name, num)
+                num_s = "%s枚" % (num)
+                return "%sが特殊技能カード『%s』を%s取得" % (scope, name, num_s)
         else:
             return "特殊技能カードが指定されていません"
 
@@ -3074,8 +3175,8 @@ class GetItemContent(GetContent):
             else:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
-                num = "%s枚" % (num)
-                return "%sがアイテムカード『%s』を%s取得" % (scope, name, num)
+                num_s = "%s枚" % (num)
+                return "%sがアイテムカード『%s』を%s取得" % (scope, name, num_s)
         else:
             return "アイテムカードが指定されていません"
 
@@ -3100,8 +3201,8 @@ class GetBeastContent(GetContent):
             else:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
-                num = "%s枚" % (num)
-                return "%sが召喚獣カード『%s』を%s取得" % (scope, name, num)
+                num_s = "%s枚" % (num)
+                return "%sが召喚獣カード『%s』を%s取得" % (scope, name, num_s)
         else:
             return "召喚獣カードが指定されていません"
 
@@ -3139,6 +3240,7 @@ class GetCastContent(GetContent):
                 fcard = cw.sprite.card.FriendCard(data=e)
                 cw.cwpy.sdata.friendcards.append(fcard)
                 if cw.cwpy.is_battlestatus() and fcard.is_alive():
+                    assert cw.cwpy.battle
                     if startactin == "Now" or\
                             (startactin == "CurrentRound" and
                                      (cw.cwpy.battle.is_ready() or cw.cwpy.battle.in_roundevent)):
@@ -3195,8 +3297,9 @@ class GetMoneyContent(GetContent):
 
     def action(self) -> int:
         """所持金取得コンテント"""
-        value = self.data.getint(".", "value", 0)
-        cw.cwpy.ydata.party.set_money(value, fromevent=True, blink=True)
+        if cw.cwpy.ydata and cw.cwpy.ydata.party:
+            value = self.data.getint(".", "value", 0)
+            cw.cwpy.ydata.party.set_money(value, fromevent=True, blink=True)
         return 0
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
@@ -3212,7 +3315,7 @@ class GetCompleteStampContent(GetContent):
         """終了シナリオ印取得コンテント。"""
         scenario = self.data.get("scenario")
 
-        if scenario:
+        if scenario and cw.cwpy.ydata:
             cw.cwpy.ydata.set_compstamp(scenario)
 
         return 0
@@ -3239,7 +3342,7 @@ class GetGossipContent(GetContent):
         else:
             gossip = self.gossip
 
-        if gossip:
+        if gossip and cw.cwpy.ydata:
             cw.cwpy.ydata.set_gossip(gossip)
 
         return 0
@@ -3265,7 +3368,9 @@ def is_addablecoupon(coupon: str) -> bool:
     # ただしWSN形式には一部例外がある
     if coupon.startswith('＠'):
         if cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
-            cardversion = cw.cwpy.event.get_inusecard().wsnversion
+            inusecard = cw.cwpy.event.get_inusecard()
+            assert inusecard
+            cardversion: Optional[str] = inusecard.wsnversion
         else:
             cardversion = None
         if cw.cwpy.sdata.is_wsnversion('2', cardversion):
@@ -3316,11 +3421,11 @@ class GetCouponContent(GetContent):
 
         if coupon:
             value = self.value
-            value = "+%s" % (value) if 0 <= value else "%s" % (value)
+            value_s = "+%s" % (value) if 0 <= value else "%s" % (value)
             scope = self.scope
             scope = self.textdict.get(scope.lower(), "")
             spchars = "(特殊文字を展開)" if self.spchars else ""
-            return "%sに称号『%s(%s)』を付与%s" % (scope, coupon, value, spchars)
+            return "%sに称号『%s(%s)』を付与%s" % (scope, coupon, value_s, spchars)
         else:
             return "称号が指定されていません"
 
@@ -3332,11 +3437,11 @@ class GetCouponContent(GetContent):
 class HidePartyContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
-        self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
-        if self.cardspeed == "Default":
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
             self.cardspeed = -1
         else:
-            self.cardspeed = int(self.cardspeed)
+            self.cardspeed = int(cardspeed)
 
     def action(self) -> int:
         """パーティ非表示コンテント。"""
@@ -3366,7 +3471,9 @@ class LinkStartContent(EventContentBase):
         """別のスタートコンテントのツリーイベントに移動する。"""
         startname = self.startname
         event = cw.cwpy.event.get_event()
+        assert event
         trees = cw.cwpy.event.get_trees()
+        assert trees is not None
 
         c = trees.get(startname, None)
         if c is not None:
@@ -3395,6 +3502,7 @@ class LinkPackageContent(EventContentBase):
             return 0
 
         event = cw.cwpy.event.get_event()
+        assert event
         call_package(self.resid, bool(event.nowrunningcontents))
         return 0
 
@@ -3421,14 +3529,14 @@ class LoseContent(EventContentBase):
         self.num = self.data.getint(".", "number", 0)
         self.scope = self.data.get("targets")
 
-    def lose_cards(self, cardtype: str) -> int:
+    def lose_cards(self, cardtype: str) -> None:
         """対象範囲のインスタンスに設定枚数のカードを削除する。
         numが0の場合は全対象カード削除。
         cardtype: "SkillCard" or "ItemCard" or "BeastCard"
         """
         if self.scope != "SelectedCard":
             if self.is_differentscenario():
-                return 0
+                return
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
@@ -3452,7 +3560,7 @@ class LoseContent(EventContentBase):
             # 対象カードデータ取得
             e = getdata(self.resid, "Property")
             if e is None:
-                return 0
+                return
             name = e.gettext("Name", "")
             desc = e.gettext("Description", "")
             num = self.num
@@ -3468,7 +3576,7 @@ class LoseContent(EventContentBase):
                 if num <= 0:
                     break
 
-    def lose_card(self, name: str, desc: str, target: cw.header.CardHeader,
+    def lose_card(self, name: str, desc: str, target: Iterable[cw.header.CardHeader],
                   num: int) -> Tuple[List[cw.header.CardHeader], int]:
         headers = []
 
@@ -3511,8 +3619,8 @@ class LoseSkillContent(LoseContent):
             if name is not None:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
-                num = "%s枚" % (num) if num else "全て"
-                return "%sが特殊技能カード『%s』を%s喪失" % (scope, name, num)
+                num_s = "%s枚" % (num) if num else "全て"
+                return "%sが特殊技能カード『%s』を%s喪失" % (scope, name, num_s)
             else:
                 return "特殊技能カードが指定されていません"
 
@@ -3537,8 +3645,8 @@ class LoseItemContent(LoseContent):
             if name is not None:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
-                num = "%s枚" % (num) if num else "全て"
-                return "%sがアイテムカード『%s』を%s喪失" % (scope, name, num)
+                num_s = "%s枚" % (num) if num else "全て"
+                return "%sがアイテムカード『%s』を%s喪失" % (scope, name, num_s)
             else:
                 return "アイテムカードが指定されていません"
 
@@ -3563,8 +3671,8 @@ class LoseBeastContent(LoseContent):
             if name is not None:
                 scope = self.textdict.get(scope.lower(), "")
                 num = self.data.getint(".", "number", 0)
-                num = "%s枚" % (num) if num else "全て"
-                return "%sが召喚獣カード『%s』を%s喪失" % (scope, name, num)
+                num_s = "%s枚" % (num) if num else "全て"
+                return "%sが召喚獣カード『%s』を%s喪失" % (scope, name, num_s)
             else:
                 return "召喚獣カードが指定されていません"
 
@@ -3583,7 +3691,7 @@ class LoseCastContent(LoseContent):
         if fcards:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
-            if cw.cwpy.is_battlestatus() and fcards[0] in cw.cwpy.battle.members:
+            if cw.cwpy.is_battlestatus() and cw.cwpy.battle and fcards[0] in cw.cwpy.battle.members:
                 cw.cwpy.battle.members.remove(fcards[0])
                 fcards[0].clear_action()
             cw.cwpy.sdata.friendcards.remove(fcards[0])
@@ -3635,8 +3743,9 @@ class LoseMoneyContent(LoseContent):
 
     def action(self) -> int:
         """所持金減少コンテント。"""
-        value = self.data.getint(".", "value", 0)
-        cw.cwpy.ydata.party.set_money(-value, fromevent=True, blink=True)
+        if cw.cwpy.ydata and cw.cwpy.ydata.party:
+            value = self.data.getint(".", "value", 0)
+            cw.cwpy.ydata.party.set_money(-value, fromevent=True, blink=True)
         return 0
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
@@ -3652,7 +3761,7 @@ class LoseCompleteStampContent(LoseContent):
         """終了シナリオ削除。"""
         scenario = self.data.get("scenario", "")
 
-        if scenario:
+        if scenario and cw.cwpy.ydata:
             cw.cwpy.ydata.remove_compstamp(scenario)
 
         return 0
@@ -3679,7 +3788,7 @@ class LoseGossipContent(LoseContent):
         else:
             gossip = self.gossip
 
-        if gossip:
+        if gossip and cw.cwpy.ydata:
             cw.cwpy.ydata.remove_gossip(gossip)
 
         return 0
@@ -3793,18 +3902,22 @@ class PlayBgmContent(EventContentBase):
         loopcount = self.data.getint(".", "loopcount", 0)
         fade = self.data.getint(".", "fadein", 0)
         if loopcount == 0:
-            loopcount = "∞"
+            loopcount_s = "∞"
+        else:
+            loopcount_s = str(loopcount)
         channel = self.data.getint(".", "channel", 0)
         if channel == 0:
-            channel = "主音声"
+            channel_s = "主音声"
         else:
-            channel = "副音声%s" % (channel)
+            channel_s = "副音声%s" % (channel)
 
         if 0 < fade:
-            fade = " %s秒かけてフェードイン" % (fade / 1000.0)
+            fade_s = " %s秒かけてフェードイン" % (fade / 1000.0)
+        else:
+            fade_s = ""
 
         if path:
-            return "BGMを【%s】へ変更(音量:%s ループ回数:%s Ch.:%s%s)" % (path, subvolume, loopcount, channel, fade)
+            return "BGMを【%s】へ変更(音量:%s ループ回数:%s Ch.:%s%s)" % (path, subvolume, loopcount_s, channel_s, fade_s)
         else:
             return "BGM停止"
 
@@ -3829,18 +3942,23 @@ class PlaySoundContent(EventContentBase):
         loopcount = self.data.getint(".", "loopcount", 1)
         fade = self.data.getint(".", "fadein", 0)
         if loopcount == 0:
-            loopcount = "∞"
+            loopcount_s = "∞"
+        else:
+            loopcount_s = str(loopcount)
         channel = self.data.getint(".", "channel", 0)
         if channel == 0:
-            channel = "主音声"
+            channel_s = "主音声"
         else:
-            channel = "副音声%s" % (channel)
+            channel_s = "副音声%s" % (channel)
 
         if 0 < fade:
-            fade = " %s秒かけてフェードイン" % (fade / 1000.0)
+            fade_s = " %s秒かけてフェードイン" % (fade / 1000.0)
+        else:
+            fade_s = ""
 
         if path:
-            return "効果音【%s】を鳴らす(音量:%s ループ回数:%s Ch.:%s%s)" % (path, subvolume, loopcount, channel, fade)
+            return "効果音【%s】を鳴らす(音量:%s ループ回数:%s Ch.:%s%s)" % (path, subvolume, loopcount_s, channel_s,
+                                                             fade_s)
         else:
             return "効果音が指定されていません"
 
@@ -3876,12 +3994,12 @@ class ReverseFlagContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
         self.flag = self.data.get("flag")
-        self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
-        if self.cardspeed == "Default":
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
             self.cardspeed = -1
             self.overridecardspeed = False
         else:
-            self.cardspeed = int(self.cardspeed)
+            self.cardspeed = int(cardspeed)
             self.overridecardspeed = self.data.getbool(".", "overridecardspeed", False)
 
     def action(self) -> int:
@@ -3910,12 +4028,12 @@ class SetFlagContent(EventContentBase):
         EventContentBase.__init__(self, data, is_changestate=True)
         self.flag = self.data.get("flag")
         self.value = self.data.getbool(".", "value", False)
-        self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
-        if self.cardspeed == "Default":
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
             self.cardspeed = -1
             self.overridecardspeed = False
         else:
-            self.cardspeed = int(self.cardspeed)
+            self.cardspeed = int(cardspeed)
             self.overridecardspeed = self.data.getbool(".", "overridecardspeed", False)
 
     def action(self) -> int:
@@ -4005,7 +4123,10 @@ class SetVariantContent(BranchContent):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
         self.expression = self.data.gettext("Expression", "")
-        self.parsed_expression = None
+        self.parsed_expression: Optional[List[Union[cw.calculator.ValueType,
+                                                    cw.calculator.Function,
+                                                    cw.calculator.UnaryOperator,
+                                                    cw.calculator.Operator]]] = None
         self.variant = self.data.getattr(".", "variant", "")
         self.step = self.data.getattr(".", "step", "")
         self.flag = self.data.getattr(".", "flag", "")
@@ -4016,7 +4137,7 @@ class SetVariantContent(BranchContent):
         diffsc = self.is_differentscenario()
         variant = cw.cwpy.sdata.find_variant(self.variant, diffsc, event)
 
-        def eval_expr() -> cw.data.Variant:
+        def eval_expr() -> Optional[cw.data.Variant]:
             try:
                 if not self.parsed_expression:
                     self.parsed_expression = cw.calculator.parse(self.expression)
@@ -4038,7 +4159,8 @@ class SetVariantContent(BranchContent):
             result = eval_expr()
             if result:
                 if result.type == "Number":
-                    value = cw.util.numwrap(result.value, 0, len(step.valuenames) - 1)
+                    assert isinstance(result.value, decimal.Decimal)
+                    value = cw.util.numwrap(int(result.value), 0, len(step.valuenames) - 1)
                     step.set(int(value))
                 else:
                     self.variant_error(msg="計算結果 %s は数値ではありません。" % (result.string_value()))
@@ -4048,6 +4170,7 @@ class SetVariantContent(BranchContent):
             result = eval_expr()
             if result:
                 if result.type == "Boolean":
+                    assert isinstance(result.value, bool)
                     flag.set(result.value)
                     flag.redraw_cards()
                 else:
@@ -4076,11 +4199,11 @@ class SetVariantContent(BranchContent):
 class ShowPartyContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=False)
-        self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
-        if self.cardspeed == "Default":
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
             self.cardspeed = -1
         else:
-            self.cardspeed = int(self.cardspeed)
+            self.cardspeed = int(cardspeed)
 
     def action(self) -> int:
         """パーティ表示コンテント。"""
@@ -4200,34 +4323,46 @@ class TalkMessageContent(TalkContent):
         # 話者を選択状態にする(Wsn.3)
         selecttalker = self.data.getbool(".", "selecttalker", False)
 
-        talkers = []
-        firsttalker = None
+        talkers: List[Tuple[cw.image.ImageInfo,
+                            bool,
+                            Optional[Union[cw.character.Character, cw.header.CardHeader]],
+                            Dict[int, pygame.Surface]]] = []
+        firsttalker: Optional[Union[cw.character.Character, cw.header.CardHeader]] = None
         firstchartalker = None
         talk = bool(not len(imgpaths))
 
+        talker: Optional[Union[cw.character.Character, cw.header.CardHeader]]
         for i, info in enumerate(imgpaths):
             imgpath = info.path
             talkeriscard = False
 
             # ランダム
             if imgpath.endswith("??Random"):
-                talker = cw.cwpy.event.get_targetmember("Random")
+                talker_u = cw.cwpy.event.get_targetmember("Random")
+                assert not isinstance(talker_u, list)
+                talker = talker_u
                 talk = True
             # 選択中メンバ
             elif imgpath.endswith("??Selected"):
-                talker = cw.cwpy.event.get_targetmember("Selected")
+                talker_u = cw.cwpy.event.get_targetmember("Selected")
+                assert not isinstance(talker_u, list)
+                talker = talker_u
                 talk = True
             # 選択外メンバ
             elif imgpath.endswith("??Unselected"):
-                talker = cw.cwpy.event.get_targetmember("Unselected")
+                talker_u = cw.cwpy.event.get_targetmember("Unselected")
 
                 # 選択外メンバがいなかったらスキップ
                 if not talker:
                     continue
+                assert not isinstance(talker_u, list)
+                talker = talker_u
 
             # 使用中カード
             elif imgpath.endswith("??Card"):
-                talker = cw.cwpy.event.get_targetmember("Selectedcard")
+                talker_u = cw.cwpy.event.get_targetmember("Selectedcard")
+                assert not isinstance(talker_u, list)
+                talker = talker_u
                 talkeriscard = True
 
                 # 使用中カードがなかったらスキップ
@@ -4240,13 +4375,17 @@ class TalkMessageContent(TalkContent):
 
             if talker:
                 if talkeriscard:
+                    assert isinstance(talker, cw.header.CardHeader)
                     can_loaded_scaledimage = talker.get_can_loaded_scaledimage()
                 else:
-                    assert isinstance(talker, cw.character.Character)
+                    assert isinstance(talker, (cw.sprite.card.PlayerCard,
+                                               cw.sprite.card.EnemyCard,
+                                               cw.sprite.card.FriendCard))
                     can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
                 for base in talker.imgpaths:
                     imgpath = base.path
                     if talkeriscard:
+                        assert isinstance(talker, cw.header.CardHeader)
                         if not cw.binary.image.path_is_code(imgpath):
                             if not hasattr(talker, "scenariocard") or not talker.scenariocard or \
                                     (isinstance(talker, cw.header.CardHeader) and talker.cardimg.anotherscenariocard):
@@ -4283,6 +4422,7 @@ class TalkMessageContent(TalkContent):
                     imgpath = inusepath
                     inusecard = cw.cwpy.event.get_inusecard()
                     assert inusecard
+                    assert inusecard.carddata is not None
                     can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
                 else:
                     imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,
@@ -4290,8 +4430,10 @@ class TalkMessageContent(TalkContent):
                     if cw.cwpy.areaid < 0:
                         can_loaded_scaledimage = True
                     elif cw.cwpy.event.in_inusecardevent:
-                        can_loaded_scaledimage = cw.cwpy.event.get_inusecard().carddata.getbool(".", "scaledimage",
-                                                                                                False)
+                        inusecard = cw.cwpy.event.get_inusecard()
+                        assert inusecard
+                        assert inusecard.carddata is not None
+                        can_loaded_scaledimage = inusecard.carddata.getbool(".", "scaledimage", False)
                     else:
                         can_loaded_scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
                 talkers.append((cw.image.ImageInfo(imgpath, base=info), can_loaded_scaledimage, None, {}))
@@ -4394,6 +4536,7 @@ class TalkDialogContent(TalkContent):
         names = self.get_selections_and_indexes()
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
+        talker: Optional[Union[cw.character.Character, List[cw.character.Character], cw.header.CardHeader]]
         if targetm == "Valued":
             self.init_values()
             if self.coupons:
@@ -4413,7 +4556,10 @@ class TalkDialogContent(TalkContent):
             return 0
 
         # 画像パス
-        imgpaths = []
+        imgpaths: List[Tuple[cw.image.ImageInfo,
+                             bool,
+                             Optional[Union[cw.character.Character, cw.header.CardHeader]],
+                             Dict[int, pygame.Surface]]] = []
         assert isinstance(talker, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
         for base in talker.imgpaths:
@@ -4468,6 +4614,7 @@ class TalkDialogContent(TalkContent):
         """
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
+        talker: Optional[Union[cw.character.Character, List[cw.character.Character], cw.header.CardHeader]]
         if targetm == "Valued":
             talker = self.get_valuedmember("active", silenced_member=False)
         else:
@@ -4508,7 +4655,7 @@ class TalkDialogContent(TalkContent):
             dialogs.append((req_coupons, text))
         return dialogs
 
-    def get_dialogtext(self, dialogs: Tuple[List[str], str], coupons: Iterable[str]) -> Optional[str]:
+    def get_dialogtext(self, dialogs: Iterable[Tuple[List[str], str]], coupons: Iterable[str]) -> Optional[str]:
         for req_coupons, text in dialogs:
             hasallcoupons = True
             for req_coupon in req_coupons:
@@ -4625,12 +4772,12 @@ class SubstituteFlagContent(EventContentBase):
         self.fromflag = self.data.getattr(".", "from", "")
         self.toflag = self.data.getattr(".", "to", "")
 
-        self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
-        if self.cardspeed == "Default":
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
             self.cardspeed = -1
             self.overridecardspeed = False
         else:
-            self.cardspeed = int(self.cardspeed)
+            self.cardspeed = int(cardspeed)
             self.overridecardspeed = self.data.getbool(".", "overridecardspeed", False)
 
     def action(self) -> int:
@@ -4825,12 +4972,12 @@ class MoveCardContent(EventContentBase):
         self.y = data.getint(".", "y", 0)
         self.scale = data.getint(".", "scale", -1)
         self.layer = data.getint(".", "layer", -1)
-        self.cardspeed = self.data.getattr(".", "cardspeed", "Default")
-        if self.cardspeed == "Default":
+        cardspeed = self.data.getattr(".", "cardspeed", "Default")
+        if cardspeed == "Default":
             self.cardspeed = -1
             self.overridecardspeed = False
         else:
-            self.cardspeed = int(self.cardspeed)
+            self.cardspeed = int(cardspeed)
             self.overridecardspeed = self.data.getbool(".", "overridecardspeed", False)
 
     def action(self) -> int:
@@ -5019,9 +5166,12 @@ class PostEventContent(EventContentBase):
     @staticmethod
     def do_action(command: str, arg: Optional[str]) -> None:
         try:
-            arg = int(arg)
+            if arg:
+                arg_i: Optional[int] = int(arg)
+            else:
+                arg_i = None
         except Exception:
-            pass
+            arg_i = None
 
         if command in methoddict:
             methodname = methoddict[command]
@@ -5030,8 +5180,10 @@ class PostEventContent(EventContentBase):
             lock_menucards = cw.cwpy.lock_menucards
             cw.cwpy.lock_menucards = True
 
-            if arg:
+            if arg_i is None and arg:
                 cw.cwpy.exec_func(method, arg)
+            elif arg_i:
+                cw.cwpy.exec_func(method, arg_i)
             else:
                 cw.cwpy.exec_func(method)
 
@@ -5060,11 +5212,12 @@ def get_content(data: cw.data.CWPyElement) -> EventContentBase:
 
     try:
         data.content = globals()[classname](data)
+        assert data.content is not None
         return data.content
     except Exception:
         cw.util.print_ex(file=sys.stderr)
         print("NoContent: ", classname)
-        return None
+        raise ValueError("NoContent: " + classname)
 
 
 def main() -> None:

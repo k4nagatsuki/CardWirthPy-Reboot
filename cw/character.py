@@ -17,6 +17,7 @@ _couponlock = threading.Lock()
 class Character(object):
     status: str
     actions: Dict[int, bool]
+    versionhint: Optional[Tuple[str, str, bool, bool, bool]]
 
     def __init__(self, data: cw.data.CWPyElementTree) -> None:
         self.data = data
@@ -472,9 +473,9 @@ class Character(object):
                 header = self.actiondata[1]
                 if header and keycode in header.get_keycodes():
                     return header
-            header = self.deck.get_used()
-            if header and keycode in header.get_keycodes():
-                return header
+            used = self.deck.get_used()
+            if used and keycode in used.get_keycodes():
+                return used
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
                 if keycode in header.get_keycodes():

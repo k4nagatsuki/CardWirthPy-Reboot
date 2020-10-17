@@ -48,6 +48,7 @@ _dlg_mutex = threading.Lock()
 class CWPy(threading.Thread):
     areaid: int
     skindir: str
+    starttick: int
 
     mousepos: Tuple[int, int]
     wxmousepos: Tuple[int, int]
@@ -76,7 +77,7 @@ class CWPy(threading.Thread):
 
     _yesnoresult: int
 
-    msgs: cw.setting.ResourceTable[str, str]
+    msgs: cw.setting.MsgDict
 
     def __init__(self) -> None:
         threading.Thread.__init__(self)
@@ -909,6 +910,7 @@ class CWPy(threading.Thread):
                 if not (isinstance(owner, cw.character.Enemy) and owner.is_analyzable()):
                     assert 0 < len(self.pre_dialogs)
                     self.pre_dialogs.pop()
+                assert isinstance(owner, cw.sprite.card.CWPyCard)
                 cw.cwpy.clear_inusecardimg(owner)
                 cw.cwpy.clear_targetarrow()
                 cw.cwpy.clear_specialarea()
@@ -1354,6 +1356,7 @@ class CWPy(threading.Thread):
             assert self.ydata.party
             owner = self.card_takenouttemporarily.get_owner()
             if owner and isinstance(owner, cw.character.Character) and self.sdata.party_environment_backpack:
+                assert isinstance(owner, cw.sprite.card.CWPyCard)
                 self.clear_inusecardimg(owner)
                 header = self.card_takenouttemporarily
                 self.trade("BACKPACK", header=header, from_event=False, parentdialog=None,
@@ -1461,7 +1464,7 @@ class CWPy(threading.Thread):
     def stop_animation(self, sprite: "cw.sprite.base.CWPySprite") -> None:
         if sprite in self.animations:
             sprite.anitype = ""
-            sprite.start_animation = 0
+            sprite.start_animation = 0.0
             sprite.frame = 0
             self.animations.remove(sprite)
 
@@ -2931,11 +2934,11 @@ class CWPy(threading.Thread):
 
                 for eimg in elog.getfind(".", raiseerror=False):
                     if eimg.get("member", "") == name:
-                        prop = data.find("Property")
+                        prop = data.find_exists("Property")
                         for ename in ("ImagePath", "ImagePaths"):
-                            e = prop.find(ename)
-                            if e is not None:
-                                prop.remove(e)
+                            e_imgs = prop.find(ename)
+                            if e_imgs is not None:
+                                prop.remove(e_imgs)
 
                         if eimg.tag == "ImagePath":
                             # 旧バージョン(～0.12.3)
@@ -4090,6 +4093,7 @@ class CWPy(threading.Thread):
 
             elif cardtarget in ("User", "None"):
                 if self.status == "Scenario":
+                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if cw.cwpy.setting.confirm_beforeusingcard:
                         owner.image = owner.get_selectedimage()
 
@@ -4099,7 +4103,9 @@ class CWPy(threading.Thread):
                         self.call_modaldlg("USECARD")
                     self.exec_func(func, owner)
                 elif self.is_battlestatus():
-                    owner.set_action(owner, header)
+                    owner_c = owner
+                    assert isinstance(owner_c, cw.sprite.card.CWPyCard)
+                    owner.set_action(owner_c, header)
                     self.clear_specialarea()
                     self.lock_menucards = False
                 updatestatusbar = False
@@ -4572,6 +4578,8 @@ class CWPy(threading.Thread):
                 if isinstance(targets_c, cw.character.Character):
                     assert isinstance(targets_c, cw.sprite.card.CWPyCard)
                     targets = [targets_c]
+                else:
+                    targets = targets_c
             else:
                 targets = []
                 header = None
@@ -5084,14 +5092,14 @@ class CWPy(threading.Thread):
             is_playingscenario = self.is_playingscenario()
 
         if header.is_backpackheader() and party:
-            owner = party.backpack
+            owner: Optional[Union[List[cw.header.CardHeader], cw.character.Character]] = party.backpack
         else:
             owner = header.get_owner()
 
         # 荷物袋<=>カード置場のため
         # ファイルの移動だけで済む場合
         move = (targettype in ("BACKPACK", "STOREHOUSE")) and\
-            ((owner == self.ydata.storehouse) or (party and owner == party.backpack)) and\
+            ((owner is self.ydata.storehouse) or (party and owner is party.backpack)) and\
             (not is_playingscenario)
 
         # カード置場・荷物袋内での位置の移動の場合
@@ -5253,6 +5261,7 @@ class CWPy(threading.Thread):
                         not (owner, header) in self.sdata.uselimit_table:
                     # キャンプ中は元々の使用回数を記憶しておき、
                     # 元の所有者の手許に戻ったら使用回数を復元する
+                    assert isinstance(owner, cw.sprite.card.PlayerCard)
                     self.sdata.uselimit_table[(owner, header)] = header.uselimit
                 header.maxuselimit = 0
                 header.uselimit = 0
@@ -5712,12 +5721,13 @@ class CWPy(threading.Thread):
         if from_scenario and cw.util.splitext(imgpath)[1].lower() == ".jpy1":
             try:
                 config = cw.effectbooster.EffectBoosterConfig(imgpath, "init")
+                dirdepth = config.get_int("init", "dirdepth", 0)
                 for section in config.sections():
                     jpy1innnerfile = config.get(section, "filename", "")
                     if not jpy1innnerfile:
                         continue
                     dirtype = config.get_int(section, "dirtype", 1)
-                    innerfpath = cw.effectbooster.get_filepath_s(config.path, imgpath, jpy1innnerfile, dirtype,
+                    innerfpath = cw.effectbooster.get_filepath_s(config.path, dirdepth, jpy1innnerfile, dirtype,
                                                                  scedir=scedir)[0]
                     if not innerfpath.startswith(scedir + "/"):
                         continue
