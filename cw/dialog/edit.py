@@ -978,7 +978,7 @@ class ComboEditDialog2(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class LevelEditDialog(wx.Dialog):
-    def __init__(self, parent: wx.TopLevelWindow, mlist: List["cw.sprite.card.PlayerCard"], selected: int,
+    def __init__(self, parent: wx.TopLevelWindow, mlist: List[cw.character.Player], selected: int,
                  party: Optional[cw.data.Party] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -1019,7 +1019,7 @@ class LevelEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def get_selected(self) -> List["cw.sprite.card.PlayerCard"]:
+    def get_selected(self) -> List[cw.character.Player]:
         index = self.target.GetSelection()
         if index <= 0:
             return self.list

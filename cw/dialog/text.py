@@ -15,6 +15,10 @@ from typing import List
 # ------------------------------------------------------------------------------
 
 class Text(wx.Dialog):
+    index: int
+    list2: List[bytes]
+    index2: int
+
     def __init__(self, parent: wx.TopLevelWindow, name: str) -> None:
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((550, 290)),

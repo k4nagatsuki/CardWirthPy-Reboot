@@ -11,7 +11,7 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import Callable, Tuple, Union, List
+from typing import Callable, Sequence, Tuple, Union, List
 
 
 class BattleCommand(wx.Dialog):
@@ -331,8 +331,8 @@ class ExtensionDialog(wx.Dialog):
     title: ダイアログのタイトル。
     """
     def __init__(self, parent: wx.TopLevelWindow, title: str,
-                 items: List[Union[Tuple[str, str, Callable[[], None]],
-                                   Tuple[str, str, Callable[[], None], bool]]]) -> None:
+                 items: Sequence[Union[Tuple[str, str, Callable[[], None]],
+                                       Tuple[str, str, Callable[[], None], bool]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False

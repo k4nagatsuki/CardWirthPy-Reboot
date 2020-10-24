@@ -4046,9 +4046,9 @@ def draw_adjusted(dc: wx.MemoryDC, s: str, x: int, y: int, maxwidth: int, align:
                              quality=quality, scaledown=False, bordering=False, align=align)
 
 
-def draw_antialiasedtext(dc: wx.MemoryDC, text: str, x: int, y: int, white: bool, maxwidth: int, padding: int,
+def draw_antialiasedtext(dc: wx.DC, text: str, x: int, y: int, white: bool, maxwidth: int, padding: int,
                          quality: Optional[int] = None, scaledown: bool = True, alpha: int = 64,
-                         bordering: bool = False, width_coeff: int = 1, align: int = wx.ALIGN_LEFT) -> None:
+                         bordering: bool = False, width_coeff: float = 1.0, align: int = wx.ALIGN_LEFT) -> None:
     if not text:
         return
     w = dc.GetTextExtent(text)[0]
@@ -4073,7 +4073,7 @@ def draw_antialiasedtext(dc: wx.MemoryDC, text: str, x: int, y: int, white: bool
 
 def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int, padding: int,
                            quality: Optional[int] = None, scaledown: bool = True, alpha: int = 255,
-                           width_coeff: int = 1) -> wx.Bitmap:
+                           width_coeff: float = 1.0) -> wx.Bitmap:
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
         quality = wx.IMAGE_QUALITY_BICUBIC

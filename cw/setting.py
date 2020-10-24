@@ -340,14 +340,20 @@ class LocalSetting(object):
 
 
 class Setting(object):
+    skintype: str
+
     msgs: "MsgDict"
 
     sexes: List[cw.features.Sex]
     sexcoupons: List[str]
+    sexnames: List[str]
     periods: List[cw.features.Period]
     periodcoupons: List[str]
+    periodnames: List[str]
     natures: List[cw.features.Nature]
-    nagurecoupons: List[str]
+    naturecoupons: List[str]
+    naturenames: List[str]
+    makingnames: List[str]
     races: List["cw.header.RaceHeader"]
     unknown_race: "cw.header.UnknownRaceHeader"
 

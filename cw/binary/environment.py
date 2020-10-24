@@ -13,6 +13,8 @@ class Environment(base.CWBinaryBase):
     """Environment.wyd(type=-1)
     システム設定とかゴシップとか終了印とかいろいろまとめているデータ。
     """
+    dataversion_int: int
+
     def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False,
                  versiononly: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)

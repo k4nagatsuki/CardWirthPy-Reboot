@@ -366,7 +366,7 @@ class SystemData(object):
                     elif resid not in self._areas:
                         self._areas[resid] = (name, path)
 
-    def update_scenariopath(self, normpath: str, dst: str, dstisfile: str) -> None:
+    def update_scenariopath(self, normpath: str, dst: str, dstisfile: bool) -> None:
         if not self.fpath:
             return
         normpath2 = cw.util.get_keypath(self.fpath)
@@ -401,7 +401,7 @@ class SystemData(object):
         self.resource_cache = {}
         self.resource_cache_size = 0
 
-    def update_scenariopath2(self, normpath: str, dst: str, dstisfile: str) -> None:
+    def update_scenariopath2(self, normpath: str, dst: str, dstisfile: bool) -> None:
         if not self.fpath:
             return
         if dstisfile:
@@ -2549,6 +2549,7 @@ class YadoDeletedPathSet(object):
 class YadoData(object):
     name: str
     skindirname: str
+    imgpaths: List["cw.image.ImageInfo"]
     album: List["cw.header.AdventurerHeader"]
     partys: List["cw.header.PartyHeader"]
     storehouse: List["cw.header.CardHeader"]

@@ -59,6 +59,8 @@ class CardHeader(object):
     wxrect: pygame.Rect
     negaflag: bool
     clickedflag: bool
+    textpos: Tuple[int, int]
+    subrect: pygame.Rect
 
     def __init__(self, data: Optional[cw.data.CWPyElement] = None, owner: Optional["cw.character.Character"] = None,
                  carddata: Optional[cw.data.CWPyElement] = None, from_scenario: bool = False, scedir: str = "",
@@ -228,6 +230,9 @@ class CardHeader(object):
         self.negaflag = False
         self.clickedflag = False
         self.deal_per = 100
+        # CharaInfoダイアログで使う表示位置情報
+        self.textpos = (0, 0)
+        self.subrect = pygame.Rect(0, 0, 0, 0)
 
         # 特殊なキーコード
         self.penalty = bool(cw.cwpy.msgs["penalty_keycode"] in self.keycodes)

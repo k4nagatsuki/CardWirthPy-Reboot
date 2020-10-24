@@ -33,6 +33,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.skintype = skintype
         self.scedir = scedir
         self.path = ""
+        self._textheight = 0
 
         # メッセージ
         self.text = text
@@ -429,7 +430,7 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
 
             return False
 
-        notscenariofiles2 = {}
+        notscenariofiles2: Dict[Tuple[str, str], List[str]] = {}
         if recurse(allparent, path, notscenariofiles2):
             for key, value in notscenariofiles2.items():
                 s = notscenariofiles.get(key, None)
@@ -470,7 +471,7 @@ def create_dir(parentdialog: ScenarioInstall, dpath: str) -> str:
 def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
                      notscenariofiles: Dict[Tuple[str, str], List[str]], scedir: str, dstpath: str,
                      db: cw.scenariodb.Scenariodb,
-                     skintype: str) -> Tuple[Optional[cw.header.ScenarioHeader],
+                     skintype: str) -> Tuple[bool,
                                              List[Union[cw.header.ScenarioHeader,
                                                         str,
                                                         "cw.dialog.scenarioselect.FindResult"]],
@@ -482,7 +483,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
     dstpath = cw.util.get_linktarget(dstpath)
 
     if not cw.cwpy.setting.install_notscenariofiles:
-        notscenariofiles: Dict[Tuple[str, str], List[str]] = {}
+        notscenariofiles = {}
 
     # インストール済みの情報が見つかったシナリオ
     db_exists: Dict[str, List[cw.header.ScenarioHeader]] = {}
@@ -536,7 +537,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
             self.db_repls = db_repls
             self.num = 0
             self.msg = ""
-            self.failed = None
+            self.failed: Optional[cw.header.ScenarioHeader] = None
             self.updates: Set[str] = set()
             self.paths: List[Union[cw.header.ScenarioHeader, str, cw.dialog.scenarioselect.FindResult]] = []
             self.filepaths: List[str] = []
@@ -673,7 +674,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 if dlg.cancel:
                     break
                 try:
-                    repl_links = {}
+                    repl_links: Dict[str, str] = {}
                     rmpaths = []
                     self.msg = "ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
 
@@ -773,7 +774,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
         for dpath in thread.updates:
             db.update(dpath, skintype=skintype)
 
-    return thread.failed, thread.paths, thread.filepaths, False
+    return thread.failed is not None, thread.paths, thread.filepaths, False
 
 
 def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
@@ -791,7 +792,10 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
         cw.cwpy.setting.lastscenariopath = dst
 
     for i in range(0, len(cw.cwpy.setting.lastfindresult)):
-        normpath3 = cw.util.get_keypath(cw.cwpy.setting.lastfindresult[i])
+        lastfindresult = cw.cwpy.setting.lastfindresult[i]
+        if not isinstance(lastfindresult, str):
+            continue
+        normpath3 = cw.util.get_keypath(lastfindresult)
         if normpath == normpath3:
             cw.cwpy.setting.lastfindresult[i] = dst
 
@@ -864,10 +868,10 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
         cw.cwpy.ydata.recenthistory.update_scenariopath(normpath, dst)
     elif cw.cwpy.ydata.party:
         # カードイメージ
-        for header in cw.cwpy.ydata.party.get_allcardheaders():
-            if not header.scenariocard:
+        for cardheader in cw.cwpy.ydata.party.get_allcardheaders():
+            if not cardheader.scenariocard:
                 continue
-            header.update_scenariopath(normpath, dst)  # 次の表示で再初期化
+            cardheader.update_scenariopath(normpath, dst)  # 次の表示で再初期化
 
     cw.fsync.sync()
 
@@ -897,7 +901,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         self.db_exists = db_exists
         self.scedir = scedir
         self.keys = []
-        self.db_repls = {}
+        self.db_repls: Dict[str, List[str]] = {}
 
         # メッセージ
         if 1 < len(self.db_exists):

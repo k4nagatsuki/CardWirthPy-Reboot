@@ -143,7 +143,7 @@ class Frame(wx.Frame):
 #            os.environ["SDL_AUDIODRIVER"] = "waveout"
 
         # debbuger
-        self.debugger = None
+        self.debugger: Optional[cw.debug.debugger.Debugger] = None
         # アイコン
         self.set_icon(self)
         # bind

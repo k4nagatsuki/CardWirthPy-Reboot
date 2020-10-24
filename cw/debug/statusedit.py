@@ -14,11 +14,7 @@ from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 class StatusEditDialog(wx.Dialog):
 
-    def __init__(self, parent: wx.TopLevelWindow,
-                 mlist: List[Union["cw.sprite.card.PlayerCard",
-                                   "cw.sprite.card.EnemyCard",
-                                   "cw.sprite.card.FriendCard"]],
-                 selected: int = -1) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, mlist: List["cw.character.Character"], selected: int = -1) -> None:
         wx.Dialog.__init__(self, parent, -1, "キャラクターの状態の編集",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True

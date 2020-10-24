@@ -1063,7 +1063,9 @@ class Debugger(wx.Frame):
         dlg.Destroy()
 
     def OnStatusTool(self, event: wx.CommandEvent) -> None:
-        dlg = cw.debug.statusedit.StatusEditDialog(self, cw.cwpy.get_pcards())
+        pcards: List[cw.character.Character] = []
+        pcards.extend(cw.cwpy.get_pcards())
+        dlg = cw.debug.statusedit.StatusEditDialog(self, pcards)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
@@ -2554,7 +2556,7 @@ class EventView(wx.ScrolledWindow):
         processing = self.processing
         self.processing = True
 
-        def func(self: Debugger) -> None:
+        def func(self: EventView) -> None:
             event = cw.cwpy.event.get_event()
             nowrunning = cw.cwpy.event.get_nowrunningevent()
             cur_content = event.cur_content if event else None
@@ -2562,7 +2564,7 @@ class EventView(wx.ScrolledWindow):
                 assert event
                 cur_content = cur_content[event.line_index]
 
-            def func(self, nowrunning: Optional[cw.event.Event], event: Optional[cw.event.Event],
+            def func(self: EventView, nowrunning: Optional[cw.event.Event], event: Optional[cw.event.Event],
                      cur_content: Optional[cw.data.CWPyElement]) -> None:
                 if not self:
                     return
