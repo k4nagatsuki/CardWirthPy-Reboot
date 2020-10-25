@@ -915,12 +915,15 @@ class DescPanel(wx.ScrolledWindow, Generic[_T]):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        self.update_cursor()
-        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        if isinstance(self.Parent.Parent, ActiveCharaInfo):
+            self.update_cursor()
+            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
         self.draw(True)
 
     def update_cursor(self) -> None:
+        if not isinstance(self.Parent.Parent, ActiveCharaInfo):
+            return
         if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
         else:
@@ -1020,8 +1023,9 @@ class HistoryPanel(wx.ScrolledWindow, Generic[_T]):
         # create buffer
         self.draw(True)
 
-        self.update_cursor()
-        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        if isinstance(self.Parent.Parent, ActiveCharaInfo):
+            self.update_cursor()
+            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def _get_bmps(self, name: str) -> wx.Bitmap:
         bmp = cw.cwpy.rsrc.dialogs[name]
@@ -1033,6 +1037,8 @@ class HistoryPanel(wx.ScrolledWindow, Generic[_T]):
         return img.ConvertToBitmap()
 
     def update_cursor(self) -> None:
+        if not isinstance(self.Parent.Parent, ActiveCharaInfo):
+            return
         if cw.cwpy.is_debugmode() and self._editable and isinstance(self.ccard, cw.character.Character):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
         else:
@@ -1490,12 +1496,15 @@ class StatusPanel(wx.ScrolledWindow, Generic[_L]):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        self.update_cursor()
-        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        if isinstance(self.Parent.Parent, ActiveCharaInfo):
+            self.update_cursor()
+            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
         self.draw(True)
 
     def update_cursor(self) -> None:
+        if not isinstance(self.Parent.Parent, ActiveCharaInfo):
+            return
         if cw.cwpy.is_debugmode() and self._editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
         else:
