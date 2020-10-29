@@ -4174,7 +4174,7 @@ def get_boxpointlist(pos: Tuple[int, int], size: Tuple[int, int]) -> List[Tuple[
     """StaticBoxの囲い描画用のposlistを返す。"""
     x, y = pos
     width, height = size
-    poslist = []
+    poslist = [][:]
     poslist.append((x, y, x + width, y))
     poslist.append((x, y, x, y + height))
     poslist.append((x + width, y, x + width, y + height))
@@ -4184,8 +4184,8 @@ def get_boxpointlist(pos: Tuple[int, int], size: Tuple[int, int]) -> List[Tuple[
 
 def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl], message: str, wildcard: str = "*.*",
                          seldir: bool = False, getbasedir: Optional[Callable[[], str]] = None,
-                         callback: Optional[Callable[[Union[str, Sequence[str]]], None]] = None, winsize: bool = False,
-                         multiple: bool = False) -> wx.Button:
+                         callback: Optional[Union[Callable[[Sequence[str]], None], Callable[[str], None]]] = None,
+                         winsize: bool = False, multiple: bool = False) -> wx.Button:
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
     parent: ボタンの親パネル。
@@ -4242,7 +4242,11 @@ def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl
                         fnames += fpath
                     seq.append(fpath)
                 if callback:
-                    callback(seq if multiple else seq[0])
+                    if multiple:
+                        callback2: Callable[..., bool] = callable
+                        callback2(seq)
+                    else:
+                        callback(seq[0])
                 if target is not None:
                     target.SetValue(fnames)
             dlg.Destroy()

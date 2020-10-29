@@ -10,7 +10,8 @@ import pygame
 
 import cw
 
-from typing import Dict, Iterable, List, Set, Tuple, Union, Callable, Optional
+import typing
+from typing import Dict, Iterable, List, Literal, Sequence, Set, Tuple, Union, Callable, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -3400,7 +3401,20 @@ def _set_previmg(panel: DesignPanel, name: str) -> None:
         panel.Refresh()
 
 
-def create_refimage(parent: YadoCreater, tooltip: str, multiple: bool, callback: Callable[[str], None],
+@typing.overload
+def create_refimage(parent: wx.TopLevelWindow, tooltip: str, multiple: Literal[False],
+                    callback: Callable[[str], None],
+                    setsize: bool = True) -> wx.Button: ...
+
+
+@typing.overload
+def create_refimage(parent: wx.TopLevelWindow, tooltip: str, multiple: Literal[True],
+                    callback: Callable[[Sequence[str]], None],
+                    setsize: bool = True) -> wx.Button: ...
+
+
+def create_refimage(parent: wx.TopLevelWindow, tooltip: str, multiple: bool,
+                    callback: Union[Callable[[str], None], Callable[[Sequence[str]], None]],
                     setsize: bool = True) -> wx.Button:
     """イメージファイルの選択ダイアログを開く。"""
     tip = "画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*"
