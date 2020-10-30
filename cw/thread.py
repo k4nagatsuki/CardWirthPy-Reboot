@@ -3759,7 +3759,7 @@ class CWPy(_Singleton, threading.Thread):
                 return
 
             if self.areaid >= 0 and self.status == "Scenario":
-                self.elapse_time()
+                self.elapse_time(playeronly=True)
 
             if self._need_disposition and not silent:
                 self.disposition_pcards()
@@ -3880,7 +3880,7 @@ class CWPy(_Singleton, threading.Thread):
                     not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
-                self.elapse_time()
+                self.elapse_time(playeronly=True)
                 if self.is_gameover():
                     self.set_gameover()
                     return
@@ -4682,7 +4682,7 @@ class CWPy(_Singleton, threading.Thread):
         ccards = self.get_pcards("unreversed")
         if not playeronly:
             ccards.extend(self.get_ecards("unreversed"))
-            ccards.extend(self.get_fcards())
+            ccards.extend(self.get_fcards("unreversed"))
 
         try:
             for ccard in ccards:
