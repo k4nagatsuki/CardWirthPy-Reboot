@@ -562,7 +562,8 @@ class ActiveCharaInfo(CharaInfo):
                         self.list.append(card)
         else:
             self.list = cw.cwpy.get_fcards()[:]
-            self.list.reverse()
+            if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+                self.list.reverse()
 
         if self.ccard in self.list:
             self.index = self.list.index(self.ccard)

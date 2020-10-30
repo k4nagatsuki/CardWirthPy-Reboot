@@ -3458,9 +3458,12 @@ class CWPy(_Singleton, threading.Thread):
         """cardgrpに同行NPCのスプライトを追加する。"""
         self._is_showingfcards = False
         seq = list(enumerate(self.get_fcards()))
-        for index, fcard in reversed(seq):
+        if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+            seq.reverse()
+        for index, fcard in seq:
             self._is_showingfcards = True
-            index = 5 - index
+            if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+                index = 5 - index
             pos = (95 * index + 9 * (index + 1), 5)
             fcard.set_pos_noscale(pos)
             fcard.status = status
