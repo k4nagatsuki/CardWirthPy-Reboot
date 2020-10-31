@@ -583,8 +583,9 @@ class ActiveCharaInfo(CharaInfo[_L], Generic[_L]):
                     if card.is_analyzable():
                         self.list.append(card)
         else:
-            self.list = cw.cwpy.get_fcards()[:]
-            self.list.reverse()
+            self.list = cw.cwpy.get_fcards("selectable")[:]
+            if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+                self.list.reverse()
 
         index = 0
         seq: Union[List[_L], List[cw.header.AdventurerHeader]] = self.list

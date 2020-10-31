@@ -900,6 +900,8 @@ class CWPy(threading.Thread):
 
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
+        self.list = self.get_mcards("selectable")
+        self.index = -1
         self.change_selection(self.selection)
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
@@ -3544,9 +3546,14 @@ class CWPy(threading.Thread):
         """cardgrpに同行NPCのスプライトを追加する。"""
         self._is_showingfcards = False
         seq = list(enumerate(self.get_fcards()))
-        for index, fcard in reversed(seq):
+        if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+            seq.reverse()
+        for index, fcard in seq:
             self._is_showingfcards = True
-            index = 5 - index
+            if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+                index = 5 - index
+            else:
+                index = 6 - len(seq) + index
             pos = (95 * index + 9 * (index + 1), 5)
             fcard.set_pos_noscale(pos)
             fcard.status = status
@@ -3843,7 +3850,7 @@ class CWPy(threading.Thread):
                 return
 
             if self.areaid >= 0 and self.status == "Scenario":
-                self.elapse_time()
+                self.elapse_time(playeronly=True)
 
             if self._need_disposition and not silent:
                 self.disposition_pcards()
@@ -3966,7 +3973,7 @@ class CWPy(threading.Thread):
                     not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
-                self.elapse_time()
+                self.elapse_time(playeronly=True)
                 if self.is_gameover():
                     self.set_gameover()
                     return
@@ -4781,7 +4788,7 @@ class CWPy(threading.Thread):
         ccards = self.get_pcards("unreversed")
         if not playeronly:
             ccards.extend(self.get_ecards("unreversed"))
-            ccards.extend(self.get_fcards())
+            ccards.extend(self.get_fcards("unreversed"))
 
         try:
             for ccard in ccards:
@@ -5918,8 +5925,12 @@ class CWPy(threading.Thread):
         elif mode == "selectable":
             if self.is_battlestatus():
                 mcards = self.get_ecards("selectable")
+                mcards.extend(self.get_fcards("selectable"))
             else:
                 mcards = self.get_mcards("visible")
+                if not self.is_debugmode():
+                    mcards = [m for m in mcards
+                              if not (isinstance(m, cw.character.Friend) and m.is_reversed())]
         elif flag:
             mcards = self._mcardtable.get(flag, [])
         else:

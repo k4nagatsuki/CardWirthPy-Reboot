@@ -655,11 +655,12 @@ class CardImage(Image):
                 subimg = cw.cwpy.rsrc.wxcardbgs["HOLD"]
                 dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
 
-            # ペナルティ
-            if header.penalty:
-                subimg = cw.cwpy.rsrc.wxcardbgs["PENALTY"]
-                dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
+        # ペナルティ
+        if header.penalty:
+            subimg = cw.cwpy.rsrc.wxcardbgs["PENALTY"]
+            dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
 
+        if isinstance(owner, cw.character.Character):
             # ペナルティが自動選択されたため変更不可
             if owner.is_autoselectedpenalty(header):
                 subimg = cw.cwpy.rsrc.dialogs["FIXED"]

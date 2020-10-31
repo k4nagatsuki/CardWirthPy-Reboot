@@ -2082,7 +2082,9 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
                     self.list2 = cw.cwpy.get_pcards(status)
                 else:
                     # NPCの手札カード
-                    self.list2 = list(reversed(cw.cwpy.get_fcards()))
+                    self.list2 = list(cw.cwpy.get_fcards(status))
+                    if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+                        self.list2.reverse()
             self.index2 = self.selection
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
@@ -3354,7 +3356,9 @@ class HandView(CardControl[cw.header.CardHeader]):
         if isinstance(selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards(status)
         elif isinstance(selection, cw.character.Friend):
-            self.list2 = list(reversed(cw.cwpy.get_fcards(status)))
+            self.list2 = list(cw.cwpy.get_fcards(status))
+            if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
+                self.list2.reverse()
         elif isinstance(selection, cw.character.Enemy):
             self._update_enemylist(selection)
         else:
