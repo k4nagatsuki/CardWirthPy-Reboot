@@ -2036,8 +2036,12 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
         cw.cwpy.exec_func(func)
 
         self._init_list(status)
-        if self.callname in ("BACKPACK", "STOREHOUSE"):
+        if self.callname == "BACKPACK":
             sendto = True
+            name = cw.cwpy.msgs["cards_backpack"]
+        elif self.callname == "STOREHOUSE":
+            sendto = True
+            name = cw.cwpy.msgs["cards_storehouse"]
         elif self.callname == "INFOVIEW":
             sendto = False
             name = cw.cwpy.msgs["info_card"]
@@ -3090,7 +3094,6 @@ class SelectCard(CardHolder[cw.header.CardHeader]):
         assert cw.cwpy.ydata
         if self.callname == "BACKPACK":
             assert cw.cwpy.ydata.party
-            name = cw.cwpy.msgs["cards_backpack"]
             self.list2 = cw.cwpy.get_pcards(status)
             self.bgcolour = wx.Colour(0, 0, 128)
             if self.areaid in cw.AREAS_TRADE:
@@ -3098,7 +3101,6 @@ class SelectCard(CardHolder[cw.header.CardHeader]):
                 self.bgcolour = wx.Colour(r, g, b)
             self.list = cw.cwpy.ydata.party.backpack
         elif self.callname == "STOREHOUSE":
-            name = cw.cwpy.msgs["cards_storehouse"]
             self.list2 = cw.cwpy.get_pcards(status)
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
