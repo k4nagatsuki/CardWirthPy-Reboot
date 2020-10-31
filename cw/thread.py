@@ -3464,6 +3464,8 @@ class CWPy(_Singleton, threading.Thread):
             self._is_showingfcards = True
             if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
                 index = 5 - index
+            else:
+                index = 6 - len(seq) + index
             pos = (95 * index + 9 * (index + 1), 5)
             fcard.set_pos_noscale(pos)
             fcard.status = status
