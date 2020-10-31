@@ -651,6 +651,8 @@ class CWPyCard(base.SelectableSprite):
         if self.reversed:
             # リバース状態
             self._reverse()
+            if not self.zoomimgs:
+                self.image = self._image
         elif self.zoomimgs:
             # ズーム画像も更新
             self.zoomimgs[0] = self._image, self.zoomimgs[0][1]
