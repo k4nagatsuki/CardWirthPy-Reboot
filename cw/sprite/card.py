@@ -167,9 +167,8 @@ class CWPyCard(base.SelectableSprite):
     def update_reversed(self) -> None:
         # デバッグモード時、またはキャンプ時(私有カード操作ができる場合)は反転中でも選択可能
         # ただしカード使用の選択対象にはならない
-        if (cw.cwpy.is_debugmode() or (cw.cwpy.setting.show_personal_cards and
-                                       cw.cwpy.areaid == cw.AREA_CAMP)) and\
-                not cw.cwpy.selectedheader:
+        if (cw.cwpy.is_debugmode() or (cw.cwpy.setting.show_personal_cards and isinstance(self, cw.character.Player) and
+                                       cw.cwpy.areaid == cw.AREA_CAMP)) and not cw.cwpy.selectedheader:
             self.update_selection()
 
     def update_hidden(self) -> None:
