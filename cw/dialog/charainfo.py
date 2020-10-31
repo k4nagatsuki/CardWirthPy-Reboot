@@ -561,7 +561,7 @@ class ActiveCharaInfo(CharaInfo):
                     if card.is_analyzable():
                         self.list.append(card)
         else:
-            self.list = cw.cwpy.get_fcards()[:]
+            self.list = cw.cwpy.get_fcards("selectable")[:]
             if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
                 self.list.reverse()
 

@@ -854,6 +854,8 @@ class CWPy(_Singleton, threading.Thread):
 
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
+        self.list = self.get_mcards("selectable")
+        self.index = -1
         self.change_selection(self.selection)
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
 
@@ -5785,8 +5787,12 @@ class CWPy(_Singleton, threading.Thread):
         elif mode == "selectable":
             if self.is_battlestatus():
                 mcards = self.get_ecards("selectable")
+                mcards.extend(self.get_fcards("selectable"))
             else:
                 mcards = self.get_mcards("visible")
+                if not self.is_debugmode():
+                    mcards = [m for m in mcards
+                              if not (isinstance(m, cw.character.Friend) and m.is_reversed())]
         elif flag:
             mcards = self._mcardtable.get(flag, [])
         else:
