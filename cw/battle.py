@@ -432,7 +432,7 @@ class BattleEngine(object):
         """
         members = list(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_pcards("unreversed")))
         members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_ecards("unreversed")))
-        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_fcards()))
+        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_fcards("unreversed")))
         self.members = members
 
     def set_actionorder(self) -> None:
