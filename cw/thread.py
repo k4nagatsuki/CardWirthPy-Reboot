@@ -854,7 +854,12 @@ class CWPy(_Singleton, threading.Thread):
 
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
-        self.list = self.get_mcards("selectable")
+        if self.is_showingmessage():
+            mwin = self.get_messagewindow()
+            assert mwin
+            self.list = mwin.selections
+        else:
+            self.list = self.get_mcards("selectable")
         self.index = -1
         self.change_selection(self.selection)
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
