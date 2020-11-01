@@ -3116,7 +3116,7 @@ class PlayerSelect(MultiViewSelect[cw.header.AdventurerHeader]):
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
                 if not cw.cwpy.ydata.party:
-                    PlayerSelect._add(cw.cwpy.dice.choice(cw.cwpy.ydata.standbys))
+                    PlayerSelect._add(cw.cwpy.dice.choice_exists(cw.cwpy.ydata.standbys))
                 else:
                     seq = self.calc_needs(cw.cwpy.ydata.standbys)
                     seq2 = []

@@ -346,7 +346,7 @@ class Deck(object):
         assert isinstance(ccard, cw.sprite.card.CWPyCard)
         acts = list(filter(lambda cid: cid == 0 or ccard.actions.get(cid, True), acts))
         if acts:
-            self._set_nextcard(ccard, cw.cwpy.dice.choice(acts))
+            self._set_nextcard(ccard, cw.cwpy.dice.choice_exists(acts))
 
     def set_used(self, header: cw.header.CardHeader) -> None:
         """使用したカードをそのラウンド中記憶する。"""

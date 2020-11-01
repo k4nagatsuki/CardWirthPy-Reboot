@@ -2034,7 +2034,7 @@ class BranchMultiRandomContent(BranchContent):
         if not targets:
             return cw.IDX_TREEEND
 
-        return cw.cwpy.dice.choice(targets)
+        return cw.cwpy.dice.choice_exists(targets)
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
         return "ランダム多岐分岐コンテント"

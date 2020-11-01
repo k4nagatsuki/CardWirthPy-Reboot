@@ -285,7 +285,7 @@ class EventInterface(object):
         if not pcards:
             pcards = cw.cwpy.get_pcards("unreversed")
 
-        return cw.cwpy.dice.choice(pcards)
+        return cw.cwpy.dice.choice_exists(pcards)
 
     def has_selectedmember(self) -> bool:
         """選択メンバが存在する場合はTrueを返す。"""
@@ -322,7 +322,7 @@ class EventInterface(object):
             pcards = cw.cwpy.get_pcards("unreversed")
             pcards = [pcard for pcard in pcards if not pcard == selectedmember]
 
-        return cw.cwpy.dice.choice(pcards)
+        return cw.cwpy.dice.choice_exists(pcards)
 
     def get_firstmember(self, mode: str) -> Optional["cw.character.Character"]:
         """先頭のPlayerCardインスタンスを返す。

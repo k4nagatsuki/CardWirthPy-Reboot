@@ -1314,7 +1314,7 @@ class Character(object):
                     bonus, effectivetargets = self._get_targetingbonus_and_targets(header, effectivetargets)
 
                     if not header.allrange and len(targets) > 1:
-                        targets = [cw.cwpy.dice.choice(effectivetargets)]
+                        targets = [cw.cwpy.dice.choice_exists(effectivetargets)]
 
                     beasts.append((targets, header))
                     # 優先行動済みリストへ追加する
@@ -1355,10 +1355,10 @@ class Character(object):
                     if target.is_effective(header, motion):
                         seq.append(target)
                 if seq:
-                    targets = [cw.cwpy.dice.choice(seq)]
+                    targets = [cw.cwpy.dice.choice_exists(seq)]
                     break
             else:
-                targets = [cw.cwpy.dice.choice(targets)]
+                targets = [cw.cwpy.dice.choice_exists(targets)]
 
         # 行動設定
         self.set_action(targets, header, beasts, True)

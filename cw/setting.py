@@ -347,13 +347,16 @@ class Setting(object):
     sexes: List[cw.features.Sex]
     sexcoupons: List[str]
     sexnames: List[str]
+    sexsubnames: List[str]
     periods: List[cw.features.Period]
     periodcoupons: List[str]
     periodnames: List[str]
     natures: List[cw.features.Nature]
     naturecoupons: List[str]
     naturenames: List[str]
+    makings: List[cw.features.Making]
     makingnames: List[str]
+    makingcoupons: List[str]
     races: List["cw.header.RaceHeader"]
     unknown_race: "cw.header.UnknownRaceHeader"
 

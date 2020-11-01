@@ -943,7 +943,7 @@ def get_imageext(b: bytes) -> str:
 
 
 def get_facepaths(sexcoupon: str, agecoupon: str,
-                  adddefaults: bool = True) -> Dict[Tuple[int, str, str], List[str]]:
+                  adddefaults: bool = True) -> Dict[Optional[Tuple[int, str, str]], List[List["cw.image.ImageInfo"]]]:
     """sexとageに対応したFaceディレクトリ内の画像パスを辞書で返す。
     辞書の内容は、(ソートキー, ディレクトリ, ディレクトリ表示名)をキーにした
     当該ディレクトリ内のファイルパスのlistとなる。
@@ -952,7 +952,7 @@ def get_facepaths(sexcoupon: str, agecoupon: str,
     adddefaults: 1件もなかった場合、Resource/Image/Cardにある
                  FATHERまたはMOTHERを使用する。
     """
-    imgpaths: Dict[Tuple[int, str, str], List[str]] = {}
+    imgpaths: Dict[Optional[Tuple[int, str, str]], List[List[cw.image.ImageInfo]]] = {}
 
     sex = ""
     for fsex in cw.cwpy.setting.sexes:
@@ -999,18 +999,18 @@ def get_facepaths(sexcoupon: str, agecoupon: str,
                 if fsex.father:
                     fpath = join_paths(dpath, "FATHER")
                     fpath = find_resource(fpath, cw.M_IMG)
-                    seq.append(fpath)
+                    seq.append(cw.dialog.create.path_to_imageinfo(fpath))
                 if fsex.mother:
                     fpath = join_paths(dpath, "MOTHER")
                     fpath = find_resource(fpath, cw.M_IMG)
-                    seq.append(fpath)
+                    seq.append(cw.dialog.create.path_to_imageinfo(fpath))
                 break
         if seq:
             imgpaths[(0, dpath, "Resource/Image/Card")] = seq
     return imgpaths
 
 
-def _get_facepaths(facedir: str, imgpaths: Dict[Tuple[int, str, str], List[str]],
+def _get_facepaths(facedir: str, imgpaths: Dict[Optional[Tuple[int, str, str]], List[List["cw.image.ImageInfo"]]],
                    dpaths: Iterable[Tuple[int, str, str]], passed: Set[str]) -> None:
     for sortkey, showdpath, dpath in dpaths:
         if not os.path.isdir(dpath):
@@ -1031,7 +1031,7 @@ def _get_facepaths(facedir: str, imgpaths: Dict[Tuple[int, str, str], List[str]]
                 spext = cw.util.splitext(path)
                 ext = spext[1].lower()
                 if ext in cw.EXTS_IMG and not re_xn.match(spext[0]):
-                    seq.append(path)
+                    seq.append(cw.dialog.create.path_to_imageinfo(path))
             elif os.path.isdir(path):
                 showpath = join_paths(showdpath, fname)
                 if sys.platform == "win32" and path1 != path and showpath.lower().endswith(".lnk"):

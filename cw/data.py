@@ -2549,6 +2549,7 @@ class YadoDeletedPathSet(object):
 class YadoData(object):
     name: str
     skindirname: str
+    money: int
     imgpaths: List["cw.image.ImageInfo"]
     album: List["cw.header.AdventurerHeader"]
     partys: List["cw.header.PartyHeader"]
