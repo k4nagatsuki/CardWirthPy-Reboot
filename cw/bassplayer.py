@@ -360,7 +360,7 @@ def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
     return True
 
 
-def change_soundfonts(soundfonts: Iterable[Tuple[str, int]]) -> bool:
+def change_soundfonts(soundfonts: Iterable[Tuple[str, float]]) -> bool:
     """サウンドフォントの差し替えを行う。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if _bassmidi:

@@ -45,16 +45,18 @@ class Select(wx.Dialog, Generic[_T]):
         self.buttonlist: List[wx.Button] = []
         # leftjump
         bmp = cw.cwpy.rsrc.buttons["LJUMP"]
-        self.left2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
+        self.left2btn: wx.Button = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.wins((30, 30)), bmp=bmp, chain=True)
+        self.leftbtn: wx.Button = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.wins((30, 30)), bmp=bmp,
+                                                               chain=True)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.wins((30, 30)), bmp=bmp, chain=True)
+        self.rightbtn: wx.Button = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.wins((30, 30)), bmp=bmp,
+                                                                chain=True)
         # rightjump
         bmp = cw.cwpy.rsrc.buttons["RJUMP"]
-        self.right2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
+        self.right2btn: wx.Button = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp, chain=True)
         # focus
         self.panel.SetFocusIgnoringChildren()
         # ダブルクリックとマウスアップを競合させないため

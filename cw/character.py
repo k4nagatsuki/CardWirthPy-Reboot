@@ -1066,7 +1066,7 @@ class Character(object):
 
         try:
             # カードイベント開始
-            e = data.find_exists("Events/Event")
+            e = data.find("Events/Event")
             cw.event.CardEvent(e, header, self, targets).start()
         finally:
             if removeafter:

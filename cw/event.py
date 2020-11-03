@@ -1418,7 +1418,7 @@ def _get_targetinfo() -> List[str]:
 class CardEvent(Event, Targeting):
     inusecard: "cw.header.CardHeader"
 
-    def __init__(self, event: cw.data.CWPyElement, inusecard: "cw.header.CardHeader",
+    def __init__(self, event: Optional[cw.data.CWPyElement], inusecard: "cw.header.CardHeader",
                  user: Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"],
                  targets: List["cw.sprite.card.CWPyCard"]) -> None:
         Event.__init__(self, event)

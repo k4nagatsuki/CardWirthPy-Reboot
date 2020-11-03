@@ -341,6 +341,8 @@ class LocalSetting(object):
 
 class Setting(object):
     skintype: str
+    skinname: str
+    initialcash: int
 
     msgs: "MsgDict"
 
@@ -562,9 +564,9 @@ class Setting(object):
         self.titleformat_init = self.titleformat
         self.playlogformat = "PlayLog/%yado%/%party%_%year%%month%%day%_%hour%%minute%%second%_%scenario%.txt"
         self.playlogformat_init = self.playlogformat
-        self.ssinfofontcolor = (0, 0, 0, 255)
+        self.ssinfofontcolor = (0, 0, 0)
         self.ssinfofontcolor_init = self.ssinfofontcolor
-        self.ssinfobackcolor = (255, 255, 255, 255)
+        self.ssinfobackcolor = (255, 255, 255)
         self.ssinfobackcolor_init = self.ssinfobackcolor
         self.ssinfobackimage = ""
         self.ssinfobackimage_init = self.ssinfobackimage
@@ -968,11 +970,11 @@ class Setting(object):
         r = data.getint("ScreenShotInformationFontColor", "red", self.ssinfofontcolor_init[0])
         g = data.getint("ScreenShotInformationFontColor", "green", self.ssinfofontcolor_init[1])
         b = data.getint("ScreenShotInformationFontColor", "blue", self.ssinfofontcolor_init[2])
-        self.ssinfofontcolor = (r, g, b, 255)
+        self.ssinfofontcolor = (r, g, b)
         r = data.getint("ScreenShotInformationBackgroundColor", "red", self.ssinfobackcolor_init[0])
         g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor_init[1])
         b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor_init[2])
-        self.ssinfobackcolor = (r, g, b, 255)
+        self.ssinfobackcolor = (r, g, b)
         # スクリーンショット情報の背景イメージ
         self.ssinfobackimage = data.gettext("ScreenShotInformationBackgroundImage", self.ssinfobackimage_init)
 
@@ -1776,6 +1778,7 @@ class Resource(object):
     dialogs: "ResourceTable[str, wx.Bitmap]"
     pygamedialogs: "ResourceTable[str, pygame.Surface]"
     buttons: "ResourceTable[str, wx.Bitmap]"
+    debugs: "ResourceTable[str, wx.Bitmap]"
     cursors: "ResourceTable[str, wx.Cursor]"
     specialchars: "ResourceTable[str, Tuple[pygame.Surface, bool]]"
     specialchars_is_changed: bool
@@ -2161,6 +2164,7 @@ class Resource(object):
         # 使用フォント(辞書)
         setting = self.setting()
         assert setting
+
         def defvalue() -> NoReturn:
             raise Exception()
         fonts = ResourceTable[str, cw.imageretouch.Font]("Font", {}, defvalue)
@@ -2774,7 +2778,7 @@ class Resource(object):
                                   emptyfunc=emptyfunc)
 
     def get_debugs(self, load_image: Callable[..., _ResType], ss: Callable[["cw.Scalable"], "cw.Scalable"],
-                   can_loaded_scaledimage: bool = True) -> "ResourceTable[str, pygame.Surface]":
+                   can_loaded_scaledimage: bool = True) -> "ResourceTable[str, _ResType]":
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。

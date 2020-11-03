@@ -8,7 +8,7 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import Callable, Dict, Iterable, List, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Set, Tuple, TypeVar, Union
 
 
 # ------------------------------------------------------------------------------
@@ -1538,7 +1538,10 @@ def _get_iteminfos(values: EditableListCtrl) -> Tuple[List[List[str]], List[int]
     return names, images
 
 
-def up_to_top(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: List[int]) -> None:
+_T = TypeVar("_T")
+
+
+def up_to_top(values: EditableListCtrl, seq: List[_T], indexes: Iterable[int]) -> None:
     """
     indexesが指すseq内のアイテムを最上段へ移動し、
     移動結果によってvalues(wx.ListCtrl)を更新する。
@@ -1578,7 +1581,7 @@ def up_to_top(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: Lis
     values.EnsureVisible(0)
 
 
-def down_to_bottom(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: List[int]) -> None:
+def down_to_bottom(values: EditableListCtrl, seq: List[_T], indexes: Iterable[int]) -> None:
     """
     indexesが指すseq内のアイテムを最下段へ移動し、
     移動結果によってvalues(wx.ListCtrl)を更新する。

@@ -239,6 +239,8 @@ class Image(object):
 # ------------------------------------------------------------------------------
 
 class CardImage(Image):
+    rect: pygame.Rect
+
     def __init__(self, paths: List[ImageInfo], bgtype: str, name: str = "", premium: str = "",
                  can_loaded_scaledimage: Union[bool, List[bool]] = False,
                  is_scenariocard: bool = False, scedir: str = "", anotherscenariocard: bool = False) -> None:
@@ -737,13 +739,16 @@ class CardImage(Image):
 
     def get_wxclickedbmp(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader], wxbmp: wx.Bitmap,
                          test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
-        size = (self.wxrect.width * 9 // 10, self.wxrect.height * 9 // 10)
         if wxbmp:
             negaimg = wxbmp
         else:
             negaimg = self.get_cardwxbmp(header, test_aptitude=test_aptitude)
+        return CardImage.get_wxclickedbmp_static(negaimg)
 
-        image = cw.util.convert_to_image(negaimg)
+    @staticmethod
+    def get_wxclickedbmp_static(wxbmp: wx.Bitmap) -> wx.Bitmap:
+        size = (wxbmp.GetWidth() * 9 // 10, wxbmp.GetHeight() * 9 // 10)
+        image = cw.util.convert_to_image(wxbmp)
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 

@@ -208,6 +208,13 @@ CURTBL = {
 
 
 class Converter(threading.Thread):
+    actioncard: Dict[str, cw.data.CWPyElementTree]
+    gameover: Dict[str, cw.data.CWPyElementTree]
+    scenario: Dict[str, cw.data.CWPyElementTree]
+    title: Dict[str, cw.data.CWPyElementTree]
+    yado: Dict[str, cw.data.CWPyElementTree]
+    specialcard: Dict[str, cw.data.CWPyElementTree]
+
     def __init__(self, exe: str) -> None:
         threading.Thread.__init__(self)
 

@@ -29,6 +29,8 @@ class BattleDefeatError(BattleError):
 
 
 class BattleEngine(object):
+    possible_runaway: bool
+
     round: int
     in_roundevent: bool
 

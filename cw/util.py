@@ -1675,8 +1675,8 @@ def screenshot_title(titledic: Dict[str, str]) -> str:
 def screenshot_header(title: str, w: int) -> Tuple[pygame.Surface, pygame.Surface, int, int]:
     """スクリーンショット情報の書き出し。
     """
-    fore = cw.cwpy.setting.ssinfofontcolor[:3]
-    back = cw.cwpy.setting.ssinfobackcolor[:3]
+    fore = cw.cwpy.setting.ssinfofontcolor
+    back = cw.cwpy.setting.ssinfobackcolor
     font = cw.cwpy.rsrc.fonts["screenshot"]
     fh = font.size("#")[1]
     lh = fh + 2

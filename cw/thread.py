@@ -74,6 +74,7 @@ class CWPy(threading.Thread):
     pcards: List["cw.sprite.card.PlayerCard"]
 
     file_updates_bg: bool
+    settingtab: int
 
     _yesnoresult: int
 

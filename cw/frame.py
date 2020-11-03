@@ -24,7 +24,7 @@ _killlist_mutex = threading.Lock()
 class Frame(wx.Frame):
     def __init__(self, app: "MyApp", skindirname: str = "") -> None:
         self.app = app
-        self.filter_event = None
+        self.filter_event: Optional[Callable[[wx.Event], bool]] = None
         self._clock = 0.0
 
         # 設定
