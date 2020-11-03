@@ -18,15 +18,19 @@ from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 # ------------------------------------------------------------------------------
 
 class CardEditDialog(wx.Dialog):
+    _add_bookmark: wx.MenuItem
+    _arrange_bookmark: wx.MenuItem
 
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         wx.Dialog.__init__(self, parent, -1, "手札カードの編集",
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
+        assert cw.cwpy.ydata
         self.cwpy_debug = True
 
         self.party = cw.cwpy.ydata.party
         if cw.cwpy.is_playingscenario():
-            self.scdata = cw.cwpy.sdata
+            assert isinstance(cw.cwpy.sdata, cw.data.ScenarioData)
+            self.scdata: Optional[cw.data.ScenarioData] = cw.cwpy.sdata
             self.scpath = self.scdata.fpath
             if os.path.isdir(self.scpath):
                 spath = cw.util.join_paths(self.scpath, "Summary.wsm")
@@ -41,7 +45,7 @@ class CardEditDialog(wx.Dialog):
 
         self._find = False
         self.list: List[cw.header.CardHeader] = []
-        self.datalist: List[cw.data.CWPyElement] = []
+        self.datalist: List[cw.data.CWPyElementTree] = []
         self.target_cards = {}
         self.target_table = {}
 
@@ -234,13 +238,13 @@ class CardEditDialog(wx.Dialog):
                     cw.cwpy.frame.exec_func(func, self)
                     return
 
-                def func(self) -> None:
+                def func2(self) -> None:
                     self.Enable(True)
                     self.scpath = fpath
                     self.scdata = scdata
                     self._update_cards()
 
-                cw.cwpy.frame.exec_func(func, self)
+                cw.cwpy.frame.exec_func(func2, self)
 
             self.Enable(False)
             cw.cwpy.exec_func(func, self)
@@ -354,16 +358,19 @@ class CardEditDialog(wx.Dialog):
 
     def OnDealBtn(self, event: wx.CommandEvent) -> None:
         """選択したカードを配付する。"""
+        assert cw.cwpy.ydata
         cname = self.dealtarg.GetStringSelection()
+        targets: List[Union[cw.character.Character, List[cw.header.CardHeader]]] = []
         if cname == "カード置場":
-            targets = [cw.cwpy.ydata.storehouse]
+            targets.append(cw.cwpy.ydata.storehouse)
         elif cname == "荷物袋":
-            targets = [self.party.backpack]
+            assert self.party
+            targets.append(self.party.backpack)
         elif cname == "パーティ全員":
-            targets = cw.cwpy.get_pcards()
+            targets.extend(cw.cwpy.get_pcards())
         else:
             cindex = self.dealtarg.GetSelection()
-            targets = [cw.cwpy.get_pcards()[cindex-self.notcast]]
+            targets.append(cw.cwpy.get_pcards()[cindex-self.notcast])
 
         count = 0
         for target in targets:
@@ -373,7 +380,7 @@ class CardEditDialog(wx.Dialog):
                 if index <= -1:
                     break
                 notscenariocard = not cw.cwpy.is_playingscenario()
-                data = cw.data.copydata(self.datalist[index])
+                data = cw.data.copytree(self.datalist[index])
                 header = self.list[index]
                 cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir,
                                     fromdebugger=True,
@@ -392,8 +399,11 @@ class CardEditDialog(wx.Dialog):
         cards = set(self.target_cards.keys())
 
         def func(cards: Set[Tuple[str, str, str, str, str]]) -> None:
-            roots = {}
-            items = {}
+            assert cw.cwpy.ydata
+            roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int], cw.character.Character],
+                        wx.lib.agw.customtreectrl.GenericTreeItem] = {}
+            items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int], cw.character.Character],
+                        wx.lib.agw.customtreectrl.GenericTreeItem] = {}
 
             def set_status(text: str) -> None:
                 def func(text: str) -> None:
@@ -402,7 +412,10 @@ class CardEditDialog(wx.Dialog):
                     self.status.SetLabel(text)
                 wx.CallAfter(func, text)
 
-            def get_item(table: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem], key: str,
+            def get_item(table: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                           cw.character.Character],
+                                     wx.lib.agw.customtreectrl.GenericTreeItem],
+                         key: Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int], cw.character.Character],
                          parent: wx.lib.agw.customtreectrl.GenericTreeItem, name: str,
                          image: wx.Bitmap) -> wx.lib.agw.customtreectrl.GenericTreeItem:
                 if key in table:
@@ -416,15 +429,16 @@ class CardEditDialog(wx.Dialog):
                     return item
 
             def add_target(item: wx.lib.agw.customtreectrl.GenericTreeItem, matcher: Tuple[str, str, str, str, str],
-                           toplevel: Union[cw.character.Character, List[cw.header.CardHeader]],
-                           owner: Union[cw.character.Character, List[cw.header.CardHeader]],
-                           data: cw.data.CWPyElement, insce: bool) -> None:
+                           toplevel: Optional[Union[cw.data.Party, cw.character.Character, List[cw.header.CardHeader],
+                                                    cw.data.CWPyElementTree]],
+                           owner: Union[cw.data.Party, cw.character.Character, List[cw.header.CardHeader]],
+                           data: Union[cw.data.CWPyElement, cw.header.CardHeader], insce: bool) -> None:
                 item.Check(True)
                 self.targets.Expand(item.GetParent())
                 if matcher in self.target_table:
                     self.target_table[matcher][item] = (toplevel, owner, data, not insce)
                 else:
-                    t = {}
+                    t = {}.copy()
                     t[item] = (toplevel, owner, data, not insce)
                     self.target_table[matcher] = t
 
@@ -439,10 +453,16 @@ class CardEditDialog(wx.Dialog):
                         for header in cardpocket:
                             matcher = self._get_matcher(header)
                             if matcher in cards:
-                                def func(roots: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                         items: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
+                                def func(roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                           cw.character.Character],
+                                                     wx.lib.agw.customtreectrl.GenericTreeItem],
+                                         items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                           cw.character.Character],
+                                                     wx.lib.agw.customtreectrl.GenericTreeItem],
                                          matcher: Tuple[str, str, str, str, str], member: cw.character.Character,
                                          header: cw.header.CardHeader) -> None:
+                                    assert cw.cwpy.ydata
+                                    assert cw.cwpy.ydata.party
                                     if not self._find:
                                         return
                                     image = self.timgidx_party
@@ -465,9 +485,16 @@ class CardEditDialog(wx.Dialog):
                         break
                     matcher = self._get_matcher(header)
                     if matcher in cards:
-                        def func(roots: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                 items: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                 matcher: Tuple[str, str, str, str, str], header: cw.header.CardHeader) -> None:
+                        def func_backpack(roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                            cw.character.Character],
+                                                      wx.lib.agw.customtreectrl.GenericTreeItem],
+                                          items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                            cw.character.Character],
+                                                      wx.lib.agw.customtreectrl.GenericTreeItem],
+                                          matcher: Tuple[str, str, str, str, str],
+                                          header: cw.header.CardHeader) -> None:
+                            assert cw.cwpy.ydata
+                            assert cw.cwpy.ydata.party
                             if not self._find:
                                 return
                             party = cw.cwpy.ydata.party
@@ -479,7 +506,7 @@ class CardEditDialog(wx.Dialog):
                             image = self._get_imgidx(header)
                             item = self.targets.AppendItem(root, header.name, 1, image=image)
                             add_target(item, matcher, None, party, header, cw.cwpy.is_playingscenario())
-                        wx.CallAfter(func, roots, items, matcher, header)
+                        wx.CallAfter(func_backpack, roots, items, matcher, header)
 
             set_status("カード置場を検索中...")
             for header in cw.cwpy.ydata.storehouse:
@@ -487,9 +514,14 @@ class CardEditDialog(wx.Dialog):
                     break
                 matcher = self._get_matcher(header)
                 if matcher in cards:
-                    def func(roots: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                             items: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                             matcher: Tuple[str, str, str, str, str], header: cw.header.CardHeader) -> None:
+                    def func_storehouse(roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                          cw.character.Character],
+                                                    wx.lib.agw.customtreectrl.GenericTreeItem],
+                                        items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                          cw.character.Character],
+                                                    wx.lib.agw.customtreectrl.GenericTreeItem],
+                                        matcher: Tuple[str, str, str, str, str], header: cw.header.CardHeader) -> None:
+                        assert cw.cwpy.ydata
                         if not self._find:
                             return
                         image = self.timgidx_storehouse
@@ -499,24 +531,28 @@ class CardEditDialog(wx.Dialog):
                         image = self._get_imgidx(header)
                         item = self.targets.AppendItem(root, header.name, 1, image=image)
                         add_target(item, matcher, None, cw.cwpy.ydata.storehouse, header, False)
-                    wx.CallAfter(func, roots, items, matcher, header)
+                    wx.CallAfter(func_storehouse, roots, items, matcher, header)
 
-            for header in cw.cwpy.ydata.standbys:
+            for advheader in cw.cwpy.ydata.standbys:
                 if not self._find:
                     break
-                member = cw.data.yadoxml2etree(header.fpath)
-                set_status("%sの手札カードを検索中..." % (header.name))
+                etree = cw.data.yadoxml2etree(advheader.fpath)
+                set_status("%sの手札カードを検索中..." % (advheader.name))
                 pcard = None
-                for cardpocket in [member.getfind("SkillCards"),
-                                   member.getfind("ItemCards"),
-                                   member.getfind("BeastCards")]:
-                    for data in cardpocket:
+                for e_cardpocket in [etree.getfind("SkillCards"),
+                                     etree.getfind("ItemCards"),
+                                     etree.getfind("BeastCards")]:
+                    for data in e_cardpocket:
                         matcher = self._get_matcher(data)
                         if matcher in cards:
-                            def func(roots: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                     items: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                     matcher: Tuple[str, str, str, str, str],  member: cw.character.Character,
-                                     pcard: Optional[cw.character.Player], data: cw.data.CWPyElement) -> None:
+                            def func_pocket(roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                              cw.character.Character],
+                                                        wx.lib.agw.customtreectrl.GenericTreeItem],
+                                            items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                              cw.character.Character],
+                                                        wx.lib.agw.customtreectrl.GenericTreeItem],
+                                            matcher: Tuple[str, str, str, str, str], etree: cw.data.CWPyElementTree,
+                                            pcard: cw.character.Character, data: cw.data.CWPyElement) -> None:
                                 if not self._find:
                                     return
                                 image = self.timgidx_yado
@@ -530,10 +566,10 @@ class CardEditDialog(wx.Dialog):
                                 image = self._get_imgidx(data)
                                 name = data.gettext("Property/Name")
                                 item = self.targets.AppendItem(item, name, 1, image=image)
-                                add_target(item, matcher, member, pcard, data, False)
+                                add_target(item, matcher, etree, pcard, data, False)
                             if not pcard:
-                                pcard = cw.character.Character(data=member)
-                            wx.CallAfter(func, roots, items, matcher, member, pcard, data)
+                                pcard = cw.character.Character(data=etree)
+                            wx.CallAfter(func_pocket, roots, items, matcher, etree, pcard, data)
 
             for partyheader in cw.cwpy.ydata.partys:
                 if not self._find:
@@ -541,21 +577,26 @@ class CardEditDialog(wx.Dialog):
                 insce = partyheader.is_adventuring()
                 party = cw.data.Party(partyheader)
                 set_status("%sの手札カードを検索中..." % (party.name))
-                for index, member in enumerate(party.members):
+                for index, etree in enumerate(party.members):
                     if not self._find:
                         break
                     pcard = None
-                    for cardpocket in [member.getfind("SkillCards"),
-                                       member.getfind("ItemCards"),
-                                       member.getfind("BeastCards")]:
-                        for data in cardpocket:
-                            matcher = self._get_matcher(data)
+                    for e_cardpocket in [etree.getfind("SkillCards"),
+                                         etree.getfind("ItemCards"),
+                                         etree.getfind("BeastCards")]:
+                        for e_card in e_cardpocket:
+                            matcher = self._get_matcher(e_card)
                             if matcher in cards:
-                                def func(roots: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                         items: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                         matcher: Tuple[str, str, str, str, str], party: cw.data.Party, index: int,
-                                         pcard: cw.character.Player, cardpocket: List[cw.header.CardHeader],
-                                         data: cw.data.CWPyElement, insce: bool) -> None:
+                                def func_pcard(roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                                 cw.character.Character],
+                                                           wx.lib.agw.customtreectrl.GenericTreeItem],
+                                               items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                                 cw.character.Character],
+                                                           wx.lib.agw.customtreectrl.GenericTreeItem],
+                                               matcher: Tuple[str, str, str, str, str], party: cw.data.Party,
+                                               index: int, pcard: cw.character.Player,
+                                               cardpocket: List[cw.header.CardHeader], data: cw.data.CWPyElement,
+                                               insce: bool) -> None:
                                     if not self._find:
                                         return
                                     image = self.timgidx_party
@@ -571,8 +612,9 @@ class CardEditDialog(wx.Dialog):
                                     item = self.targets.AppendItem(item, name, 1, image=image)
                                     add_target(item, matcher, pcard, pcard, data, insce)
                                 if not pcard:
-                                    pcard = cw.character.Character(data=member)
-                                wx.CallAfter(func, roots, items, matcher, party, index, pcard, cardpocket, data, insce)
+                                    pcard = cw.character.Character(data=etree)
+                                wx.CallAfter(func_pcard, roots, items, matcher, party, index, pcard, cardpocket, e_card,
+                                             insce)
 
                 set_status("%sの荷物袋を検索中..." % (party.name))
                 for header in party.backpack:
@@ -580,10 +622,14 @@ class CardEditDialog(wx.Dialog):
                         break
                     matcher = self._get_matcher(header)
                     if matcher in cards:
-                        def func(roots: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                 items: Dict[str, wx.lib.agw.customtreectrl.GenericTreeItem],
-                                 matcher: Tuple[str, str, str, str, str], partyheader: cw.header.PartyHeader,
-                                 party: cw.data.Party, header: cw.header.CardHeader, insce: bool) -> None:
+                        def func_party(roots: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                         cw.character.Character],
+                                                   wx.lib.agw.customtreectrl.GenericTreeItem],
+                                       items: Dict[Union[str, cw.data.Party, Tuple[cw.header.PartyHeader, int],
+                                                         cw.character.Character],
+                                                   wx.lib.agw.customtreectrl.GenericTreeItem],
+                                       matcher: Tuple[str, str, str, str, str], partyheader: cw.header.PartyHeader,
+                                       party: cw.data.Party, header: cw.header.CardHeader, insce: bool) -> None:
                             if not self._find:
                                 return
                             partyheader.data = party
@@ -596,7 +642,7 @@ class CardEditDialog(wx.Dialog):
                             name = header.name
                             item = self.targets.AppendItem(item, name, 1, image=image)
                             add_target(item, matcher, party, party, header, insce)
-                        wx.CallAfter(func, roots, items, matcher, partyheader, party, header, insce)
+                        wx.CallAfter(func_party, roots, items, matcher, partyheader, party, header, insce)
 
             cw.cwpy.play_sound("signal")
 
@@ -619,6 +665,7 @@ class CardEditDialog(wx.Dialog):
 
     def OnUpdateBtn(self, event: wx.CommandEvent) -> None:
         """カードの更新。"""
+        assert cw.cwpy.ydata
         writes = set()
         count = 0
         for matcher, infos in list(self.target_table.items()):
@@ -705,7 +752,7 @@ class CardEditDialog(wx.Dialog):
 
     def _get_list(self, matcher: Tuple[str, str, str, str, str],
                   owner: Union[cw.data.Party, "cw.character.Character", List[cw.header.CardHeader]],
-                  data: cw.data.CWPyElement) -> List[cw.header.CardHeader]:
+                  data: cw.data.CWPyElement) -> Union[List[cw.header.CardHeader], List[cw.data.CWPyElement]]:
         if isinstance(owner, cw.data.Party):
             o = owner.backpack
         elif isinstance(owner, cw.character.Character):
@@ -716,14 +763,18 @@ class CardEditDialog(wx.Dialog):
                     o = owner.cardpocket[cw.POCKET_ITEM]
                 elif matcher[0] == "BeastCard":
                     o = owner.cardpocket[cw.POCKET_BEAST]
+                else:
+                    assert False
             else:
                 if matcher[0] == "SkillCard":
-                    o = owner.data.find("SkillCards")
+                    e = owner.data.find_exists("SkillCards")
                 elif matcher[0] == "ItemCard":
-                    o = owner.data.find("ItemCards")
+                    e = owner.data.find_exists("ItemCards")
                 elif matcher[0] == "BeastCard":
-                    o = owner.data.find("BeastCards")
-                o = list(o)
+                    e = owner.data.find_exists("BeastCards")
+                else:
+                    assert False
+                return [e_card for e_card in e]
         else:
             o = list(owner)
         return o
@@ -734,12 +785,18 @@ class CardEditDialog(wx.Dialog):
         """指定されたマッチング条件のカードを
         ownerがどの位置に持っているかを返す。
         """
-        return self._get_list(matcher, owner, data).index(data)
+        seq = self._get_list(matcher, owner, data)
+        for i, header in enumerate(seq):
+            if header is data:
+                return i
+        else:
+            return -1
 
     def _remove(self, owner: Union[cw.data.Party, "cw.character.Character", List[cw.header.CardHeader]],
-                data: cw.data.CWPyElement, index: int) -> cw.header.CardHeader:
+                data: Union[cw.data.CWPyElement, cw.header.CardHeader], index: int) -> cw.header.CardHeader:
         """ownerから指定するカードを取り除く。"""
         if isinstance(owner, cw.data.Party):
+            assert isinstance(data, cw.header.CardHeader)
             header = data
             cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True, sort=False, party=owner)
             return header
@@ -780,6 +837,7 @@ class CardEditDialog(wx.Dialog):
 
     def OnClose(self, event: wx.CommandEvent) -> None:
         """ダイアログを閉じる。"""
+        assert cw.cwpy.ydata
         self._find = False
         cw.cwpy.ydata.sort_storehouse()
         if cw.cwpy.ydata.party:
@@ -809,7 +867,7 @@ class CardEditDialog(wx.Dialog):
                 author = header.author
         else:
             cardtype = data.tag
-            e = data.find("Property")
+            e = data.find_exists("Property")
             if self.mname.GetValue():
                 name = e.gettext("Name", "")
             if self.mdesc.GetValue():
@@ -840,7 +898,7 @@ class CardEditDialog(wx.Dialog):
         return None
 
     def _get_cards(self, selected: bool) -> Dict[Tuple[str, str, str, str, str],
-                                                 Tuple[cw.header.CardHeader, cw.data.CWPyElement]]:
+                                                 Tuple[cw.header.CardHeader, cw.data.CWPyElementTree]]:
         """リスト内で選択中のカードの一覧を返す。"""
         cards = {}
         index = -1

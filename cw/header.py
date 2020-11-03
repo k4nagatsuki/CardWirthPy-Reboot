@@ -48,6 +48,7 @@ class CardHeader(object):
 
     wsnversion: str
     scenariocard: bool
+    scedir: str
 
     penalty: bool
     recycle: bool
