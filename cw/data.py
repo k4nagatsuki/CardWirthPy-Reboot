@@ -21,7 +21,7 @@ from cw.util import synclock
 
 import typing
 from typing import BinaryIO, Callable, Dict, Generator, ItemsView, Iterable, Iterator, KeysView, List, NoReturn,\
-    Optional, Sequence, Set, Tuple, Type, Union
+    Optional, Sequence, Set, Tuple, Type, TypeVar, Union
 
 _lock = threading.Lock()
 
@@ -2557,7 +2557,7 @@ class YadoData(object):
     partyrecord: List["cw.header.PartyRecordHeader"]
     recenthistory: "cw.setting.RecentHistory"
     savedjpdcimage: Dict[Tuple[str, str], "cw.header.SavedJPDCImageHeader"]
-    saved_variables: Dict[Union[Tuple[str, str], str],
+    saved_variables: Dict[Tuple[str, str],
                           Tuple["cw.data.CWPyElement",
                                 Dict[str, bool],
                                 Dict[str, int],
@@ -3864,7 +3864,7 @@ class YadoData(object):
 
     @staticmethod
     def get_savedvariables(environment: "cw.data.CWPyElementTree") \
-            -> Dict[Union[Tuple[str, str], str],
+            -> Dict[Tuple[str, str],
                     Tuple["cw.data.CWPyElement",
                           Dict[str, bool],
                           Dict[str, int],
@@ -3873,12 +3873,45 @@ class YadoData(object):
         data = environment.find("SavedVariables")
         if data is None:
             return {}
-        return YadoData.get_savedvariables_from(data)
+        return YadoData.get_savedvariables_with_scenario(data)
+
+    _VarsKey = TypeVar("_VarsKey", Tuple[str, str], str)
 
     @staticmethod
-    def get_savedvariables_from(data: "cw.data.CWPyElement",
-                                keymode: str = "Scenario") \
-            -> Dict[Union[Tuple[str, str], str],
+    def _get_vartables(e: cw.data.CWPyElement) -> Tuple[Dict[str, bool],
+                                                        Dict[str, int],
+                                                        Dict[str, Union[str, decimal.Decimal, bool]]]:
+        assert e.tag == "Variables"
+        flags = {}
+        for e_flag in e.getfind("Flags", raiseerror=False):
+            assert isinstance(e_flag, cw.data.CWPyElement)
+            name = e_flag.getattr(".", "name", "")
+            if not name:
+                continue
+            flags[name] = e_flag.getbool(".", "value", False)
+        steps = {}
+        for e_step in e.getfind("Steps", raiseerror=False):
+            assert isinstance(e_step, cw.data.CWPyElement)
+            name = e_step.getattr(".", "name", "")
+            if not name:
+                continue
+            steps[name] = e_step.getint(".", "value", 0)
+        variants = {}
+        for e_variant in e.getfind("Variants", raiseerror=False):
+            assert isinstance(e_variant, cw.data.CWPyElement)
+            name = e_variant.getattr(".", "name", "")
+            if not name:
+                continue
+            vtype = e_variant.getattr(".", "type", "")
+            if not vtype:
+                continue
+            value = Variant.value_from_str(vtype, e_variant.getattr(".", "value", ""))
+            variants[name] = value
+        return flags, steps, variants
+
+    @staticmethod
+    def get_savedvariables_with_skin(data: "cw.data.CWPyElement") \
+            -> Dict[str,
                     Tuple["cw.data.CWPyElement",
                           Dict[str, bool],
                           Dict[str, int],
@@ -3888,39 +3921,29 @@ class YadoData(object):
             assert isinstance(e, cw.data.CWPyElement)
             if e.tag != "Variables":
                 continue
-            if keymode == "Scenario":
-                scenario = e.getattr(".", "scenario", "")
-                author = e.getattr(".", "author", "")
-                if not scenario and not author:
-                    continue
-                key: Union[Tuple[str, str], str] = (scenario, author)
-            elif keymode == "Key":
-                key = e.getattr(".", "key", "")
-            flags = {}
-            for e_flag in e.getfind("Flags", raiseerror=False):
-                assert isinstance(e_flag, cw.data.CWPyElement)
-                name = e_flag.getattr(".", "name", "")
-                if not name:
-                    continue
-                flags[name] = e_flag.getbool(".", "value", False)
-            steps = {}
-            for e_step in e.getfind("Steps", raiseerror=False):
-                assert isinstance(e_step, cw.data.CWPyElement)
-                name = e_step.getattr(".", "name", "")
-                if not name:
-                    continue
-                steps[name] = e_step.getint(".", "value", 0)
-            variants = {}
-            for e_variant in e.getfind("Variants", raiseerror=False):
-                assert isinstance(e_variant, cw.data.CWPyElement)
-                name = e_variant.getattr(".", "name", "")
-                if not name:
-                    continue
-                vtype = e_variant.getattr(".", "type", "")
-                if not vtype:
-                    continue
-                value = Variant.value_from_str(vtype, e_variant.getattr(".", "value", ""))
-                variants[name] = value
+            key = e.getattr(".", "key", "")
+            flags, steps, variants = cw.data.YadoData._get_vartables(e)
+            d[key] = (e, flags, steps, variants)
+        return d
+
+    @staticmethod
+    def get_savedvariables_with_scenario(data: "cw.data.CWPyElement") \
+            -> Dict[Tuple[str, str],
+                    Tuple["cw.data.CWPyElement",
+                          Dict[str, bool],
+                          Dict[str, int],
+                          Dict[str, Union[str, decimal.Decimal, bool]]]]:
+        d = {}
+        for e in data:
+            assert isinstance(e, cw.data.CWPyElement)
+            if e.tag != "Variables":
+                continue
+            scenario = e.getattr(".", "scenario", "")
+            author = e.getattr(".", "author", "")
+            if not scenario and not author:
+                continue
+            key = (scenario, author)
+            flags, steps, variants = cw.data.YadoData._get_vartables(e)
             d[key] = (e, flags, steps, variants)
         return d
 

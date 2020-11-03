@@ -912,7 +912,7 @@ class ComboEditDialog2(wx.Dialog):
         self.combo = wx.Choice(self, -1, size=(cw.wins(200), -1), choices=choices)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.combo.SetFont(font)
-        self.selected = 0
+        self.selected: int = 0
         self.combo.Select(self.selected)
 
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
