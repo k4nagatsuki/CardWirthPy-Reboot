@@ -901,7 +901,12 @@ class CWPy(threading.Thread):
 
         if isinstance(self.selection, cw.character.Character) and self.selection.is_reversed() and not debug:
             self.clear_selection()
-        self.list = self.get_mcards("selectable")
+        if self.is_showingmessage():
+            mwin = self.get_messagewindow()
+            assert mwin
+            self.list = mwin.selections
+        else:
+            self.list = self.get_mcards("selectable")
         self.index = -1
         self.change_selection(self.selection)
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
@@ -1518,7 +1523,7 @@ class CWPy(threading.Thread):
                     clip = self._lazy_clip.union_ip(clip)
             else:
                 clip = self._lazy_clip
-            if clip and False:
+            if clip:
                 if self.scr_fullscreen:
                     clip = clip.clip(self._get_fullclip())
                 else:
@@ -1649,7 +1654,7 @@ class CWPy(threading.Thread):
 
     def _get_fullclip(self) -> pygame.Rect:
         assert self.scr_fullscreen
-        return pygame.Rect(cw.s((-self.scr_pos[0], -self.scr_pos[1])), cw.win2scr_s(self.scr_fullscreen.get_size()))
+        return cw.win2scr_s(pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), (self.scr_fullscreen.get_size())))
 
     def change_cursor(self, name: str = "arrow", force: bool = False) -> None:
         """マウスカーソルを変更する。
