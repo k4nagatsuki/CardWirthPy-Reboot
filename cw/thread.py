@@ -1597,7 +1597,7 @@ class CWPy(_Singleton, threading.Thread):
             self.add_lazydraw(clip=self._get_fullclip())
 
     def _get_fullclip(self) -> pygame.Rect:
-        return pygame.Rect(cw.s((-self.scr_pos[0], -self.scr_pos[1])), cw.win2scr_s(self.scr_fullscreen.get_size()))
+        return cw.win2scr_s(pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), (self.scr_fullscreen.get_size())))
 
     def change_cursor(self, name: str = "arrow", force: bool = False) -> None:
         """マウスカーソルを変更する。
