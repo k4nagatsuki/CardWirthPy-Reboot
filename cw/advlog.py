@@ -84,7 +84,7 @@ class AdventurerLogger(object):
             titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
             assert isinstance(titledic, tuple)
             logfilepath = cw.util.format_title(cw.cwpy.setting.playlogformat, titledic[1])
-        self.logfilepath = logfilepath
+        self.logfilepath: str = logfilepath
 
         # プレイログ作成開始
         self._enable = cw.cwpy.setting.write_playlog

@@ -8,7 +8,8 @@ def save(path: str) -> str:
     """シナリオの実行状況を保存する。
     """
     if not cw.cwpy.is_playingscenario():
-        return
+        return ""
+    assert isinstance(cw.cwpy.sdata, cw.data.ScenarioData)
 
     cw.xmlcreater.create_scenariolog(cw.cwpy.sdata, path, True, cw.cwpy.advlog.logfilepath)
     return path
