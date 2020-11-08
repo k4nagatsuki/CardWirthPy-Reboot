@@ -1468,7 +1468,7 @@ class CWPy(_Singleton, threading.Thread):
                     clip = self._lazy_clip.union_ip(clip)
             else:
                 clip = self._lazy_clip
-            if clip and False:
+            if clip:
                 if self.scr_fullscreen:
                     clip = clip.clip(self._get_fullclip())
                 else:
