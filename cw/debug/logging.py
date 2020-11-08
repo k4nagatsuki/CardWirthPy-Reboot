@@ -6,7 +6,7 @@ import wx
 
 import cw
 
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ class DebugLogDialog(wx.Dialog):
                 cw.cwpy.statusbar.change()
         cw.cwpy.exec_func(func)
 
-        self.plain_text = ["「%s」のプレイ結果" % (debuglog.sname), "========================================", ""]
+        plain_text = ["「%s」のプレイ結果" % (debuglog.sname), "========================================", ""]
 
         self.text = cw.util.CWPyRichTextCtrl(self, -1, size=cw.ppis((400, 380)))
         self.text.SetEditable(False)
@@ -38,11 +38,11 @@ class DebugLogDialog(wx.Dialog):
             s = "プレイ開始 : %s" % debuglog.startdatetime.strftime("%Y-%m-%d %H:%M:%S")
             self.text.WriteText(s)
             self.text.Newline()
-            self.plain_text.append(s)
+            plain_text.append(s)
             s = "プレイ終了 : %s" % date.strftime("%Y-%m-%d %H:%M:%S")
             self.text.WriteText(s)
             self.text.Newline()
-            self.plain_text.append(s)
+            plain_text.append(s)
 
             def timestr(sec: float) -> str:
                 sec = int(round(sec))
@@ -56,17 +56,18 @@ class DebugLogDialog(wx.Dialog):
                 else:
                     return "%s秒" % (sec)
             total = date - debuglog.startdatetime
+            assert debuglog.pausedtime is not None
             s = "総プレイ時間 : %s" % (timestr(total.total_seconds()-debuglog.pausedtime))
             self.text.WriteText(s)
             self.text.Newline()
-            self.plain_text.append(s)
+            plain_text.append(s)
 
             if debuglog.pausedtime:
                 total = datetime.timedelta(seconds=debuglog.pausedtime)
                 s = "中断時間 : %s" % (timestr(total.total_seconds()))
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
 
         # 連れ込み
         for i, name in enumerate(debuglog.friend):
@@ -76,12 +77,12 @@ class DebugLogDialog(wx.Dialog):
             self.text.WriteImage(cw.cwpy.rsrc.debugs["FRIEND"])
             self.text.WriteText(s)
             self.text.Newline()
-            self.plain_text.append(s)
+            plain_text.append(s)
 
         # 所持金
         if self.text.GetValue():
             self.text.Newline()
-            self.plain_text.append("")
+            plain_text.append("")
 
         if debuglog.money[0] < debuglog.money[1]:
             v = debuglog.money[1] - debuglog.money[0]
@@ -101,49 +102,49 @@ class DebugLogDialog(wx.Dialog):
             s = "所持金に変更はありません。"
         self.text.WriteText(s)
         self.text.Newline()
-        self.plain_text.append(s)
+        plain_text.append(s)
 
         # ゴシップ
         if debuglog.gossip:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for gossip in cw.util.sorted_by_attr([a for a in debuglog.gossip if a[1]]):
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_GET_GOSSIP"])
                 s = "ゴシップ「%s」を追加しました。" % (gossip[0])
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
             for gossip in cw.util.sorted_by_attr([a for a in debuglog.gossip if not a[1]]):
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_GOSSIP"])
                 s = "ゴシップ「%s」を削除しました。" % (gossip[0])
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
 
         # 終了印
         if debuglog.compstamp:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for compstamp in cw.util.sorted_by_attr([a for a in debuglog.compstamp if a[1]]):
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_GET_COMPLETESTAMP"])
                 s = "終了印「%s」を追加しました。" % (compstamp[0])
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
             for compstamp in cw.util.sorted_by_attr([a for a in debuglog.compstamp if not a[1]]):
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_COMPLETESTAMP"])
                 s = "終了印「%s」を削除しました。" % (compstamp[0])
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
 
         # 獲得カード
         if debuglog.got_card:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for ctype in ("SkillCard", "ItemCard", "BeastCard"):
                 for key in cw.util.sorted_by_attr([a for a in iter(debuglog.got_card.keys()) if a[0] == ctype]):
                     _type, name, _desc, premium = key
@@ -164,7 +165,7 @@ class DebugLogDialog(wx.Dialog):
                         s = "%s「%s」を%s枚獲得しました。" % (typename, name, num)
                         self.text.WriteText(s)
                         self.text.Newline()
-                        self.plain_text.append(s)
+                        plain_text.append(s)
                     else:
                         if premium == "Premium":
                             picon = cw.cwpy.rsrc.dialogs["PREMIER_ICON_dbg"]
@@ -180,13 +181,13 @@ class DebugLogDialog(wx.Dialog):
                         self.text.Newline()
 
                         s = "%s「%s(%s)」を%s枚獲得しました。" % (typename, name, ptext, num)
-                        self.plain_text.append(s)
+                        plain_text.append(s)
 
         # 喪失カード
         if debuglog.lost_card:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for ctype in ("SkillCard", "ItemCard", "BeastCard"):
                 for key in cw.util.sorted_by_attr([a for a in iter(debuglog.lost_card.keys()) if a[0] == ctype]):
                     _type, name, _desc, _premium = key
@@ -206,13 +207,13 @@ class DebugLogDialog(wx.Dialog):
                     s = "%s「%s」を%s枚喪失しました。" % (typename, name, num)
                     self.text.WriteText(s)
                     self.text.Newline()
-                    self.plain_text.append(s)
+                    plain_text.append(s)
 
         # PCの消去・称号の変更
         if debuglog.lost_player or debuglog.player:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for name, album in debuglog.lost_player:
                 if album:
                     s = "%s は消去され、アルバムに掲載されました。" % (name)
@@ -220,7 +221,7 @@ class DebugLogDialog(wx.Dialog):
                     s = "%s は消去されました(アルバム不掲載)。" % (name)
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
 
             for name, got_coupons, lost_coupons in debuglog.player:
                 got_coupons = [a for a in got_coupons if not a[0].startswith("＠")]
@@ -229,86 +230,86 @@ class DebugLogDialog(wx.Dialog):
                     s = "%s の称号が以下のように変更されています。" % (name)
                     self.text.WriteText(s)
                     self.text.Newline()
-                    self.plain_text.append(s)
+                    plain_text.append(s)
                     self.text.BeginLeftIndent(cw.ppis(50))
-                    for coupon, value in got_coupons:
-                        if value < 0:
+                    for coupon, value_i in got_coupons:
+                        if value_i < 0:
                             bmp = cw.cwpy.rsrc.debugs["COUPON_MINUS"]
-                            value = str(value)
-                        elif value == 0:
+                            value_s = str(value_i)
+                        elif value_i == 0:
                             bmp = cw.cwpy.rsrc.debugs["COUPON_ZERO"]
-                            value = "+%s" % (value)
-                        elif value == 1:
+                            value_s = "+%s" % (value_i)
+                        elif value_i == 1:
                             bmp = cw.cwpy.rsrc.debugs["COUPON_PLUS"]
-                            value = "+%s" % (value)
+                            value_s = "+%s" % (value_i)
                         else:
                             bmp = cw.cwpy.rsrc.debugs["COUPON"]
-                            value = "+%s" % (value)
+                            value_s = "+%s" % (value_i)
                         self.text.WriteImage(bmp)
-                        s = "「%s(%s)」を獲得" % (coupon, value)
+                        s = "「%s(%s)」を獲得" % (coupon, value_s)
                         self.text.WriteText(s)
                         self.text.Newline()
-                        self.plain_text.append("    * " + s)
+                        plain_text.append("    * " + s)
                     for coupon, _value in lost_coupons:
                         self.text.WriteImage(cw.cwpy.rsrc.debugs["EVT_LOSE_COUPON"])
                         s = "「%s」を喪失" % (coupon)
                         self.text.WriteText(s)
                         self.text.Newline()
-                        self.plain_text.append("    * " + s)
+                        plain_text.append("    * " + s)
                     self.text.EndLeftIndent()
                 else:
                     s = "%s の称号に変更はありません。" % (name)
                     self.text.WriteText(s)
                     self.text.Newline()
-                    self.plain_text.append(s)
+                    plain_text.append(s)
 
         # 状態変数
         if debuglog.flags or debuglog.steps or debuglog.variants or debuglog.is_removevariables:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for name in debuglog.variants:
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["VARIANT"])
                 s = "コモン「%s」の値を保存しました。" % (name)
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
             for name in debuglog.steps:
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["STEP"])
                 s = "ステップ「%s」の値を保存しました。" % (name)
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
             for name in debuglog.flags:
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["FLAG"])
                 s = "フラグ「%s」の値を保存しました。" % (name)
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
             if debuglog.is_removevariables:
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["REMOVE_VARIABLES"])
                 s = "保存されていた状態変数値を破棄しました。"
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
 
         # JPDCイメージ
         if debuglog.jpdc_image:
             if self.text.GetValue():
                 self.text.Newline()
-                self.plain_text.append("")
+                plain_text.append("")
             for fname in debuglog.jpdc_image:
                 self.text.WriteImage(cw.cwpy.rsrc.debugs["JPDCIMAGE"])
                 s = "JPDCイメージ「%s」を保存しました。" % (fname)
                 self.text.WriteText(s)
                 self.text.Newline()
-                self.plain_text.append(s)
+                plain_text.append(s)
 
         self.writetext = wx.CheckBox(self, -1, "「DebugInfo.txt」に保存する")
         self.writetext.SetValue(True)
 
-        self.plain_text.append("")
-        self.plain_text = "\n".join(self.plain_text)
+        plain_text.append("")
+        self.plain_text = "\n".join(plain_text)
 
         # 決定
         self.okbtn = wx.Button(self, wx.ID_OK, "&OK")
@@ -351,20 +352,20 @@ class DebugLog(object):
     def __init__(self, sname: str) -> None:
         """シナリオプレイ結果を通知するために各種情報をまとめる。"""
         self.sname = sname
-        self.friend = []
-        self.lost_player = []
-        self.player = []
-        self.got_card = {}
-        self.lost_card = {}
+        self.friend: List[str] = []
+        self.lost_player: List[Tuple[str, bool]] = []
+        self.player: List[Tuple[str, List[Tuple[str, int]], List[Tuple[str, int]]]] = []
+        self.got_card: Dict[Tuple[str, str, str, str], int] = {}
+        self.lost_card: Dict[Tuple[str, str, str, str], int] = {}
         self.money = (0, 0)
-        self.compstamp = []
-        self.gossip = []
-        self.jpdc_image = []
+        self.compstamp: List[Tuple[str, bool]] = []
+        self.gossip: List[Tuple[str, bool]] = []
+        self.jpdc_image: List[str] = []
         self.startdatetime: Optional[datetime.datetime] = None
         self.pausedtime: Optional[float] = None
-        self.flags = []
-        self.steps = []
-        self.variants = []
+        self.flags: List[str] = []
+        self.steps: List[str] = []
+        self.variants: List[str] = []
         self.is_removevariables = False
 
     def add_friend(self, fcard: "cw.sprite.card.FriendCard") -> None:

@@ -7,7 +7,7 @@ import wx
 
 import cw
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -129,8 +129,9 @@ class EventList(wx.TreeCtrl):
         self.SetImageList(self.imglist)
         self.root = self.AddRoot(cw.cwpy.sdata.name)
 
-        def append_item(getids: Callable[[], str], getname: Callable[[int], str],
-                        getdata: Callable[[int], cw.data.CWPyElement], getfpath: Callable[[int], str],
+        def append_item(getids: Callable[[], List[int]], getname: Callable[[int], Optional[str]],
+                        getdata: Callable[[int, str, bool, Optional[Dict[str, str]]], Optional[cw.data.CWPyElement]],
+                        getfpath: Callable[[int], Optional[str]],
                         imgidx: int) -> None:
             keys = getids()
             cw.util.sort_by_attr(keys)
@@ -197,10 +198,13 @@ class EventList(wx.TreeCtrl):
             if len(e.treekeys) == 0:
                 return
             if e_flags is not None:
+                assert e_flags.cwxparent is not None
                 e.flags = cw.data.init_flags(e_flags.cwxparent, False)
             if e_steps is not None:
+                assert e_steps.cwxparent is not None
                 e.steps = cw.data.init_steps(e_steps.cwxparent, False)
             if e_variants is not None:
+                assert e_variants.cwxparent is not None
                 e.variants = cw.data.init_variants(e_variants.cwxparent, False)
             item = self.AppendItem(parent, e.treekeys[0], self.imgidx_event)
             self.SetItemData(item, e)
