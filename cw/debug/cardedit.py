@@ -46,8 +46,14 @@ class CardEditDialog(wx.Dialog):
         self._find = False
         self.list: List[cw.header.CardHeader] = []
         self.datalist: List[cw.data.CWPyElementTree] = []
-        self.target_cards = {}
-        self.target_table = {}
+        self.target_cards: Dict[Tuple[str, str, str, str, str],
+                                Tuple[cw.header.CardHeader, cw.data.CWPyElementTree]] = {}
+        self.target_table: Dict[Tuple[str, str, str, str, str],
+                                Dict[wx.lib.agw.customtreectrl.GenericTreeItem,
+                                     Tuple[Optional[Union[cw.data.Party, cw.character.Character,
+                                                          cw.data.CWPyElementTree]],
+                                           Union[cw.data.Party, cw.character.Character, List[cw.header.CardHeader]],
+                                           Union[cw.data.CWPyElement, cw.header.CardHeader], bool]]] = {}
 
         self.cardsbox = wx.StaticBox(self, -1, "カードの選択")
         self.dealtargbox = wx.StaticBox(self, -1, "配付先")
@@ -335,6 +341,7 @@ class CardEditDialog(wx.Dialog):
 
     def OnDetailBtn(self, event: wx.CommandEvent) -> None:
         """カードの情報を表示する。"""
+        assert self.scdata
         if 0 == self.cards.GetItemCount():
             return
         index = self.cards.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -380,9 +387,9 @@ class CardEditDialog(wx.Dialog):
                 if index <= -1:
                     break
                 notscenariocard = not cw.cwpy.is_playingscenario()
-                data = cw.data.copytree(self.datalist[index])
+                etree = cw.data.copytree(self.datalist[index])
                 header = self.list[index]
-                cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir,
+                cw.content.get_card(etree, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir,
                                     fromdebugger=True,
                                     anotherscenariocard=True)
                 count += 1
@@ -429,8 +436,7 @@ class CardEditDialog(wx.Dialog):
                     return item
 
             def add_target(item: wx.lib.agw.customtreectrl.GenericTreeItem, matcher: Tuple[str, str, str, str, str],
-                           toplevel: Optional[Union[cw.data.Party, cw.character.Character, List[cw.header.CardHeader],
-                                                    cw.data.CWPyElementTree]],
+                           toplevel: Optional[Union[cw.data.Party, cw.character.Character, cw.data.CWPyElementTree]],
                            owner: Union[cw.data.Party, cw.character.Character, List[cw.header.CardHeader]],
                            data: Union[cw.data.CWPyElement, cw.header.CardHeader], insce: bool) -> None:
                 item.Check(True)
@@ -684,21 +690,22 @@ class CardEditDialog(wx.Dialog):
                     order = data.order
                 header2 = self._remove(owner, data, index)
 
-                header, data = self.target_cards[matcher]
-                data = cw.data.copydata(data)
-                name = data.gettext("Property/Name", "")
+                header, etree = self.target_cards[matcher]
+                etree = cw.data.copytree(etree)
+                name = etree.gettext("Property/Name", "")
                 attachment = header2.attachment if header2.type == "BeastCard" else False
                 if cw.cwpy.ydata.storehouse is owner:
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order,
+                    assert isinstance(owner, list)
+                    cw.content.get_card(etree, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order,
                                         copymaterialfrom=header.scedir, attachment=attachment,
                                         anotherscenariocard=True)
                 elif isinstance(owner, cw.data.Party):
-                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index,
+                    cw.content.get_card(etree, owner.backpack, notscenariocard=notscenariocard, toindex=index,
                                         insertorder=order, party=owner,
                                         copymaterialfrom=header.scedir, attachment=attachment,
                                         anotherscenariocard=True)
                 elif isinstance(owner, cw.character.Character):
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order,
+                    cw.content.get_card(etree, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order,
                                         copymaterialfrom=header.scedir, attachment=attachment,
                                         anotherscenariocard=True)
                 else:
@@ -708,7 +715,7 @@ class CardEditDialog(wx.Dialog):
 
                 if toplevel:
                     writes.add(toplevel)
-                infos[item] = (toplevel, owner, self._get_list(matcher, owner, data)[index], notscenariocard)
+                infos[item] = (toplevel, owner, self._get_list(matcher, owner, etree.getroot())[index], notscenariocard)
                 count += 1
 
         self._write_results(writes)
@@ -752,7 +759,8 @@ class CardEditDialog(wx.Dialog):
 
     def _get_list(self, matcher: Tuple[str, str, str, str, str],
                   owner: Union[cw.data.Party, "cw.character.Character", List[cw.header.CardHeader]],
-                  data: cw.data.CWPyElement) -> Union[List[cw.header.CardHeader], List[cw.data.CWPyElement]]:
+                  data: Union[cw.data.CWPyElement, cw.header.CardHeader]) -> Union[List[cw.header.CardHeader],
+                                                                                   List[cw.data.CWPyElement]]:
         if isinstance(owner, cw.data.Party):
             o = owner.backpack
         elif isinstance(owner, cw.character.Character):
@@ -781,7 +789,7 @@ class CardEditDialog(wx.Dialog):
 
     def _indexof(self, matcher: Tuple[str, str, str, str, str],
                  owner: Union[cw.data.Party, "cw.character.Character", List[cw.header.CardHeader]],
-                 data: cw.data.CWPyElement) -> int:
+                 data: Union[cw.data.CWPyElement, cw.header.CardHeader]) -> int:
         """指定されたマッチング条件のカードを
         ownerがどの位置に持っているかを返す。
         """
@@ -930,21 +938,22 @@ class CardEditDialog(wx.Dialog):
 
         def append_cards(getids: Callable[[], Iterable[int]],
                          getdata: Callable[[int], Optional[cw.data.CWPyElement]], image: wx.Bitmap) -> None:
+            assert self.scdata
             for resid in getids():
                 index = self.cards.GetItemCount()
                 e = getdata(resid)
                 if e is None:
                     continue
-                data = cw.data.xml2etree(element=e)
+                etree = cw.data.xml2etree(element=e)
 
-                header = cw.header.CardHeader(carddata=data.getroot(), from_scenario=True, scedir=self.scdata.scedir)
+                header = cw.header.CardHeader(carddata=etree.getroot(), from_scenario=True, scedir=self.scdata.scedir)
                 header.negaflag = False
                 self.cards.InsertItem(index, str(header.id))
                 self.cards.SetItem(index, 1, header.name)
                 self.cards.SetItem(index, 2, header.desc.replace("\\n", ""))
                 self.cards.SetItemImage(index, image, image)
                 self.list.append(header)
-                self.datalist.append(data)
+                self.datalist.append(etree)
 
         append_cards(self.scdata.get_skillids, self.scdata.get_skilldata, self.imgidx_skill)
         append_cards(self.scdata.get_itemids, self.scdata.get_itemdata, self.imgidx_item)
@@ -955,6 +964,7 @@ class CardEditDialog(wx.Dialog):
 
     def _update_bookmarkname(self) -> None:
         if self.scpath:
+            assert self.scdata
             scpath = cw.util.get_keypath(self.scpath)
             for i, (fpath, name) in enumerate(cw.cwpy.setting.bookmarks_for_cardedit):
                 scpath2 = cw.util.get_keypath(fpath)

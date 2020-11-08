@@ -3878,9 +3878,9 @@ class YadoData(object):
     _VarsKey = TypeVar("_VarsKey", Tuple[str, str], str)
 
     @staticmethod
-    def _get_vartables(e: cw.data.CWPyElement) -> Tuple[Dict[str, bool],
-                                                        Dict[str, int],
-                                                        Dict[str, Union[str, decimal.Decimal, bool]]]:
+    def _get_vartables(e: "cw.data.CWPyElement") -> Tuple[Dict[str, bool],
+                                                          Dict[str, int],
+                                                          Dict[str, Union[str, decimal.Decimal, bool]]]:
         assert e.tag == "Variables"
         flags = {}
         for e_flag in e.getfind("Flags", raiseerror=False):

@@ -361,6 +361,7 @@ class Setting(object):
     makingcoupons: List[str]
     races: List["cw.header.RaceHeader"]
     unknown_race: "cw.header.UnknownRaceHeader"
+    sampletypes: List[cw.features.SampleType]
 
     skinsyscoupons: "SystemCoupons"
 

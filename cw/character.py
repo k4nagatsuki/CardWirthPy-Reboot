@@ -347,7 +347,7 @@ class Character(object):
         self.physical[name] = float(value)
         self._clear_vocationcache()
 
-    def set_mental(self, name: str, value: int) -> None:
+    def set_mental(self, name: str, value: float) -> None:
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Ability/Mental", str(value), name)
