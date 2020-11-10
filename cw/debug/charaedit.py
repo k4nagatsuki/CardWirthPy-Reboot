@@ -1140,13 +1140,11 @@ class CharaRequirementPanel(wx.Panel):
                 self.img.SetBitmap([self.defaultface], [self.defaultface])
         else:
             # パスを選択
-            img = self.imgpathlist[self.imgcombo.GetSelection()-1]
-            assert len(img) == 1
-            bmp = cw.util.load_wxbmp(img[0].path, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
+            fpath = self.imgpathlist[self.imgcombo.GetSelection()-1]
+            assert len(fpath) == 1
+            bmp = cw.util.load_wxbmp(fpath, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
             postype = "Center" if self.imgcentering.GetValue() else "Default"
-            for path in img:
-                path.postype = postype
-            self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=img)
+            self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=[cw.image.ImageInfo(fpath, postype=postype)])
 
     def _get_infos(self) -> List[CharaInfo]:
         if self.cindex == 0:

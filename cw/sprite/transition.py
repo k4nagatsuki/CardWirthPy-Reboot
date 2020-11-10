@@ -6,7 +6,7 @@ import pygame
 import cw
 from . import base
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 
 class Transition(base.CWPySprite):
@@ -135,7 +135,7 @@ class Blinds(Transition):
                 self.status = "hidden"
 
 
-def get_transition(name_and_speed: Tuple[str, str]) -> Optional[Transition]:
+def get_transition(name_and_speed: Tuple[str, Union[str, int]]) -> Optional[Transition]:
     """現在表示中の背景を元にしたトランジションスプライトを返す。
     transitiontype: トランジション効果の種類名と速度のタプル。
     """

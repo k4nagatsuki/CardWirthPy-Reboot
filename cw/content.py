@@ -3020,7 +3020,7 @@ class GetContent(EventContentBase):
                 return
             assert isinstance(selcard, cw.header.CardHeader)
             target = selcard.get_owner()
-            assert target
+            assert target is not None
             nocache = is_nocache(target)
             e = getdata(resid, nocache=nocache)
             if e is None:

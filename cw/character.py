@@ -21,7 +21,7 @@ class Character(object):
 
     def __init__(self, data: cw.data.CWPyElementTree) -> None:
         self.data = data
-        self.reversed = False
+        self.reversed: bool = False
 
         # 名前
         self.name = self.data.gettext("Property/Name", "")
@@ -179,7 +179,6 @@ class Character(object):
         self.versionhint = cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", ""))
 
         # 状態の正規化
-        self.cardimg = None
         if self.is_unconscious():
             # 最初から意識不明の場合、基本的に全てのステータスが
             # クリアされるが、唯一、回数制限つきの付帯能力だけは、

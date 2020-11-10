@@ -18,7 +18,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
 
-        self.status = ""
+        self.status: str = ""
         self.old_status = ""
         self.anitype = ""
         self.start_animation = 0.0

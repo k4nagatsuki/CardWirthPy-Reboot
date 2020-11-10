@@ -770,7 +770,7 @@ class CardImage(Image):
 
 class LargeCardImage(CardImage):
     def __init__(self, paths: List[ImageInfo], bgtype: str, name: str = "", premium: str = "",
-                 can_loaded_scaledimage: bool = False,
+                 can_loaded_scaledimage: Union[bool, List[bool]] = False,
                  is_scenariocard: bool = False, scedir: str = "", anotherscenariocard: bool = False) -> None:
         CardImage.__init__(self, paths, "LARGE", name, premium, can_loaded_scaledimage, is_scenariocard,
                            scedir=scedir, anotherscenariocard=anotherscenariocard)
@@ -1153,7 +1153,7 @@ class CharacterCardImage(CardImage):
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
 
-            self.lifeimg = lifeimg
+            self.lifeimg: pygame.Surface = lifeimg
             self.image.blit(lifeimg, cw.s((8, 110)))
 
         if header:

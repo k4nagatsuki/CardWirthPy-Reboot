@@ -516,7 +516,7 @@ class StatusEditDialog(wx.Dialog):
 
 class Status(object):
 
-    def __init__(self, pcard: Union[cw.character.Character, "Status"]) -> None:
+    def __init__(self, pcard: Union["cw.character.Character", "Status"]) -> None:
         # 現在ライフ・最大ライフ
         if hasattr(pcard, "maxlife"):
             assert isinstance(pcard, cw.character.Character)
@@ -575,7 +575,7 @@ class Status(object):
     def is_unconscious(self) -> bool:
         return self.life == 0
 
-    def put_status(self, pcard: cw.character.Character) -> bool:
+    def put_status(self, pcard: "cw.character.Character") -> bool:
         update = False
         s = Status(pcard)
 

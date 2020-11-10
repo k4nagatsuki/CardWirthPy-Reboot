@@ -37,6 +37,7 @@ class SystemData(object):
                                Tuple[str, str, float, Union[bool, List[bool]]],
                                Tuple[Tuple[int, int], Tuple[int, int, int, int], str,
                                      Tuple[int, int, int, int]],
+                               Tuple[str, float, Tuple[int, int], bool, str],
                                Tuple[Type["cw.effectbooster._JpySubImage"], float, bool, str]],
                          Union[pygame.Surface, Tuple[pygame.Surface, float]]]
     ex_cache: Dict[str, List[Optional[Union[str, bytes]]]]
@@ -936,7 +937,7 @@ class SystemData(object):
             name = "(読込失敗)"
         return name
 
-    def get_bgdata(self, e: Optional[Iterable["CWPyElement"]] = None) -> Iterable["CWPyElement"]:
+    def get_bgdata(self, e: Optional[Sequence["CWPyElement"]] = None) -> Sequence["CWPyElement"]:
         """背景のElementのリストを返す。
         e: BgImagesのElement。
         """

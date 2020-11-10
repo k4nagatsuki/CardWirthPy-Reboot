@@ -50,6 +50,7 @@ class CWPy(threading.Thread):
     skindir: str
     starttick: int
 
+    mousemotion: bool
     mousepos: Tuple[int, int]
     wxmousepos: Tuple[int, int]
     wheelmode_cursorpos: Tuple[int, int]
@@ -545,7 +546,7 @@ class CWPy(threading.Thread):
             self.ydata.party.set_numbercoupon()
 
         def repl_cardimg(sprite) -> None:
-            if hasattr(sprite, "cardimg"):
+            if sprite.has_cardimg():
                 for path in sprite.cardimg.paths:
                     if path.path.startswith(oldskindir):
                         path.path = path.path.replace(oldskindir, newskindir)
@@ -3614,7 +3615,7 @@ class CWPy(threading.Thread):
         anime: カードを一旦消去してから再配置するならTrue。
         """
         def get_size_noscale(mcard: Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]) -> Tuple[int, int]:
-            assert hasattr(mcard, "cardimg")
+            assert mcard.cardimg
 
             if isinstance(mcard.cardimg, cw.image.CharacterCardImage) or\
                isinstance(mcard.cardimg, cw.image.LargeCardImage):
