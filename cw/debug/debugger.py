@@ -2550,17 +2550,19 @@ class EventView(wx.ScrolledWindow):
             if not self.enable_eventview() or cw.cwpy.areaid < 0:
                 nowrunning = None
 
-            trees = nowrunning.trees if nowrunning is not None else None
+            trees = nowrunning.trees.copy() if nowrunning is not None else None
+            treekeys = nowrunning.treekeys[:] if nowrunning is not None else None
 
             def func(self, nowrunning: Optional[cw.event.Event],
-                     trees: Optional[Dict[str, cw.content.StartContent]]) -> None:
+                     trees: Optional[Dict[str, cw.content.StartContent]],
+                     treekeys: Optional[List[str]]) -> None:
                 if not self:
                     return
 
-                self._refresh_tree(nowrunning, trees)
+                self._refresh_tree(nowrunning, trees, treekeys)
                 self.processing = processing
 
-            cw.cwpy.frame.exec_func(func, self, nowrunning, trees)
+            cw.cwpy.frame.exec_func(func, self, nowrunning, trees, treekeys)
 
         cw.cwpy.exec_func(func, self)
 
@@ -2572,14 +2574,16 @@ class EventView(wx.ScrolledWindow):
         self.processing = True
 
         def func(self, event: Optional[cw.event.Event]) -> None:
-            trees = event.trees if event is not None else None
+            trees = event.trees.copy() if event is not None else None
+            treekeys = event.treekeys[:] if event is not None else None
 
             def func(self, event: Optional[cw.event.Event],
-                     trees: Optional[Dict[str, cw.content.StartContent]]) -> None:
+                     trees: Optional[Dict[str, cw.content.StartContent]],
+                     treekeys: Optional[List[str]]) -> None:
                 if not self:
                     return
 
-                self._refresh_tree(event, trees)
+                self._refresh_tree(event, trees, treekeys)
                 if selection is not None:
                     item = self.items.get(selection, None)
                     if item:
@@ -2588,13 +2592,14 @@ class EventView(wx.ScrolledWindow):
                         self.Refresh()
                 self.processing = processing
 
-            cw.cwpy.frame.exec_func(func, self, event, trees)
+            cw.cwpy.frame.exec_func(func, self, event, trees, treekeys)
 
         cw.cwpy.exec_func(func, self, event)
         self.Parent.view_var.refresh_variablelist(event)
 
     def _refresh_tree(self, nowrunning: Optional[cw.event.Event],
-                      trees: Optional[Dict[str, "cw.content.StartContent"]]) -> None:
+                      trees: Optional[Dict[str, "cw.content.StartContent"]],
+                      treekeys: Optional[List[str]]) -> None:
         if nowrunning is None:
             self._linenumwidth = cw.ppis(20)
             self.leftbarwidth = cw.ppis(24) + self._linenumwidth
@@ -2618,7 +2623,6 @@ class EventView(wx.ScrolledWindow):
         shiftx = icon.GetWidth()
         self.lineheight = max(icon.GetHeight() + cw.ppis(2), self.lineheight)
         if self.current_tree != trees:
-            trees = nowrunning.trees
             self.current_event = nowrunning
             self.current_tree = trees
             self.Parent.statusbar.SetStatusText("", 0)
@@ -2629,7 +2633,7 @@ class EventView(wx.ScrolledWindow):
             self.itemlist = []
 
             if self.current_tree:
-                for name in nowrunning.treekeys:
+                for name in treekeys:
                     tree = trees[name]
                     self.create_item(None, tree, shiftx, dc)
 
