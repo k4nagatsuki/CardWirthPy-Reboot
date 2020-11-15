@@ -2677,6 +2677,7 @@ class EventView(wx.ScrolledWindow):
         self.lineheight = max(icon.GetHeight() + cw.ppis(2), self.lineheight)
         if self.current_tree != trees:
             assert trees
+            assert treekeys
             self.current_event = nowrunning
             self.current_tree = trees
             self.Parent.statusbar.SetStatusText("", 0)

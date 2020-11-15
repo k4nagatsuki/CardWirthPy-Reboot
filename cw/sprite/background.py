@@ -3,6 +3,7 @@
 
 import itertools
 import os
+import decimal
 
 import pygame
 from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
@@ -483,13 +484,14 @@ class BackGround(base.CWPySprite):
         return update and redraw and not transition and not animated
 
     def _create_bgdata(self, e: cw.data.CWPyElement, ignoreeffectbooster: bool = False) ->\
-            Union[Tuple[pygame.Surface, bool, bool, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str],
-                  Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int], bool, bool, bool,
-                        bool, bool, bool, str, Tuple[int, int, int], int, bool, str, Tuple[int, int], Tuple[int, int],
-                        str, bool, int, str],
-                  Tuple[str, Tuple[int, int, int], str, Tuple[int, int, int], Tuple[int, int], Tuple[int, int], str,
-                        bool, int, str],
-                  Tuple[int, bool, bool, Tuple[int, int], Tuple[int, int], str, bool, int, str]]:
+            Union[Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                  Tuple[str, List["cw.sprite.message.NameListItem"], str, int, Tuple[int, int, int, int], bool, bool,
+                        bool, bool, bool, bool, str, Tuple[int, int, int, int], int, bool, str, Tuple[int, int],
+                        Tuple[int, int], str, bool, int, str],
+                  Tuple[str, Tuple[int, int, int, int], str, Tuple[int, int, int, int], Tuple[int, int],
+                        Tuple[int, int], str, bool, int, str],
+                  Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str],
+                  None]:
         assert e.tag != "Redisplay"
         left = e.getint("Location", "left")
         top = e.getint("Location", "top")
@@ -499,13 +501,14 @@ class BackGround(base.CWPySprite):
         size = (width, height)
         flag = e.gettext("Flag", "")
         layer = e.getint("Layer", cw.LAYER_BACKGROUND)
-        visible = e.getattr(".", "visible", "")
-        hasvisible = visible != ""
-        if visible in ("True", "False"):
-            visible = visible == "True"
+        visible_s = e.getattr(".", "visible", "")
+        hasvisible = visible_s != ""
+        if visible_s in ("True", "False"):
+            visible = visible_s == "True"
         else:
-            visible = cw.cwpy.sdata.flags.get(flag, True) and size != (0, 0) and\
-                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+            flag_o = cw.cwpy.sdata.flags.get(flag, None)
+            flag_value = bool(flag_o) if flag_o is not None else True
+            visible = flag_value and size != (0, 0) and self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         cellname = e.getattr(".", "cellname", "")
 
         def getcolor(e: cw.data.CWPyElement, xpath: str, r: int, g: int, b: int, a: int) -> Tuple[int, int, int, int]:
@@ -581,7 +584,10 @@ class BackGround(base.CWPySprite):
                 try:
                     for e_name in e_names:
                         vtype = e_name.getattr(".", "type", "")
-                        name = e_name.text if e_name.text else ""
+                        name: Union[str, int, bool, decimal.Decimal] = e_name.text if e_name.text else ""
+                        assert isinstance(name, str)
+                        data: Optional[Union[cw.data.YadoData, cw.data.Party, cw.character.Player,
+                                             cw.data.Flag, cw.data.Step, cw.data.Variant, str]]
                         if vtype == "Yado":
                             data = cw.cwpy.ydata
                         elif vtype == "Party":
@@ -606,7 +612,7 @@ class BackGround(base.CWPySprite):
                             if name2 in cw.cwpy.sdata.steps:
                                 data = cw.cwpy.sdata.steps[name2]
                             else:
-                                data = cw.sprite.message.get_spstep(name2)
+                                data = cw.sprite.message.get_spstep(name2)[0]
                         elif vtype == "Variant":
                             name2 = e_name.getattr(".", "variant", "")
                             vtype = e_name.getattr(".", "valuetype")

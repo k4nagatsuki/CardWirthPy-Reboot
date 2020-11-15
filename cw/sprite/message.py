@@ -5,6 +5,7 @@ import math
 import os
 import re
 import itertools
+import decimal
 import pygame
 import pygame.locals
 
@@ -1419,9 +1420,9 @@ class NameListItem(object):
     後からテキストセルの内容を書き換えるため、
     内容を記録しておく。
     """
-    def __init__(self, data: Union[cw.character.Character, cw.header.CardHeader, "_NameGetter",
-                                   cw.data.Party, cw.data.YadoData],
-                 name: str) -> None:
+    def __init__(self, data: Optional[Union[str, cw.character.Character, cw.header.CardHeader, cw.data.YadoData,
+                                            cw.data.Party, cw.data.Flag, cw.data.Step, cw.data.Variant, "_NameGetter"]],
+                 name: Union[str, int, bool, decimal.Decimal]) -> None:
         self.data = data
         self.name = name
 
