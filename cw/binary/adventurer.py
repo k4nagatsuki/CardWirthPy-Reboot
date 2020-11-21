@@ -14,6 +14,8 @@ class Adventurer(base.CWBinaryBase):
     """冒険者データ。埋め込み画像はないので
     wch・wptファイルから個別に引っ張ってくる必要がある。
     """
+    xmlpath: str
+
     def __init__(self, parent: Optional[Union["AdventurerCard", "AdventurerWithImage"]],
                  f: "cw.binary.cwfile.CWFile", yadodata: bool = False, nameonly: bool = False,
                  album120: bool = False) -> None:
@@ -134,8 +136,8 @@ class Adventurer(base.CWBinaryBase):
             self.skills = []
             self.beasts = []
 
-            self.data = None
-            self.f9data = None
+            self.data: Optional[cw.data.CWPyElement] = None
+            self.f9data: Optional[cw.data.CWPyElement] = None
 
             return
 
@@ -249,7 +251,7 @@ class Adventurer(base.CWBinaryBase):
     def get_f9data(self) -> "cw.data.CWPyElement":
         return self._get_data(True)
 
-    def _get_data(self, f9data: "cw.data.CWPyElement") -> "cw.data.CWPyElement":
+    def _get_data(self, f9data: bool) -> "cw.data.CWPyElement":
         if f9data:
             data = self.f9data
         else:
@@ -401,26 +403,26 @@ class Adventurer(base.CWBinaryBase):
             data.append(prop)
 
             e = cw.data.make_element("ItemCards")
-            for card in self.items:
-                if not f9data or card.premium <= 2:
-                    card.set_image_export(False, f9data)
-                    e.append(card.get_data())
+            for item in self.items:
+                if not f9data or item.premium <= 2:
+                    item.set_image_export(False, f9data)
+                    e.append(item.get_data())
             data.append(e)
 
             e = cw.data.make_element("SkillCards")
-            for card in self.skills:
-                if not f9data or card.premium <= 2:
-                    card.set_image_export(False, f9data)
-                    e.append(card.get_data())
+            for skill in self.skills:
+                if not f9data or skill.premium <= 2:
+                    skill.set_image_export(False, f9data)
+                    e.append(skill.get_data())
             data.append(e)
 
             e = cw.data.make_element("BeastCards")
-            for card in self.beasts:
-                if not f9data or card.premium <= 2:
-                    if f9data and card.attachment:
+            for beast in self.beasts:
+                if not f9data or beast.premium <= 2:
+                    if f9data and beast.attachment:
                         continue
-                    card.set_image_export(False, f9data)
-                    e.append(card.get_data())
+                    beast.set_image_export(False, f9data)
+                    e.append(beast.get_data())
             data.append(e)
 
             if f9data:
@@ -436,13 +438,16 @@ class Adventurer(base.CWBinaryBase):
 
     def create_xml(self, dpath: str) -> str:
         path = base.CWBinaryBase.create_xml(self, dpath)
-        yadodb = self.get_root().yadodb
+        root = self.get_root()
+        assert isinstance(root, cw.binary.environment.Environment)
+        yadodb = root.yadodb
         if yadodb:
             yadodb.insert_adventurer(path, album=False, commit=False)
         return path
 
     @staticmethod
-    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", logdata: "cw.data.CWPyElement") -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement",
+               logdata: Optional["cw.data.CWPyElement"]) -> None:
         from . import item
         from . import skill
         from . import beast
@@ -470,7 +475,7 @@ class Adventurer(base.CWBinaryBase):
                 if e in coupons2:
                     coupons.append(e)
         else:
-            coupons = data.find("Property/Coupons")
+            coupons = data.find_exists("Property/Coupons")
 
         name = ""
         resid = 0
@@ -528,9 +533,9 @@ class Adventurer(base.CWBinaryBase):
         enhance_defense = 0
         duration_enhance_defense = 0
 
-        items = []
-        skills = []
-        beasts = []
+        items: Optional[cw.data.CWPyElement] = None
+        skills: Optional[cw.data.CWPyElement] = None
+        beasts: Optional[cw.data.CWPyElement] = None
 
         for e in data:
             if e.tag == "Property":
@@ -684,24 +689,25 @@ class Adventurer(base.CWBinaryBase):
         lenpos = f.tell()
         f.write_dword(0)
         cardslen = 0
-        for card in items:
-            try:
-                pos = f.tell()
-                item.ItemCard.unconv(f, card, True)
-                cardslen += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
-                    f.write_errorlog(s)
-            except Exception:
-                cw.util.print_ex(file=sys.stderr)
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
-                    f.write_errorlog(s)
+        if items is not None:
+            for card in items:
+                try:
+                    pos = f.tell()
+                    item.ItemCard.unconv(f, card, True)
+                    cardslen += 1
+                except cw.binary.cwfile.UnsupportedError as ex:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                        f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
         f.write_dword(cardslen)
@@ -710,24 +716,25 @@ class Adventurer(base.CWBinaryBase):
         lenpos = f.tell()
         f.write_dword(0)
         cardslen = 0
-        for card in skills:
-            try:
-                pos = f.tell()
-                skill.SkillCard.unconv(f, card, True)
-                cardslen += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
-                    f.write_errorlog(s)
-            except Exception:
-                cw.util.print_ex(file=sys.stderr)
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
-                    f.write_errorlog(s)
+        if skills is not None:
+            for card in skills:
+                try:
+                    pos = f.tell()
+                    skill.SkillCard.unconv(f, card, True)
+                    cardslen += 1
+                except cw.binary.cwfile.UnsupportedError as ex:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                        f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
         f.write_dword(cardslen)
@@ -736,24 +743,25 @@ class Adventurer(base.CWBinaryBase):
         lenpos = f.tell()
         f.write_dword(0)
         cardslen = 0
-        for card in beasts:
-            try:
-                pos = f.tell()
-                beast.BeastCard.unconv(f, card, True)
-                cardslen += 1
-            except cw.binary.cwfile.UnsupportedError as ex:
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
-                    f.write_errorlog(s)
-            except Exception:
-                cw.util.print_ex(file=sys.stderr)
-                f.seek(pos)
-                if f.write_errorlog:
-                    cardname = card.gettext("Property/Name", "")
-                    s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
-                    f.write_errorlog(s)
+        if beasts is not None:
+            for card in beasts:
+                try:
+                    pos = f.tell()
+                    beast.BeastCard.unconv(f, card, True)
+                    cardslen += 1
+                except cw.binary.cwfile.UnsupportedError as ex:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (name, cardname, ex.funcname)
+                        f.write_errorlog(s)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = card.gettext("Property/Name", "")
+                        s = "%s の所持する %s は変換できませんでした。\n" % (name, cardname)
+                        f.write_errorlog(s)
         tell = f.tell()
         f.seek(lenpos)
         f.write_dword(cardslen)
@@ -768,7 +776,7 @@ class Adventurer(base.CWBinaryBase):
 
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
-    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
+    def __init__(self, parent: None, f: Optional["cw.binary.cwfile.CWFile"], yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 1
         self.fname = self.get_fname()
@@ -778,20 +786,23 @@ class AdventurerCard(base.CWBinaryBase):
             for _cnt in range(5):
                 _b = f.byte()
 
-            self.adventurer = Adventurer(self, f, yadodata=yadodata)
+            self.adventurer: Optional[Adventurer] = Adventurer(self, f, yadodata=yadodata)
 
         else:
             self.adventurer = None
 
     def set_image(self, image: bytes) -> None:
         """埋め込み画像を取り込む時のメソッド。"""
+        assert self.adventurer
         self.adventurer.image = image
 
     def get_data(self) -> "cw.data.CWPyElement":
+        assert self.adventurer
         return self.adventurer.get_data()
 
     def create_xml(self, dpath: str) -> str:
         """adventurerのデータだけxml化する。"""
+        assert self.adventurer
         return self.adventurer.create_xml(dpath)
 
     @staticmethod
@@ -829,10 +840,11 @@ class AdventurerWithImage(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", logdata: "cw.data.CWPyElement") -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement",
+               logdata: Optional["cw.data.CWPyElement"]) -> None:
         e = data.find("Property/ImagePaths")
         if e is None:
-            e = data.find("Property/ImagePath")
+            e = data.find_exists("Property/ImagePath")
         f.write_image(base.CWBinaryBase.import_image(f, e, defpostype="Center"))
         if logdata is None:
             cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
@@ -856,7 +868,7 @@ class AdventurerHeader(base.CWBinaryBase):
             self.image = f.image()
             self.level = f.byte()
             _b = f.byte()  # 不明(0)
-            self.coupons = f.string(True)
+            self.coupons = f.string(True).splitlines()
             _w = f.word()  # 不明(0)
             # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
             self.ep = f.byte()

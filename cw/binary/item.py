@@ -27,7 +27,7 @@ class ItemCard(base.CWBinaryBase):
         self.type = f.byte()
         self.image = f.image()
         self.imgpath = ""
-        self.name = f.string()
+        self.name: str = f.string()
         idl = f.dword()
 
         if idl <= 19999:
@@ -69,7 +69,7 @@ class ItemCard(base.CWBinaryBase):
         self.sound_effect2 = f.string()
         self.keycodes = [f.string() for _cnt in range(5)]
         if 2 < dataversion:
-            self.premium = f.byte()
+            self.premium: int = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()

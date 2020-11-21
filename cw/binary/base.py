@@ -13,15 +13,15 @@ from typing import Dict, Optional, Set, Tuple, Union
 
 
 class CWBinaryBase(object):
-    def __init__(self, parent: Optional["CWBinaryBase"], f: "cw.binary.cwfile.CWFile",
+    def __init__(self, parent: Optional["CWBinaryBase"], f: Optional["cw.binary.cwfile.CWFile"],
                  yadodata: bool = False, materialdir: str = "Material", image_export: bool = True) -> None:
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
-        if hasattr(f, "filename"):
+        if f and hasattr(f, "filename"):
             self.fpath = f.filename
         else:
             self.fpath = ""
-        self.materialbasedir = ""
+        self.materialbasedir: str = ""
         self.set_materialdir(materialdir)
         self.set_image_export(image_export, False)
         self.yadodb: Optional[cw.yadodb.YadoDB] = None
@@ -31,36 +31,40 @@ class CWBinaryBase(object):
         self.image: Optional[bytes] = None
 
         if parent:
-            self.yadodata = parent.yadodata
+            self.yadodata: Union[Optional[CWBinaryBase], bool] = parent.yadodata
         else:
             self.yadodata = yadodata
 
     def set_root(self, parent: Optional["CWBinaryBase"]) -> None:
         if parent:
-            self.root = parent.root
+            self.root: weakref.ReferenceType[Union[cw.binary.environment.Environment,
+                                                   cw.binary.cwscenario.CWScenario]] = parent.root
         else:
+            assert isinstance(self, (cw.binary.environment.Environment, cw.binary.cwscenario.CWScenario))
             self.root = weakref.ref(self)
 
     def get_root(self) -> Union["cw.binary.environment.Environment", "cw.binary.cwscenario.CWScenario"]:
-        return self.root()
+        root = self.root()
+        assert root
+        return root
 
     def set_dir(self, path: str) -> None:
-        self.get_root().dir = path
+        root = self.get_root()
+        assert isinstance(root, cw.binary.cwscenario.CWScenario)
+        root.dir = path
 
     def get_dir(self) -> str:
-        try:
-            return self.get_root().dir
-        except Exception:
+        root = self.get_root()
+        if isinstance(root, cw.binary.cwscenario.CWScenario):
+            return root.dir
+        else:
             return ""
 
     def set_imgdir(self, path: str) -> None:
         self.get_root().imgdir = path
 
     def get_imgdir(self) -> str:
-        try:
-            return self.get_root().imgdir
-        except Exception:
-            return ""
+        return self.get_root().imgdir
 
     def get_fname(self) -> str:
         fname = os.path.basename(self.fpath)
@@ -84,6 +88,7 @@ class CWBinaryBase(object):
         if root is self:
             return self._materialdir
         else:
+            assert isinstance(root, cw.binary.environment.Environment)
             return root.get_materialdir()
 
     def set_image_export(self, image_export: bool, force: bool = False) -> None:
@@ -101,6 +106,7 @@ class CWBinaryBase(object):
         if root is self:
             return self._image_export
         else:
+            assert isinstance(root, cw.binary.environment.Environment)
             return root.get_image_export()
 
 # ------------------------------------------------------------------------------
@@ -169,11 +175,13 @@ class CWBinaryBase(object):
             imgdir = basedir
         elif self.xmltype == "BeastCard" and isinstance(self, beast.BeastCard) and self.summoneffect:
             imgdir = self.get_imgdir()
+            root = self.get_root()
             if not basedir:
-                basedir = self.get_root().materialbasedir
+                assert isinstance(root, cw.binary.environment.Environment)
+                basedir = root.materialbasedir
 
             if not imgdir:
-                root = self.get_root()
+                assert isinstance(root, cw.binary.environment.Environment)
                 name = util.check_filename(root.name)
                 mdir = self.get_materialdir()
                 if mdir == "":
@@ -255,8 +263,12 @@ class CWBinaryBase(object):
             elif e.tag == "ImagePaths":
                 if 1 < len(e):
                     f.check_wsnversion("1", "複合イメージ")
-                CWBinaryBase.check_imgpath(f, e.find("ImagePath"), defpostype)
-                imagepath = e.gettext("ImagePath", "")
+                e_img = e.find("ImagePath")
+                if e_img is not None:
+                    CWBinaryBase.check_imgpath(f, e_img, defpostype)
+                    imagepath = e.gettext("ImagePath", "")
+                else:
+                    imagepath = ""
             else:
                 imagepath = ""
 
@@ -277,18 +289,18 @@ class CWBinaryBase(object):
                         if not os.path.isfile(fpath):
                             return None
 
-            with open(fpath, "rb") as f:
-                image = f.read()
-                f.close()
+            with open(fpath, "rb") as f2:
+                image = f2.read()
+                f2.close()
 
         if convertbitmap and cw.util.get_imageext(image) != ".bmp":
-            with io.BytesIO(image) as f:
-                data = wx.Image(f)
-                f.close()
-            with io.BytesIO() as f:
-                data.SaveFile(f, wx.BITMAP_TYPE_BMP)
-                image = f.getvalue()
-                f.close()
+            with io.BytesIO(image) as fb:
+                data = wx.Image(fb)
+                fb.close()
+            with io.BytesIO() as fb:
+                data.SaveFile(fb, wx.BITMAP_TYPE_BMP)
+                image = fb.getvalue()
+                fb.close()
 
         return image
 

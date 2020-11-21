@@ -21,6 +21,9 @@ class CWYado(object):
     from . import adventurer
     from . import album
     from . import party
+    from . import skill
+    from . import item
+    from . import beast
 
     wyd: Optional[environment.Environment]
 
@@ -406,7 +409,7 @@ class CWYado(object):
 
         return data
 
-    def load_cardfile(self, path: str, d: Dict[str, int]) -> "cw.data.CWPyElement":
+    def load_cardfile(self, path: str, d: Dict[str, int]) -> Union[skill.SkillCard, item.ItemCard, beast.BeastCard]:
         """引数のファイル(wid, wsmファイル)を読み込む。
         読み込みに際し、wydファイルから作成できる
         ファイルネームでカードの種類を判別する辞書が必要。
@@ -497,16 +500,16 @@ class CWYado(object):
         e_flag = cw.data.make_element("Flags")
         element.append(e_flag)
 
-        for name, value in partymembers.flags.items():
-            e = cw.data.make_element("Flag", name, {"value": str(value)})
+        for name, value_b in partymembers.flags.items():
+            e = cw.data.make_element("Flag", name, {"value": str(value_b)})
             e_flag.append(e)
 
         # step
         e_step = cw.data.make_element("Steps")
         element.append(e_step)
 
-        for name, value in partymembers.steps.items():
-            e = cw.data.make_element("Step", name, {"value": str(value)})
+        for name, value_i in partymembers.steps.items():
+            e = cw.data.make_element("Step", name, {"value": str(value_i)})
             e_step.append(e)
 
         # gossip(無し)

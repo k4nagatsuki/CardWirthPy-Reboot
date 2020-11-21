@@ -48,6 +48,8 @@ class CWScenario(object):
         self.versionhint: Optional[Tuple[str, str, bool, bool, bool]] = None
         self.hasmodeini = False
 
+        self.imgdir: str = ""
+
         if self.path == "":
             return
         for name in os.listdir(self.path):

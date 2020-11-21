@@ -5,10 +5,12 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class Album(base.CWBinaryBase):
     """wrmファイル(type=4)。鬼籍に入った冒険者のデータ。"""
-    def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
+    def __init__(self, parent: None, f: Optional["cw.binary.cwfile.CWFile"], yadodata: bool = False) -> None:
         from . import coupon
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -61,8 +63,8 @@ class Album(base.CWBinaryBase):
             coupons_num = f.dword()
             self.coupons = [coupon.Coupon(self, f) for _cnt in range(coupons_num)]
         else:
-            self.name = 0
-            self.image = 0
+            self.name = ""
+            self.image = None
             self.level = 0
             self.dex = 0
             self.agl = 0
@@ -81,7 +83,7 @@ class Album(base.CWBinaryBase):
             self.description = ""
             self.coupons = []
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -137,7 +139,9 @@ class Album(base.CWBinaryBase):
 
     def create_xml(self, dpath: str) -> str:
         path = base.CWBinaryBase.create_xml(self, dpath)
-        yadodb = self.get_root().yadodb
+        root = self.get_root()
+        assert isinstance(root, cw.binary.environment.Environment)
+        yadodb = root.yadodb
         if yadodb:
             yadodb.insert_adventurer(path, album=True, commit=False)
         return path
@@ -164,7 +168,7 @@ class Album(base.CWBinaryBase):
         resist = 0
         defense = 0
         description = ""
-        coupons = []
+        coupons: Optional[cw.data.CWPyElement] = None
 
         for e in data:
             if e.tag == "Property":
@@ -223,9 +227,12 @@ class Album(base.CWBinaryBase):
         f.write_word(defense)
         f.write_dword(0)
         f.write_string("TEXT\n" + (description if description else ""), True)
-        f.write_dword(len(coupons))
-        for cp in coupons:
-            coupon.Coupon.unconv(f, cp)
+        if coupons is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(coupons))
+            for cp in coupons:
+                coupon.Coupon.unconv(f, cp)
 
 
 def main() -> None:

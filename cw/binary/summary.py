@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Optional
+from typing import List, Optional
 
 
 class Summary(base.CWBinaryBase):
@@ -39,9 +39,9 @@ class Summary(base.CWBinaryBase):
             self.version = 7
             self.area_id = self.area_id - 70000
         steps_num = f.dword()
-        self.steps = [Step(self, f) for _cnt in range(steps_num)]
+        self.steps: List[Step] = [Step(self, f) for _cnt in range(steps_num)]
         flags_num = f.dword()
-        self.flags = [Flag(self, f) for _cnt in range(flags_num)]
+        self.flags: List[Flag] = [Flag(self, f) for _cnt in range(flags_num)]
         if wpt120:
             return
         _w = f.dword()  # 不明
@@ -170,8 +170,8 @@ class Step(base.CWBinaryBase):
     """ステップ定義。"""
     def __init__(self, parent: Summary, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        self.name = f.string()
-        self.default = f.dword()
+        self.name: str = f.string()
+        self.default: int = f.dword()
         self.variable_names = [f.string() for _cnt in range(10)]
 
         self.data: Optional[cw.data.CWPyElement] = None
@@ -229,8 +229,8 @@ class Flag(base.CWBinaryBase):
     """フラグ定義。"""
     def __init__(self, parent: Summary, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        self.name = f.string()
-        self.default = f.boolean()
+        self.name: str = f.string()
+        self.default: bool = f.boolean()
         self.variable_names = [f.string() for _cnt in range(2)]
 
         self.data: Optional[cw.data.CWPyElement] = None

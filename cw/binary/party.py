@@ -11,7 +11,8 @@ from . import album
 
 import cw
 
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+import typing
+from typing import Dict, Iterable, List, Literal, Optional, Tuple, Union
 
 
 class Party(base.CWBinaryBase):
@@ -54,9 +55,9 @@ class Party(base.CWBinaryBase):
             self.nowadventuring = f.boolean()
 
         # 読み込み後に操作
-        self.cards = []
+        self.cards: List[BackpackCard] = []
         # データの取得に失敗したカード。変換時に追加する
-        self.errorcards = []
+        self.errorcards: List[BackpackCard] = []
 
         self.data: Optional[cw.data.CWPyElement] = None
 
@@ -81,7 +82,9 @@ class Party(base.CWBinaryBase):
 
     def create_xml(self, dpath: str) -> str:
         path = base.CWBinaryBase.create_xml(self, dpath)
-        yadodb = self.get_root().yadodb
+        root = self.get_root()
+        assert isinstance(root, cw.binary.environment.Environment)
+        yadodb = root.yadodb
         if yadodb:
             yadodb.insert_party(path, commit=False)
 
@@ -203,7 +206,7 @@ class PartyMembers(base.CWBinaryBase):
             for _cnt in range(cards_num):
                 ctype = f.byte()
                 if ctype == 2:
-                    carddata = item.ItemCard(None, f, True)
+                    carddata: Union[item.ItemCard, skill.SkillCard, beast.BeastCard] = item.ItemCard(None, f, True)
                 elif ctype == 1:
                     carddata = skill.SkillCard(None, f, True)
                 elif ctype == 3:
@@ -222,7 +225,7 @@ class PartyMembers(base.CWBinaryBase):
                 self.cards.append(card)
 
         # 対応する *.wpl
-        self.wpl = None
+        self.wpl: Optional[Party] = None
 
         if 10 <= dataversion:
             # *.wplにもあるパーティの所持金(冒険中の現在値)
@@ -253,12 +256,12 @@ class PartyMembers(base.CWBinaryBase):
             self.nowadventuring = f.boolean()
             if self.nowadventuring:  # 冒険中か
                 self.scenariopath = ""
-                summary = summary.Summary(None, f, True, wpt120=True)
+                summarydata = summary.Summary(None, f, True, wpt120=True)
                 self.steps = {}
-                for step in summary.steps:
+                for step in summarydata.steps:
                     self.steps[step.name] = step.default
                 self.flags = {}
-                for flag in summary.flags:
+                for flag in summarydata.flags:
                     self.flags[flag.name] = flag.default
                 self.scenariopath = f.rawstring()  # シナリオ
                 if not os.path.isabs(self.scenariopath):
@@ -278,7 +281,13 @@ class PartyMembers(base.CWBinaryBase):
                 bgimgs_num = f.dword()
                 self.bgimgs = [bgimage.BgImage(self, f) for _cnt in range(bgimgs_num)]
 
-    def split_variables(self, text: str, step: bool) -> Dict[str, str]:
+    @typing.overload
+    def split_variables(self, text: str, step: Literal[True]) -> Dict[str, int]: ...
+
+    @typing.overload
+    def split_variables(self, text: str, step: Literal[False]) -> Dict[str, bool]: ...
+
+    def split_variables(self, text: str, step: bool) -> Union[Dict[str, int], Dict[str, bool]]:
         d = {}
         for ln in text.splitlines():
             index = ln.rfind('=')
@@ -296,23 +305,25 @@ class PartyMembers(base.CWBinaryBase):
                 seq.append(int(ln))
         return seq
 
-    def create_xml(self, dpath: str) -> None:
+    def create_xml(self, dpath: str) -> str:
         """adventurercardだけxml化する。"""
+        assert self.wpl
         wpldata = self.wpl.get_data()
-        me = wpldata.find("Property/Members")
+        me = wpldata.find_exists("Property/Members")
         for adventurer in self.adventurers:
             path = adventurer.create_xml(dpath)
             text = cw.util.splitext(os.path.basename(path))[0]
             me.append(cw.data.make_element("Member", text))
+        return wpldata.fpath
 
     def create_vanisheds_xml(self, dpath: str) -> None:
         for adventurer in self.vanisheds:
             data = adventurer.get_data()
-            data.find("Property").set("lost", "True")
+            data.find_exists("Property").set("lost", "True")
             adventurer.create_xml(dpath)
 
     @staticmethod
-    def join_variables(data: "cw.data.CWPyElement") -> str:
+    def join_variables(data: Iterable["cw.data.CWPyElement"]) -> str:
         seq = []
         for e in data:
             name = e.text
@@ -327,11 +338,11 @@ class PartyMembers(base.CWBinaryBase):
         return "\r\n".join(seq)
 
     @staticmethod
-    def join_ids(data: "cw.data.CWPyElement") -> str:
+    def join_ids(data: Iterable["cw.data.CWPyElement"]) -> str:
         seq = []
         for e in data:
             if e.tag == "CastCard":
-                seq.append(e.find("Property/Id").text)
+                seq.append(e.find_exists("Property/Id").text)
             else:
                 seq.append(e.text)
         if seq:
@@ -347,7 +358,6 @@ class PartyMembers(base.CWBinaryBase):
 
         adventurers = []
         vanisheds = []
-        cards = []
         money_beforeadventure = 0
         nowadventuring = False
         scenariopath = ""
@@ -357,10 +367,10 @@ class PartyMembers(base.CWBinaryBase):
         friendcards = ""
         infocards = ""
         music = ""
-        bgimgs: Sequence[cw.data.CWPyElement] = []
+        bgimgs: Optional[cw.data.CWPyElement] = None
 
-        for member in party.members:
-            adventurers.append(member.find("."))
+        for e_member in party.members:
+            adventurers.append(e_member.find_exists("."))
         name = party.name
 
         if logdir:
@@ -397,7 +407,7 @@ class PartyMembers(base.CWBinaryBase):
         for i, member in enumerate(adventurers):
             if logdir:
                 fpath = cw.util.join_paths(logdir, "Members", os.path.basename(member.fpath))
-                logdata = cw.data.xml2element(fpath)
+                logdata: Optional[cw.data.CWPyElement] = cw.data.xml2element(fpath)
             else:
                 logdata = None
             try:
@@ -483,7 +493,7 @@ class PartyMembers(base.CWBinaryBase):
             if header.fpath in yadocards:
                 fpath, data = yadocards[header.fpath]
                 scenariocard = cw.util.str2bool(data.get("scenariocard", "False"))
-                cards.append(BackpackCard.unconv(f, data, fpath, not scenariocard))
+                BackpackCard.unconv(f, data, fpath, not scenariocard)
                 backpacknum += 1
         tell = f.tell()
         f.seek(backpacknumpos)
@@ -504,9 +514,12 @@ class PartyMembers(base.CWBinaryBase):
             f.write_rawstring(friendcards)
             f.write_rawstring(infocards)
             f.write_rawstring(music)
-            f.write_dword(len(bgimgs))
-            for bgimg in bgimgs:
-                bgimage.BgImage.unconv(f, bgimg)
+            if bgimgs is None:
+                f.write_dword(0)
+            else:
+                f.write_dword(len(bgimgs))
+                for bgimg in bgimgs:
+                    bgimage.BgImage.unconv(f, bgimg)
         else:
             f.write_dword(0)
             f.write_bool(False)
@@ -520,7 +533,7 @@ class BackpackCard(base.CWBinaryBase):
     from . import item
     from . import beast
 
-    def __init__(self, parent: PartyMembers, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
+    def __init__(self, parent: PartyMembers, f: Optional["cw.binary.cwfile.CWFile"], yadodata: bool = False) -> None:
         from . import skill
         from . import item
         from . import beast
@@ -541,10 +554,12 @@ class BackpackCard(base.CWBinaryBase):
         self.data = data
 
     def get_data(self) -> "cw.data.CWPyElement":
+        assert self.data is not None
         return self.data.get_data()
 
     def create_xml(self, dpath: str) -> str:
         """self.data.create_xml()"""
+        assert self.data is not None
         self.data.limit = self.uselimit
         if not self.mine:
             self.data.set_image_export(False, True)

@@ -87,6 +87,8 @@ class Environment(base.CWBinaryBase):
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards: List[UnusedCard] = []
 
+        self.imgdir: str = ""
+
         self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":

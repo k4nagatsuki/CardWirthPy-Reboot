@@ -14,14 +14,15 @@ class BeastCard(base.CWBinaryBase):
     target_all: 全体攻撃か否か(真偽値)
     limit: 使用回数
     """
+    from . import adventurer
     from . import cast
     from . import effectmotion
 
     limit: int
 
-    def __init__(self, parent: Optional[Union[cast.CastCard, effectmotion.EffectMotion]], f: "cw.binary.cwfile.CWFile",
-                 yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
-                 image_export: bool = True, summoneffect: bool = False) -> None:
+    def __init__(self, parent: Optional[Union[adventurer.Adventurer, cast.CastCard, effectmotion.EffectMotion]],
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, nameonly: bool = False,
+                 materialdir: str = "Material", image_export: bool = True, summoneffect: bool = False) -> None:
         from . import adventurer
         from . import effectmotion
         from . import event
@@ -31,7 +32,7 @@ class BeastCard(base.CWBinaryBase):
         self.type = f.byte()
         self.image = f.image()
         self.imgpath = ""
-        self.name = f.string()
+        self.name: str = f.string()
         idl = f.dword()
 
         if idl <= 19999:
@@ -73,7 +74,7 @@ class BeastCard(base.CWBinaryBase):
         self.sound_effect2 = f.string()
         self.keycodes = [f.string() for _cnt in range(5)]
         if 2 < dataversion:
-            self.premium = f.byte()
+            self.premium: int = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()
@@ -97,7 +98,7 @@ class BeastCard(base.CWBinaryBase):
 
         if 5 <= dataversion:
             # 宿データだとここに付帯召喚のデータ
-            self.attachment = f.boolean()
+            self.attachment: bool = f.boolean()
         elif self.get_root().is_yadodata():
             if isinstance(parent, adventurer.Adventurer):
                 # キャラクターが所持

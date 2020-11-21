@@ -20,11 +20,11 @@ class Coupon(base.CWBinaryBase):
     from . import content
 
     def __init__(self, parent: Union[album.Album, adventurer.Adventurer, cast.CastCard, content.Content],
-                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, dataversion: int = 5) -> None:
+                 f: Optional["cw.binary.cwfile.CWFile"], yadodata: bool = False, dataversion: int = 5) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         if f:
-            self.name = f.string()
-            self.value = f.dword()
+            self.name: str = f.string()
+            self.value: int = f.dword()
             if dataversion <= 4:
                 if _120gene.match(self.name):
                     self.value = int(self.name[13:])
