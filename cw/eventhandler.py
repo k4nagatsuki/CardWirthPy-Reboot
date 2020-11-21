@@ -239,6 +239,12 @@ class EventHandler(object):
     def is_processing(self) -> bool:
         return cw.cwpy.is_processing and not cw.cwpy.is_decompressing
 
+    def can_copytext(self) -> bool:
+        return False
+
+    def copy_text(self) -> None:
+        pass
+
     def dirkey_event(self, x: int = 0, y: int = 0, pushing: bool = False, sidechange: bool = False,
                      hidetouchmenu: bool = True) -> None:
         """
@@ -1356,13 +1362,13 @@ class EventHandlerForBacklog(EventHandler):
         if init:
             self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale,
                                                             visible=cw.cwpy.setting.is_logscrollable())
-            self._scrollbar.lazyscroll_func = self.update_sprites
+            self._scrollbar.lazyscroll_func = lambda: self.update_sprites()
             self.index = min(self.index, self._get_maxpage()-1)
             self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         else:
             self._scrollbar = cw.sprite.scrollbar.ScrollBar(self._scrollbar.scrpos_noscale, scrsize_noscale,
                                                             visible=cw.cwpy.setting.is_logscrollable())
-            self._scrollbar.lazyscroll_func = self.update_sprites
+            self._scrollbar.lazyscroll_func = lambda: self.update_sprites()
             self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
 

@@ -7,7 +7,7 @@ import pygame.locals
 import cw
 from . import base
 
-from typing import Callable
+from typing import Callable, Optional
 
 
 class TouchButton(base.SelectableSprite):
@@ -36,7 +36,7 @@ class TouchButton(base.SelectableSprite):
         self.width = width
 
         self.shift_top = cw.s(0)
-        self._shift_start_top = None
+        self._shift_start_top: Optional[int] = None
 
         self.update_scale()
 
@@ -183,7 +183,7 @@ class PointableTile(TouchButton):
     self.is_pointedがTrueになるタイル。
     """
     def __init__(self, icon: pygame.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
-                 is_enabled: Callable[[], bool], width: bool = 0) -> None:
+                 is_enabled: Callable[[], bool], width: int = 0) -> None:
         TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
     def update_selection(self) -> None:
@@ -209,7 +209,7 @@ class PointableTile(TouchButton):
     def is_selection(self) -> bool:
         # 通常の衝突判定
         if 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
-                self.rect.collidepoint(cw.cwpy.mousepos):
+                self.rect.collidepoint(*cw.cwpy.mousepos):
             return True
         return False
 

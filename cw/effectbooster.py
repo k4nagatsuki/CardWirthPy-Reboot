@@ -1143,8 +1143,8 @@ class JpdcImage(cw.image.Image):
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
-                removekeys: List[ Union[Tuple[str, str, float, Union[bool, List[bool]]],
-                                  Tuple[Type[_JpySubImage], float, bool, str]]] = []
+                removekeys: List[Union[Tuple[str, str, float, Union[bool, List[bool]]],
+                                       Tuple[Type["cw.effectbooster._JpySubImage"], float, bool, str]]] = []
                 for cachekey in cw.cwpy.sdata.resource_cache.keys():
                     if isinstance(cachekey, tuple) and len(cachekey) == 4:
                         if isinstance(cachekey[3], str) and\
@@ -1152,6 +1152,11 @@ class JpdcImage(cw.image.Image):
                             removekeys.append(cachekey)
                         elif isinstance(cachekey[0], str) and\
                                 cw.util.splitext(cachekey[0])[1].lower() == ".jpy1":
+                            # BUG: error: Argument 1 to "append" of "list" has incompatile type "Union[Tuple[str, str,
+                            #      float, Union[bool, List[bool]]], Tuple[str, float, Tuple[int, int], bool, str]]";
+                            #      expected "Union[Tuple[str, str, float, Union[bol, List[bool]]],
+                            #      Tuple[Type[_JpySubImage], float, bool, str]]" (mypy 0.790)
+                            cachekey = typing.cast(Tuple[str, str, float, Union[bool, List[bool]]], cachekey)
                             removekeys.append(cachekey)
                 for key in removekeys:
                     del cw.cwpy.sdata.resource_cache[key]

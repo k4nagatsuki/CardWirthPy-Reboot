@@ -8,15 +8,15 @@ import pygame.locals
 import cw
 from . import base
 
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 class Bill(object):
     """貼紙のデータ。メッセージログで使用する。"""
     def __init__(self, header: cw.header.ScenarioHeader) -> None:
         self.header = header
-        self.selections = []
-        self.specialchars = {}
+        self.selections: List[cw.sprite.message.SelectionBar] = []
+        self.specialchars: Dict[str, Tuple[pygame.Surface, bool]] = {}
 
         self._bgs = {}
         self._bmps = {}
@@ -24,8 +24,8 @@ class Bill(object):
         # 画面スケールやスキン変更で内容が変化しないように、全スケールのイメージをロードしておく
         path = "Table/Bill"
         fpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        self._bgs[1] = cw.util.load_image(fpath, can_loaded_scaledimage=True, noscale=True)
-        self._bmps[1] = header.get_bmps(up_scr=1)
+        self._bgs[1.0] = cw.util.load_image(fpath, can_loaded_scaledimage=True, noscale=True)
+        self._bmps[1.0] = header.get_bmps(up_scr=1)
         spext = cw.util.splitext(fpath)
         for scale in cw.SCALE_LIST:
             fname = "%s.x%s%s" % (spext[0], scale, spext[1])
@@ -33,7 +33,7 @@ class Bill(object):
                 self._bgs[scale] = cw.util.Depth1Surface(cw.util.load_image(fname, True, noscale=True), scale)
             bmps = header.get_bmps(up_scr=scale)
             if bmps:
-                self._bmps[scale] = bmps
+                self._bmps[float(scale)] = bmps
 
         size = self._bgs[1].get_size()
         self._xp_noscale = 1
@@ -45,8 +45,8 @@ class Bill(object):
 
     def create_image(self) -> Tuple[pygame.Surface, Tuple[int, int]]:
         up_scr = cw.UP_SCR
-        subimg = None
-        bmps = None
+        subimg: Optional[pygame.Surface] = None
+        bmps: Optional[Tuple[List[pygame.Surface], List[cw.image.ImageInfo]]] = None
         while 1 <= up_scr:
             if not subimg:
                 subimg = self._bgs.get(up_scr, None)
@@ -71,6 +71,7 @@ class Bill(object):
 
         for bmp, info in zip(bmps[0], bmps[1]):
             # デフォルトは左上位置固定(CardWirthとの互換性維持)
+            assert isinstance(info, cw.image.ImageInfo)
             baserect = info.calc_basecardposition(bmp.get_size(), noscale=False,
                                                   basecardtype="Bill",
                                                   cardpostype="NotCard")

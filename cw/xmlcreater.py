@@ -1126,6 +1126,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
 
     for bgtype, d in cw.cwpy.background.bgs:
         if bgtype == cw.sprite.background.BG_IMAGE:
+            assert d
+            assert len(d) == 11
+            # BUG: error: Argument 4 to "_add_imagecell" of "BackGround" has incompatible type <union: 4 items>;
+            #      expected "Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]"
+            #      (mypy 0.790)
+            d = typing.cast(cw.sprite.background.ImageCellData, d)
             fpath, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
             attrs = {"mask": str(mask), "visible": str(visible)}
             if cellname:
@@ -1142,6 +1148,13 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_TEXT:
+            assert d
+            assert len(d) == 22
+            # BUG: error: Argument 4 to "_add_textcell" of "BackGround" has incompatible type <union: 5 items>; expected
+            #      "Tuple[str, Optional[List[NameListItem]], str, int, Tuple[int, int, int], bool, bool, bool, bool,
+            #      bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Tuple[int, int], Tuple[int, int],
+            #      str, bool, int, str]" (mypy 0.790)
+            d = typing.cast(cw.sprite.background.TextCellData, d)
             text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
                 btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
@@ -1168,6 +1181,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             e_bgimg.append(e)
 
             if btype != "None":
+                assert bcolor
                 e = cw.data.make_element("Bordering", attrs={"type": btype,
                                                              "width": str(bwidth)})
                 e.append(make_colorelement("Color", bcolor))
@@ -1201,6 +1215,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_COLOR:
+            assert d
+            assert len(d) == 10
+            # BUG: error: Argument 4 to "_add_colorcell" of "BackGround" has incompatible type <union: 5 items>;
+            #      expected "Tuple[str, Tuple[int, int, int, int], str, Tuple[int, int, int, int], Tuple[int, int],
+            #      Tuple[int, int], str, bool, int, str]" (mypy 0.790)
+            d = typing.cast(cw.sprite.background.ColorCellData, d)
             blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible)}
             if cellname:
@@ -1218,6 +1238,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_PC:
+            # PCイメージセル
+            assert d
+            assert len(d) == 9
+            # BUG: error: Argument 4 to "_add_pccell" of "BackGround" has incompatible type <union: 5 items>; expected
+            #      "Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
+            d = typing.cast(cw.sprite.background.PCCellData, d)
             pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "expand": str(expand)}
@@ -1270,8 +1296,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
     e_flag = cw.data.make_element("Flags")
     element.append(e_flag)
 
-    for name, flag in sdata.flags.items():
-        e = cw.data.make_element("Flag", name, {"value": str(flag.value)})
+    for name, flag_o in sdata.flags.items():
+        e = cw.data.make_element("Flag", name, {"value": str(flag_o.value)})
         e_flag.append(e)
 
     # step

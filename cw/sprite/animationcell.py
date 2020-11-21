@@ -8,7 +8,7 @@ import pygame.locals
 import cw
 from . import base
 
-from typing import Tuple
+from typing import Dict, List, Generator, Optional, Tuple, Union
 
 
 class AnimationCell(base.SelectableSprite):
@@ -22,9 +22,9 @@ class AnimationCell(base.SelectableSprite):
         self.status = "normal"
         data = cw.data.xml2element(path)
 
-        self.animation_table = {}
-        self.refs = []
-        self.cache = {}
+        self.animation_table: Dict[str, _AnimationPart] = {}
+        self.refs: List[_AnimationPart] = []
+        self.cache: Dict[Tuple[str, float], pygame.Surface] = {}
 
         self.size_noscale = size_noscale
         self.pos_noscale = pos_noscale
@@ -40,7 +40,7 @@ class AnimationCell(base.SelectableSprite):
 
         spritegrp.add(self, layer=layer)
 
-    def _iter_animes(self, anime: "_AnimationPart") -> None:
+    def _iter_animes(self, anime: "_AnimationPart") -> Generator["_AnimationPart", None, None]:
         """
         グループ内のものを含めた全ての_AnimationPartを返す。
         """
@@ -145,11 +145,11 @@ class _AnimationPart(object):
         self.startframe = startframe
         if data.tag == "Animations":
             # グループ
-            self.type = "Group"
+            self.type: str = "Group"
             self.parallel = data.getbool(".", "parallel", False)  # 並列に実行するか
-            self.parts = []
+            self.parts: List[_AnimationPart] = []
             startframe = self.startframe
-            for a in data.find("."):
+            for a in data.find_exists("."):
                 anime = _AnimationPart(parent, a, startframe)
                 self.parts.append(anime)
                 if not self.parallel:
@@ -179,20 +179,24 @@ class _AnimationPart(object):
             self.animation_frame = data.getint("AnimationType", "frame", 20)  # アニメーションにかかる時間
             self.repeat_count = data.getint("Repeat", 1)  # 繰り返し回数
             self.repeat_interval = data.getint("Repeat", "interval", 0)  # 繰り返しのインターバル
-            self.spawn = data.getint("Spawn", 0)  # 出現時間
-            self.duration = data.getint("Duration", 20)  # 存在期間
+            self.spawn: int = data.getint("Spawn", 0)  # 出現時間
+            self.duration: int = data.getint("Duration", 20)  # 存在期間
 
             if self.animation_type == "Rotate":
                 self.dealing_scales = [int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100)
                                        for i in range(self.animation_frame)]
 
-            self.image = pygame.Surface((0, 0)).convert()
-            self.rect = pygame.Rect(0, 0, 0, 0)
+            self.image: pygame.Surface = pygame.Surface((0, 0)).convert()
+            self.rect: pygame.Rect = pygame.Rect(0, 0, 0, 0)
 
         else:
             raise Exception("Invalid animation: %s" % (data.tag))
 
     def load_cell(self) -> None:
+        left: Union[int, str]
+        top: Union[int, str]
+        width: Union[int, str]
+        height: Union[int, str]
         left, top, width, height = self._rect_str
 
         if self.imgpath:
@@ -228,8 +232,10 @@ class _AnimationPart(object):
 
         if width == "Max":
             width = self.parent.size_noscale[0]
+        assert isinstance(width, int)
         if height == "Max":
             height = self.parent.size_noscale[1]
+        assert isinstance(height, int)
 
         if left == "Center":
             left = (self.parent.size_noscale[0] - width) // 2
@@ -257,8 +263,8 @@ class _AnimationPart(object):
         if ref:
             self.parent.refs.append(self)
 
-        self.pos_noscale = (left, top)
-        self.size_noscale = (width, height)
+        self.pos_noscale: Tuple[Union[int, str], Union[int, str]] = (left, top)
+        self.size_noscale: Tuple[int, int] = (width, height)
 
     def update_scale(self) -> None:
         if self.image_noscale.get_width():
@@ -329,15 +335,18 @@ class _AnimationPart(object):
                 alpha = 255 - alpha
 
             if not self._has_alpha and 255 < alpha:
-                alpha = None
+                alpha_v: Optional[int] = None
+            else:
+                alpha_v = alpha
 
             if self._has_alpha:
+                assert isinstance(alpha_v, int)
                 self.image = self._image.copy()
-                self.image.fill((255, 255, 255, alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
+                self.image.fill((255, 255, 255, alpha_v), special_flags=pygame.locals.BLEND_RGBA_MULT)
             else:
                 self.image = self._image
-                if self.image.get_alpha() != alpha:
-                    self.image.set_alpha(alpha)
+                if self.image.get_alpha() != alpha_v:
+                    self.image.set_alpha(alpha_v)
 
         elif self.animation_type == "Rotate":
             # カードのように回転

@@ -2864,12 +2864,16 @@ class Character(object):
 
             for bgtype, d in cw.cwpy.background.bgs:
                 if bgtype == cw.sprite.background.BG_PC:
+                    assert d
                     pcnumber = d[0]
+                    assert isinstance(d, int)
                     if index + 1 <= pcnumber:
                         cw.cwpy.file_updates_bg = True
                         break
                 elif bgtype == cw.sprite.background.BG_TEXT:
+                    assert d
                     namelist = d[1]
+                    assert isinstance(d, list)
                     for item in namelist:
                         if item.data is self:
                             # テキストセルに表示中の名前

@@ -529,6 +529,16 @@ class SystemData(object):
             return event.variants[path]
         return self.variants.get(path, None) if not is_differentscenario else None
 
+    def get_flagvalue(self, path: str) -> bool:
+        """
+        フラグの値を返す。
+        フラグが存在しない場合はTrueを返す。
+        """
+        if not path:
+            return True
+        flag_o = self.flags.get(path, None)
+        return bool(flag_o) if flag_o is not None else True
+
     def start(self) -> None:
         pass
 

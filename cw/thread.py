@@ -244,7 +244,7 @@ class CWPy(threading.Thread):
         # 更新する必要がある場合はTrue
         self._after_update_mcardlist = False
         # イベントハンドラ
-        self.eventhandler = cw.eventhandler.EventHandler()
+        self.eventhandler: cw.eventhandler.EventHandler = cw.eventhandler.EventHandler()
         self.interrupt_eventhandler: Optional[cw.eventhandler.EventHandler] = None
         # メッセージログ表示中のハンドラ
         self._log_handler: Optional[Union[cw.eventhandler.EventHandlerForMessageWindow,
@@ -281,11 +281,11 @@ class CWPy(threading.Thread):
         self.selectedscenario: Optional[cw.header.ScenarioHeader] = None
 
         # アーカイヴを展開中のシナリオ
-        self.expanding = ""
+        self.expanding: str = ""
         # 展開の進捗情報
-        self.expanding_min = 0
-        self.expanding_max = 100
-        self.expanding_cur = 0
+        self.expanding_min: int = 0
+        self.expanding_max: int = 100
+        self.expanding_cur: int = 0
         # 現在のカーソル名
         self.cursor = ""
         self.change_cursor(force=True)
@@ -3193,7 +3193,6 @@ class CWPy(threading.Thread):
 
                 if self.get_yesnoresult() == wx.ID_OK:
                     def func():
-                        assert isinstance(self.sdata, cw.data.ScenarioData)
                         self.sdata.set_log()
                     self.exec_func(func)
                     self.exec_func(self.f9, True, True)
@@ -3378,7 +3377,9 @@ class CWPy(threading.Thread):
         if not self.file_updates_bg or deal:
             for bgtype, d in self.background.bgs:
                 if bgtype == cw.sprite.background.BG_PC:
+                    assert d
                     bgpcnumber = d[0]
+                    assert isinstance(bgpcnumber, int)
                     if bgpcnumber == pcnumber:
                         if deal:
                             self.background.reload(False)

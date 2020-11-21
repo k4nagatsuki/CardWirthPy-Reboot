@@ -72,8 +72,7 @@ class CWPyCard(base.SelectableSprite):
         return ""
 
     def is_flagtrue(self) -> bool:
-        flag = cw.cwpy.sdata.flags.get(self.flag, None) if self.flag is not None else None
-        mcardflag = flag is None or bool(flag)
+        mcardflag = cw.cwpy.sdata.get_flagvalue(self.flag) if self.flag is not None else True
         mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())
         if mcardflag and self.command == "ShowDialog" and self.arg == "INFOVIEW":
             mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
@@ -88,7 +87,7 @@ class CWPyCard(base.SelectableSprite):
     @staticmethod
     def is_flagtrue_static(data: cw.data.CWPyElement) -> bool:
         flag = data.gettext("Property/Flag", "")
-        mcardflag = bool(cw.cwpy.sdata.flags.get(flag, True))
+        mcardflag = bool(cw.cwpy.sdata.get_flagvalue(flag))
         if mcardflag:
             debug_only = data.getbool(".", "debugOnly", False)
             mcardflag &= bool(not debug_only or cw.cwpy.is_debugmode())
@@ -178,6 +177,7 @@ class CWPyCard(base.SelectableSprite):
         # ただしカード使用の選択対象にはならない
         if (cw.cwpy.is_debugmode() or (cw.cwpy.setting.show_personal_cards and isinstance(self, cw.character.Player) and
                                        cw.cwpy.areaid == cw.AREA_CAMP)) and not cw.cwpy.selectedheader:
+            assert isinstance(self, cw.sprite.card.CWPyCard)
             self.update_selection()
 
     def update_hidden(self) -> None:
@@ -590,7 +590,7 @@ class CWPyCard(base.SelectableSprite):
     def update_scale(self) -> None:
         if not self.is_initialized():
             return
-        if not self.c_ardimg:
+        if not self.cardimg:
             return
 
         zoom = 0 < len(self.zoomimgs)
@@ -626,14 +626,15 @@ class CWPyCard(base.SelectableSprite):
 
         # 画像参照
         if update_statusimg:
-            assert isinstance(self.cardimg, cw.image.CharacterCardImage)
-            clip = self.cardimg.update_statusimg(self, is_runningevent=is_runningevent)
+            assert isinstance(self._cardimg, cw.image.CharacterCardImage)
+            clip = self._cardimg.update_statusimg(self, is_runningevent=is_runningevent)
             if not clip:
                 return None
         else:
             if hasattr(self, "test_aptitude"):
-                assert isinstance(self.cardimg, cw.image.CharacterCardImage)
-                self.cardimg.update(self, self.test_aptitude)
+                assert isinstance(self._cardimg, cw.image.CharacterCardImage)
+                assert isinstance(self, (cw.character.Character, CWPyCard))
+                self._cardimg.update(self, self.test_aptitude)
             else:
                 self.cardimg.update(self)
             clip = pygame.Rect(self.rect)
@@ -657,7 +658,7 @@ class CWPyCard(base.SelectableSprite):
                 self.image = self._image
 
         self.rect.size = rect.size
-        self._rect: pygame.Rect= pygame.Rect(self.rect)
+        self._rect: pygame.Rect = pygame.Rect(self.rect)
         self._rect.topleft = rect.topleft
 
         if self.reversed:

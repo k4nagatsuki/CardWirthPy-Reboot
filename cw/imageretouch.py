@@ -1140,7 +1140,7 @@ def blit_2bitbmp_to_card(dest: pygame.Surface, source: pygame.Surface, pos: Tupl
 
 
 def blit_2bitbmp_to_message(dest: pygame.Surface, source: pygame.Surface, pos: Tuple[int, int],
-                            wincolour: Tuple[int, int, int]) -> None:
+                            wincolour: Tuple[int, int, int, int]) -> None:
     if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface) and source.bmpdepthis1:
         w, h = source.get_size()
         rect = pygame.Rect(pos, (w, h))
@@ -1152,7 +1152,7 @@ def blit_2bitbmp_to_message(dest: pygame.Surface, source: pygame.Surface, pos: T
         rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
         source2 = source.subsurface(rect2)
 
-        func: Optional[Callable[[bytes, Tuple[int, int], bytes, Tuple[int, int, int]], bytes]]
+        func: Optional[Callable[[bytes, Tuple[int, int], bytes, Tuple[int, int, int, int]], bytes]]
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_and_msg
         elif sys.maxsize == 0x7fffffff:

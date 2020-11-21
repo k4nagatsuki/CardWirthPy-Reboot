@@ -10,6 +10,8 @@ from typing import Tuple
 
 
 class CWPySprite(pygame.sprite.DirtySprite):
+    status: str
+    frame: int
     rect: pygame.Rect
     image: pygame.Surface
     layer: Tuple[int, int, int, int]
@@ -18,7 +20,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
 
-        self.status: str = ""
+        self.status = ""
         self.old_status = ""
         self.anitype = ""
         self.start_animation = 0.0
@@ -105,6 +107,8 @@ class MouseHandlerSprite(CWPySprite):
 
 
 class SelectableSprite(CWPySprite):
+    is_pointed: bool
+
     def __init__(self, *groups) -> None:
         self.selectable_on_event = False
         self.is_statusctrl = False

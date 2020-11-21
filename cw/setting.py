@@ -22,8 +22,8 @@ import pygame.locals
 import cw
 
 import typing
-from typing import List, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Set, Tuple,\
-    TypeVar, Union
+from typing import List, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Sequence, Set,\
+    Tuple, TypeVar, Union
 
 
 _KeyType = TypeVar("_KeyType")
@@ -1767,6 +1767,7 @@ class MsgDict(dict):
 class Resource(object):
     ext_img: int
     fonts: "ResourceTable[str, cw.imageretouch.Font]"
+    msg_exfonts: "ResourceTable[str, cw.imageretouch.Font]"
     facenames_lower: Set[str]
     fontnames_init: Dict[str, str]
     facenames_init: Dict[str, str]
@@ -1780,6 +1781,7 @@ class Resource(object):
     pygamedialogs: "ResourceTable[str, pygame.Surface]"
     buttons: "ResourceTable[str, wx.Bitmap]"
     debugs: "ResourceTable[str, wx.Bitmap]"
+    pygamedebugs: "ResourceTable[str, pygame.Surface]"
     cursors: "ResourceTable[str, wx.Cursor]"
     specialchars: "ResourceTable[str, Tuple[pygame.Surface, bool]]"
     specialchars_is_changed: bool
@@ -3233,7 +3235,7 @@ def empty_sound() -> cw.util.SoundInterface:
 
 
 class LazyResource(Generic[_ResType]):
-    def __init__(self, func: Callable[..., _ResType], args: Iterable[typing.Any],
+    def __init__(self, func: Callable[..., _ResType], args: Sequence[typing.Any],
                  kwargs: Dict[typing.Any, typing.Any]) -> None:
         """リソースをfunc(*args, **kwargs)によって
         遅延読み込みする。
