@@ -216,7 +216,8 @@ class SelectPartyRecord(select.Select[Optional[cw.header.PartyRecordHeader]]):
             self.ProcessEvent(btnevent)
 
     def can_clickcenter(self) -> bool:
-        return self.restorebtn.IsEnabled()
+        result: bool = self.restorebtn.IsEnabled()
+        return result
 
     def can_clickside(self) -> bool:
         return 1 < len(self.list)

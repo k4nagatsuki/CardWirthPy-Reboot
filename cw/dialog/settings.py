@@ -2633,7 +2633,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
         gbsizer_application = wx.GridBagSizer()
 
-        def add_application(ctrl, pos: Tuple[int, int], flag: int) -> None:
+        def add_application(ctrl: wx.Control, pos: Tuple[int, int], flag: int) -> None:
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
             gbsizer_application.Add(sizer, pos=pos, flag=flag | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, border=cw.ppis(2))
@@ -3635,7 +3635,7 @@ class FontSettingPanel(wx.Panel):
     def get_basefontface(self, fonttype: str) -> str:
         editors = [choice for choice in self.choicebases if choice.GetControl() and choice.GetControl().IsShown()]
         if editors:
-            face = editors[0].GetControl().GetValue()
+            face: str = editors[0].GetControl().GetValue()
         else:
             face = self.base.GetCellValue(self.bases.index(fonttype), 0)
         if face == self.str_default:
@@ -3683,7 +3683,7 @@ class FontSettingPanel(wx.Panel):
         else:
             editors = []
         if editors:
-            face = editors[0].GetControl().GetValue()
+            face: str = editors[0].GetControl().GetValue()
         else:
             face = self.type.GetCellValue(self.types.index(fonttype), 0)
         for basename in self.bases:

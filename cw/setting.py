@@ -1735,17 +1735,20 @@ class Setting(object):
         pass
 
 
-class MsgDict(dict):
+class MsgDict(object):
     def __init__(self) -> None:
         """
-        存在しないメッセージIDが指定された時に
-        エラーダイアログを表示するための拡張dict。
+        メッセージテーブル(dict[ID, Msg])。
+        存在しないメッセージIDが指定された時はエラーダイアログを表示する。
         """
-        dict.__init__(self)
+        self._d: Dict[str, str] = {}
         self._error_keys: Set[str] = set()
 
+    def __setitem__(self, key: str, msg: str) -> None:
+        self._d[key] = msg
+
     def __getitem__(self, key: str) -> str:
-        if key not in self:
+        if key not in self._d:
             if key not in self._error_keys:
                 def func() -> None:
                     if cw.cwpy.frame:
@@ -1761,8 +1764,10 @@ class MsgDict(dict):
                 cw.cwpy.frame.exec_func(func)
                 self._error_keys.add(key)
             return "*ERROR*"
-        return dict.__getitem__(self, key)
+        return self._d[key]
 
+    def get(self, key: str, defvalue: str) -> str:
+        return self._d.get(key, defvalue)
 
 class Resource(object):
     ext_img: int
@@ -1795,7 +1800,7 @@ class Resource(object):
     def __bool__(self) -> bool:
         return self._init
 
-    def init(self, setting: Setting):
+    def init(self, setting: Setting) -> None:
         self._init = True
         self.setting = weakref.ref(setting)
         # 現在選択しているスキンのディレクトリ
@@ -1952,7 +1957,7 @@ class Resource(object):
                   ("pmincho.ttf", "ＭＳ Ｐ明朝"))
         d = {}
         self.facenames = set(wx.FontEnumerator().GetFacenames())
-        self.facenames_lower = set(map(lambda name: name.lower(), self.facenames))
+        self.facenames_lower = set([name.lower() for name in self.facenames])
 
         for fname, alt in fnames:
             path = cw.util.join_paths(fontdir_skin, fname)
@@ -2546,7 +2551,7 @@ class Resource(object):
                       ss: Optional[Callable[["cw.Scalable"], "cw.Scalable"]] = None,
                       noresize: Iterable[str] = (), nodbg: bool = False,
                       emptyfunc: Optional[Callable[[], _ResType]] = None, editor_res: Optional[str] = None,
-                      warning: bool = True, can_loaded_scaledimage: bool = True) -> "ResourceTable":
+                      warning: bool = True, can_loaded_scaledimage: bool = True) -> "ResourceTable[str, _ResType]":
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
@@ -2640,8 +2645,8 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd,
-                               emptyfunc=empty_sound, warning=False)
+        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd, emptyfunc=empty_sound,
+                               warning=False)
         dpath = cw.util.join_paths(self.skindir, "BgmAndSound")
         d2 = self.get_resources(cw.util.load_sound, "Data/SkinBase/BgmAndSound", dpath, self.ext_snd,
                                 emptyfunc=empty_sound, warning=False)
@@ -2797,6 +2802,7 @@ class Resource(object):
         setting = self.setting()
         assert setting
         editor_res: Optional[str] = os.path.dirname(os.path.abspath(setting.editor))
+        assert editor_res is not None
         editor_res = cw.util.join_paths(editor_res, "resource")
         if not os.path.isdir(editor_res):
             editor_res = None
@@ -3324,7 +3330,7 @@ class ResourceTable(Generic[_KeyType, _ResType]):
 
     def _put_nokeyvalue(self, key: _KeyType) -> None:
         if self.nokeyfunc and key not in self.dic:
-            def func():
+            def func() -> _ResType:
                 assert self.nokeyfunc
                 return self.nokeyfunc(key)
             self.dic[key] = LazyResource(func, (), {})
@@ -3335,10 +3341,10 @@ class ResourceTable(Generic[_KeyType, _ResType]):
             return self[key]
         return defvalue
 
-    def set(self, key: _KeyType, func: Callable[..., _ResType], *args, **kwargs) -> None:
+    def set(self, key: _KeyType, func: Callable[..., _ResType], *args: typing.Any, **kwargs: typing.Any) -> None:
         self.dic[key] = LazyResource(func, args, kwargs)
 
-    def remove(self, key: _KeyType):
+    def remove(self, key: _KeyType) -> None:
         del self.dic[key]
 
     def __contains__(self, key: _KeyType) -> bool:
@@ -3576,6 +3582,7 @@ class RecentHistory(object):
         seq = []
         seq.extend(self.scelist)
 
+        i_temppath: str
         for i_path, i_md5, i_temppath, name in seq:
             if not os.path.isfile(i_path) or not os.path.isdir(i_temppath):
                 self.remove(i_path)

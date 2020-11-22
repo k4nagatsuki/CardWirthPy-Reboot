@@ -458,7 +458,7 @@ class CWPyCard(base.SelectableSprite):
         """
         self._update_zoominout(self._get_dealspeed()*2+1, False)
 
-    def _update_zoominout(self, ds, inout) -> None:
+    def _update_zoominout(self, ds: int, inout: bool) -> None:
         if self.frame == 0:
             if inout:
                 self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
@@ -617,7 +617,8 @@ class CWPyCard(base.SelectableSprite):
         if self.status == "hidden":
             self.clear_image(True)
 
-    def update_image(self, update_statusimg: bool = False, is_runningevent: Optional[bool] = None) -> None:
+    def update_image(self, update_statusimg: bool = False,
+                     is_runningevent: Optional[bool] = None) -> Optional[pygame.Rect]:
         """
         画像を再構成する。
         """
@@ -1223,7 +1224,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             finally:
                 cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
-    def update(self, scr) -> None:
+    def update(self, scr: pygame.Rect) -> None:
         if self.status != "hidden" and not self._init:
             if not self.initialize():
                 return
@@ -1282,7 +1283,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         else:
             self._init_pos_noscale = pos_noscale
 
-    def set_scale(self, scale) -> None:
+    def set_scale(self, scale: int) -> None:
         if self.is_initialized():
             CWPyCard.set_scale(self, scale)
         else:

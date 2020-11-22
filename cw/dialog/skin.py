@@ -636,7 +636,8 @@ class SkinBasePanel(wx.Panel):
             self._selected_exe(exe)
 
     def _get_basedir(self) -> str:
-        return os.path.dirname(self.exectrl.GetValue())
+        path: str = self.exectrl.GetValue()
+        return os.path.dirname(path)
 
     def _selected_exe(self, exe: str) -> None:
         if not os.path.isfile(exe) or exe == self.exe:

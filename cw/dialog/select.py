@@ -2230,7 +2230,8 @@ class PartySelect(MultiViewSelect[cw.header.PartyHeader]):
         pass
 
     def can_clickcenter(self) -> bool:
-        return self.okbtn.IsEnabled()
+        result: bool = self.okbtn.IsEnabled()
+        return result
 
     def enable_btn(self) -> None:
         # リストが空だったらボタンを無効化

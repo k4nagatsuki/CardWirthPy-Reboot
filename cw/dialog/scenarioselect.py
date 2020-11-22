@@ -380,7 +380,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
 
     def is_showingaddctrl(self) -> bool:
         assert self.addctrlbtn
-        return self.addctrlbtn.GetToggle() or self.tree.IsShown()
+        result: bool = self.addctrlbtn.GetToggle() or self.tree.IsShown()
+        return result
 
     def update_additionals(self) -> None:
         assert self.addctrlbtn
@@ -444,12 +445,12 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         cw.util.to_clipboard(s)
 
     def OnDebugMode(self, event: wx.CommandEvent) -> None:
-        def func(self) -> None:
+        def func(self: ScenarioSelect) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self) -> None:
+            def func(self: ScenarioSelect) -> None:
                 if not self:
                     return
                 self.update_debug()
@@ -631,11 +632,11 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         return nsizer
 
     def _get_findpanelheight(self) -> int:
-        h1 = self.keyword_label.GetSize()[1] + self.narrow.GetSize()[1] + cw.wins(1)*2
-        h2 = self.narrow_label.GetSize()[1] + self.narrow_type.GetSize()[1] + cw.wins(1)*2
-        h3 = self.sort_label.GetSize()[1] + self.sort.GetSize()[1]
-        h4 = self.find.GetSize()[1]
-        h5 = self.bookmark.GetSize()[1]
+        h1: int = self.keyword_label.GetSize()[1] + self.narrow.GetSize()[1] + cw.wins(1)*2
+        h2: int = self.narrow_label.GetSize()[1] + self.narrow_type.GetSize()[1] + cw.wins(1)*2
+        h3: int = self.sort_label.GetSize()[1] + self.sort.GetSize()[1]
+        h4: int = self.find.GetSize()[1]
+        h5: int = self.bookmark.GetSize()[1]
         return max(h1, h2, h3, h4, h5)
 
     def OnFind(self, event: wx.CommandEvent) -> None:
@@ -1025,7 +1026,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             return
         dlg.Destroy()
 
-        def func(panel, selected: List[str], selectedpath: str) -> None:
+        def func(panel: ScenarioSelect, selected: List[str], selectedpath: str) -> None:
             assert cw.cwpy.ydata
             cw.cwpy.ydata.add_bookmark(selected, selectedpath)
             cw.cwpy.play_sound("harvest")
@@ -1109,7 +1110,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             self._tree_dclick()
 
     def can_clickcenter(self) -> bool:
-        return self.yesbtn.IsEnabled()
+        result: bool = self.yesbtn.IsEnabled()
+        return result
 
     def get_selected(self) -> Tuple[List[str], str]:
         """
@@ -1145,7 +1147,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         else:
             return []
 
-    def _get_nowlist(self, nowdir: Union[str, "FindResult"] = None,
+    def _get_nowlist(self, nowdir: Optional[Union[str, "FindResult"]] = None,
                      update: bool = True) -> List[Union[cw.header.ScenarioHeader, str, "FindResult"]]:
         from . import scenarioinstall
 
@@ -1167,7 +1169,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         return seq
 
     def set_selected(self, spaths: List[str], fullpath: str, opendir: bool = False, updatetree: bool = False,
-                     findresults: List[Union[cw.header.ScenarioHeader, str, "FindResult"]] = None) -> None:
+                     findresults: Optional[List[Union[cw.header.ScenarioHeader, str, "FindResult"]]] = None) -> None:
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
@@ -1661,6 +1663,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             dlg.Destroy()
             dpath, seldname = self._get_installtarget()
 
+            assert isinstance(self.nowdir, str)
             dst = cw.util.join_paths(self.nowdir, dlg.text)
             dst = cw.util.dupcheck_plus(dst, yado=False)
             dst += ext

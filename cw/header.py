@@ -41,7 +41,9 @@ def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List[
 
 
 class CardHeader(object):
-    _owner: Optional[Union[str, weakref.ReferenceType]]
+    _owner: Optional[Union[str, weakref.ReferenceType[cw.character.Character]]]
+
+    name: str
 
     scenario: str
     author: str
@@ -73,14 +75,14 @@ class CardHeader(object):
             self.set_owner(dbowner)
             self.carddata = None
             self.fpath = dbrec["fpath"]
-            self.type = dbrec["type"]
+            self.type: str = dbrec["type"]
             self.id = dbrec["id"]
             self.name = dbrec["name"]
             self.imgpaths = to_imgpaths(dbrec, imgdbrec)
             self.desc = dbrec["desc"]
             self.scenario = dbrec["scenario"]
             self.author = dbrec["author"]
-            self.keycodes = dbrec["keycodes"].split("\n")
+            self.keycodes: List[str] = dbrec["keycodes"].split("\n")
             self.uselimit = dbrec["uselimit"]
             self.target = dbrec["target"]
             self.allrange = bool(dbrec["allrange"])
@@ -129,8 +131,8 @@ class CardHeader(object):
             self.desc = data.gettext("Description", "")
             self.scenario = data.gettext("Scenario", "")
             self.author = data.gettext("Author", "")
-            self.keycodes = data.gettext("KeyCodes", "")
-            self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
+            keycodes = data.gettext("KeyCodes", "")
+            self.keycodes = cw.util.decodetextlist(keycodes) if keycodes else []
             self.uselimit = data.getint("UseLimit", 0)
             self.target = data.gettext("Target", "None")
             self.allrange = data.getbool("Target", "allrange", False)
@@ -990,7 +992,7 @@ class CardHeader(object):
         """カードの売却価格。"""
         # 互換動作: 1.30以前ではカードの売値は常に半額
         if cw.cwpy.sct.lessthan("1.30", self.versionhint):
-            price = self.price // 2
+            price: int = self.price // 2
         elif self.premium == "Normal":
             price = self.price // 2
         else:
@@ -1057,7 +1059,8 @@ class CardHeader(object):
             rootattrs = GetRootAttribute(self.fpath)
             return cw.util.str2bool(rootattrs.attrs.get("scaledimage", "False"))
         else:
-            return self.carddata.getbool(".", "scaledimage", False)
+            result: bool = self.carddata.getbool(".", "scaledimage", False)
+            return result
 
 
 def is_removewithstatus(carddata: cw.data.CWPyElement, target: "cw.character.Character") -> bool:
@@ -1138,7 +1141,7 @@ class InfoCardHeader(object):
         else:
             return self.cardimg.get_wxbmp()
 
-    def get_cardimg(self) -> "cw.image.CardImage":
+    def get_cardimg(self) -> pygame.Surface:
         if self.negaflag:
             return self.cardimg.get_negaimg()
         else:
@@ -1397,7 +1400,7 @@ class AdventurerHeader(object):
 
 
 class Gene(object):
-    def __init__(self, bits: List[int] = None, count: int = 0) -> None:
+    def __init__(self, bits: Optional[List[int]] = None, count: int = 0) -> None:
         if bits:
             self.bits = bits
         else:
@@ -1713,7 +1716,7 @@ class PartyHeader(object):
             db = cw.cwpy.frame.open_scenariodb()
             if not db:
                 return None
-            sceheader = db.search_path(path)
+            sceheader: Optional[cw.header.ScenarioHeader] = db.search_path(path)
             return sceheader
         else:
             return None

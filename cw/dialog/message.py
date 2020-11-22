@@ -197,7 +197,11 @@ class SysMessage(wx.Dialog):
         self.cwpy_debug = True
         self.basetext = text
         dc = wx.ClientDC(self)
-        text = cw.util.wordwrap(text, cw.ppis(345), lambda s: dc.GetTextExtent(s)[0])
+
+        def extent_w(s: str) -> int:
+            width: int = dc.GetTextExtent(s)[0]
+            return width
+        text = cw.util.wordwrap(text, cw.ppis(345), extent_w)
         self._st_text = wx.StaticText(self, -1, text)
 
         self._check_table: Dict[str, bool] = {}

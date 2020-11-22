@@ -4,7 +4,7 @@
 import cw
 
 import typing
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 # 意識不明の対象に有効な効果。
 CAN_UNCONSCIOUS = (
@@ -76,7 +76,7 @@ def check_noeffect(effecttype: str, target: "cw.character.Character", ignore_ant
 
 
 class EffectParams(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.inusecard: Optional[cw.header.CardHeader] = None
         self.str_params: Dict[str, str] = {}
         self.int_params: Dict[str, int] = {}
@@ -878,7 +878,7 @@ class EffectMotion(object):
             return False
 
         methodname = self.type.lower() + "_motion"
-        method = getattr(self, methodname, None)
+        method: Callable[[cw.character.Character, bool], bool] = getattr(self, methodname, None)
 
         if method:
             return method(target, success_res)

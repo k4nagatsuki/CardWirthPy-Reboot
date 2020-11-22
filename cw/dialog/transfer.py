@@ -679,7 +679,8 @@ class TransferYadoDataDialog(wx.Dialog):
             counter.num += 1
 
     def transfer_savedjpdcimage(self, fromyado: str, toyado: str, header: cw.header.SavedJPDCImageHeader,
-                                yadodb: cw.yadodb.YadoDB, table, counter: "_TransferThread") -> None:
+                                yadodb: cw.yadodb.YadoDB, table: Dict[Tuple[str, str], cw.header.SavedJPDCImageHeader],
+                                counter: "_TransferThread") -> None:
         # 保存されたJPDCイメージの転送
         key = (header.scenarioname, header.scenarioauthor)
         savejpdcdir = cw.util.join_paths(toyado, "SavedJPDCImage")

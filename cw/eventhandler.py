@@ -137,15 +137,6 @@ class EventHandler(object):
         if exception:
             raise exception
 
-    @staticmethod
-    def is_skiptrigger(self, event: pygame.event.Event) -> bool:
-        if event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
-            return event.button in (1, 3)
-        elif event.type in (KEYDOWN, KEYUP):
-            return event.key == K_RETURN
-        else:
-            return False
-
     def clear_touchmenu(self) -> None:
         if cw.cwpy.pointed_tile:
             return
@@ -1060,8 +1051,8 @@ class EventHandlerForMessageWindow(EventHandler):
                     sbar.lclick_event(skip=True)
 
     def _has_message(self) -> bool:
-        return cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE) or \
-               cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)
+        return bool(cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)) or \
+               bool(cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE))
 
     def mclick_event(self) -> None:
         """

@@ -1664,8 +1664,9 @@ class EffectBoosterConfig(object):
     def get(self, section: str, option: str, default: Optional[str] = None) -> Optional[str]:
         sec = self._sections.get(section, None)
 
-        if sec:
-            return sec.get(option.lower(), default)
+        if sec is not None:
+            result: Optional[str] = sec.get(option.lower(), default)
+            return result
         else:
             return default
 
@@ -1756,7 +1757,7 @@ class EffectBoosterConfig(object):
                  default: None) -> Optional[Tuple[int, int, int, int]]: ...
 
     def get_ints(self, section: str, option: str, length: int,
-                 default: Tuple[int, ...] = None) -> Optional[Tuple[int, ...]]:
+                 default: Optional[Tuple[int, ...]] = None) -> Optional[Tuple[int, ...]]:
         try:
             s = self.get(section, option, None)
             if s is None:

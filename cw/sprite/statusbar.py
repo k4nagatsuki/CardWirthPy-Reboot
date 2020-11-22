@@ -27,28 +27,28 @@ class StatusBar(base.CWPySprite):
     def __init__(self) -> None:
         self._init = False
 
-    def is_initialized(self):
+    def is_initialized(self) -> bool:
         return self._init
 
-    def init(self):
+    def init(self) -> None:
         base.CWPySprite.__init__(self)
         self._init = True
         self.image = pygame.Surface(cw.s((632, 33))).convert()
-        self.yadomoney = None
-        self.partymoney = None
-        self.autostart = None
-        self.debugger = None
-        self.backlog = None
-        self.settings = None
-        self.help = None
-        self.touchmenu = None
-        self.infocards = None
-        self.friendcards = None
-        self.debuglog = None
+        self.yadomoney: Optional[YadoMoneyPanel] = None
+        self.partymoney: Optional[PartyMoneyPanel] = None
+        self.autostart: Optional[AutoStartButton] = None
+        self.debugger: Optional[DebuggerButton] = None
+        self.backlog: Optional[BacklogButton] = None
+        self.settings: Optional[SettingsButton] = None
+        self.help: Optional[HelpButton] = None
+        self.touchmenu: Optional[TouchMenuButton] = None
+        self.infocards: Optional[InfoCardsButton] = None
+        self.friendcards: Optional[ShowFriendCardsButton] = None
+        self.debuglog: Optional[DebugLogButton] = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
         self.showbuttons = False
-        self.maskmode = None
+        self.maskmode: Optional[bool] = None
         self.loading = False
         self.volumebar = VolumeBar()
         cw.cwpy.sbargrp.add(self.volumebar, layer=LAYER_VOLUME_BAR)
@@ -135,6 +135,7 @@ class StatusBar(base.CWPySprite):
                         CancelButton(self, cw.s((133, 6)))
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                        assert self.partymoney
                         rmargin += cw.s(34)
                         if self.partymoney.is_shown():
                             left -= cw.s(120) + cw.s(14)
@@ -152,6 +153,7 @@ class StatusBar(base.CWPySprite):
                     left -= panel.size[0] + cw.s(14)
                 elif cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                    assert self.partymoney
                     rmargin += cw.s(34)
                     if self.partymoney.is_shown():
                         left -= cw.s(120) + cw.s(14)
@@ -161,6 +163,7 @@ class StatusBar(base.CWPySprite):
                 self._create_yadomoney(cw.s((10, 6)))
             if cw.cwpy.ydata.party:
                 self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                assert self.partymoney
                 rmargin += cw.s(34)
                 if self.partymoney.is_shown():
                     left -= cw.s(120) + cw.s(14)
@@ -172,6 +175,7 @@ class StatusBar(base.CWPySprite):
                 TableButton(self, cw.s((lmargin, 6)))
                 lmargin += 123
             self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+            assert self.partymoney
             rmargin += cw.s(34)
             if self.partymoney.is_shown():
                 left -= cw.s(120) + cw.s(14)
@@ -315,7 +319,8 @@ class StatusBar(base.CWPySprite):
 
     def is_showingvolumebar(self) -> bool:
         """全体音量バーが表示中か。"""
-        return 0 < self.volumebar.rect.width
+        result: bool = 0 < self.volumebar.rect.width
+        return result
 
     def layered_draw_ex(self, layered_updates: pygame.sprite.LayeredDirty, surface: pygame.Surface,
                         draw_desc: bool) -> List[pygame.Rect]:
@@ -346,6 +351,7 @@ class StatusBar(base.CWPySprite):
     def hide_touchbuttons(self, redraw: bool = False) -> None:
         btns = cw.cwpy.sbargrp.get_sprites_from_layer(LAYER_TOUCH_BUTTON)
         if btns:
+            assert self.touchmenu
             cw.cwpy.pointed_tile = None
             rect: Optional[pygame.Rect] = None
             for btn in btns:
@@ -1333,7 +1339,7 @@ class AutoStartButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  is_pushed=pushed, desc=desc, hotkey="F7")
         self.selectable_on_event = True
-        self.actionbtn = None  # 「行動開始」ボタン
+        self.actionbtn: Optional[ActionButton] = None  # 「行動開始」ボタン
         self.is_showing = cw.cwpy.is_battlestatus
 
     def reset(self, pos: Tuple[int, int]) -> None:

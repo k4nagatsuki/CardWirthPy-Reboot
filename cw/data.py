@@ -2350,7 +2350,7 @@ class Flag(object):
                 self._parent.is_edited = True
 
 
-def redraw_cards(value, flag: str = "", silent: bool = False) -> None:
+def redraw_cards(value: bool, flag: str = "", silent: bool = False) -> None:
     """フラグに対応するメニューカードの再描画処理"""
     quickdeal = cw.cwpy.areaid == cw.AREA_CAMP and cw.cwpy.setting.all_quickdeal
     if cw.cwpy.is_autospread():
@@ -4419,7 +4419,7 @@ class Party(object):
             e = cw.util.get_elementfromzip(path, "ScenarioLog.xml", "Property")
             path = e.gettext("WsnPath", "")
             db = cw.scenariodb.Scenariodb()
-            sceheader = db.search_path(path)
+            sceheader: Optional[cw.header.ScenarioHeader] = db.search_path(path)
             db.close()
             return sceheader
         else:
@@ -4638,8 +4638,9 @@ class _CWPyElementInterface(object):
         except Exception:
             self._raiseerror(path, str(attr))
 
-    def make_element(self, *args, **kwargs) -> "CWPyElement":
-        return make_element(*args, **kwargs)
+    def make_element(self, name: str, text: str = "", attrs: Optional[Dict[str, str]] = None,
+                     tail: str = "") -> "CWPyElement":
+        return make_element(name, text, attrs, tail)
 
 
 class _ElementWrapper(xml.etree.cElementTree.Element):
@@ -4649,7 +4650,7 @@ class _ElementWrapper(xml.etree.cElementTree.Element):
 
 
 class CWPyElement(_CWPyElementInterface, Sequence["CWPyElement"]):
-    def __init__(self, tag: str, attrib: Dict[str, str] = None) -> None:
+    def __init__(self, tag: str, attrib: Optional[Dict[str, str]] = None) -> None:
         if attrib is None:
             attrib = {}
         self.element = _ElementWrapper(self, tag, attrib)
@@ -5073,12 +5074,12 @@ def make_element(name: str, text: str = "", attrs: Optional[Dict[str, str]] = No
     return element
 
 
-def yadoxml2etree(path: str, tag: str = "", rootattrs: Dict[str, str] = None) -> CWPyElementTree:
+def yadoxml2etree(path: str, tag: str = "", rootattrs: Optional[Dict[str, str]] = None) -> CWPyElementTree:
     element = yadoxml2element(path, tag, rootattrs=rootattrs)
     return CWPyElementTree(element=element)
 
 
-def yadoxml2element(path: str, tag: str = "", rootattrs: Dict[str, str] = None) -> CWPyElement:
+def yadoxml2element(path: str, tag: str = "", rootattrs: Optional[Dict[str, str]] = None) -> CWPyElement:
     yadodir = cw.util.join_paths(cw.tempdir, "Yado")
     if path.startswith("Yado"):
         temppath = path.replace("Yado", yadodir, 1)

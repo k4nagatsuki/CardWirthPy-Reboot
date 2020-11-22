@@ -278,7 +278,7 @@ class MusicInterface(object):
 
         return volume * self.mastervolume / 100.0
 
-    def set_volume(self, volume: float = None, fade: int = 0) -> None:
+    def set_volume(self, volume: Optional[float] = None, fade: int = 0) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, volume)
             return
@@ -529,7 +529,7 @@ class SoundInterface(object):
 # ------------------------------------------------------------------------------
 
 def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullscreen: bool = False,
-         soundfonts: List[Tuple[str, bool, int]] = None, fullscreensize: Tuple[int, int] = (0, 0),
+         soundfonts: Optional[List[Tuple[str, bool, int]]] = None, fullscreensize: Tuple[int, int] = (0, 0),
          sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, Optional[pygame.Surface],
                                                   pygame.time.Clock]:
     """pygame初期化。"""
@@ -880,14 +880,16 @@ def calc_imagesize(image: pygame.Surface) -> int:
     """imageのデータサイズを概算する。
     結果は正確ではない。
     """
-    return image.get_bitsize() * image.get_width() * image.get_height() // 8
+    result: int = image.get_bitsize() * image.get_width() * image.get_height() // 8
+    return result
 
 
 def calc_wxbmpsize(wxbmp: wx.Bitmap) -> int:
     """wx.Bitmapのデータサイズを概算する。
     結果は正確ではない。
     """
-    return wxbmp.GetDepth() * wxbmp.GetWidth() * wxbmp.GetHeight() // 8
+    result: int = wxbmp.GetDepth() * wxbmp.GetWidth() * wxbmp.GetHeight() // 8
+    return result
 
 
 def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
@@ -1195,7 +1197,7 @@ _SortableByAttrT = TypeVar("_SortableByAttrT")
 _SortableT = TypeVar("_SortableT", Comparable, str, int, float)
 
 
-def _sorted_by_attr_impl(d: bool, seq: Iterable[_SortableByAttrT], *attr,
+def _sorted_by_attr_impl(d: bool, seq: Iterable[_SortableByAttrT], *attr: typing.Any,
                          cmpfunc: Optional[Callable[[_SortableT, _SortableT], int]] = None) -> List[_SortableByAttrT]:
     if attr:
         key_attr = operator.attrgetter(*attr)
@@ -1346,8 +1348,7 @@ def cmp(a: Optional[_SortableT], b: Optional[_SortableT]) -> int:
     return 0
 
 
-def sorted_by_attr(seq: Iterable[_SortableByAttrT],
-                   *attr) -> List[_SortableByAttrT]:
+def sorted_by_attr(seq: Iterable[_SortableByAttrT], *attr: typing.Any) -> List[_SortableByAttrT]:
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1355,7 +1356,7 @@ def sorted_by_attr(seq: Iterable[_SortableByAttrT],
     return _sorted_by_attr_impl(False, seq, *attr)
 
 
-def sort_by_attr(seq: List[_SortableByAttrT], *attr) -> List[_SortableByAttrT]:
+def sort_by_attr(seq: List[_SortableByAttrT], *attr: typing.Any) -> List[_SortableByAttrT]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1375,10 +1376,11 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq: List[_SortableByAttrT], *attr) -> List[_SortableByAttrT]:
+def sort_by_filename(seq: List[_SortableByAttrT], *attr: typing.Any) -> List[_SortableByAttrT]:
     if sys.platform == "win32" and _shlwapi:
         def cmp_fname(a: str, b: str) -> int:
-            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+            result: int = _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+            return result
 
         seq = _sorted_by_attr_impl(True, seq, *attr, cmpfunc=cmp_fname)
     else:
@@ -1406,7 +1408,7 @@ def new_order(seq: Union[Iterable["cw.header.AdventurerHeader"],
         return 0
 
 
-def join_paths(*paths) -> str:
+def join_paths(*paths: str) -> str:
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     セキュリティ上の問題を避けるため、あえて絶対パスは取り扱わない。
     *paths: パス結合する文字列
@@ -2546,7 +2548,7 @@ def copytree_overwrite(src: str, dst: str, files_overwrite: int = OVERWRITE_ALWA
 # スレッド関係
 # ------------------------------------------------------------------------------
 
-def synclock(lock: threading.Lock) -> typing.Any:
+def synclock(lock: threading.Lock) -> Callable[[Callable[..., typing.Any]], typing.Any]:
     """
     @synclock(_lock)
     def function():
@@ -2556,10 +2558,10 @@ def synclock(lock: threading.Lock) -> typing.Any:
     """
 
     def synclock(f: Callable[..., typing.Any]) -> typing.Any:
-        def acquire(*args, **kw) -> typing.Any:
+        def acquire(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             lock.acquire()
             try:
-                return f(*args, **kw)
+                return f(*args, **kwargs)
             finally:
                 lock.release()
 
@@ -2581,13 +2583,13 @@ class _LhafileWrapper(lhafile.Lhafile):
         # その場合は末尾にも余計なデータもあるため、冒頭で指定された
         # サイズにファイルを切り詰めなくてはならない。
         f = open(path, "rb")
-        b = str(f.read(1))
+        b = f.read(1)
         seq = []
-        while b in ("0123456789abcdefABCDEF"):
+        while b in (b"0123456789abcdefABCDEF"):
             seq.append(b)
-            b = str(f.read(1))
-        if seq and b == '\r' and f.read(1) == '\n':
-            strnum = "".join(seq)
+            b = f.read(1)
+        if seq and b == b'\r' and f.read(1) == b'\n':
+            strnum = b"".join(seq)
             num = int(strnum, 16)
             data = f.read(num)
             f.close()
@@ -2989,7 +2991,7 @@ def cab_filenum(cab: str) -> int:
             if buf[:4] != b"MSCF":
                 return 0
 
-            cfiles = word.unpack(buf[28:30])[0]
+            cfiles: int = word.unpack(buf[28:30])[0]
             return cfiles
     except Exception:
         cw.util.print_ex()
@@ -3502,7 +3504,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]]
                     buflen = 0
                 return [], 0, word
 
-            def break_before_openchar(buf2, buf: List[Tuple[str, bool]], buflen: int,
+            def break_before_openchar(buf2: Sequence[Tuple[str, bool]], buf: List[Tuple[str, bool]], buflen: int,
                                       word: str) -> Tuple[List[Tuple[str, bool]], int, str]:
                 # 行末禁止文字の位置まで遡って折り返す
                 assert get_width
@@ -3913,10 +3915,10 @@ def convert_to_image(bmp: wx.Bitmap) -> wx.Image:
     return img
 
 
-def wxbmp_to_buffer(bmp: wx.Bitmap) -> array.array:
+def wxbmp_to_buffer(bmp: wx.Bitmap) -> array.ArrayType[int]:
     """wx.BitmapをRGBのバイト配列へ変換する。"""
     w, h = bmp.GetSize()
-    buf = array.array('B', [0] * (w * h * 3))
+    buf = array.array[int]('B', [0] * (w * h * 3))
     bmp.CopyToBuffer(buf)
     return buf
 
@@ -4289,7 +4291,7 @@ class CWPyStaticBitmap(wx.Panel):
     """
     def __init__(self, parent: wx.Panel, cid: int, bmps: List[wx.Bitmap], bmps_bmpdepthkey: List[wx.Bitmap],
                  size: Optional[Tuple[int, int]] = None, infos: Optional[List["cw.image.ImageInfo"]] = None,
-                 ss: Callable[["cw.Scalable"], "cw.Scalable"] = None) -> None:
+                 ss: Optional[Callable[["cw.Scalable"], "cw.Scalable"]] = None) -> None:
         if not ss:
             ss = cw.ppis
         if not size and bmps:
@@ -4305,7 +4307,7 @@ class CWPyStaticBitmap(wx.Panel):
         self.bmps_bmpdepthkey = bmps_bmpdepthkey
         self.infos = infos
         # BUG: self._ss: Callable[[cw.Scalable], cw.Scalable] にすると謎の警告が発生する(mypy 0.782)
-        self._ss: Callable = ss
+        self._ss: Callable[..., typing.Any] = ss
         self._bind()
 
     def _bind(self) -> None:
@@ -4535,12 +4537,14 @@ def add_sideclickhandlers(toppanel: wx.Panel, leftbtn: wx.BitmapButton, rightbtn
     def _is_cursorinleft() -> bool:
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
-        return x < rect.x + rect.width // 4 and leftbtn.IsEnabled()
+        enabled: bool = leftbtn.IsEnabled()
+        return x < rect.x + rect.width // 4 and enabled
 
     def _is_cursorinright() -> bool:
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
-        return rect.x + rect.width // 4 * 3 < x and rightbtn.IsEnabled()
+        enabled: bool = rightbtn.IsEnabled()
+        return rect.x + rect.width // 4 * 3 < x and enabled
 
     def _update_mousepos() -> None:
         if _is_cursorinleft():
@@ -4812,10 +4816,11 @@ def get_wheelrotation(event: wx.MouseEvent) -> int:
     取得できる回転量の値は直感と逆転しているので
     この関数をラッパとして反転した値を取得する。
     """
+    rotation: int = event.GetWheelRotation()
     if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
-        return -event.GetWheelRotation()
+        return -rotation
     else:
-        return event.GetWheelRotation()
+        return rotation
 
 
 class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
@@ -4838,7 +4843,8 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         self._tab_size = self.GetTabSize(dc, wnd, page.caption, page.bitmap, page.active, close_button_state,
                                          page.control)[0]
         page.caption = ""
-        r = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state, paint_control)
+        r: Tuple[wx.Rect, wx.Rect, int] = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state,
+                                                                        paint_control)
         page.caption = self._cwtabart_caption
         # テキストを描画
         dc.SetFont(wnd.GetFont())
@@ -4944,7 +4950,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         return 0 == len(self._items)
 
     def IsTextEmpty(self) -> bool:
-        index = self.GetSelection()
+        index: int = self.GetSelection()
         return index == -1 or self._items[index][0] == ""
 
     def OnDrawBackground(self, dc: wx.DC, rect: wx.Rect, item: int, flags: int) -> None:
@@ -4963,13 +4969,15 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         dc = wx.ClientDC(self)
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
-        return max(bmp.GetHeight(), sz[1])
+        result: int = max(bmp.GetHeight(), sz[1])
+        return result
 
     def OnMeasureItemWidth(self, item: int) -> int:
         dc = wx.ClientDC(self)
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
-        return bmp.GetWidth() + sz[0]
+        result: int = bmp.GetWidth() + sz[0]
+        return result
 
 
 # ------------------------------------------------------------------------------

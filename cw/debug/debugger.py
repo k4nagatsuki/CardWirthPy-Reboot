@@ -1391,7 +1391,7 @@ class Debugger(wx.Frame):
                 else:
                     ccards.append(("Player: " + ccard.name, hand))
 
-            def func(self, ccards: Iterable[Tuple[str, List[cw.header.CardHeader]]],
+            def func(self: Debugger, ccards: Iterable[Tuple[str, List[cw.header.CardHeader]]],
                      selectedcard: Optional[cw.header.CardHeader]) -> None:
                 if not self:
                     return
@@ -1466,8 +1466,6 @@ class Debugger(wx.Frame):
             dlg = cw.debug.event.EventListDialog(self, currentfpath, self._showhiddencards)
             if dlg.ShowModal() == wx.ID_OK:
                 self._currentfpath = dlg.events.get_currentfpath()
-                if not self._currentfpath:
-                    self._currentfpath = ""
                 self._showhiddencards = dlg.showhiddencards
 
                 def func(start: Callable[[], None]) -> None:
@@ -1964,12 +1962,12 @@ class VariableListCtrl(wx.ListCtrl):
             wx.LC_SORT_ASCENDING | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL)
         self.list: List[Tuple[Union[cw.data.Flag, cw.data.Step, cw.data.Variant], bool, bool]] = []
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
-        self.imgidx_flag = self.imglist.Add(cw.cwpy.rsrc.debugs["FLAG"])
-        self.imgidx_step = self.imglist.Add(cw.cwpy.rsrc.debugs["STEP"])
-        self.imgidx_variant = self.imglist.Add(cw.cwpy.rsrc.debugs["VARIANT"])
-        self.imgidx_flag_l = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_FLAG"])
-        self.imgidx_step_l = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_STEP"])
-        self.imgidx_variant_l = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_VARIANT"])
+        self.imgidx_flag: int = self.imglist.Add(cw.cwpy.rsrc.debugs["FLAG"])
+        self.imgidx_step: int = self.imglist.Add(cw.cwpy.rsrc.debugs["STEP"])
+        self.imgidx_variant: int = self.imglist.Add(cw.cwpy.rsrc.debugs["VARIANT"])
+        self.imgidx_flag_l: int = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_FLAG"])
+        self.imgidx_step_l: int = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_STEP"])
+        self.imgidx_variant_l: int = self.imglist.Add(cw.cwpy.rsrc.debugs["LOCAL_VARIANT"])
         self.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.InsertColumn(0, "名称")
         self.InsertColumn(1, "現在値")
@@ -2016,7 +2014,7 @@ class VariableListCtrl(wx.ListCtrl):
                 self._update_variablesowner()
         cw.cwpy.exec_func(func)
 
-    def _update_variablesowner(self):
+    def _update_variablesowner(self) -> None:
         if cw.cwpy.event.in_inusecardevent:
             inusecard = cw.cwpy.event.get_inusecard()
             assert inusecard
@@ -2129,7 +2127,7 @@ class VariableListCtrl(wx.ListCtrl):
     def refresh_variablelist_impl(self, event: Optional[cw.event.Event] = None) -> None:
         assert threading.currentThread() != cw.cwpy
 
-        def func(self, event: Optional[cw.event.Event]) -> None:
+        def func(self: VariableListCtrl, event: Optional[cw.event.Event]) -> None:
             if not event:
                 event = cw.cwpy.event.get_nowrunningevent()
             editable = bool(event and event is cw.cwpy.event.get_nowrunningevent())
@@ -2152,7 +2150,8 @@ class VariableListCtrl(wx.ListCtrl):
                 if cw.cwpy.ydata:
                     extend(cw.cwpy.sdata, False, True)
 
-            def func(self, vlist: List[Tuple[Union[cw.data.Flag, cw.data.Step, cw.data.Variant], bool, bool]]) -> None:
+            def func(self: VariableListCtrl,
+                     vlist: List[Tuple[Union[cw.data.Flag, cw.data.Step, cw.data.Variant], bool, bool]]) -> None:
                 if self:
                     if self.list != vlist:
                         self.list = vlist
@@ -2606,8 +2605,8 @@ class EventView(wx.ScrolledWindow):
             trees = nowrunning.trees.copy() if nowrunning is not None else None
             treekeys = nowrunning.treekeys[:] if nowrunning is not None else None
 
-            def func(self, nowrunning: Optional[cw.event.Event],
-                     trees: Optional[Dict[str, cw.content.StartContent]],
+            def func(self: EventView, nowrunning: Optional[cw.event.Event],
+                     trees: Optional[Dict[str, cw.data.CWPyElement]],
                      treekeys: Optional[List[str]]) -> None:
                 if not self:
                     return
@@ -2619,19 +2618,19 @@ class EventView(wx.ScrolledWindow):
 
         cw.cwpy.exec_func(func, self)
 
-    def set_event(self, event: Optional[cw.event.Event], selection: Optional[cw.event.Event] = None) -> None:
+    def set_event(self, event: Optional[cw.event.Event], selection: Optional[cw.data.CWPyElement] = None) -> None:
         assert threading.currentThread() != cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         processing = self.processing
         self.processing = True
 
-        def func(self, event: Optional[cw.event.Event]) -> None:
+        def func(self: EventView, event: Optional[cw.event.Event]) -> None:
             trees = event.trees.copy() if event is not None else None
             treekeys = event.treekeys[:] if event is not None else None
 
-            def func(self, event: Optional[cw.event.Event],
-                     trees: Optional[Dict[str, cw.content.StartContent]],
+            def func(self: EventView, event: Optional[cw.event.Event],
+                     trees: Optional[Dict[str, cw.data.CWPyElement]],
                      treekeys: Optional[List[str]]) -> None:
                 if not self:
                     return
@@ -2821,7 +2820,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         wx.ListCtrl.__init__(self, parent, -1, size=(-1, cw.ppis(80)),
                              style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
-        self.list: List[Tuple[cw.event.Event, cw.data.CWPyElement]] = []
+        self.list: List[Tuple[cw.event.Event, Optional[cw.data.CWPyElement]]] = []
         self.imglist = wx.ImageList(cw.ppis(16), cw.ppis(16))
         self.imgidx_area: int = self.imglist.Add(cw.cwpy.rsrc.debugs["AREA"])
         self.imgidx_battle: int = self.imglist.Add(cw.cwpy.rsrc.debugs["BATTLE"])
@@ -2861,7 +2860,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         assert cw.cwpy != threading.currentThread()
 
         def func(self: EventView) -> None:
-            def func(self, nowrunning: cw.event.Event, cur_content: Optional[cw.data.CWPyElement],
+            def func(self: EventView, nowrunning: cw.event.Event, cur_content: Optional[cw.data.CWPyElement],
                      stackinfo: Iterable[Union[cw.event.Event,
                                                Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]]]) -> None:
                 if not self:
@@ -2898,8 +2897,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             cw.cwpy.frame.exec_func(func, self, nowrunning, e, stackinfo)
         cw.cwpy.exec_func(func, self)
 
-    def _get_item(self, evt: Union[cw.event.Event, Tuple[cw.event.Event, cw.data.CWPyElement, int]])\
-            -> Tuple[Optional[str], Optional[int], Optional[Tuple[cw.event.Event, cw.data.CWPyElement]]]:
+    def _get_item(self, evt: Union[cw.event.Event, Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]])\
+            -> Tuple[Optional[str], Optional[int], Optional[Tuple[cw.event.Event, Optional[cw.data.CWPyElement]]]]:
         if isinstance(evt, cw.event.Event):
             e = evt.starttree
             if e is None:
@@ -2946,6 +2945,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
             evt2, e, line_index = evt
             if e is not None and e.tag == "ContentsLine":
                 e = e[line_index]
+            assert e is not None
             ctype = e.getattr(".", "type", "")
             if e.tag == "Call" and ctype == "Start":
                 icon = self.imgidx_call_start
@@ -2981,7 +2981,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         if not self.enable_eventview():
             return
 
-        def func(self, item: Union[cw.event.Event, Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]]) -> None:
+        def func(self: StackTraceView,
+                 item: Union[cw.event.Event, Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]]) -> None:
             if not self:
                 return
             index = self.GetItemCount()
@@ -3023,8 +3024,8 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         if not self.enable_eventview():
             return
 
-        def func(self, index: int, item: Union[cw.event.Event,
-                                               Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]]) -> None:
+        def func(self: StackTraceView, index: int,
+                 item: Union[cw.event.Event, Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]]) -> None:
             if not self:
                 return
             name, icon, data = self._get_item(item)

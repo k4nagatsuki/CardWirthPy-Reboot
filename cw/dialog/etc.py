@@ -261,7 +261,7 @@ class BattleCommand(wx.Dialog):
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def draw(self, update: bool = False) -> None:
+    def draw(self, update: bool = False) -> wx.DC:
         if update:
             dc = wx.ClientDC(self.toppanel)
             dc = wx.BufferedDC(dc, self.toppanel.GetSize())
@@ -299,7 +299,7 @@ class BattleCommand(wx.Dialog):
 
         dc.DrawBitmap(bmp, pos[0], pos[1], False)
 
-    def animate_click(self, header):
+    def animate_click(self, header: BattleCommandCard) -> None:
         # クリックアニメーション。4フレーム分。
         self._clickedflag_index = self.list.index(header)
         self.draw(True)

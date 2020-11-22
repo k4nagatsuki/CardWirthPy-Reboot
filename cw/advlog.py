@@ -154,7 +154,8 @@ class AdventurerLogger(object):
                                              Tuple[str, bool, bool],
                                              Tuple[str, bool],
                                              Tuple[str, cw.data.CWPyElement, bool],
-                                             Tuple[str, int, int, int, int]],
+                                             Tuple[str, int, int, int, int],
+                                             Tuple[str, str, bool]],
              func: Optional[Callable[..., Optional[str]]] = None,
              usecard: bool = False) -> None:
         if logtype in (MOTION, MOTION_IN_BATTLE) and not usecard:
@@ -477,7 +478,7 @@ class AdventurerLogger(object):
             oldduration = 0
         elif oldduration == 0:
             oldmentality = "Normal"
-        if oldmentality == mentality and oldmentality == oldduration:
+        if oldmentality == mentality and oldduration == duration:
             return
 
         def mentality_motion(params: Tuple[str, str, int, str, int, bool]) -> str:
@@ -765,7 +766,22 @@ class AdventurerLogger(object):
 
 
 class Logger(threading.Thread):
-    queue: queue.Queue
+    queue: queue.Queue[Optional[Union[bool,
+                                      Tuple[Union[Optional[str],
+                                            int,
+                                            Iterable[str],
+                                            Tuple[str, str, bool, Optional[str], str, bool],
+                                            Tuple[str, int, int, int, int, bool],
+                                            Tuple[str, int, int, bool],
+                                            Tuple[str, int, bool],
+                                            Tuple[str, str, int, str, int, bool],
+                                            Tuple[str, str, int, bool],
+                                            Tuple[str, bool, bool, bool],
+                                            Tuple[str, bool, bool],
+                                            Tuple[str, bool],
+                                            Tuple[str, cw.data.CWPyElement, bool],
+                                            Tuple[str, int, int, int, int],
+                                            Tuple[str, str, bool]], Optional[Callable[..., Optional[str]]]]]]]
 
     def __init__(self, fpath: str, enable: bool) -> None:
         threading.Thread.__init__(self)
@@ -794,6 +810,7 @@ class Logger(threading.Thread):
                         if func:
                             s = func(data)
                         else:
+                            assert isinstance(data, str)
                             s = data
                         if s is None:
                             continue

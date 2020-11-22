@@ -405,7 +405,7 @@ class Win32Res(object):
 
 
 class ResTable(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.table: Dict[bytes, Union[List[str], int, str, bool, bytes, List[bytes], ResTable]] = {}
 
 
@@ -458,7 +458,7 @@ def find_res(table: ResTable, path_l: Sequence[bytes],
         return defvalue
 
 
-def main():
+def main() -> None:
     pass
 
 

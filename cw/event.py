@@ -1038,7 +1038,7 @@ class Event(object):
         """targetがEnemyであればtarget自身が持つEvents、
         Playerであればエリアのプレイヤーカードイベント(Wsn.2)を返す。
         """
-        if isinstance(target, (cw.character.Enemy, cw.sprite.card.MenuCard)):
+        if isinstance(target, (cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard)):
             return target.events
         elif isinstance(target, cw.character.Player):
             # プレイヤーカードのキーコード・死亡時イベント(Wsn.2)

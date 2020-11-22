@@ -3,6 +3,7 @@
 
 import sys
 
+import typing
 from typing import Dict, List, Optional, Type, Union
 
 
@@ -103,24 +104,27 @@ class ArgResult(object):
         解析対象にならなかったオプションはleftoversメンバに記録される。
         """
         self.leftovers: List[str] = []
+        self._int_values: Dict[str, int] = {}
+        self._str_values: Dict[str, str] = {}
+        self._bool_values: Dict[str, bool] = {}
 
     def getint(self, key: str) -> int:
-        return getattr(self, key)
+        return self._int_values.get(key, 0)
 
     def setint(self, key: str, value: int) -> None:
-        setattr(self, key, value)
+        self._int_values[key] = value
 
     def getstr(self, key: str) -> str:
-        return getattr(self, key)
+        return self._str_values.get(key, "")
 
     def setstr(self, key: str, value: str) -> None:
-        setattr(self, key, value)
+        self._str_values[key] = value
 
     def getbool(self, key: str) -> bool:
-        return getattr(self, key)
+        return self._bool_values.get(key, False)
 
     def setbool(self, key: str, value: bool) -> None:
-        setattr(self, key, value)
+        self._bool_values[key] = value
 
 
 class Arg(object):

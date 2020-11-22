@@ -665,7 +665,7 @@ class Character(object):
         else:
             return True
 
-    def is_avoidable(self, use_enhance=True) -> bool:
+    def is_avoidable(self, use_enhance: bool = True) -> bool:
         """
         回避判定可能かどうかbool値で返す。
         """
@@ -1154,7 +1154,7 @@ class Character(object):
                         self.deck.use(header)
 
     def set_action(self, target: Optional[List["cw.sprite.card.CWPyCard"]], header: Optional[cw.header.CardHeader],
-                   beasts: List[Tuple[List["cw.sprite.card.CWPyCard"], cw.header.CardHeader]] = None,
+                   beasts: Optional[List[Tuple[List["cw.sprite.card.CWPyCard"], cw.header.CardHeader]]] = None,
                    auto: bool = False) -> None:
         """
         戦闘行動を設定。
@@ -1417,7 +1417,8 @@ class Character(object):
             return [{"type": "Runaway"}]
         else:
             assert header.carddata is not None
-            return header.carddata.find_exists("Motions")
+            data: cw.data.CWPyElement = header.carddata.find_exists("Motions")
+            return data
 
     def _is_bonusedmtype(self, mtype: str) -> bool:
         return mtype in ("Runaway", "Heal")
@@ -1786,7 +1787,8 @@ class Character(object):
 
     def _get_couponvalue(self, name: str, raiseerror: bool = True) -> Optional[int]:
         if raiseerror:
-            return self.coupons[name][0]
+            data: Tuple[int, cw.data.CWPyElement] = self.coupons[name]
+            return data[0]
         else:
             data = self.coupons.get(name, None)
             if data:
@@ -2457,7 +2459,7 @@ class Character(object):
         e.append(cw.data.make_element("Description", header.desc))
         e.append(cw.data.make_element("Scenario", header.scenario))
         e.append(cw.data.make_element("Author", header.author))
-        if type != "BeastCard":
+        if header.type != "BeastCard":
             e.append(cw.data.make_element("Hold", str(header.hold)))
         if header.type != "SkillCard":
             e.append(cw.data.make_element("UseLimit", str(header.uselimit)))

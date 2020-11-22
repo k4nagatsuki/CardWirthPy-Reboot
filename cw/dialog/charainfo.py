@@ -74,14 +74,14 @@ class CharaInfo(wx.Dialog, Generic[_T]):
 
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
-        self.bottompanel = []
+        self.bottompanel: List[wx.Panel] = []
 
         # 解説
-        self.descpanel: DescPanel = DescPanel(self.notebook, self.ccard, editable)
+        self.descpanel: DescPanel[_T] = DescPanel[_T](self.notebook, self.ccard, editable)
         self.bottompanel.append(self.descpanel)
         self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
-        self.historypanel: HistoryPanel = HistoryPanel(self.notebook, self.ccard, editable)
+        self.historypanel: HistoryPanel[_T] = HistoryPanel[_T](self.notebook, self.ccard, editable)
         self.bottompanel.append(self.historypanel)
         self.notebook.AddPage(self.historypanel,  cw.cwpy.msgs["history"])
         # 編集または状態
@@ -354,12 +354,12 @@ class CharaInfo(wx.Dialog, Generic[_T]):
             # self.ProcessEvent(btnevent)
 
     def OnDebugMode(self, event: wx.CommandEvent) -> None:
-        def func(self: CharaInfo) -> None:
+        def func(self: CharaInfo[_T]) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self: CharaInfo) -> None:
+            def func(self: CharaInfo[_T]) -> None:
                 if not self:
                     return
                 self.update_debug()
@@ -602,7 +602,7 @@ class TopPanel(wx.Panel, Generic[_T]):
     """
     顔画像などを描画するパネル
     """
-    def __init__(self, parent: ActiveCharaInfo, ccard: _T, redrawfunc: Optional[Callable[[], None]]) -> None:
+    def __init__(self, parent: CharaInfo[_T], ccard: _T, redrawfunc: Optional[Callable[[], None]]) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(105)))
         self.SetDoubleBuffered(True)
         # カードワース本来の背景値。暗くなりすぎるので保留
@@ -854,7 +854,7 @@ class TitlePanel(wx.Panel, Generic[_T]):
     """
     タイトルバーを描画するパネルを作る。
     """
-    def __init__(self, parent: ActiveCharaInfo, notebook: wx.lib.agw.aui.auibook.AuiNotebook) -> None:
+    def __init__(self, parent: CharaInfo[_T], notebook: wx.lib.agw.aui.auibook.AuiNotebook) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(24)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.notebook = notebook
@@ -1054,8 +1054,8 @@ class HistoryPanel(wx.ScrolledWindow, Generic[_T]):
         dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
-            def func(panel: HistoryPanel) -> None:
-                def func(panel: HistoryPanel) -> None:
+            def func(panel: HistoryPanel[_T]) -> None:
+                def func(panel: HistoryPanel[_T]) -> None:
                     try:
                         panel.draw(True)
                         panel.Parent.Parent.toppanel.Refresh()
@@ -1251,7 +1251,7 @@ class EditPanel(wx.Panel, Generic[_N]):
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        def func(panel: EditPanel) -> None:
+                        def func(panel: wx.Panel) -> None:
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
                                 panel.Parent.Parent.descpanel.draw(True)
@@ -1268,7 +1268,7 @@ class EditPanel(wx.Panel, Generic[_N]):
                                                          party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        def func(panel: EditPanel) -> None:
+                        def func(panel: wx.Panel) -> None:
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
                         self.update_charalist(mlist)
@@ -1283,7 +1283,7 @@ class EditPanel(wx.Panel, Generic[_N]):
                     if dlg.ShowModal() == wx.ID_OK:
                         colour: wx.Colour = get_bgcolor(self.ccard)
 
-                        def func2(panel: EditPanel, ccard: cw.character.Character) -> None:
+                        def func2(panel: wx.Panel, ccard: cw.character.Character) -> None:
                             if panel:
                                 tabs = [panel.Parent.Parent.titlepanel, panel.Parent.Parent.descpanel,
                                         panel.Parent.Parent.historypanel, panel.Parent.Parent.editpanel]
@@ -1885,7 +1885,7 @@ class CardPanel(wx.Panel, Generic[_A]):
         for header in self.headers:
             if header.negaflag:
                 cw.cwpy.play_sound("click")
-                dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
+                dlg = cardinfo.YadoCardInfo[cw.header.CardHeader](self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()

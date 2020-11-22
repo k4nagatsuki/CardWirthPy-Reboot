@@ -434,7 +434,7 @@ class CWYado(object):
                 for ext in (".wck", ".wci", ".wcb"):
                     if os.path.isfile(name + ext):
                         with cwfile.CWFile(name + ext, "rb") as f2:
-                            data = cd[ext](None, f2, True)
+                            data: Union[skill.SkillCard, item.ItemCard, beast.BeastCard] = cd[ext](None, f2, True)
                             f2.close()
                         _dataversion = f.string()
                         _name = f.string()

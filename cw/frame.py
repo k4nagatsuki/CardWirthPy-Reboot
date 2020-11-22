@@ -380,7 +380,7 @@ class Frame(wx.Frame):
         self._clock = time.time()
 
     @synclock(cw.debug.debugger.mutex)
-    def show_debugger(self, refreshtree) -> None:
+    def show_debugger(self, refreshtree: bool) -> None:
         """デバッガ開く。"""
         if cw.cwpy.is_debugmode() and not self.debugger:
             dlg = cw.debug.debugger.Debugger(self)
@@ -411,7 +411,7 @@ class Frame(wx.Frame):
             cw.cwpy.force_exec_func(func)
             cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
-    def exec_func(self, func: Callable[..., None], *args, **kwargs) -> None:
+    def exec_func(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> None:
         """wxPythonスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
@@ -423,7 +423,7 @@ class Frame(wx.Frame):
         event.kwargs = kwargs
         self.AddPendingEvent(event)
 
-    def sync_exec(self, func: Callable[..., typing.Any], *args, **kwargs) -> typing.Any:
+    def sync_exec(self, func: Callable[..., typing.Any], *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         """wxPythonスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -436,7 +436,7 @@ class Frame(wx.Frame):
             self._sync_result = None
             self._sync_running = True
 
-            def func2(*args, **kwargs) -> None:
+            def func2(*args: typing.Any, **kwargs: typing.Any) -> None:
                 try:
                     self._sync_result = func(*args, **kwargs)
                 finally:

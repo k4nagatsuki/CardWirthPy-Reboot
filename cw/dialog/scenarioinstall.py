@@ -200,8 +200,11 @@ class SelectScenarioDirectory(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         csize = self.GetClientSize()
         btnw = self.createdirbtn.GetSize()[0]
-        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10),
-                                              lambda s: dc.GetTextExtent(s)[0])
+
+        def extent_w(s: str) -> int:
+            width: int = dc.GetTextExtent(s)[0]
+            return width
+        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10), extent_w)
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnPaint(self, evt: wx.PaintEvent) -> None:
@@ -379,7 +382,7 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
     if not paths:
         return headers, notscenariofiles
 
-    exists = set()
+    exists: Set[Tuple[str, str]] = set()
 
     if os.path.isfile(paths[0]) and cw.util.splitext(paths[0])[1].lower() in (".xml", ".wsm"):
         paths = [os.path.dirname(paths[0])]
@@ -570,7 +573,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 )
                 dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
                 cw.cwpy.frame.move_dlg(dlg2)
-                ret = dlg2.ShowModal()
+                ret: int = dlg2.ShowModal()
                 dlg2.Destroy()
                 if wx.GetKeyState(wx.WXK_SHIFT):
                     allret[0] = ret
@@ -578,7 +581,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 return ret
 
             if allret[0] is None:
-                ret = cw.cwpy.frame.sync_exec(func)
+                ret: int = cw.cwpy.frame.sync_exec(func)
             else:
                 ret = allret[0]
             return ret
@@ -969,7 +972,11 @@ class OverwriteScenarioDialog(wx.Dialog):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         csize = self.GetClientSize()
-        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), lambda s: dc.GetTextExtent(s)[0])
+
+        def extent_w(s: str) -> int:
+            width: int = dc.GetTextExtent(s)[0]
+            return width
+        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), extent_w)
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnOk(self, event: wx.CommandEvent) -> None:

@@ -530,12 +530,12 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
         pass
 
     def OnDebugMode(self, event: wx.CommandEvent) -> None:
-        def func(self: CardControl) -> None:
+        def func(self: CardControl[CardHeaderType]) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self: CardControl) -> None:
+            def func(self: CardControl[CardHeaderType]) -> None:
                 if not self:
                     return
                 self.update_debug()
@@ -758,14 +758,16 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             return False
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
-        return x < rect.x + rect.width // 4 and self.leftbtn.IsEnabled()
+        enabled: bool = self.leftbtn.IsEnabled()
+        return x < rect.x + rect.width // 4 and enabled
 
     def _is_cursorinright(self) -> bool:
         if not self._can_sideclick():
             return False
         rect = self.toppanel.GetClientRect()
         x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
-        return rect.x + rect.width // 4 * 3 < x and self.rightbtn.IsEnabled()
+        enabled: bool = self.rightbtn.IsEnabled()
+        return rect.x + rect.width // 4 * 3 < x and enabled
 
     def OnMouseWheel(self, event: wx.MouseEvent) -> None:
         if cw.util.has_modalchild(self):
@@ -1760,8 +1762,8 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
                         repldlg.ShowModal()
                         repldlg.Destroy()
 
-                        def func2(self: CardControl) -> None:
-                            def func(self: CardControl) -> None:
+                        def func2(self: CardControl[CardHeaderType]) -> None:
+                            def func(self: CardControl[CardHeaderType]) -> None:
                                 if self:
                                     self.update_narrowcondition()
                                     self.draw_cards(True)
@@ -1801,7 +1803,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
         from . import cardinfo
 
         header.negaflag = True
-        dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
+        dlg = cardinfo.YadoCardInfo[CardHeaderType](self, self.get_headers(), header)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
@@ -1925,8 +1927,6 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
 # ------------------------------------------------------------------------------
 
 class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
-    _fulllist: List[CardHeaderType]
-
     index2: Optional["cw.sprite.card.CWPyCard"]
 
     def __init__(self, parent: wx.TopLevelWindow, callname: str) -> None:
@@ -2961,7 +2961,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
         return clist
 
     def _narrow(self, clist: List[CardHeaderType]) -> List[CardHeaderType]:
-        self._fulllist = clist
+        self._fulllist: List[CardHeaderType] = clist
         if self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return self._fulllist
         if cw.cwpy.setting.show_additional_card:
@@ -2983,7 +2983,9 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
                     return header.personal_owner is not None
                 return list(filter(lambda header: not has_personalowner(header), self._fulllist))
             else:
-                return self._fulllist
+                # BUG: error: Returning Any from function declared to return "List[InfoCardHeader]" (mypy 0.790)
+                # return self._fulllist
+                return [header for header in self._fulllist]
 
         _NARROW_ALL = 0
         _NARROW_NAME = 1
@@ -3646,7 +3648,7 @@ class ReplCardHolder(CardControl[cw.header.CardHeader]):
 # 情報カードダイアログ
 # ------------------------------------------------------------------------------
 
-class InfoView(CardHolder):
+class InfoView(CardHolder[cw.header.InfoCardHeader]):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         # ダイアログ作成
         CardHolder.__init__(self, parent, "INFOVIEW")

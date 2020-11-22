@@ -123,7 +123,8 @@ class Bill(object):
         return image, cw.s(pygame.Rect(self.rect_noscale))
 
     def get_height_noscale(self) -> int:
-        return self.rect_noscale.height
+        result: int = self.rect_noscale.height
+        return result
 
     def create_message(self) -> "BillSprite":
         return BillSprite(self)

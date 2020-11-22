@@ -395,7 +395,9 @@ $indent</Step>"""
 
 
 def get_xmltemplate(name: str) -> str:
-    return globals()[name]
+    template = globals()[name]
+    assert isinstance(template, str)
+    return template
 
 
 def get_xmltext(name: str, d: Dict[str, str]) -> str:

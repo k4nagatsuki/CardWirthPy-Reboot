@@ -84,26 +84,26 @@ class CWFile(object):
     def byte(self) -> int:
         """byteの値を符号付きで返す。"""
         raw_data = self.read(1)
-        data = struct.unpack("b", raw_data)
-        return data[0]
+        value: int = struct.unpack("b", raw_data)[0]
+        return value
 
     def ubyte(self) -> int:
         """符号無しbyteの値を符号付きで返す。"""
         raw_data = self.read(1)
-        data = struct.unpack("B", raw_data)
-        return data[0]
+        value: int = struct.unpack("B", raw_data)[0]
+        return value
 
     def dword(self) -> int:
         """dwordの値(4byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(4)
-        data = struct.unpack("<l", raw_data)
-        return data[0]
+        value: int = struct.unpack("<l", raw_data)[0]
+        return value
 
     def word(self) -> int:
         """wordの値(2byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(2)
-        data = struct.unpack("<h", raw_data)
-        return data[0]
+        value: int = struct.unpack("<h", raw_data)[0]
+        return value
 
     def image(self) -> Optional[bytes]:
         """dwordの値で読み込んだ画像のバイナリデータを返す。

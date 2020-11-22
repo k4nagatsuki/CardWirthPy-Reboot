@@ -47,7 +47,7 @@ class ItemCard(base.CWBinaryBase):
             return
 
         if 5 <= dataversion:
-            self.fname = self.get_fname()
+            self.fname: str = self.get_fname()
 
         self.description = f.string(True)
         self.p_ability = f.dword()

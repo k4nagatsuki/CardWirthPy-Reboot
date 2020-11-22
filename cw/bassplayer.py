@@ -482,7 +482,7 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
     if ismidi:
         if not is_alivablemidi():
             return c_HSYNC(0)
-        stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
+        stream: c_HSYNC = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
         if stream:
             if _sfonts:
                 if not _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3)):
@@ -717,7 +717,7 @@ def play_bgm(fpath: str, volume: float = 1.0, loopcount: int = 0, channel: int =
     stop_bgm(channel, fade=fade)
     channel += STREAM_BGM
     _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
-    return _streams[channel] != 0
+    return _streams[channel] != c_DWORD(0)
 
 
 def set_bgmloopcount(loopcount: int, channel: int = 0) -> None:
@@ -742,10 +742,10 @@ def play_sound(fpath: str, volume: float = 1.0, fromscenario: bool = False, loop
     if fromscenario:
         channel += STREAM_SOUND1
         _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
-        return _streams[channel] != 0
+        return _streams[channel] != c_DWORD(0)
     else:
         _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, fade)
-        return _streams[STREAM_SOUND2] != 0
+        return _streams[STREAM_SOUND2] != c_DWORD(0)
 
 
 def _stop(streamindex: int, fade: int, stopfadeout: bool) -> None:

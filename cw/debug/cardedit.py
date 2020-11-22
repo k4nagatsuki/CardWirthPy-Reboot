@@ -124,9 +124,9 @@ class CardEditDialog(wx.Dialog):
         self.timgidx_party = self.timglist.Add(cw.cwpy.rsrc.debugs["MEMBER_dbg"])
         self.timgidx_yado = self.timglist.Add(cw.cwpy.rsrc.debugs["YADO_dbg"])
         self.timgidx_member = self.timglist.Add(cw.cwpy.rsrc.buttons["CAST_dbg"])
-        self.timgidx_skill = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL_dbg"])
-        self.timgidx_item = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
-        self.timgidx_beast = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
+        self.timgidx_skill: int = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL_dbg"])
+        self.timgidx_item: int = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
+        self.timgidx_beast: int = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
         agwStyle = wx.TR_NO_BUTTONS | wx.TR_SINGLE | wx.TR_HIDE_ROOT | \
             wx.lib.agw.customtreectrl.TR_AUTO_CHECK_CHILD | \
@@ -228,23 +228,23 @@ class CardEditDialog(wx.Dialog):
             fpath = dlg.GetPath()
             dlg.Destroy()
 
-            def func(self) -> None:
+            def func(self: CardEditDialog) -> None:
                 try:
                     scdata = cw.scenariodb.get_scenario(fpath)
                     if not scdata:
-                        def func(self) -> None:
+                        def func(self: CardEditDialog) -> None:
                             self.Enable(True)
                         cw.cwpy.frame.exec_func(func, self)
                         return
                 except Exception:
                     cw.util.print_ex(file=sys.stderr)
 
-                    def func(self) -> None:
+                    def func(self: CardEditDialog) -> None:
                         self.Enable(True)
                     cw.cwpy.frame.exec_func(func, self)
                     return
 
-                def func2(self) -> None:
+                def func2(self: CardEditDialog) -> None:
                     self.Enable(True)
                     self.scpath = fpath
                     self.scdata = scdata
@@ -350,8 +350,8 @@ class CardEditDialog(wx.Dialog):
         for i, header in enumerate(self.list):
             header.negaflag = (i == index)
         self.draw(True)
-        dlg = cw.dialog.cardinfo.YadoCardInfo(self, self.list, self.list[index],
-                                              scedir=self.scdata.tempdir)
+        dlg = cw.dialog.cardinfo.YadoCardInfo[cw.header.CardHeader](self, self.list, self.list[index],
+                                                                    scedir=self.scdata.tempdir)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()

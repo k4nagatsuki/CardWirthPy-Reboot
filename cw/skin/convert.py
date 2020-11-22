@@ -370,7 +370,8 @@ class Converter(threading.Thread):
             return cash
         if len(self.exebinary) < 0x31d97 + 4:
             return cash
-        return struct.unpack("<I", self.exebinary[0x31d97:0x31d97 + 4])[0]
+        result: int = struct.unpack("<I", self.exebinary[0x31d97:0x31d97 + 4])[0]
+        return result
 
     def _get_features(self) -> None:
         # バイナリ断片を手がかりにして特性値を探す。

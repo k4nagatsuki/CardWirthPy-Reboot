@@ -154,7 +154,8 @@ def get_transition(name_and_speed: Tuple[str, Union[str, int]]) -> Optional[Tran
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, image)
             for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
                 image.blit(sprite.image, sprite.rect.topleft)
-            return cls(image, speed)
+            result: Transition = cls(image, speed)
+            return result
 
     return None
 

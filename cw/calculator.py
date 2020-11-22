@@ -821,7 +821,8 @@ def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
         return StringValue(variant.value, line, pos)
 
 
-def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario, line: int, pos: int) -> BooleanValue:
+def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> BooleanValue:
     """フラグの値を読む。"""
     _chk_argscount(args, 1, "FLAGVALUE", line, pos)
     args_r = _all_eval(args)

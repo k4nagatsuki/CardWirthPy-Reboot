@@ -26,19 +26,19 @@ _WAIT_CHARS_BEFORE_SPACE = "・´｀：；ー―～…‥’”）〕］｝〉�
 
 class MessageWindow(base.CWPySprite):
     def __init__(self, text: str, names: List[Tuple[int, str]],
-                 imgpaths: List[Tuple[cw.image.ImageInfo,
-                                      bool,
-                                      Optional[Union[cw.character.Character, cw.header.CardHeader]],
-                                      Dict[int, pygame.Surface]]] = None,
+                 imgpaths: Optional[List[Tuple[cw.image.ImageInfo,
+                                               bool,
+                                               Optional[Union[cw.character.Character, cw.header.CardHeader]],
+                                               Dict[int, pygame.Surface]]]] = None,
                  talker: Optional[Union[cw.character.Character, cw.header.CardHeader]] = None,
                  pos_noscale: Optional[Tuple[int, int]] = None, size_noscale: Optional[Tuple[int, int]] = None,
-                 nametable: Dict[str, _NameData] = None,
-                 namesubtable: Dict[str, _NameData] = None,
-                 flagtable: Dict[str, cw.data.Flag] = None,
-                 steptable: Dict[str, cw.data.Step] = None,
-                 varianttable: Dict[str, cw.data.Variant] = None,
+                 nametable: Optional[Dict[str, _NameData]] = None,
+                 namesubtable: Optional[Dict[str, _NameData]] = None,
+                 flagtable: Optional[Dict[str, cw.data.Flag]] = None,
+                 steptable: Optional[Dict[str, cw.data.Step]] = None,
+                 varianttable: Optional[Dict[str, cw.data.Variant]] = None,
                  backlog: bool = False, result: Optional[Union[int, cw.event.EffectBreakError]] = None,
-                 showing_result: int = -1, versionhint: Tuple[str, str, bool, bool, bool] = None,
+                 showing_result: int = -1, versionhint: Optional[Tuple[str, str, bool, bool, bool]] = None,
                  specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]] = None,
                  trim_top_noscale: int = 0, columns: int = 1, spcharinfo: Optional[Set[int]] = None,
                  centering_x: bool = False, centering_y: bool = False,
@@ -412,7 +412,8 @@ class MessageWindow(base.CWPySprite):
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
                 def calc_w(bmp_and_info: Tuple[pygame.Surface, cw.image.ImageInfo]) -> int:
                     (bmp, info) = bmp_and_info
-                    return bmp.get_width()
+                    result: int = bmp.get_width()
+                    return result
                 w = max(list(map(calc_w, self.talker_image)))
             else:
                 w = cw.s(74)
@@ -708,7 +709,7 @@ class MessageWindow(base.CWPySprite):
 
     def get_stepvalue(self, key: str, full: int, updatetype: str,
                       name_table: Dict[str, _NameData],
-                      basenamelist: Sequence["NameListItem"], startindex: int, spcharinfo: Optional[Set[int]],
+                      basenamelist: Optional[Sequence["NameListItem"]], startindex: int, spcharinfo: Optional[Set[int]],
                       namelist: Optional[List["NameListItem"]], namelistindex: int,
                       stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
@@ -737,7 +738,7 @@ class MessageWindow(base.CWPySprite):
 
     def get_flagvalue(self, key: str, full: int, updatetype: str,
                       name_table: Dict[str, _NameData],
-                      basenamelist: Sequence["NameListItem"], startindex: int, spcharinfo: Optional[Set[int]],
+                      basenamelist: Optional[Sequence["NameListItem"]], startindex: int, spcharinfo: Optional[Set[int]],
                       namelist: Optional[List["NameListItem"]], namelistindex: int,
                       stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
@@ -764,8 +765,8 @@ class MessageWindow(base.CWPySprite):
 
     def get_variantvalue(self, key: str, full: int, updatetype: str,
                          name_table: Dict[str, _NameData],
-                         basenamelist: Sequence["NameListItem"], startindex: int, spcharinfo: Optional[Set[int]],
-                         namelist: Optional[List["NameListItem"]], namelistindex: int,
+                         basenamelist: Optional[Sequence["NameListItem"]], startindex: int,
+                         spcharinfo: Optional[Set[int]], namelist: Optional[List["NameListItem"]], namelistindex: int,
                          stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.variant_table:
@@ -1151,16 +1152,18 @@ class BacklogData(object):
             if self.type == 0:
                 h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9,
                                                                                  self.top_noscale)
-                height_noscale = min(self.rect_noscale.height, h)
+                height_noscale: int = min(self.rect_noscale.height, h)
                 if len(self.names_log) == 1 and self.columns == 1 and self.names_log[0][1] == cw.cwpy.msgs["ok"]:
                     num = 0
                 else:
                     num = 1
                 return height_noscale + num*25
             else:
-                return self.rect_noscale.height + 25
+                height: int = self.rect_noscale.height
+                return height + 25
         else:
-            return self.rect_noscale.height + ((len(self.names_log)+(self.columns-1)) // self.columns)*25
+            height = self.rect_noscale.height
+            return height + ((len(self.names_log)+(self.columns-1)) // self.columns)*25
 
     @property
     def _from_index(self) -> int:
@@ -1515,7 +1518,7 @@ def _create_nametable(full: int, talker: Optional[Union[cw.character.Character, 
 
 def _get_stepvalue(key: str, full: int, updatetype: str,
                    name_table: Dict[str, _NameData],
-                   basenamelist: Sequence[NameListItem], startindex: int, spcharinfo: Optional[Set[int]],
+                   basenamelist: Optional[Sequence[NameListItem]], startindex: int, spcharinfo: Optional[Set[int]],
                    namelist: Optional[List[NameListItem]], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
     # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
     v = cw.cwpy.sdata.find_step(key, False,
@@ -1531,6 +1534,7 @@ def _get_stepvalue(key: str, full: int, updatetype: str,
             assert isinstance(step_value, int)
             s = v.get_valuename(step_value)
         else:
+            assert namelist is not None
             s = v.get_valuename()
             namelist.append(NameListItem(v, v.value))
         namelistindex += 1
@@ -1602,7 +1606,7 @@ def _get_spstep(name: str, full: int, updatetype: str, basenamelist: Optional[Se
 
 def _get_flagvalue(key: str, full: int, updatetype: str,
                    name_table: Dict[str, _NameData],
-                   basenamelist: Sequence[NameListItem], startindex: int, spcharinfo: Optional[Set[int]],
+                   basenamelist: Optional[Sequence[NameListItem]], startindex: int, spcharinfo: Optional[Set[int]],
                    namelist: Optional[List[NameListItem]], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
     # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
     v = cw.cwpy.sdata.find_flag(key, False,
@@ -1614,6 +1618,7 @@ def _get_flagvalue(key: str, full: int, updatetype: str,
                 assert isinstance(flag_value, bool)
                 s = v.get_valuename(flag_value)
             else:
+                assert namelist is not None
                 s = v.get_valuename()
                 namelist.append(NameListItem(v, v.value))
             namelistindex += 1
@@ -1632,7 +1637,7 @@ def _get_flagvalue(key: str, full: int, updatetype: str,
 
 def _get_variantvalue(key: str, full: int, updatetype: str,
                       name_table: Dict[str, _NameData],
-                      basenamelist: Sequence[NameListItem], startindex: int, spcharinfo: Optional[Set[int]],
+                      basenamelist: Optional[Sequence[NameListItem]], startindex: int, spcharinfo: Optional[Set[int]],
                       namelist: Optional[List[NameListItem]], namelistindex: int,
                       stack: int) -> Tuple[Optional[str], int]:
     v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(),
@@ -1644,6 +1649,7 @@ def _get_variantvalue(key: str, full: int, updatetype: str,
                 assert not isinstance(variant_value, int)
                 s = cw.data.Variant.value_to_str(variant_value)
             else:
+                assert namelist is not None
                 s = v.string_value()
                 namelist.append(NameListItem(v, v.value))
             namelistindex += 1
@@ -1676,19 +1682,20 @@ _SP_CARD_NAME = 0x10
 def _rpl_specialstr(full: int, updatetype: str, s: str,
                     name_table: Dict[str, _NameData],
                     get_step: Callable[[str, int, str, Dict[str, _NameData],
-                                        Sequence[NameListItem], int, Optional[Set[int]],
+                                        Optional[Sequence[NameListItem]], int, Optional[Set[int]],
                                         Optional[List[NameListItem]], int, int],
                                        Tuple[Optional[str], int]],
                     get_flag: Callable[[str, int, str, Dict[str, _NameData],
-                                        Sequence[NameListItem], int, Optional[Set[int]],
+                                        Optional[Sequence[NameListItem]], int, Optional[Set[int]],
                                         Optional[List[NameListItem]], int, int],
                                        Tuple[Optional[str], int]],
                     get_variant: Callable[[str, int, str, Dict[str, _NameData],
-                                           Sequence[NameListItem], int, Optional[Set[int]],
+                                           Optional[Sequence[NameListItem]], int, Optional[Set[int]],
                                            Optional[List[NameListItem]], int, int],
-                                          Tuple[Optional[str], int]], basenamelist=None,
+                                          Tuple[Optional[str], int]],
+                    basenamelist: Optional[Sequence[NameListItem]] = None,
                     startindex: int = 0, spcharinfo: Optional[Set[int]] = None,
-                    namelist: List[NameListItem] = None, namelistindex: int = 0,
+                    namelist: Optional[List[NameListItem]] = None, namelistindex: int = 0,
                     stack: int = 0) -> Tuple[str, Set[int], Sequence[NameListItem], int]:
     """
     特殊文字列(#, $)を置換した文字列を返す。
@@ -1711,7 +1718,7 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
                                         int,
                                         str,
                                         Dict[str, _NameData],
-                                        Sequence[NameListItem],
+                                        Optional[Sequence[NameListItem]],
                                         int,
                                         Optional[Set[int]],
                                         Optional[List[NameListItem]],
@@ -1804,9 +1811,10 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
             buflen += len(c)
 
     if basenamelist is not None:
-        namelist = basenamelist
-    assert namelist is not None
-    return "".join(buf), spcharinfo, namelist, namelistindex
+        namelist_r = basenamelist
+    else:
+        namelist_r = namelist
+    return "".join(buf), spcharinfo, namelist_r, namelistindex
 
 
 def get_messagelogtext(mwins: Sequence[Union[BacklogData, "cw.sprite.bill.Bill"]], lastline: bool = True) -> str:

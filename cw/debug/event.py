@@ -234,7 +234,7 @@ class EventList(wx.TreeCtrl):
                         name = "クリック"
                     else:
                         continue
-                elif tag == ("EnemyCard", "PlayerCardEvents"):
+                elif tag in ("EnemyCard", "PlayerCardEvents"):
                     if keynum == 1:
                         name = "死亡"
                     else:
@@ -347,8 +347,11 @@ class EventList(wx.TreeCtrl):
             selitem = parent
             parent = self.GetItemParent(selitem)
 
+        resid: int
+        getfpath: Callable[[int], Optional[str]]
         _name, resid, _getdata, getfpath, _expanded = self.GetItemData(selitem)
-        return getfpath(resid)
+        result = getfpath(resid)
+        return result if result is not None else ""
 
 
 def main() -> None:

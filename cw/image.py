@@ -11,6 +11,7 @@ import pygame.locals
 
 import cw
 
+import typing
 from typing import Dict, Callable, Optional, List, Tuple, Union
 
 
@@ -111,7 +112,7 @@ class ImageInfo(object):
             # x, y = ss((x, y))
             # w, h = ss((w, h))
             # bx, by = ss((bx, by))
-            ss2: Callable = ss
+            ss2: Callable[..., typing.Any] = ss
             x, y = ss2((x, y))
             w, h = ss2((w, h))
             bx, by = ss2((bx, by))
@@ -921,7 +922,7 @@ class CharacterCardImage(CardImage):
                  pos_noscale: Tuple[int, int] = (0, 0), can_loaded_scaledimage: bool = False,
                  is_scenariocard: bool = False, scedir: str = "", is_override_name: bool = False,
                  override_name: str = "", is_override_image: bool = False,
-                 override_images: Tuple[List[ImageInfo], List[bool]] = None) -> None:
+                 override_images: Optional[Tuple[List[ImageInfo], List[bool]]] = None) -> None:
         if override_images is None:
             override_images = ([], [])
         self.ccard = ccard
@@ -1324,7 +1325,7 @@ class CharacterCardImage(CardImage):
     def get_image(self) -> pygame.Surface:
         return self.image
 
-    def get_cardimg(self, header) -> pygame.Surface:
+    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.Surface:
         return self.get_image()
 
 
@@ -1692,7 +1693,7 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     return data, True
 
 
-def conv2wximage(image: pygame.Surface, biBitCount: int) -> Image:
+def conv2wximage(image: pygame.Surface, biBitCount: int) -> wx.Image:
     """pygame.Surfaceをwx.Bitmapに変換する。
     image: pygame.Surface
     """
@@ -1761,14 +1762,14 @@ def get_bmpdepth(data: bytes) -> int:
     if s[1] != ord('M'):
         return 0
     if 40 <= s[6]:
-        biBitCount = s[10]
+        biBitCount: int = s[10]
     else:
         s = struct.unpack("<BBIhhIIHhHH", data[0:14+12])
         biBitCount = s[10]
     return biBitCount
 
 
-def get_bicompression(data: bytes) -> int:
+def get_bicompression(data: bytes) -> Optional[int]:
     """
     Bitmapデータの圧縮方式値を返す。
     正常なBitmapデータでない場合はNoneを返す。
@@ -1781,7 +1782,7 @@ def get_bicompression(data: bytes) -> int:
     if s[1] != ord('M'):
         return 0
     if 40 <= s[6]:
-        biCompression = s[11]
+        biCompression: Optional[int] = s[11]
     else:
         biCompression = None
 

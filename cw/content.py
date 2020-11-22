@@ -212,7 +212,7 @@ class EventContentBase(object):
             dlg = cw.dialog.message.Message(cw.cwpy.frame, cw.cwpy.msgs["message"], desc, mode=3, choices=choices)
             dlg.buttons[2].Enable(bool(cw.cwpy.setting.editor))
             cw.cwpy.frame.move_dlg(dlg)
-            ret = dlg.ShowModal()
+            ret: int = dlg.ShowModal()
             dlg.Destroy()
             return ret
         ret = cw.cwpy.frame.sync_exec(func)

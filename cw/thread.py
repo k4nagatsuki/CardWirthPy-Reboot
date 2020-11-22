@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+init_rsrc#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import sys
@@ -35,7 +35,7 @@ except ImportError:
 
     versioninfo = DummyVersionInfo()
 
-init_rsrc = threading.Lock()
+init_rsrc: threading.Lock = threading.Lock()
 
 
 class CWPyRunningError(Exception):
@@ -545,7 +545,7 @@ class CWPy(threading.Thread):
         if self.ydata and self.ydata.party and not self.is_playingscenario():
             self.ydata.party.set_numbercoupon()
 
-        def repl_cardimg(sprite) -> None:
+        def repl_cardimg(sprite: cw.sprite.card.PlayerCard) -> None:
             if sprite.has_cardimg():
                 for path in sprite.cardimg.paths:
                     if path.path.startswith(oldskindir):
@@ -1954,7 +1954,7 @@ class CWPy(threading.Thread):
                 pygame.mouse.set_pos(x, y)
                 pygame.mouse.set_pos(pos)
 
-    def call_dlg(self, name: str, **kwargs) -> int:
+    def call_dlg(self, name: str, **kwargs: typing.Any) -> int:
         """ダイアログを開く。
         name: ダイアログ名。cw.frame参照。
         """
@@ -1962,7 +1962,7 @@ class CWPy(threading.Thread):
             cw.cwpy.call_dlg("ERROR", text="ダイアログ「%s」は存在しません。" % name)
             return 0
         self.lock_menucards = True
-        stack = self.add_showingdlg()
+        stack: int = self.add_showingdlg()
         self.input(eventclear=True)
         self.statusbar.hide_touchbuttons()
         self.statusbar.clear_volumebar()
@@ -1990,7 +1990,7 @@ class CWPy(threading.Thread):
             self.frame.ProcessEvent(event)
         return stack
 
-    def call_modaldlg(self, name, **kwargs) -> None:
+    def call_modaldlg(self, name: str, **kwargs: typing.Any) -> None:
         """ダイアログを開き、閉じるまで待機する。
         name: ダイアログ名。cw.frame参照。
         """
@@ -2045,7 +2045,7 @@ class CWPy(threading.Thread):
         self._showingdlg += 1
         return oldval
 
-    def exec_func(self, func: Callable[..., None], *args, **kwargs) -> None:
+    def exec_func(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> None:
         """CWPyスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
@@ -2053,7 +2053,7 @@ class CWPy(threading.Thread):
                                    kwargs=kwargs)
         post_pygameevent(event)
 
-    def force_exec_func(self, func: Callable[..., None], *args, **kwargs) -> None:
+    def force_exec_func(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> None:
         """CWPyスレッドで指定したファンクションを実行する。
         ファンクションはゲームのイベント処理の間に割り込んで実行される。
         func: 実行したいファンクションオブジェクト。
@@ -2061,7 +2061,7 @@ class CWPy(threading.Thread):
         event = pygame.event.Event(cw.FORCE_USEREVENT, func=func, args=args, kwargs=kwargs)
         post_pygameevent(event)
 
-    def sync_exec(self, func: Callable[..., None], *args, **kwargs) -> typing.Any:
+    def sync_exec(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         """CWPyスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -2077,7 +2077,7 @@ class CWPy(threading.Thread):
             running = Running()
 
             def func2(running: Running, result: List[typing.Any], func: Callable[..., typing.Any],
-                      *args, **kwargs) -> None:
+                      *args: typing.Any, **kwargs: typing.Any) -> None:
                 result[0] = func(*args, **kwargs)
                 running.isrun = False
             self.exec_func(func2, running, result, func, *args, **kwargs)
@@ -2525,7 +2525,7 @@ class CWPy(threading.Thread):
             self.selectedscenario = None
 
     def set_scenario(self, header: Optional["cw.header.ScenarioHeader"] = None,
-                     lastscenario: List[str] = None, lastscenariopath: str = "", resume: bool = False,
+                     lastscenario: Optional[List[str]] = None, lastscenariopath: str = "", resume: bool = False,
                      manualstart: bool = False) -> None:
         """シナリオ画面へ遷移。
         header: ScenarioHeader
@@ -3192,7 +3192,7 @@ class CWPy(threading.Thread):
                 self.call_modaldlg("YESNO", text=s)
 
                 if self.get_yesnoresult() == wx.ID_OK:
-                    def func():
+                    def func() -> None:
                         self.sdata.set_log()
                     self.exec_func(func)
                     self.exec_func(self.f9, True, True)
@@ -4498,7 +4498,7 @@ class CWPy(threading.Thread):
         self.update_groups((self.sbargrp,))
 
     def change_selection(self, sprite: Optional["cw.sprite.base.SelectableSprite"],
-                         forceredraw: "cw.sprite.base.SelectableSprite" = None) -> None:
+                         forceredraw: Optional["cw.sprite.base.SelectableSprite"] = None) -> None:
         """引数のスプライトを選択状態にする。
         sprite: SelectableSprite
         """
@@ -5587,8 +5587,8 @@ class CWPy(threading.Thread):
 
     def copy_materials(self, data: Union[cw.data.CWPyElement, cw.data.CWPyElementTree], dstdir: str,
                        from_scenario: bool = True, scedir: str = "", yadodir: Optional[str] = None,
-                       toyado: Optional[str] = None, adventurer: bool = False, imgpaths: Dict[str, str] = None,
-                       importimage: bool = False,
+                       toyado: Optional[str] = None, adventurer: bool = False,
+                       imgpaths: Optional[Dict[str, str]] = None, importimage: bool = False,
                        can_loaded_scaledimage: bool = False) -> None:
         """
         from_scenario: Trueの場合は開いているシナリオから、
@@ -5908,10 +5908,14 @@ class CWPy(threading.Thread):
         """MessageWindow or SelectWindowインスタンスを返す。"""
         sprites = self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)
         if sprites:
-            return sprites[0]
+            mwin = sprites[0]
+            assert isinstance(mwin, cw.sprite.message.MessageWindow)
+            return mwin
         sprites = self.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)
         if sprites:
-            return sprites[0]
+            mwin = sprites[0]
+            assert isinstance(mwin, cw.sprite.message.MessageWindow)
+            return mwin
         return None
 
     def get_mcards(self, mode: str = "",

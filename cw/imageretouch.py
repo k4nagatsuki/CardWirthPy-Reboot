@@ -13,6 +13,7 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 
 import cw
 
+import typing
 from typing import Callable, Dict, List, Optional, Tuple
 
 
@@ -28,7 +29,7 @@ except ImportError as ex:
 
 
 def _retouch(func: Callable[..., bytes], image: pygame.Surface,
-             *args) -> pygame.Surface:
+             *args: typing.Any) -> pygame.Surface:
     """_imageretouchの関数のラッパ。
     func: _imageretouchの関数オブジェクト。
     image: 対象イメージ

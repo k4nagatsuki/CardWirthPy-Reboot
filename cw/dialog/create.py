@@ -745,8 +745,10 @@ class AdventurerCreaterPage(wx.Panel, Generic[_KeyType]):
             size = cw.wins((460, 280))
         wx.Panel.__init__(self, parent, size=size)
         self.SetMinSize(size)
-        self.next: Optional[AdventurerCreaterPage] = None
-        self.prev: Optional[AdventurerCreaterPage] = None
+        self.next: Optional[Union[AdventurerCreaterPage[str],
+                                  AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]]] = None
+        self.prev: Optional[Union[AdventurerCreaterPage[str],
+                                  AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]]] = None
         self.last_ctrls: List[wx.Control] = []
         # ツールチップヒント(wx.Rect, テキスト)
         self.tooltips: List[Tuple[wx.Rect, str]] = []
@@ -1101,19 +1103,23 @@ class AdventurerCreaterPage(wx.Panel, Generic[_KeyType]):
 
         self.set_clickablearea(pos, size, name, method, wheelmethod)
 
-    def set_next(self, page: "AdventurerCreaterPage") -> None:
+    def set_next(self, page: Union["AdventurerCreaterPage[str]",
+                                   "AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]"]) -> None:
         self.next = page
 
-    def set_prev(self, page: "AdventurerCreaterPage") -> None:
+    def set_prev(self, page: Union["AdventurerCreaterPage[str]",
+                                   "AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]"]) -> None:
         self.prev = page
 
-    def get_next(self) -> Optional["AdventurerCreaterPage"]:
+    def get_next(self) -> Optional[Union["AdventurerCreaterPage[str]",
+                                         "AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]"]]:
         if self.next and self.next.is_skip():
             return self.next.get_next()
         else:
             return self.next
 
-    def get_prev(self) -> Optional["AdventurerCreaterPage"]:
+    def get_prev(self) -> Optional[Union["AdventurerCreaterPage[str]",
+                                         "AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]"]]:
         if self.prev and self.prev.is_skip():
             return self.prev.get_prev()
         else:
@@ -1874,7 +1880,7 @@ class RacePage(AdventurerCreaterPage[str]):
         現在選択中の種族のElementを返す。
         """
         s = self.choice.GetStringSelection()
-        index = self.choice.GetStrings().index(s)
+        index: int = self.choice.GetStrings().index(s)
         return cw.cwpy.setting.races[index]
 
     def is_skip(self) -> bool:
@@ -2397,6 +2403,7 @@ class YadoCreater(wx.Dialog):
             skintype = ""
             self.imgpaths = []
         else:
+            assert self.yadodir is not None
             fpath = cw.util.join_paths(self.yadodir, "Environment.xml")
             self.data = cw.data.xml2etree(fpath)
             self.name = self.data.gettext("Property/Name", "")
@@ -2414,7 +2421,7 @@ class YadoCreater(wx.Dialog):
             is_autoloadparty = self.is_autoloadparty
             self.imgpaths = cw.image.get_imageinfos(self.data.find_exists("Property"))
             for info in self.imgpaths:
-                info.path = cw.util.join_paths(yadodir, info.path)
+                info.path = cw.util.join_paths(self.yadodir, info.path)
         self.imgpaths_init = self.imgpaths[:]
 
         choices = []
@@ -2490,6 +2497,7 @@ class YadoCreater(wx.Dialog):
 
     def edit_yado(self) -> None:
         if cw.util.create_mutex("Yado"):
+            assert self.yadodir is not None
             try:
                 if cw.util.create_mutex(self.yadodir):
                     cw.cwpy.play_sound("harvest")
@@ -3402,7 +3410,8 @@ def _index_of(imgpaths: List[cw.image.ImageInfo], imgpathlist: List[List[cw.imag
     return imgpathlist.index(imgpaths)
 
 
-def _set_nextimg(panel: AdventurerCreaterPage, name: str) -> None:
+def _set_nextimg(panel: Union[AdventurerCreaterPage[str], AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]],
+                 name: str) -> None:
     if panel.imgpathlist:
         cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
@@ -3422,11 +3431,13 @@ def _set_nextimg(panel: AdventurerCreaterPage, name: str) -> None:
         panel.Refresh()
 
 
-def _set_previmg(panel: DesignPanel, name: str) -> None:
+def _set_previmg(panel: Union[AdventurerCreaterPage[str], AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]],
+                 name: str) -> None:
     if panel.imgpathlist:
         cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
         if key is None and 1 < len(panel.imgdpaths):
+            assert panel.ch_imgdpath
             panel.imgdpath = 1
             panel.ch_imgdpath.SetSelection(1)
             key = panel.imgdpaths[1]

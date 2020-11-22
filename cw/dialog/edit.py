@@ -107,7 +107,7 @@ class PartyEditor(wx.Dialog):
                 party.set_name(name)
                 update = True
 
-            if suspend_levelup != party.suspend_levelup:
+            if suspend_levelup != party.is_suspendlevelup:
                 party.suspend_levelup(suspend_levelup)
 
             if money != party.money:
@@ -757,7 +757,8 @@ class NumberEditor(wx.Panel):
         self._bind()
 
     def get_value(self) -> int:
-        return self.slider.slider.GetValue()
+        result: int = self.slider.slider.GetValue()
+        return result
 
     def set_value(self, value: int) -> None:
         self.slider.set_value(value)

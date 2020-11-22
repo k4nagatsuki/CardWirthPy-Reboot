@@ -7,7 +7,7 @@ import re
 import cw
 
 
-def join_paths(*paths) -> str:
+def join_paths(*paths: str) -> str:
     """パス結合。"""
     return "/".join([a for a in paths if a]).replace("\\", "/").strip("/")
 
@@ -87,7 +87,7 @@ def repl_specialchar(s: str) -> str:
     """特殊文字"\\[a-zA-Z0-9]"のエスケープ処理を行う。
     s: エスケープ処理を行う文字列。
     """
-    def repl_metachar(m: re.Match) -> str:
+    def repl_metachar(m: re.Match[str]) -> str:
         return m.group(0).replace("\\", "￥")
 
     return re.sub(r"\\[a-zA-Z0-9]", repl_metachar, s)

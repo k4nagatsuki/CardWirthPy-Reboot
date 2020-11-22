@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 
 class BgImage(base.CWBinaryBase):
@@ -110,7 +110,7 @@ class BgImage(base.CWBinaryBase):
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
-            def makecolor(tag, color):
+            def makecolor(tag: str, color: Tuple[int, int, int, int]) -> cw.data.CWPyElement:
                 return cw.data.make_element(tag, attrs={"r": str(color[0]),
                                                         "g": str(color[1]),
                                                         "b": str(color[2]),
@@ -213,7 +213,7 @@ class BgImage(base.CWBinaryBase):
         gradient = 0
         color2 = (0, 0, 0, 255)
 
-        def getcolor(e, defcolor):
+        def getcolor(e: cw.data.CWPyElement, defcolor: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
             r = e.getint(".", "r", defcolor[0])
             g = e.getint(".", "g", defcolor[1])
             b = e.getint(".", "b", defcolor[2])

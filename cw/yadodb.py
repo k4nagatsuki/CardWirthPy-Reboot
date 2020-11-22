@@ -483,7 +483,7 @@ class YadoDB(object):
                                      Callable[[cw.header.CardHeader, bool], None],
                                      Callable[[cw.header.PartyRecordHeader, bool], None],
                                      Callable[[cw.header.SavedJPDCImageHeader, bool], None]],
-                 *args) -> None:
+                 *args: typing.Any) -> None:
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):
                 for fname in os.listdir(dname):
