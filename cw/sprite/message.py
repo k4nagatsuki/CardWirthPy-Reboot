@@ -489,7 +489,7 @@ class MessageWindow(base.CWPySprite):
             # 改行処理
             if char == "\n":
                 # 自動折り返し以外の改行であれば空白文字と同様にウェイト処理を行う
-                assert self.spcharinfo
+                assert self.spcharinfo is not None
                 if index not in self.spcharinfo:
                     frame_base, additional_wait, additional_wait_after_space = add_wait(True, False)
                 cnt += 1
