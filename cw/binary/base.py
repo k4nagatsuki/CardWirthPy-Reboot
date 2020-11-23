@@ -36,14 +36,23 @@ class CWBinaryBase(object):
             self.yadodata = yadodata
 
     def set_root(self, parent: Optional["CWBinaryBase"]) -> None:
+        from . import environment
+        from . import cwscenario
+        from . import area
+        from . import battle
+        from . import package
+        from . import cast
+        from . import skill
+        from . import item
+        from . import beast
+        from . import info
+
         if parent:
-            self.root: weakref.ReferenceType[Union[cw.binary.environment.Environment,
-                                                   cw.binary.cwscenario.CWScenario]] = parent.root
+            self.root: weakref.ReferenceType[CWBinaryBase] = parent.root
         else:
-            assert isinstance(self, (cw.binary.environment.Environment, cw.binary.cwscenario.CWScenario))
             self.root = weakref.ref(self)
 
-    def get_root(self) -> Union["cw.binary.environment.Environment", "cw.binary.cwscenario.CWScenario"]:
+    def get_root(self) -> "CWBinaryBase":
         root = self.root()
         assert root
         return root
@@ -61,10 +70,14 @@ class CWBinaryBase(object):
             return ""
 
     def set_imgdir(self, path: str) -> None:
-        self.get_root().imgdir = path
+        root = self.get_root()
+        assert isinstance(root, (cw.binary.environment.Environment, cw.binary.cwscenario.CWScenario))
+        root.imgdir = path
 
     def get_imgdir(self) -> str:
-        return self.get_root().imgdir
+        root = self.get_root()
+        assert isinstance(root, (cw.binary.environment.Environment, cw.binary.cwscenario.CWScenario))
+        return root.imgdir
 
     def get_fname(self) -> str:
         fname = os.path.basename(self.fpath)
@@ -88,7 +101,6 @@ class CWBinaryBase(object):
         if root is self:
             return self._materialdir
         else:
-            assert isinstance(root, cw.binary.environment.Environment)
             return root.get_materialdir()
 
     def set_image_export(self, image_export: bool, force: bool = False) -> None:
@@ -106,7 +118,6 @@ class CWBinaryBase(object):
         if root is self:
             return self._image_export
         else:
-            assert isinstance(root, cw.binary.environment.Environment)
             return root.get_image_export()
 
 # ------------------------------------------------------------------------------
@@ -177,11 +188,9 @@ class CWBinaryBase(object):
             imgdir = self.get_imgdir()
             root = self.get_root()
             if not basedir:
-                assert isinstance(root, cw.binary.environment.Environment)
                 basedir = root.materialbasedir
 
             if not imgdir:
-                assert isinstance(root, cw.binary.environment.Environment)
                 name = util.check_filename(root.name)
                 mdir = self.get_materialdir()
                 if mdir == "":
