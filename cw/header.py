@@ -334,7 +334,7 @@ class CardHeader(object):
 
     def set_owner(self, owner: Optional[Union["cw.character.Character", str]]) -> None:
         if isinstance(owner, cw.character.Character):
-            self._owner: Optional[Union[str, weakref.ReferenceType["cw.character.Character"]]] = weakref.ref(owner)
+            self._owner: Optional[Union[str, weakref.ReferenceType[cw.character.Character]]] = weakref.ref(owner)
         else:
             self._owner = owner
 
