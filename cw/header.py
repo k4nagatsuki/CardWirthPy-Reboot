@@ -41,8 +41,6 @@ def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List[
 
 
 class CardHeader(object):
-    _owner: Optional[Union[str, weakref.ReferenceType[cw.character.Character]]]
-
     name: str
 
     scenario: str
@@ -336,7 +334,7 @@ class CardHeader(object):
 
     def set_owner(self, owner: Optional[Union["cw.character.Character", str]]) -> None:
         if isinstance(owner, cw.character.Character):
-            self._owner = weakref.ref(owner)
+            self._owner: Optional[Union[str, weakref.ReferenceType["cw.character.Character"]]] = weakref.ref(owner)
         else:
             self._owner = owner
 

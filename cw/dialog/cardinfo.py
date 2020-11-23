@@ -9,7 +9,7 @@ import cw
 
 from typing import Generic, List, TypeVar
 
-CardHeaderType = TypeVar("CardHeaderType", cw.sprite.card.MenuCard, cw.header.CardHeader, cw.header.InfoCardHeader)
+CardHeaderType = TypeVar("CardHeaderType", "cw.sprite.card.MenuCard", cw.header.CardHeader, cw.header.InfoCardHeader)
 
 
 # ------------------------------------------------------------------------------
@@ -242,7 +242,7 @@ class CardInfo(wx.Dialog, Generic[CardHeaderType]):
 # メニューカード情報ダイアログ
 # ------------------------------------------------------------------------------
 
-class MenuCardInfo(CardInfo[cw.sprite.card.MenuCard]):
+class MenuCardInfo(CardInfo["cw.sprite.card.MenuCard"]):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         # カード情報
         assert isinstance(cw.cwpy.selection, cw.header.CardHeader)

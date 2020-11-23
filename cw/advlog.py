@@ -766,27 +766,26 @@ class AdventurerLogger(object):
 
 
 class Logger(threading.Thread):
-    queue: queue.Queue[Optional[Union[bool,
-                                      Tuple[Union[Optional[str],
-                                            int,
-                                            Iterable[str],
-                                            Tuple[str, str, bool, Optional[str], str, bool],
-                                            Tuple[str, int, int, int, int, bool],
-                                            Tuple[str, int, int, bool],
-                                            Tuple[str, int, bool],
-                                            Tuple[str, str, int, str, int, bool],
-                                            Tuple[str, str, int, bool],
-                                            Tuple[str, bool, bool, bool],
-                                            Tuple[str, bool, bool],
-                                            Tuple[str, bool],
-                                            Tuple[str, cw.data.CWPyElement, bool],
-                                            Tuple[str, int, int, int, int],
-                                            Tuple[str, str, bool]], Optional[Callable[..., Optional[str]]]]]]]
 
     def __init__(self, fpath: str, enable: bool) -> None:
         threading.Thread.__init__(self)
         self.fpath = fpath
-        self.queue = queue.Queue()
+        self.queue = queue.Queue[Optional[Union[bool,
+                                          Tuple[Union[Optional[str],
+                                                int,
+                                                Iterable[str],
+                                                Tuple[str, str, bool, Optional[str], str, bool],
+                                                Tuple[str, int, int, int, int, bool],
+                                                Tuple[str, int, int, bool],
+                                                Tuple[str, int, bool],
+                                                Tuple[str, str, int, str, int, bool],
+                                                Tuple[str, str, int, bool],
+                                                Tuple[str, bool, bool, bool],
+                                                Tuple[str, bool, bool],
+                                                Tuple[str, bool],
+                                                Tuple[str, cw.data.CWPyElement, bool],
+                                                Tuple[str, int, int, int, int],
+                                                Tuple[str, str, bool]], Optional[Callable[..., Optional[str]]]]]]]()
         self.enable = enable
 
     def run(self) -> None:
