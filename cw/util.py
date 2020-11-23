@@ -3918,7 +3918,7 @@ def convert_to_image(bmp: wx.Bitmap) -> wx.Image:
 def wxbmp_to_buffer(bmp: wx.Bitmap) -> Sequence[int]:
     """wx.BitmapをRGBのバイト配列へ変換する。"""
     w, h = bmp.GetSize()
-    buf = array.array[int]('B', [0] * (w * h * 3))
+    buf: array.ArrayType[int] = array.array('B', [0] * (w * h * 3))
     bmp.CopyToBuffer(buf)
     return buf
 
