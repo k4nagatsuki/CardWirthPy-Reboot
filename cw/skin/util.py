@@ -143,9 +143,9 @@ def install_skin(path: str, tempdir: str, progress: Callable[[str, int], None] =
             def decompress(path: str, tempdir: str, startup: Callable[[int], None],
                            progress: Callable[[int], bool]) -> str:
                 if iscab:
-                    return cw.util.decompress_zip(path, tempdir, startup=startup, progress=progress)
-                else:
                     return cw.util.decompress_cab(path, tempdir, startup=startup, progress=progress)
+                else:
+                    return cw.util.decompress_zip(path, tempdir, startup=startup, progress=progress)
 
             progress("%s を展開中..." % os.path.basename(path), 1)
             lpath = path.lower()
