@@ -308,7 +308,6 @@ def mwin2scr_s(num: Scalable) -> Scalable:
 
 
 def _s_impl(num: Scalable, up_scr: float) -> Scalable:
-    resulttype = num
     if up_scr == 1.0:
         # 拡大率が1倍なのでそのまま返す
         return num
@@ -324,7 +323,10 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         y = int(rect.y * up_scr)
         w = int(rect.width * up_scr)
         h = int(rect.height * up_scr)
-        return pygame.Rect(x, y, w, h)
+        # BUG: error: Returning Any from function declared to return "Tuple[int, int]"
+        #      error: Returning Any from function declared to return "Tuple[int, int, int, int]"
+        #      (mypy 0.790)
+        return typing.cast(Scalable, pygame.Rect(x, y, w, h))
 
     elif isinstance(num, tuple):
         if len(num) == 4:
@@ -340,7 +342,9 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
             # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.790)
             #      Incompatible return value type (got "Tuple[int, int, int, int]", expecte "Tuple[int, int]")
             # return (x, y, w, h)
-            return typing.cast(typing.Any, (x, y, w, h))
+            # BUG: Redundant cast to "Tuple[int, int, int, int]" (mypy 0.790)
+            # return typing.cast(Scalable, (x, y, w, h))
+            return typing.cast(Scalable, typing.cast(Tuple[int, ...], (x, y, w, h)))
         elif len(num) == 2:
             # 座標
             x = int(num[0] * up_scr)
@@ -348,7 +352,9 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
             # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.790)
             #      Incompatible return value type (got "Tuple[int, int]", expected "Tuple[it, int, int, int]")
             # return (x, y)
-            return typing.cast(typing.Any, (x, y))
+            # BUG: Redundant cast to "Tuple[int, int]" (mypy 0.790)
+            # return typing.cast(Scalable, (x, y))
+            return typing.cast(Scalable, typing.cast(Tuple[int, ...], (x, y)))
         else:
             assert False
 
