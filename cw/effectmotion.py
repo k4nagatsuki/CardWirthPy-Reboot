@@ -339,7 +339,6 @@ class Effect(object):
             cw.cwpy.play_sound_with(self.soundpath, subvolume=self.volume, loopcount=self.loopcount,
                                     channel=self.channel, fade=self.fade)
 
-        resisted = False
         if success_avo:
             cw.cwpy.play_sound("avoid", True)
             cw.cwpy.add_lazydraw(clip=target.rect)

@@ -2358,7 +2358,6 @@ class CWPy(threading.Thread):
     def startup(self, loadyado: bool = True) -> None:
         """起動時のアニメーションを表示してから
         タイトル画面へ遷移する。"""
-        resdir = cw.util.join_paths(cw.cwpy.skindir, "Resource/Image/Other")
         seq = []
         for event in self.events:
             if event.type in (pygame.locals.USEREVENT, cw.FORCE_USEREVENT):

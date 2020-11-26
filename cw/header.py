@@ -2088,7 +2088,7 @@ class GetName(object):
         with open(fpath, "rb") as f:
             try:
                 parser.ParseFile(f)
-            except Exception as _ex:
+            except Exception:
                 pass
             f.close()
 

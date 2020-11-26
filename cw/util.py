@@ -537,7 +537,7 @@ def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullsc
         # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
         #        キーボードレイアウトが増えていた場合に限り除去
         #        おそらくSDL2では発生しないので、更新した時には以下のコードを取り除けるはず
-        active = win32api.GetKeyboardLayout(0)
+        _ = win32api.GetKeyboardLayout(0)
         hkls = set()
         for hkl in win32api.GetKeyboardLayoutList():
             hkls.add(hkl)
@@ -1705,7 +1705,7 @@ def screenshot() -> None:
     try:
         dpath = os.path.dirname(filename)
         if os.path.isdir(dpath):
-            fpath = dupcheck_plus(filename, yado=False)
+            filename = dupcheck_plus(filename, yado=False)
         else:
             os.makedirs(dpath)
         bmp, y = create_screenshot(titledic)
@@ -1783,7 +1783,7 @@ def card_screenshot() -> None:
             try:
                 dpath = os.path.dirname(filename)
                 if os.path.isdir(dpath):
-                    fpath = dupcheck_plus(filename, yado=False)
+                    filename = dupcheck_plus(filename, yado=False)
                 else:
                     os.makedirs(dpath)
                 bmp = create_cardscreenshot(titledic)
@@ -2046,7 +2046,6 @@ def get_yadofilepath(path: str) -> str:
 def find_resource(path: str, mtype: int) -> str:
     """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
     cw.fsync.sync()
-    imgpath = ""
     if mtype == cw.M_IMG:
         t = (".png", ".bmp", ".gif", ".jpg")
     elif mtype == cw.M_MSC:
@@ -2368,7 +2367,8 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
                     if os.path.isdir(path):
                         try:
                             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                        except WindowsError as err:
+                        except WindowsError:
+                            print_ex()
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
                             return
@@ -2378,7 +2378,8 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
                     if os.path.isfile(path):
                         try:
                             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                        except WindowsError as err:
+                        except WindowsError:
+                            print_ex()
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
                             return
@@ -2456,7 +2457,6 @@ def send_trashbox(path: str) -> None:
     """
     cw.fsync.sync()
     if sys.platform == "win32":
-        path2 = path
         path = os.path.normpath(os.path.abspath(path))
         ope = win32com.shell.shellcon.FO_DELETE
         flags = (
@@ -2464,7 +2464,7 @@ def send_trashbox(path: str) -> None:
                 win32com.shell.shellcon.FOF_ALLOWUNDO |
                 win32com.shell.shellcon.FOF_SILENT
         )
-        r = win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
+        _ = win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
     elif os.path.isfile(path):
         os.remove(path)
     elif os.path.isdir(path):
@@ -2484,7 +2484,7 @@ def send_trashbox2(paths: Iterable[str]) -> None:
                 win32com.shell.shellcon.FOF_SILENT
         )
         paths = "\0".join(map(lambda path: os.path.normpath(os.path.abspath(path)), paths)) + '\0\0'
-        r = win32com.shell.shell.SHFileOperation((None, ope, paths, None, flags, None, None))
+        win32com.shell.shell.SHFileOperation((None, ope, paths, None, flags, None, None))
     else:
         for path in paths:
             if os.path.isfile(path):
@@ -2645,8 +2645,6 @@ def compress_zip(path: str, zpath: str, unicodefilename: bool = False) -> str:
     path: 圧縮するディレクトリパス
     """
     cw.fsync.sync()
-    if not unicodefilename:
-        encoding = cw.filesystem_encoding
     dpath = os.path.dirname(zpath)
 
     if dpath and not os.path.isdir(dpath):
@@ -3570,7 +3568,6 @@ def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]]
         seq = []
         for i, buf in enumerate(lines):
             line = []
-            seqlen = 0
             for word, is_spchar in buf:
                 if is_spchar:
                     spcharinfo2.append(resultindex)
@@ -3668,15 +3665,24 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
         def __init__(self, name: str) -> None:
             self.name = name
 
-    class _List(object):
-        def __init__(self, seq: List[Union[str, _FormatPart, "_List"]]):
+    # BUG: undefined name '_List' Pyflakes (2.2.0)
+    # class _List(object):
+    #     def __init__(self, seq: List[Union[str, _FormatPart, "_List"]]) -> None:
+    #         self.seq = seq
+
+    class _AbsList(object):
+        def __init__(self) -> None:
+            self.seq: List[Union[str, _FormatPart, _AbsList]] = []
+
+    class _List(_AbsList):
+        def __init__(self, seq: List[Union[str, _FormatPart, _AbsList]]) -> None:
             self.seq = seq
 
-    def eat_parts(fmt: str, subsection: bool) -> Tuple[str, List[Union[str, _FormatPart, _List]]]:
+    def eat_parts(fmt: str, subsection: bool) -> Tuple[str, List[Union[str, _FormatPart, _AbsList]]]:
         """formatを文字列とFormatPartのリストに分解。
         []で囲われた部分はサブリストとする。
         """
-        seq: List[Union[str, _FormatPart, _List]] = []
+        seq: List[Union[str, _FormatPart, _AbsList]] = []
         bs = False
         while fmt:
             c = fmt[0]
@@ -3706,7 +3712,7 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
     fmt, sl = eat_parts(fmt, False)
     assert not fmt
 
-    def do_format(secs: Iterable[Union[str, _FormatPart, _List]]) -> Tuple[str, bool]:
+    def do_format(secs: Iterable[Union[str, _FormatPart, _AbsList]]) -> Tuple[str, bool]:
         """フォーマットを実行する。"""
         seq = []
         use = False
@@ -3716,7 +3722,7 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
                 if name:
                     use = True
                     seq.append(name)
-            elif isinstance(sec, _List):
+            elif isinstance(sec, _AbsList):
                 text, use2 = do_format(sec.seq)
                 if use2:
                     seq.append(text)
@@ -3770,7 +3776,6 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
     haspngalpha = False
     bmpdepth = 0
     maskcolour = None
-    isjpg = False
     if mask:
         if not image:
             try:
@@ -4087,7 +4092,6 @@ def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int,
     upfont = 0 < maxwidth and maxwidth < w and not scaledown
     if upfont:
         scaledown = True
-        basefont = font
         pixelsize = font.GetPixelSize()[1]
         family = font.GetFamily()
         style = font.GetStyle()
@@ -4095,7 +4099,7 @@ def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int,
         underline = font.GetUnderlined()
         facename = font.GetFaceName()
         encoding = font.GetEncoding()
-        font = wx.Font(wx.Size(0, pixelsize * 2), family, style, weight, 0, facename, encoding)
+        font = wx.Font(wx.Size(0, pixelsize * 2), family, style, weight, underline, facename, encoding)
         basedc.SetFont(font)
         w, h = basedc.GetTextExtent(text)
     else:
@@ -5160,7 +5164,6 @@ if sys.platform == "win32":
             ('hEvent', ctypes.wintypes.HANDLE),
         ]
 
-
     class _Unlock(object):
         def __init__(self, name: str, f: TextIO) -> None:
             self.name = name
@@ -5294,7 +5297,9 @@ def clear_mutex() -> None:
 
 
 def main() -> None:
-    pass
+    # FIXME: cx_Freeze用にimportしているwin32timezoneの未使用警告を潰す
+    if sys.platform == "win32":
+        win32timezone.now()
 
 
 if __name__ == "__main__":

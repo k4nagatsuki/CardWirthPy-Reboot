@@ -219,12 +219,10 @@ def _calc_singlelinetileheight() -> int:
     タイルの縦幅を普通のタイルに合わせて計算する。
     """
     font = cw.cwpy.rsrc.fonts["sbardesc"]
-    tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
     spy = cw.s(4)
     th = spy*2
     # 表題
     th += cw.s(3)
-    fh = tfont.size("#")[1]
     h = font.get_height()
     th += h
     # 本文

@@ -1106,7 +1106,6 @@ class Event(object):
         event = cw.cwpy.event.get_event()
         assert event
         versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
-        nowrunning = cw.cwpy.event.get_nowrunningevent()
 
         assert event.cur_content is not None
         cur: cw.data.CWPyElement = event.cur_content

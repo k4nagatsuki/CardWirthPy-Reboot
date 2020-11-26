@@ -1126,7 +1126,6 @@ class YadoSelect(MultiViewSelect[str]):
                         mutexes += 1
                     else:
                         break
-                draw = False
                 try:
                     if mutexes != len(self.list):
                         cw.cwpy.play_sound("error")

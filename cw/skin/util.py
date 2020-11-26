@@ -175,7 +175,7 @@ def install_skin(path: str, tempdir: str, progress: Callable[[str, int], None] =
 
             try:
                 tempdir2 = decompress(path, tempdir, startup=startup, progress=progress_arc)
-            except Exception as e:
+            except Exception:
                 cw.util.print_ex(file=sys.stderr)
                 raise SkinInstallError("%s の展開に失敗しました。" % os.path.basename(path))
 

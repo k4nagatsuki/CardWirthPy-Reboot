@@ -1251,7 +1251,7 @@ class Debugger(wx.Frame):
                 def func(resid: int) -> None:
                     try:
                         cw.cwpy.change_battlearea(resid)
-                    except cw.event.EffectBreakError as ex:
+                    except cw.event.EffectBreakError:
                         cw.util.print_ex()
                 cw.cwpy.exec_func(func, seq[dlg.GetSelection()][0])
 
@@ -1336,7 +1336,7 @@ class Debugger(wx.Frame):
                     def func2(resid: int) -> None:
                         try:
                             cw.cwpy.change_area(resid)
-                        except cw.event.EffectBreakError as ex:
+                        except cw.event.EffectBreakError:
                             cw.util.print_ex()
                     cw.cwpy.exec_func(func2, seq[dlg.GetSelection()][0])
 
@@ -2416,7 +2416,6 @@ class EventView(wx.ScrolledWindow):
         return index + ii
 
     def set_selectionitem(self, item: Optional["EventViewItem"]) -> None:
-        enable = bool(self.selectionitem)
         self.selectionitem = item
         if cw.cwpy.frame.debugger:
             cw.cwpy.frame.debugger.refresh_breakpointtool()
@@ -2537,7 +2536,6 @@ class EventView(wx.ScrolledWindow):
     def show_item(self, item: "EventViewItem") -> None:
         x, y = self.GetViewStart()
         _w, h = self.GetClientSize()
-        _xtop = x * self.scrollrate_x
         ytop = y * self.scrollrate_y
         if item.pos[1] + item.height < ytop:
             ytop = item.pos[1]

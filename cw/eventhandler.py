@@ -174,7 +174,6 @@ class EventHandler(object):
                 cw.cwpy.keyevent.flick_start_time = time.process_time()
             elif cw.cwpy.keyevent.flick_status == cw.frame.FLICK_START and event.type == MOUSEBUTTONUP:
                 xmove = cw.ppis(pos[0] - cw.cwpy.keyevent.flick_start_pos[0])
-                ymove = cw.ppis(pos[1] - cw.cwpy.keyevent.flick_start_pos[1])
                 dur = time.process_time() - cw.cwpy.keyevent.flick_start_time
                 flick = False
                 if cw.ppis(cw.cwpy.setting.flick_distance) <= xmove and dur <= cw.cwpy.setting.flick_time_msec/1000.0:

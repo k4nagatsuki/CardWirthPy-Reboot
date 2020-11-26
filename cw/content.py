@@ -1179,7 +1179,6 @@ class BranchCouponContent(BranchContent):
 
     def action(self) -> int:
         """称号存在分岐コンテント。"""
-        true_index = self.get_boolean_index(True)
         false_index = self.get_boolean_index(False)
 
         if not self.couponnames:
@@ -2523,13 +2522,6 @@ class EffectContent(EventContentBase):
 
         if self.ignite:
             event = cw.cwpy.event.get_event()
-            if cw.cwpy.event.in_inusecardevent:
-                inusecard = cw.cwpy.event.get_inusecard()
-                assert inusecard
-                cardversion: Optional[str] = inusecard.wsnversion
-
-            else:
-                cardversion = None
 
         tevent: cw.event.Targeting
 

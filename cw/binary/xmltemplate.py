@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from string import Template
-from typing import Dict, Union
+from typing import Dict
 
 
 Adventurer = """$indent<Adventurer scaledimage="$scaledimage">

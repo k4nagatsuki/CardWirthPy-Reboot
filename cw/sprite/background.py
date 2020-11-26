@@ -381,7 +381,6 @@ class BackGround(base.CWPySprite):
         self._inhrt_index = 0
 
         bginhrt2 = bginhrt
-        inhrt_e = None
         if bginhrt and len(elements) and elements[0].tag == "BgImage":
             e = elements[0]
             left = e.getint("Location", "left")
@@ -1110,10 +1109,6 @@ class BackGround(base.CWPySprite):
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
-        if nocheckvisible:
-            flagvalue = visible
-        else:
-            flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:

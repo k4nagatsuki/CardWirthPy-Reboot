@@ -87,7 +87,7 @@ class SkillCard(base.CWBinaryBase):
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if 5 <= dataversion:
-            _dw = f.dword()
+            _ = f.dword()
 
         self.level = f.dword()
         self.limit = f.dword()

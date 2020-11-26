@@ -44,7 +44,7 @@ class Summary(base.CWBinaryBase):
         self.flags: List[Flag] = [Flag(self, f) for _cnt in range(flags_num)]
         if wpt120:
             return
-        _w = f.dword()  # 不明
+        _ = f.dword()  # 不明
         if 0 < self.version:
             self.level_min = f.dword()
             self.level_max = f.dword()

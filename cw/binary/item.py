@@ -87,7 +87,7 @@ class ItemCard(base.CWBinaryBase):
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if 5 <= dataversion:
-            _dw = f.dword()
+            _ = f.dword()
 
         self.limit = f.dword()
         self.limit_max = f.dword()

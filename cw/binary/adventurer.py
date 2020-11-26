@@ -40,8 +40,8 @@ class Adventurer(base.CWBinaryBase):
             # 1.20のアルバムデータ
             self.id = 0
 
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明(表示順？)
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明(表示順？)
             self.name = f.string()
             self.imgpath = ""
             self.level = f.dword()
@@ -75,17 +75,17 @@ class Adventurer(base.CWBinaryBase):
             self.weakness_fire = f.boolean()
             self.weakness_ice = f.boolean()
 
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
-            _dw = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
+            _ = f.dword()  # 不明
 
             self.image = f.image()
             self.description = f.string(True).replace("TEXT\\n", "", 1)
@@ -784,7 +784,7 @@ class AdventurerCard(base.CWBinaryBase):
         if f:
             # 不明(0,0,0,0,0)
             for _cnt in range(5):
-                _b = f.byte()
+                _ = f.byte()
 
             self.adventurer: Optional[Adventurer] = Adventurer(self, f, yadodata=yadodata)
 
@@ -862,36 +862,36 @@ class AdventurerHeader(base.CWBinaryBase):
         self.fname = self.get_fname()
         if 10 <= dataversion:
             # 1.28以降
-            _b = f.byte()  # 不明(0)
-            _b = f.byte()  # 不明(0)
+            _ = f.byte()  # 不明(0)
+            _ = f.byte()  # 不明(0)
             self.name = f.string()
             self.image = f.image()
             self.level = f.byte()
-            _b = f.byte()  # 不明(0)
+            _ = f.byte()  # 不明(0)
             self.coupons = f.string(True).splitlines()
-            _w = f.word()  # 不明(0)
+            _ = f.word()  # 不明(0)
             # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
             self.ep = f.byte()
-            _b = f.byte()
+            _ = f.byte()
             self.dex = f.byte()
-            _b = f.byte()
+            _ = f.byte()
             self.agl = f.byte()
-            _b = f.byte()
+            _ = f.byte()
             self.int = f.byte()
-            _b = f.byte()
+            _ = f.byte()
             self.str = f.byte()
-            _b = f.byte()
+            _ = f.byte()
             self.vit = f.byte()
-            _b = f.byte()
+            _ = f.byte()
             self.min = f.byte()
-            _b = f.byte()
+            _ = f.byte()
         else:
             # 1.20
-            _dataversion = f.string()
+            _ = f.string()  # データバージョン
             self.name = f.string()
             self.image = f.image()
             self.level = f.dword()
-            _dw = f.dword()  # 不明(F)
+            _ = f.dword()  # 不明(F)
             self.coupons = []
             couponnum = f.dword()
             for _i in range(couponnum):

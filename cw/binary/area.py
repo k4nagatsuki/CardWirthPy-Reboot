@@ -138,10 +138,10 @@ class MenuCard(base.CWBinaryBase):
         from . import event
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        _b = f.byte()  # 不明
+        _ = f.byte()  # 不明
         self.image = f.image()
         self.name = f.string()
-        _dw = f.dword()  # 不明
+        _ = f.dword()  # 不明
         self.description = f.string(True)
         events_num = f.dword()
         self.events = [event.Event(self, f) for _cnt in range(events_num)]

@@ -306,7 +306,6 @@ class SelectPartyRecord(select.Select[Optional[cw.header.PartyRecordHeader]]):
         if restorable:
             _can, members, cards = restorable
         else:
-            _can = False
             members = {}
             cards = None
         # 見出し

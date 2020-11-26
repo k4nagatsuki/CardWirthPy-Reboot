@@ -1226,17 +1226,17 @@ assert calculate(parse("If(2=2,99,88)")).value == 99
 try:
     assert calculate(parse("5 / (2-1-1)"))
     assert False
-except ZeroDivisionException as ex:
+except ZeroDivisionException:
     pass
 try:
     assert calculate(parse("5 % (2-1-1)"))
     assert False
-except ZeroDivisionException as ex:
+except ZeroDivisionException:
     pass
 try:
     assert calculate(parse("MAX()"))
     assert False
-except ArgumentsCountException as ex:
+except ArgumentsCountException:
     pass
 
 

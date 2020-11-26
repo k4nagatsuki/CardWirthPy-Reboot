@@ -1666,7 +1666,6 @@ class InputTextDialog(wx.Dialog):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
-        s = self.msg
         w, h, _lineheight = dc.GetFullMultiLineTextExtent(self.msg)
         dc.DrawLabel(self.msg, (0, cw.wins(10), csize[0], h), wx.ALIGN_CENTER)
 

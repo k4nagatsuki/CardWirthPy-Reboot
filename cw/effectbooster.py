@@ -1591,7 +1591,7 @@ class EffectBoosterConfig(object):
 
                 line = str(line_b, cw.MBCS, "replace").replace("\r\n", "\n")
                 lline = line.lower()
-                sline = line.strip()
+                sline = lline.strip()
 
                 # jptxテキスト
                 if sline == "[jptx:end]":

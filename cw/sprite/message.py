@@ -287,9 +287,6 @@ class MessageWindow(base.CWPySprite):
             self._back = self._fore.copy()
 
         if self.charimgs:
-            font = cw.cwpy.rsrc.fonts["message"]
-            lineheight = font.get_height()
-
             pos, txtimg, txtimg2, txtimg3, linerect, frame = self.charimgs[0]
             if self.frame < frame:
                 self.frame += 1

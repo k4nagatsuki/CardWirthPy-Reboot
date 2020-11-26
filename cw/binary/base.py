@@ -36,17 +36,6 @@ class CWBinaryBase(object):
             self.yadodata = yadodata
 
     def set_root(self, parent: Optional["CWBinaryBase"]) -> None:
-        from . import environment
-        from . import cwscenario
-        from . import area
-        from . import battle
-        from . import package
-        from . import cast
-        from . import skill
-        from . import item
-        from . import beast
-        from . import info
-
         if parent:
             self.root: weakref.ReferenceType[CWBinaryBase] = parent.root
         else:

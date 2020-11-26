@@ -27,7 +27,7 @@ class EffectMotion(base.CWBinaryBase):
         if 2 < dataversion:
             # 不明なバイト列(8,5,0,0,0)。読み飛ばし。
             for _cnt in range(5):
-                _b = f.byte()
+                _ = f.byte()
 
         self.element = f.byte()
 
@@ -84,8 +84,8 @@ class EffectMotion(base.CWBinaryBase):
                     self.data.set(key, str(value))
             if self.beasts:
                 e = cw.data.make_element("Beasts")
-                for beast in self.beasts:
-                    e.append(beast.get_data())
+                for beastcard in self.beasts:
+                    e.append(beastcard.get_data())
                 self.data.append(e)
         return self.data
 

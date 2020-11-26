@@ -328,7 +328,7 @@ class Win32Res(object):
                 data = data[1:]
                 stack.pop()
                 continue
-            _classname = data[1:1+length]
+            # classname = data[1:1+length]
             data = data[1+length:]
             length = data[0]
             name = data[1:1+length]

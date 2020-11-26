@@ -1406,7 +1406,7 @@ class Frame(wx.Frame):
                     try:
                         dpath = os.path.dirname(filename)
                         if os.path.isdir(dpath):
-                            fpath = cw.util.dupcheck_plus(filename, yado=False)
+                            filename = cw.util.dupcheck_plus(filename, yado=False)
                         else:
                             os.makedirs(dpath)
                         bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
@@ -1589,7 +1589,7 @@ class MyApp(wx.App):
                 self.SetTopWindow(self.skindlg)
                 self.skindlg.Bind(wx.EVT_CLOSE, self.OnCloseSkinDialog, self.skindlg)
                 self.skindlg.Show()
-            except cw.setting.NoFontError as ex:
+            except cw.setting.NoFontError:
                 s = ("CardWirthPyの実行に必要なフォントがありません。\n"
                      "Data/Font以下にIPAフォントをインストールしてください。")
                 wx.MessageBox(s, "メッセージ", wx.OK | wx.ICON_ERROR, None)
@@ -1665,7 +1665,6 @@ class MyApp(wx.App):
             def end_flick() -> int:
                 mousepos = wx.GetMousePosition()
                 xmove = cw.ppis(mousepos[0] - self.flick_start_pos[0])
-                ymove = cw.ppis(mousepos[1] - self.flick_start_pos[1])
                 dur = time.process_time() - self.flick_start_time
                 exit_value = -1
                 if self.flick_window and self.flick_window.IsShown() and self.flick_window.IsEnabled() and\

@@ -39,8 +39,8 @@ class Environment(base.CWBinaryBase):
             self.correct_scaledown = f.boolean()  # カードのスムージング(縮小)
             self.correct_scaleup = f.boolean()  # カードのスムージング(拡大)
         else:
-            _b = f.boolean()  # レアリティのないカードも買い戻せるようにする
-            _b = f.boolean()  # 売却・破棄時に確認メッセージの表示
+            _ = f.boolean()  # レアリティのないカードも買い戻せるようにする
+            _ = f.boolean()  # 売却・破棄時に確認メッセージの表示
         self.autoselect_party = f.boolean()  # 宿を開いた時に最後のパーティを選択
         self.clickcancel = f.boolean()  # 背景右クリックでキャンセル
         if 10 <= self.dataversion_int:

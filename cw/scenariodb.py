@@ -390,7 +390,8 @@ class Scenariodb(object):
 
     def insert(self, t: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
                               Optional[bytes], Optional[str]],
-               images: List[Tuple[Optional[bytes], "cw.image.ImageInfo", int]], commit: bool = True, skintype: str = "") -> None:
+               images: List[Tuple[Optional[bytes], "cw.image.ImageInfo", int]], commit: bool = True,
+               skintype: str = "") -> None:
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
                     levelmin, levelmax, coupons, couponsnum,
@@ -940,8 +941,8 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
     def imgbufs_to_result(summaryinfos: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float,
                                               float, str],
                           imgbufs: List[Tuple[Optional[bytes], cw.image.ImageInfo, int]])\
-            -> Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str, Optional[bytes],
-                           Optional[str]],
+            -> Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                           Optional[bytes], Optional[str]],
                      List[Tuple[Optional[bytes], cw.image.ImageInfo, int]]]:
         if len(imgbufs) == 0:
             imgbuf: Optional[bytes] = None
@@ -1136,7 +1137,8 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
 
 def parse_summarydata(basepath: str, data: cw.data.CWPyElement, scetype: int, mtime: float,
                       rootattrs: Dict[str, str]) -> Tuple[List["cw.image.ImageInfo"],
-                                                          Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str]]:
+                                                          Tuple[str, int, str, str, str, str, str, int, int, str, int,
+                                                                int, str, float, float, str]]:
     wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
     e = data.find("ImagePath")

@@ -45,8 +45,13 @@ from . import sprite
 from . import argparser
 from . import nctype
 
+__all__ = ["util", "battle", "yadodb", "data", "dice", "effectmotion", "event", "eventhandler", "eventrelay",
+           "features", "scenariodb", "setting", "skin", "animation", "thread", "header", "image", "imageretouch",
+           "frame", "deck", "character", "effectbooster", "content", "xmlcreater", "bassplayer", "binary", "advlog",
+           "update", "calculator", "dialog", "debug", "sprite", "argparser", "nctype"]
+
 import typing
-from typing import List, Tuple, TypeVar, Union
+from typing import List, Tuple, TypeVar
 
 # 実行ファイルのパス
 exepath = ""

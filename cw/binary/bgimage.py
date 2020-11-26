@@ -244,7 +244,7 @@ class BgImage(base.CWBinaryBase):
                     for e_font in e:
                         if e_font.tag == "Color":
                             color = getcolor(e_font, color)
-                    bold =e.getbool(".", "bold", bold)
+                    bold = e.getbool(".", "bold", bold)
                     italic = e.getbool(".", "italic", italic)
                     underline = e.getbool(".", "underline", underline)
                     strike = e.getbool(".", "strike", strike)

@@ -1061,7 +1061,6 @@ class CharacterCardImage(CardImage):
 
         # レベル
         if ccard.is_analyzable():
-            font = cw.cwpy.rsrc.fonts["pcard_level"]
             self.image.blit(self.levelimg, self.levelimg_pos)
 
         # カード画像
@@ -1591,9 +1590,9 @@ def fix_cwnext16bitbitmap(data: bytes) -> Tuple[Union[bytes, wx.Image], bool]:
         return data, True
     if s[1] != ord('M'):
         return data, True
-    _bfSize = s[2]
-    _bfReserved1 = s[3]
-    _bfReserved2 = s[4]
+    # bfSize = s[2]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
     bfOffBits = s[5]
     if bfOffBits == 0:
         return data, True
@@ -1602,14 +1601,14 @@ def fix_cwnext16bitbitmap(data: bytes) -> Tuple[Union[bytes, wx.Image], bool]:
         return data, True
     biWidth = s[7]
     biHeight = s[8]
-    _biPlanes = s[9]
+    # biPlanes = s[9]
     biBitCount = s[10]
     biCompression = s[11]
-    _biSizeImage = s[12]
-    _biXPixPerMeter = s[13]
-    _biYPixPerMeter = s[14]
+    # biSizeImage = s[12]
+    # biXPixPerMeter = s[13]
+    # biYPixPerMeter = s[14]
     biClrUsed = s[15]
-    _biClrImporant = s[16]
+    # biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) // 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
     if len(data) - bfOffBits != lineSize * height:
@@ -1653,24 +1652,24 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     if s[1] != ord('M'):
         return data, True
     bfSize = s[2]
-    _bfReserved1 = s[3]
-    _bfReserved2 = s[4]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
     bfOffBits = s[5]
     biSize = s[6]
     if biSize != 40:
         return data, True
-    _biWidth = s[7]
-    _biHeight = s[8]
-    _biPlanes = s[9]
+    # biWidth = s[7]
+    # biHeight = s[8]
+    # biPlanes = s[9]
     biBitCount = s[10]
     if biBitCount != 32:
         return data, True
-    biCompression = s[11]
+    # biCompression = s[11]
     biSizeImage = s[12]
-    _biXPixPerMeter = s[13]
-    _biYPixPerMeter = s[14]
+    # biXPixPerMeter = s[13]
+    # biYPixPerMeter = s[14]
     biClrUsed = s[15]
-    _biClrImporant = s[16]
+    # biClrImporant = s[16]
     # おそらくCWNext 1.60付属のWirthBuilderが格納したイメージで
     # 32-bitビットマップに余計なパレットデータが含まれている事がある
     # その場合、以下のように壊れているので修復する
@@ -1713,9 +1712,9 @@ def patch_rle4bitmap(data: bytes) -> bytes:
         return data
     if s[1] != ord('M'):
         return data
-    _bfSize = s[2]
-    _bfReserved1 = s[3]
-    _bfReserved2 = s[4]
+    # bfSize = s[2]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
     bfOffBits = s[5]
     if bfOffBits == 0:
         return data
@@ -1724,7 +1723,7 @@ def patch_rle4bitmap(data: bytes) -> bytes:
         return data
     biWidth = s[7]
     biHeight = s[8]
-    _biPlanes = s[9]
+    # biPlanes = s[9]
     biBitCount = s[10]
     biCompression = s[11]
     if biCompression == 2:  # RLE4

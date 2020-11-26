@@ -734,7 +734,7 @@ class CardEditDialog(wx.Dialog):
                 toplevel = info[0]
                 owner = info[1]
                 data = info[2]
-                _notscenariocard = info[3]
+                # notscenariocard = info[3]
                 if not item.IsChecked():
                     continue
                 del infos[item]

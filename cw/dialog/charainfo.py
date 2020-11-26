@@ -1030,9 +1030,6 @@ class HistoryPanel(wx.ScrolledWindow, Generic[_T]):
 
     def _get_bmps(self, name: str) -> wx.Bitmap:
         bmp = cw.cwpy.rsrc.dialogs[name]
-        x, y = cw.wins(0), cw.wins(0)
-        w, h = bmp.GetWidth(), bmp.GetHeight()
-
         img = bmp.ConvertToImage()
         img = cw.imageretouch.mul_wxalpha(img, 128)
         return img.ConvertToBitmap()
@@ -1072,7 +1069,6 @@ class HistoryPanel(wx.ScrolledWindow, Generic[_T]):
     def _init_view(self) -> None:
         assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, self.ccard)
-        csize = self.csize
 
         # クーポンリスト
         self.coupons: List[Tuple[str, int]] = []
@@ -1571,7 +1567,6 @@ class StatusPanel(wx.ScrolledWindow, Generic[_L]):
 
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.update_cursor()
-        csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
         vy *= self._ratey
@@ -2055,7 +2050,6 @@ class CardPanel(wx.Panel, Generic[_A]):
         fw = dc.GetTextExtent("―")[0]
 
         if self.hold_all:
-            yp = 20
             s = cw.cwpy.msgs["hold_all"]
             if self.hold_all.negaflag:
                 dc.SetTextForeground(wx.RED)
@@ -2068,15 +2062,12 @@ class CardPanel(wx.Panel, Generic[_A]):
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
             dc.DrawBitmap(bmp, cw.wins(10), cw.wins(29), True)
-        else:
-            yp = 0
 
         for index, header in enumerate(self.headers):
             pos = header.textpos
 
             # カード名
             s = header.name
-            size = dc.GetTextExtent(s)
             if header.type in ("ItemCard", "BeastCard") and (header.uselimit or header.recycle):
                 s += "(%d)" % header.uselimit
 

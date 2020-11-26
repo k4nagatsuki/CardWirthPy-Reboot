@@ -19,6 +19,9 @@ from . import partyrecord
 from . import transfer
 from . import progress
 
+__all__ = ["message", "cardinfo", "cardcontrol", "select", "scenarioselect", "scenarioinstall", "charainfo", "text",
+           "create", "edit", "etc", "settings", "skin", "skininstall", "partyrecord", "transfer", "progress"]
+
 
 def main() -> None:
     pass

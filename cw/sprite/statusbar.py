@@ -561,7 +561,6 @@ class StatusBarPanel(base.MouseHandlerSprite):
             assert self.icon
             cw.cwpy.add_lazydraw(clip=self._desc.rect)
             cw.cwpy.sbargrp.remove(self._desc)
-            rect = self._desc.rect
             self._desc = None
             self._desc = Desc(self, "", self.desc, "", arrowpos=cw.s(3)+self.icon.get_width()//2)
             cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
@@ -1023,7 +1022,6 @@ class StatusBarButton(base.SelectableSprite):
             return
         self.desc = desc
         if self._desc:
-            rect = self._desc.rect
             self.hide_desc()
             self._desc = Desc(self, self.name, self.desc, self.hotkey)
             cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
@@ -1527,10 +1525,6 @@ class BacklogButton(StatusBarButton):
         self.selectable_on_event = self.enabled
 
         self.is_pushed = cw.cwpy.setting.is_logscrollable() and cw.cwpy.is_showingbacklog()
-        if self.is_pushed:
-            desc = cw.cwpy.msgs["desc_close_message_log"]
-        else:
-            desc = cw.cwpy.msgs["desc_message_log"]
         StatusBarButton.reset(self, pos)
 
     def get_icon(self) -> pygame.Surface:
@@ -1594,7 +1588,6 @@ class TouchMenuButton(StatusBarButton):
         return cw.cwpy.rsrc.pygamedialogs["SHOW_CONTROLS"]
 
     def update(self, scr: pygame.Surface) -> None:
-        is_pushed = self.is_pushed
         self.update_selection()
 
         self.is_pushed = bool(cw.cwpy.sbargrp.get_sprites_from_layer(LAYER_TOUCH_BUTTON))

@@ -1226,7 +1226,7 @@ class Setting(object):
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         try:
             data = self._update_skin(path)
-        except Exception as ex:
+        except Exception:
             cw.util.print_ex(file=sys.stderr)
             err = "スキン(%s)のロードに失敗しました。\n" % self.skindirname + \
                   "スキンのデータが破損している可能性があります。\n" + \
@@ -1768,6 +1768,7 @@ class MsgDict(object):
 
     def get(self, key: str, defvalue: str) -> str:
         return self._d.get(key, defvalue)
+
 
 class Resource(object):
     ext_img: int

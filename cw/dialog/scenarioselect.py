@@ -663,7 +663,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         elif narrow == _NARROW_LEVEL:
             ftypes.add(cw.scenariodb.DATA_LEVEL)
             try:
-                _v = int(value)
+                _ = int(value)
             except Exception:
                 cw.cwpy.play_sound("error")
                 return
@@ -1448,14 +1448,12 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         lastscenario, lastscenariopath = self.get_selected()
         if lastscenario:
             assert not isinstance(self.nowdir, FindResult)
-            dpath = cw.util.get_linktarget(self.nowdir)
             if seldname:
                 lastscenario[-1] = seldname
                 lastscenario.append(os.path.basename(firstpath))
             else:
                 lastscenario[-1] = os.path.basename(firstpath)
         else:
-            dpath = cw.util.get_linktarget(self.scedir)
             if seldname:
                 lastscenario = [seldname, os.path.basename(firstpath)]
             else:
@@ -1989,7 +1987,6 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         def open_dir(dpath: str) -> None:
             dpath = os.path.normpath(dpath)
             filer = cw.cwpy.setting.filer_dir
-            encoding = cw.filesystem_encoding
             if filer:
                 seq = [filer, dpath]
                 try:
@@ -2610,7 +2607,6 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             if not selitem:
                 self._processing = False
                 return
-            paritem = self.tree.GetItemParent(selitem)
 
             def recurse(parent: wx.TreeItemId) -> None:
                 index, nowdir = self.tree.GetItemData(parent)

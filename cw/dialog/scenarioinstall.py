@@ -677,7 +677,6 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 if dlg.cancel:
                     break
                 try:
-                    repl_links: Dict[str, str] = {}
                     rmpaths = []
                     self.msg = "ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
 
@@ -834,7 +833,6 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
 
     # パーティのプレイ中情報
     for header in cw.cwpy.ydata.partys:
-        dpath = os.path.dirname(header.fpath)
         wsl = cw.util.splitext(header.fpath)[0] + ".wsl"
         wsl = cw.util.get_yadofilepath(wsl)
         if not os.path.isfile(wsl):
@@ -1014,7 +1012,6 @@ class OverwriteScenarioDialog(wx.Dialog):
     def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
-        csize = self.GetClientSize()
 
         if self.datalist.GetContainingSizer():
             self.datalist.GetContainingSizer().Detach(self.datalist)

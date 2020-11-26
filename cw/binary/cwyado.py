@@ -436,8 +436,8 @@ class CWYado(object):
                         with cwfile.CWFile(name + ext, "rb") as f2:
                             data: Union[skill.SkillCard, item.ItemCard, beast.BeastCard] = cd[ext](None, f2, True)
                             f2.close()
-                        _dataversion = f.string()
-                        _name = f.string()
+                        _ = f.string()  # データバージョン
+                        _ = f.string()  # カード名
                         data.image = f.image()
                         data.fname = os.path.basename(name + ext)
                         break
@@ -544,9 +544,9 @@ class CWYado(object):
         element.append(e_lost)
 
         partymembers.create_vanisheds_xml(partymembers.get_dir())
-        for adventurer in partymembers.vanisheds:
-            fpath = adventurer.xmlpath
-            fpath = cw.util.relpath(fpath, adventurer.get_dir())
+        for adv in partymembers.vanisheds:
+            fpath = adv.xmlpath
+            fpath = cw.util.relpath(fpath, adv.get_dir())
             fpath = cw.util.join_paths(fpath)
             e = cw.data.make_element("LostAdventurer", fpath)
             e_lost.append(e)
@@ -569,8 +569,8 @@ class CWYado(object):
         # Members
         e_members = cw.data.make_element("Members")
         e_prop.append(e_members)
-        for adventurer in partymembers.adventurers + partymembers.vanisheds:
-            fpath = os.path.basename(adventurer.xmlpath)
+        for adv in partymembers.adventurers + partymembers.vanisheds:
+            fpath = os.path.basename(adv.xmlpath)
             fpath = cw.util.splitext(fpath)[0]
             e = cw.data.make_element("LostAdventurer", fpath)
             e_members.append(e)
@@ -580,10 +580,10 @@ class CWYado(object):
 
         # member
         os.makedirs(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"))
-        for adventurer in partymembers.adventurers + partymembers.vanisheds:
+        for adv in partymembers.adventurers + partymembers.vanisheds:
             dstpath = cw.util.join_paths(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"),
-                                         os.path.basename(adventurer.xmlpath))
-            etree = cw.data.xml2etree(element=adventurer.get_f9data())
+                                         os.path.basename(adv.xmlpath))
+            etree = cw.data.xml2etree(element=adv.get_f9data())
             etree.write_file(dstpath)
 
         # 荷物袋内のカード群(ファイルパスのみ)

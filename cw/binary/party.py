@@ -31,8 +31,8 @@ class Party(base.CWBinaryBase):
         self.fname = self.get_fname()
         if 10 <= dataversion:
             # 1.28以降
-            _w = f.word()  # 不明(0)
-            _yadoname = f.string()
+            _ = f.word()  # 不明(0)
+            _ = f.string()  # 宿名
             f.image()  # 宿の埋め込み画像は破棄
             self.memberslist = []
             for member in cw.util.decodetextlist(f.string(True)):
@@ -47,8 +47,8 @@ class Party(base.CWBinaryBase):
             for member in cw.util.decodetextlist(f.string(True)):
                 if member != "":
                     self.memberslist.append(util.check_filename(member))
-            _dataversion_str = f.string()
-            _scenarioname = f.string()  # プレイ中のシナリオ名
+            _ = f.string()  # データバージョン
+            _ = f.string()  # プレイ中のシナリオ名
             f.image()  # 宿の埋め込み画像は破棄
             self.name = ""
             self.money = 0
@@ -165,10 +165,10 @@ class PartyMembers(base.CWBinaryBase):
             adventurers_num = f.byte() - 30
         else:
             adventurers_num = f.byte() - 10
-        _b = f.byte()  # 不明(0)
-        _b = f.byte()  # 不明(0)
-        _b = f.byte()  # 不明(0)
-        _b = f.byte()  # 不明(5)
+        _ = f.byte()  # 不明(0)
+        _ = f.byte()  # 不明(0)
+        _ = f.byte()  # 不明(0)
+        _ = f.byte()  # 不明(5)
         self.adventurers = []
         vanisheds_num = 0
         for i in range(adventurers_num):
@@ -176,19 +176,19 @@ class PartyMembers(base.CWBinaryBase):
             if 10 <= dataversion:
                 vanisheds_num = f.byte()  # 最後のメンバが消滅メンバの数を持っている？
             else:
-                _b = f.byte()  # 不明(0)
+                _ = f.byte()  # 不明(0)
         self.vanisheds = []
         if 0 < vanisheds_num:
-            _dw = f.dword()  # 不明(0)
+            _ = f.dword()  # 不明(0)
             for i in range(vanisheds_num):
                 self.vanisheds.append(adventurer.AdventurerWithImage(self, f))
                 if i + 1 < vanisheds_num:
-                    _b = f.byte()
+                    _ = f.byte()
             self.vanisheds.reverse()
         else:
-            _b = f.byte()  # 不明(0)
-            _b = f.byte()  # 不明(0)
-            _b = f.byte()  # 不明(0)
+            _ = f.byte()  # 不明(0)
+            _ = f.byte()  # 不明(0)
+            _ = f.byte()  # 不明(0)
         if 10 <= dataversion:
             # 1.28以降
             self.name = f.string()  # パーティ名
@@ -235,7 +235,7 @@ class PartyMembers(base.CWBinaryBase):
             self.money_beforeadventure = f.dword()  # 冒険前の所持金。冒険中でなければ0
             self.nowadventuring = f.boolean()
             if self.nowadventuring:  # 冒険中か
-                _w = f.word()  # 不明(0)
+                _ = f.word()  # 不明(0)
                 self.scenariopath = f.rawstring()  # シナリオ
                 self.areaid = f.dword()
                 self.steps = self.split_variables(f.rawstring(), True)
@@ -310,17 +310,17 @@ class PartyMembers(base.CWBinaryBase):
         assert self.wpl
         wpldata = self.wpl.get_data()
         me = wpldata.find_exists("Property/Members")
-        for adventurer in self.adventurers:
-            path = adventurer.create_xml(dpath)
+        for adv in self.adventurers:
+            path = adv.create_xml(dpath)
             text = cw.util.splitext(os.path.basename(path))[0]
             me.append(cw.data.make_element("Member", text))
         return wpldata.fpath
 
     def create_vanisheds_xml(self, dpath: str) -> None:
-        for adventurer in self.vanisheds:
-            data = adventurer.get_data()
+        for adv in self.vanisheds:
+            data = adv.get_data()
             data.find_exists("Property").set("lost", "True")
-            adventurer.create_xml(dpath)
+            adv.create_xml(dpath)
 
     @staticmethod
     def join_variables(data: Iterable["cw.data.CWPyElement"]) -> str:
@@ -577,7 +577,7 @@ class BackpackCard(base.CWBinaryBase):
 
 def load_album120(parent: None,
                   f: "cw.binary.cwfile.CWFile") -> Tuple[List[adventurer.AdventurerCard], List[album.Album]]:
-    _dw = f.dword()  # 不明
+    _ = f.dword()  # 不明
     cardnum = f.dword()  # アルバム人数
     cards = []
     albums = []

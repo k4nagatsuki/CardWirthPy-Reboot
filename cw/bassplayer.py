@@ -7,7 +7,7 @@ import struct
 import ctypes
 import threading
 import itertools
-from ctypes import c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_float, c_void_p, c_char_p, c_size_t
+from ctypes import c_int, c_uint8, c_uint16, c_uint32, c_uint64, c_float, c_void_p, c_char_p
 
 import cw
 from cw.util import synclock
@@ -472,7 +472,6 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
     if cw.cwpy.setting.bassmidi_sample32bit:
         flag |= BASS_SAMPLE_FLOAT
 
-    _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
     if os.path.isfile(fpath) and 4 <= os.path.getsize(fpath):
         with open(fpath, "rb") as f:
@@ -511,10 +510,10 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
             count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
             for i in range(0, count, 4*5):
                 bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
-                _event = bassMidiEvent[0]  # 使用しない
+                # event = bassMidiEvent[0]
                 param = bassMidiEvent[1]
-                _chan = bassMidiEvent[2]  # 使用しない
-                _tick = bassMidiEvent[3]  # 使用しない
+                # chan = bassMidiEvent[2]
+                # tick = bassMidiEvent[3]
                 pos = bassMidiEvent[4]
                 if (param & 0x00ff) == CC111:  # CC#111があったのでここでループする
                     loopinfo = (pos, -1)
@@ -695,9 +694,7 @@ def dispose_bass() -> None:
         dev += 1
 
     del _bass
-    _bass = None
     del _bassmidi
-    _bassmidi = None
 
 
 def play_bgm(fpath: str, volume: float = 1.0, loopcount: int = 0, channel: int = 0, fade: int = 0) -> bool:

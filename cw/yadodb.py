@@ -499,7 +499,8 @@ class YadoDB(object):
                         if isinstance(headertable, dict) and path in headertable:
                             header = headertable[path]
                             if isinstance(header, cw.header.AdventurerHeader):
-                                func1 = typing.cast(Callable[[cw.header.AdventurerHeader, bool, bool], None], insertheader)
+                                func1 = typing.cast(Callable[[cw.header.AdventurerHeader, bool, bool], None],
+                                                    insertheader)
                                 args1 = typing.cast(Tuple[bool, bool], args)
                                 func1(header, *args1)
                             elif isinstance(header, cw.header.PartyHeader):
@@ -515,7 +516,8 @@ class YadoDB(object):
                                 args4 = typing.cast(Tuple[bool], args)
                                 func4(header, *args4)
                             elif isinstance(header, cw.header.SavedJPDCImageHeader):
-                                func5 = typing.cast(Callable[[cw.header.SavedJPDCImageHeader, bool], None], insertheader)
+                                func5 = typing.cast(Callable[[cw.header.SavedJPDCImageHeader, bool], None],
+                                                    insertheader)
                                 args5 = typing.cast(Tuple[bool], args)
                                 func5(header, *args5)
                             else:

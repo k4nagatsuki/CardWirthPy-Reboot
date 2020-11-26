@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Union
 
 
 class Content(base.CWBinaryBase):
@@ -271,7 +271,7 @@ class Content(base.CWBinaryBase):
                 else:
                     self.properties["initialValue"] = 0
             dialogs_num = f.dword()
-            self.dialogs = [cw.binary.dialog.Dialog(self, f) for _cnt in range(dialogs_num)]
+            self.dialogs = [dialog.Dialog(self, f) for _cnt in range(dialogs_num)]
         elif self.tag == "Set" and self.type == "StepUp":
             self.properties["step"] = f.string()
         elif self.tag == "Set" and self.type == "StepDown":
@@ -746,7 +746,7 @@ class Content(base.CWBinaryBase):
             else:
                 f.write_dword(len(dialogs))
                 for e_dialog in dialogs:
-                    cw.binary.dialog.Dialog.unconv(f, e_dialog)
+                    dialog.Dialog.unconv(f, e_dialog)
         elif tag == "Set" and ctype == "StepUp":
             f.write_string(data.get("step"))
         elif tag == "Set" and ctype == "StepDown":
