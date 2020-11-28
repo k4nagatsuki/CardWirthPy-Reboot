@@ -125,7 +125,7 @@ class SelectPartyRecord(select.Select):
 
         def func(header: cw.header.PartyRecordHeader, panel: SelectPartyRecord,
                  parent: Union[select.PlayerSelect, select.PartySelect],
-                 selected: Optional[cw.header.AdventurerHeader, cw.header.PartyHeader]) -> None:
+                 selected: Union[cw.header.AdventurerHeader, cw.header.PartyHeader]) -> None:
             cw.cwpy.play_sound("harvest")
             updatelist = bool(cw.cwpy.ydata.party)
             if updatelist:
@@ -133,7 +133,7 @@ class SelectPartyRecord(select.Select):
             cw.cwpy.ydata.restore_party(header)
 
             def func(panel: SelectPartyRecord, parent: Union[select.PlayerSelect, select.PartySelect],
-                     selected: Optional[cw.header.AdventurerHeader, cw.header.PartyHeader], updatelist: bool) -> None:
+                     selected: Union[cw.header.AdventurerHeader, cw.header.PartyHeader], updatelist: bool) -> None:
                 if panel and updatelist:
                     header = panel.list[panel.index]
                     panel.list = cw.cwpy.ydata.partyrecord[:]
