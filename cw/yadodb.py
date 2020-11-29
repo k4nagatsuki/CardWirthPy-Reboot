@@ -9,7 +9,6 @@ import time
 import cw
 from cw.util import synclock
 
-import typing
 from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 

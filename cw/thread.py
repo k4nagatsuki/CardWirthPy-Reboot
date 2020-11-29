@@ -4543,52 +4543,54 @@ class CWPy(threading.Thread):
                 and (not self.selectedheader or self.is_battlestatus())
                 and sprite.is_analyzable())\
                 or show_allselectedcards:
-            seq: Iterable[cw.sprite.base.SelectableSprite] = itertools.chain(self.get_pcards("unreversed"),
-                                                                             self.get_ecards("unreversed"),
-                                                                             self.get_fcards("unreversed"))
+            seq: Iterable[Union[cw.sprite.base.SelectableSprite, List[cw.header.CardHeader]]] =\
+                itertools.chain(self.get_pcards("unreversed"),
+                                self.get_ecards("unreversed"),
+                                self.get_fcards("unreversed"))
         elif not self.is_runningevent() and self.selectedheader and self.selectedheader.get_owner():
             owner = self.selectedheader.get_owner()
-            assert isinstance(owner, cw.sprite.base.SelectableSprite)
+            assert isinstance(owner, (cw.sprite.base.SelectableSprite, list))
             seq = [owner]
         elif forceredraw:
             seq = [forceredraw]
         else:
             seq = []
 
-        for sprite in seq:
-            if not self.selectedheader or sprite != self.selectedheader.get_owner():
-                if not (isinstance(sprite, cw.character.Character)
-                        and sprite.actiondata
-                        and sprite.is_analyzable()
-                        and sprite.status != "hidden"):
+        for sprite2 in seq:
+            if not self.selectedheader or sprite2 != self.selectedheader.get_owner():
+                if not (isinstance(sprite2, cw.character.Character)
+                        and sprite2.actiondata
+                        and sprite2.is_analyzable()
+                        and sprite2.status != "hidden"):
                     continue
 
-            selowner = self.selectedheader and self.selectedheader.get_owner() == sprite
+            selowner = self.selectedheader and self.selectedheader.get_owner() == sprite2
             assert self.ydata
-            if self.ydata.party and self.ydata.party.backpack == sprite:
+            if self.ydata.party and self.ydata.party.backpack == sprite2:
                 mcards = self.get_mcards("visible")
                 for mcard in mcards:
                     if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.is_backpack():
-                        sprite = mcard
+                        sprite2 = mcard
                         break
                 else:
                     continue
-            elif self.ydata.storehouse == sprite:
+            elif self.ydata.storehouse == sprite2:
                 mcards = self.get_mcards("visible")
                 for mcard in mcards:
                     if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.is_storehouse():
-                        sprite = mcard
+                        sprite2 = mcard
                         break
                 else:
                     continue
 
-            self.clear_inusecardimg(sprite)
+            assert isinstance(sprite2, cw.sprite.card.CWPyCard)
+            self.clear_inusecardimg(sprite2)
 
             if selowner:
                 header = self.selectedheader
                 targets: List[cw.sprite.card.CWPyCard] = []
-            elif sprite.actiondata:
-                targets_c, header, _beasts = sprite.actiondata
+            elif sprite2.actiondata:
+                targets_c, header, _beasts = sprite2.actiondata
                 if isinstance(targets_c, cw.character.Character):
                     assert isinstance(targets_c, cw.sprite.card.CWPyCard)
                     targets = [targets_c]
@@ -4598,17 +4600,17 @@ class CWPy(threading.Thread):
                 targets = []
                 header = None
 
-            if self.selection == sprite and not selowner:
+            if self.selection == sprite2 and not selowner:
                 if cw.cwpy.setting.show_lifebar_on_selection and \
-                        sprite.is_analyzable() and not sprite.is_unconscious():
-                    cw.sprite.background.LifeBar(sprite)
+                        sprite2.is_analyzable() and not sprite2.is_unconscious():
+                    cw.sprite.background.LifeBar(sprite2)
 
             if header:
-                if self.selection == sprite and not selowner:
+                if self.selection == sprite2 and not selowner:
                     # カーソル下のカード。常に手前に表示
-                    self.set_inusecardimg(sprite, header, fore=True)
+                    self.set_inusecardimg(sprite2, header, fore=True)
                     if header.target == "None":
-                        self.set_targetarrow([sprite])
+                        self.set_targetarrow([sprite2])
                     elif targets:
                         self.set_targetarrow(targets)
                 elif self.setting.show_allselectedcards or selowner:
@@ -4616,7 +4618,7 @@ class CWPy(threading.Thread):
                             self.setting.show_personal_cards:
                         owner = header.personal_owner
                     else:
-                        owner = sprite
+                        owner = sprite2
                     if self.setting.show_aim and self.selection and not selowner and self.selection in targets:
                         alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
                         fore = True
@@ -4625,7 +4627,7 @@ class CWPy(threading.Thread):
                         fore = header == self.selectedheader
                     self.set_inusecardimg(owner, header, alpha=alpha, fore=fore)
 
-                if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
+                if self.setting.show_allselectedcards and isinstance(sprite2, cw.sprite.card.PlayerCard):
                     show_allselectedcards = True
 
         self._show_allselectedcards = show_allselectedcards
