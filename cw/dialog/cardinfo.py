@@ -245,7 +245,7 @@ class CardInfo(wx.Dialog, Generic[CardHeaderType]):
 class MenuCardInfo(CardInfo["cw.sprite.card.MenuCard"]):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         # カード情報
-        assert isinstance(cw.cwpy.selection, cw.header.CardHeader)
+        assert isinstance(cw.cwpy.selection, (cw.header.CardHeader, cw.sprite.card.MenuCard))
         self.selection = cw.cwpy.selection
         self.list = [mcard for mcard in cw.cwpy.get_mcards("visiblemenucards") if mcard.desc]
         self.index = self.list.index(self.selection)

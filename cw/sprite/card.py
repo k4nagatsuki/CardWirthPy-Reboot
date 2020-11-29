@@ -1396,6 +1396,7 @@ class MenuCard(CWPyCard):
         self.debug_only = data.getbool(".", "debugOnly", False)
         self.author = ""
         self.scenario = ""
+        self.negaflag = False
         self._is_backpack = False
         self._is_storehouse = False
 
