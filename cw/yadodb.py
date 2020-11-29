@@ -10,7 +10,7 @@ import cw
 from cw.util import synclock
 
 import typing
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 
 _lock = threading.Lock()
@@ -473,17 +473,16 @@ class YadoDB(object):
         if partyorder is None:
             partyorder = {}
 
+        HeaderType = TypeVar("HeaderType", cw.header.AdventurerHeader, cw.header.PartyHeader, cw.header.CardHeader,
+                             cw.header.PartyRecordHeader, cw.header.SavedJPDCImageHeader)
+        InsertArgs = TypeVar("InsertArgs")
+
         def walk(dpath: str,
-                 headertable: Union[bool, Dict[str, Union[cw.header.AdventurerHeader, cw.header.PartyHeader,
-                                                          cw.header.CardHeader, cw.header.PartyRecordHeader,
-                                                          cw.header.SavedJPDCImageHeader]]],
-                 xmlname: str, insert: Callable[[str, typing.Any], None],
-                 insertheader: Union[Callable[[cw.header.AdventurerHeader, bool, bool], None],
-                                     Callable[[cw.header.PartyHeader, bool], None],
-                                     Callable[[cw.header.CardHeader, bool], None],
-                                     Callable[[cw.header.PartyRecordHeader, bool], None],
-                                     Callable[[cw.header.SavedJPDCImageHeader, bool], None]],
-                 *args: typing.Any) -> None:
+                 headertable: Union[bool, Dict[str, HeaderType]],
+                 xmlname: str,
+                 insert: Callable[[str, InsertArgs], None],
+                 insertheader: Callable[[HeaderType, InsertArgs], None],
+                 *args: InsertArgs) -> None:
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):
                 for fname in os.listdir(dname):
@@ -498,30 +497,7 @@ class YadoDB(object):
                     if path not in dbpaths:
                         if isinstance(headertable, dict) and path in headertable:
                             header = headertable[path]
-                            if isinstance(header, cw.header.AdventurerHeader):
-                                func1 = typing.cast(Callable[[cw.header.AdventurerHeader, bool, bool], None],
-                                                    insertheader)
-                                args1 = typing.cast(Tuple[bool, bool], args)
-                                func1(header, *args1)
-                            elif isinstance(header, cw.header.PartyHeader):
-                                func2 = typing.cast(Callable[[cw.header.PartyHeader, bool], None], insertheader)
-                                args2 = typing.cast(Tuple[bool], args)
-                                func2(header, *args2)
-                            elif isinstance(header, cw.header.CardHeader):
-                                func3 = typing.cast(Callable[[cw.header.CardHeader, bool], None], insertheader)
-                                args3 = typing.cast(Tuple[bool], args)
-                                func3(header, *args3)
-                            elif isinstance(header, cw.header.PartyRecordHeader):
-                                func4 = typing.cast(Callable[[cw.header.PartyRecordHeader, bool], None], insertheader)
-                                args4 = typing.cast(Tuple[bool], args)
-                                func4(header, *args4)
-                            elif isinstance(header, cw.header.SavedJPDCImageHeader):
-                                func5 = typing.cast(Callable[[cw.header.SavedJPDCImageHeader, bool], None],
-                                                    insertheader)
-                                args5 = typing.cast(Tuple[bool], args)
-                                func5(header, *args5)
-                            else:
-                                assert False
+                            insertheader(header, *args)
                         else:
                             insert(cw.util.join_paths(self.ypath, path), *args)
 
