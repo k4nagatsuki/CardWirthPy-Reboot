@@ -4144,7 +4144,7 @@ class CWPy(threading.Thread):
                 pcard.inusecardimg.update_scale()
             self.add_lazydraw(clip=pcard.rect)
         # 枚数表示
-        if header:
+        if header and cw.cwpy.ydata and cw.cwpy.ydata.party:
             self.show_numberofcards(header.type)
         else:
             self.clear_numberofcards()
