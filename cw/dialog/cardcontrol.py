@@ -1704,7 +1704,7 @@ class CardControl(wx.Dialog):
                                 target is not header.personal_owner:
                             if not self._replcardholder:
                                 self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
-                            self._replcardholder.reconstruct_replcardholder(target, header, personal=False)
+                            self._replcardholder.reconstruct_replcardholder(target, header, personal=True)
                             dlg = self._replcardholder
 
                     if dlg:
