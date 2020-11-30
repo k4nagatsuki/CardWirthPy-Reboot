@@ -135,9 +135,6 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             self._typeicon_d[cardtype] = dbmp
             if not cw.cwpy.setting.show_cardtype[cardtype]:
                 bmp = dbmp
-            btn.SetBitmapFocus(bmp)
-            btn.SetBitmapLabel(bmp, False)
-            btn.SetBitmapSelected(bmp)
             btn.SetToolTip(msg)
             self.show[cardtype] = btn
             self.additionals.append((btn, lambda: self.callname in ("BACKPACK", "STOREHOUSE")))
@@ -208,8 +205,13 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             assert btn
             if cw.cwpy.setting.show_cardtype[cardtype]:
                 btn.SetToggle(True)
+                bmp = self._typeicon_e[cardtype]
             else:
                 btn.SetToggle(False)
+                bmp = self._typeicon_d[cardtype]
+            btn.SetBitmapFocus(bmp)
+            btn.SetBitmapLabel(bmp, False)
+            btn.SetBitmapSelected(bmp)
             btn.Show(self.callname in ("BACKPACK", "STOREHOUSE") and cw.cwpy.setting.show_additional_card)
 
         self.leftbtn2.Show(sendto)
@@ -1754,7 +1756,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
                                 target is not header.personal_owner:
                             if not self._replcardholder:
                                 self._replcardholder = cw.dialog.cardcontrol.ReplCardHolder(self)
-                            self._replcardholder.reconstruct_replcardholder(target, header, personal=False)
+                            self._replcardholder.reconstruct_replcardholder(target, header, personal=True)
                             repldlg = self._replcardholder
 
                     if repldlg:
