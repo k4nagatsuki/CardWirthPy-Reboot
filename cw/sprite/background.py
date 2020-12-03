@@ -558,7 +558,7 @@ class BackGround(base.CWPySprite):
 
     def _create_textcelldata(self, e: cw.data.CWPyElement, ignoreeffectbooster: bool = False) -> TextCellData:
         # テキストセル
-        assert e.tag != "TextCell"
+        assert e.tag == "TextCell"
         text = e.gettext("Text", "")
         face = e.gettext("Font", "")
         tsize = e.getint("Font", "size", 12)
