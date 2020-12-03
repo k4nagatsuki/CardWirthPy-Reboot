@@ -1519,7 +1519,7 @@ class EffectMotion(object):
             if not header and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion):
                 # 使用時イベント中の効果コンテントからの実行の時
                 header = cw.cwpy.event.get_inusecard()
-            is_scenariocard = not header or bool(header.scenariocard and header.carddata and
+            is_scenariocard = not header or bool(header.scenariocard and header.carddata is not None and
                                                  not header.carddata.gettext("Property/Materials", ""))
             if header:
                 assert header.carddata is not None

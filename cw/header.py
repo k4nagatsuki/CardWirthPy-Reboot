@@ -691,7 +691,7 @@ class CardHeader(object):
             owner = self.get_owner()
             assert isinstance(owner, cw.character.Character)
             owner.data.is_edited = True
-        elif self.is_backpackheader() and self.scenariocard and self.carddata:
+        elif self.is_backpackheader() and self.scenariocard and self.carddata is not None:
             imgpaths = cw.image.get_imageinfos(self.carddata.find_exists("Property"))
             self.set_cardimg(imgpaths, can_loaded_scaledimage=self.carddata.getbool(".", "scaledimage", False),
                              anotherscenariocard=self.carddata.getbool(".", "anotherscenariocard", False))

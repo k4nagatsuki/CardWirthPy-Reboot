@@ -3006,7 +3006,6 @@ class Character(object):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。
         vanish: 召喚獣を消去するかどうか。
         """
-        assert vanish
         idx = cw.POCKET_BEAST
 
         eff = False
