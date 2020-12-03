@@ -69,6 +69,7 @@ class ArgParser(object):
             else:
                 assert False
 
+        arg = ""
         try:
             while args:
                 arg = args.pop(0)

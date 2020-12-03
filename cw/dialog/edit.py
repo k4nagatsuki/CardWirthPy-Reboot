@@ -1127,7 +1127,7 @@ class LevelEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event: wx.CommandEvent) -> None:
-        def func(seq: Iterable[cw.sprite.card.PlayerCard], level: int, party: Optional[cw.data.Party]) -> None:
+        def func(seq: Iterable[cw.character.Player], level: int, party: Optional[cw.data.Party]) -> None:
             update = False
             for ccard in seq:
                 clevel = min(level, ccard.get_limitlevel())
@@ -1135,8 +1135,10 @@ class LevelEditDialog(wx.Dialog):
                     continue
 
                 ccard.set_level(clevel, regulate=True, backpack_party=party)
+                if not isinstance(ccard, cw.sprite.card.PlayerCard):
+                    continue
                 ccard.is_edited = True
-                if ccard.has_cardimg() and hasattr(ccard.cardimg, "set_levelimg"):
+                if ccard.has_cardimg():
                     update = True
                     cw.cwpy.play_sound("harvest")
                     cw.animation.animate_sprite(ccard, "hide")
@@ -1244,8 +1246,9 @@ class BackColorEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def hsv2rgb(self, hsv: Tuple[float, float, float]) -> List[int]:
-        return list(map(lambda x: round(x * 256), colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])))
+    def hsv2rgb(self, hsv: Tuple[float, float, float]) -> Tuple[int, int, int]:
+        rgbf = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])
+        return (round(rgbf[0] * 256), round(rgbf[1] * 256), round(rgbf[2] * 256))
 
     def rgb2hsv(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         return colorsys.rgb_to_hsv(rgb[0] / 256, rgb[1] / 256, rgb[2] / 256)

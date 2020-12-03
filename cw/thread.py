@@ -19,7 +19,18 @@ import cw
 from cw.util import synclock
 
 import typing
-from typing import Tuple, Callable, Dict, Iterable, List, Optional, Sequence, Set, Union
+from typing import Tuple, Callable, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
+
+_Arg1 = TypeVar("_Arg1")
+_Arg2 = TypeVar("_Arg2")
+_Arg3 = TypeVar("_Arg3")
+_Arg4 = TypeVar("_Arg4")
+_Arg5 = TypeVar("_Arg5")
+_Arg6 = TypeVar("_Arg6")
+_Arg7 = TypeVar("_Arg7")
+_Arg8 = TypeVar("_Arg8")
+_Arg9 = TypeVar("_Arg9")
+_Result = TypeVar("_Result")
 
 # build_exe.pyによって作られる一時モジュール
 # cw.versioninfoからビルド時間の情報を得る
@@ -307,7 +318,7 @@ class CWPy(threading.Thread):
         self._yesnoresult = wx.ID_CANCEL
 
         # ゲーム状態を"Title"にセット
-        self.exec_func(self.startup, loadyado=True)
+        self.exec_func(self.startup, True)
 
     def set_fullscreen(self, fullscreen: bool) -> None:
         """wx側ウィンドウのフルスクリーンモードを切り替える。"""
@@ -493,9 +504,8 @@ class CWPy(threading.Thread):
         elif (self.status == "Yado" or (self.is_playingscenario() and self.areaid in cw.AREAS_SP)) and\
                 self.setting.skindirname != skindirname and not switch_yado:
             if self.is_runningevent():
-                self.exec_func(self.update_skin, skindirname=skindirname, changearea=changearea,
-                               restartop=restartop, afterfunc=afterfunc, switch_skin=switch_skin,
-                               switch_yado=switch_yado)
+                self.exec_func(self.update_skin, skindirname, changearea, restartop, afterfunc, switch_skin,
+                               switch_yado)
                 if self.is_showingmessage():
                     mwin = self.get_messagewindow()
                     assert mwin
@@ -618,7 +628,7 @@ class CWPy(threading.Thread):
                 self.is_updating_skin = False
                 if self.topgrp.sprites():
                     # アニメーション中なら中止してから戻す
-                    self.exec_func(self.startup, loadyado=False)
+                    self.exec_func(self.startup, False)
                     raise cw.event.EffectBreakError()
                 else:
                     self.startup(loadyado=False)
@@ -1165,6 +1175,7 @@ class CWPy(threading.Thread):
             if sys.platform == "win32":
                 self.mousein = pygame.mouse.get_pressed()
             mousepos = self.mousepos
+            mousemotion2 = False
             if self.update_mousepos():
                 # カーソルの移動を検出
                 mousemotion2 = self.mousepos != mousepos
@@ -1631,6 +1642,9 @@ class CWPy(threading.Thread):
                 self.scr_fullscreen.fill((255, 255, 255))
                 fname = self.setting.fullscreenbackgroundfile
                 fname = cw.util.find_resource(cw.util.join_paths(self.skindir, fname), self.rsrc.ext_img)
+            else:
+                self.scr_fullscreen.fill((0, 0, 0))
+                fname = ""
 
             if fname:
                 back = cw.util.load_image(fname, can_loaded_scaledimage=True)
@@ -2045,6 +2059,46 @@ class CWPy(threading.Thread):
         self._showingdlg += 1
         return oldval
 
+    @typing.overload
+    def exec_func(self, func: Callable[[], None]) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1], None], arg1: _Arg1) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2], None], arg1: _Arg1, arg2: _Arg2) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6,
+                  arg7: _Arg7) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8, arg9: _Arg9) -> None: ...
+
     def exec_func(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> None:
         """CWPyスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
@@ -2052,6 +2106,46 @@ class CWPy(threading.Thread):
         event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
                                    kwargs=kwargs)
         post_pygameevent(event)
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[], None]) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1], None], arg1: _Arg1) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2], None], arg1: _Arg1, arg2: _Arg2) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6,
+                        arg7: _Arg7) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                        arg8: _Arg8) -> None: ...
+
+    @typing.overload
+    def force_exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9], None],
+                        arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                        arg8: _Arg8, arg9: _Arg9) -> None: ...
 
     def force_exec_func(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> None:
         """CWPyスレッドで指定したファンクションを実行する。
@@ -2061,7 +2155,47 @@ class CWPy(threading.Thread):
         event = pygame.event.Event(cw.FORCE_USEREVENT, func=func, args=args, kwargs=kwargs)
         post_pygameevent(event)
 
-    def sync_exec(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    @typing.overload
+    def sync_exec(self, func: Callable[[], _Result]) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1], _Result], arg1: _Arg1) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2], _Result], arg1: _Arg1, arg2: _Arg2) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6,
+                  arg7: _Arg7) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8, arg9: _Arg9) -> _Result: ...
+
+    def sync_exec(self, func: Callable[..., _Result], *args: typing.Any, **kwargs: typing.Any) -> Optional[_Result]:
         """CWPyスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -2069,14 +2203,14 @@ class CWPy(threading.Thread):
         if threading.currentThread() == self:
             return func(*args, **kwargs)
         else:
-            result = [None]
+            result: List[Optional[_Result]] = [None]
 
             class Running(object):
                 def __init__(self) -> None:
                     self.isrun = True
             running = Running()
 
-            def func2(running: Running, result: List[typing.Any], func: Callable[..., typing.Any],
+            def func2(running: Running, result: List[Optional[_Result]], func: Callable[..., _Result],
                       *args: typing.Any, **kwargs: typing.Any) -> None:
                 result[0] = func(*args, **kwargs)
                 running.isrun = False
@@ -2583,7 +2717,8 @@ class CWPy(threading.Thread):
                 if lastscenario or lastscenariopath:
                     self.ydata.party.set_lastscenario(lastscenario, lastscenariopath)
 
-                def func(loaded: bool, musicpaths: Iterable[Tuple[str, int, int, bool, str]], areaid: int) -> None:
+                def func(loaded: bool, musicpaths: Optional[Iterable[Tuple[str, int, int, bool, str]]],
+                         areaid: int) -> None:
                     assert self.ydata
                     assert header
                     self.is_processing = False
@@ -3183,7 +3318,9 @@ class CWPy(threading.Thread):
 
             # シナリオプレイ途中から再開
             if header:
-                self.exec_func(self.set_scenario, header, resume=resume)
+                def set_scenario(header: Optional[cw.header.ScenarioHeader], resume: bool) -> None:
+                    self.set_scenario(header, resume=resume)
+                self.exec_func(set_scenario, header, resume)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
                 self.play_sound("error")
@@ -4381,6 +4518,8 @@ class CWPy(threading.Thread):
             cardtype = cw.POCKET_ITEM
         elif ctype == "BeastCard":
             cardtype = cw.POCKET_BEAST
+        else:
+            assert False
         for pcard in self.get_pcards("unreversed"):
             cw.sprite.background.NumberOfCards(pcard, cardtype, self.topgrp)
 
@@ -5485,9 +5624,9 @@ class CWPy(threading.Thread):
             assert not move
             # パーティの所持金または金庫に下取金を追加
             if party:
-                self.exec_func(party.set_money, price, blink=True)
+                self.exec_func(party.set_money, price, False, True)
             else:
-                self.exec_func(self.ydata.set_money, price, blink=True)
+                self.exec_func(self.ydata.set_money, price, True)
             self.exec_func(self.draw)
 
         if targettype in ("BACKPACK", "STOREHOUSE") and not toself:

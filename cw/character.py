@@ -9,7 +9,7 @@ import threading
 import cw
 from cw.util import synclock
 
-from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 _couponlock = threading.Lock()
 
@@ -1845,7 +1845,8 @@ class Character(object):
         return d
 
     @synclock(_couponlock)
-    def replace_allcoupons(self, seq: List[Tuple[str, int]], syscoupons: Optional[Dict[str, int]] = None) -> bool:
+    def replace_allcoupons(self, seq: Iterable[Tuple[str, int]],
+                           syscoupons: Optional[Union[Set[str], Dict[str, int]]] = None) -> bool:
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
         所持クーポンが変化したらTrueを返す。
@@ -2508,6 +2509,8 @@ class Character(object):
             elif cardtype == "BeastCard":
                 index = cw.POCKET_BEAST
                 uselimit = e.getint("./UseLimit", -1)
+            else:
+                assert False
 
             if n[index] < maxn[index]:
                 for header in seq:
@@ -2560,6 +2563,8 @@ class Character(object):
                     uselimit = e.getint("./UseLimit", -1)
                 elif cardtype == "BeastCard":
                     uselimit = e.getint("./UseLimit", -1)
+                else:
+                    assert False
 
                 for header in headers:
                     if cw.cwpy.setting.show_personal_cards and header.personal_owner:

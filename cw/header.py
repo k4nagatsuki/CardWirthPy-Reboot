@@ -460,6 +460,8 @@ class CardHeader(object):
             value = 2
         elif limitper == 0:
             value = 0
+        else:
+            assert False
 
         return value
 

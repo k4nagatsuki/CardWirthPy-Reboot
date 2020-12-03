@@ -458,10 +458,14 @@ class YadoDB(object):
                 self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self, cards: bool = True, adventurers: bool = True, parties: bool = True,
-               cardorder: Optional[Dict[str, int]] = None, adventurerorder: Optional[Dict[str, int]] = None,
-               partyorder: Optional[Dict[str, int]] = None, partyrecord: bool = True,
-               savedjpdcimage: bool = True) -> None:
+    def update(self, cards: Union[Dict[str, "cw.header.CardHeader"], bool] = True,
+               adventurers: Union[Dict[str, "cw.header.AdventurerHeader"], bool] = True,
+               parties: Union[Dict[str, "cw.header.PartyHeader"], bool] = True,
+               cardorder: Optional[Dict[str, int]] = None,
+               adventurerorder: Optional[Dict[str, int]] = None,
+               partyorder: Optional[Dict[str, int]] = None,
+               partyrecord: Union[Dict[str, "cw.header.PartyRecordHeader"], bool] = True,
+               savedjpdcimage: Union[Dict[str, "cw.header.SavedJPDCImageHeader"], bool] = True) -> None:
         """データベースを更新する。"""
         cw.fsync.sync()
 

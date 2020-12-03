@@ -48,7 +48,7 @@ class FunctionIsNotDefinedException(ComputeException):
 
 class ArgumentIsNotDecimalException(ComputeException):
     """関数の引数が数値でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: Union[str, decimal.Decimal, bool],
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
                  line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
@@ -58,7 +58,7 @@ class ArgumentIsNotDecimalException(ComputeException):
 
 class ArgumentIsNotStringException(ComputeException):
     """関数の引数が文字列でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: Union[str, decimal.Decimal, bool],
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
                  line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
@@ -68,7 +68,7 @@ class ArgumentIsNotStringException(ComputeException):
 
 class ArgumentIsNotBooleanException(ComputeException):
     """関数の引数が真偽値でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: Union[str, decimal.Decimal, bool],
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
                  line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
@@ -282,7 +282,7 @@ class Token(object):
 
 
 class ValueType(object):
-    value: Union[str, decimal.Decimal, bool]
+    value: cw.data.VariantValueType
     line: int
     pos: int
 

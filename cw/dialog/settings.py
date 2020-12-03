@@ -1180,8 +1180,10 @@ class SkinPanel(wx.Panel):
         if forceupdate or cw.cwpy.setting.skindirname != skinname:
             if self.editbuttons:
                 self.btn_deleteskin.Disable()
-            cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, restartop=cw.cwpy.setting.skindirname != skinname,
-                              switch_skin=True)
+
+            def update_skin(skindirname: str, restartop: bool) -> None:
+                cw.cwpy.update_skin(skindirname, restartop=restartop, switch_skin=True)
+            cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, cw.cwpy.setting.skindirname != skinname)
             return True
         return False
 
@@ -3285,6 +3287,8 @@ class FontSettingPanel(wx.Panel):
                 fname = "IPA明朝"
             elif name == "pmincho":
                 fname = "IPA P明朝"
+            else:
+                return False
             return fname in faceset
 
         def faces_from_basefont(name: str) -> Iterable[str]:

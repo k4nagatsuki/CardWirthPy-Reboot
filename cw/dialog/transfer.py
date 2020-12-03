@@ -6,7 +6,6 @@ import time
 import itertools
 import threading
 import shutil
-import decimal
 
 import wx
 
@@ -14,6 +13,17 @@ import cw
 
 import typing
 from typing import Dict, Iterable, List, Optional, Tuple, Union
+
+_TransferType = Union[cw.data.CWPyElement,
+                      int,
+                      List[cw.header.AdventurerHeader],
+                      List[cw.header.PartyRecordHeader],
+                      cw.header.PartyHeader,
+                      cw.header.AdventurerHeader,
+                      cw.header.CardHeader,
+                      cw.header.SavedJPDCImageHeader,
+                      Tuple[Tuple[str, str], cw.data.CWPyElement, bool],
+                      Tuple[str, cw.data.CWPyElement, bool, str, str]]
 
 
 class TransferYadoDataDialog(wx.Dialog):
@@ -114,16 +124,7 @@ class TransferYadoDataDialog(wx.Dialog):
     def _update_list(self) -> None:
         # 選択中の転送元にある転送可能なデータの一覧を表示
         i = 0
-        self.data: List[Union[cw.data.CWPyElement,
-                              int,
-                              List[cw.header.AdventurerHeader],
-                              List[cw.header.PartyRecordHeader],
-                              cw.header.PartyHeader,
-                              cw.header.AdventurerHeader,
-                              cw.header.CardHeader,
-                              cw.header.SavedJPDCImageHeader,
-                              Tuple[Tuple[str, str], cw.data.CWPyElement, bool],
-                              Tuple[str, cw.data.CWPyElement, bool, str, str]]] = []
+        self.data: List[_TransferType] = []
         self.datalist.DeleteAllItems()
 
         yadodir = self.yadodirs[self.index]
@@ -232,16 +233,16 @@ class TransferYadoDataDialog(wx.Dialog):
 
         jpdckeys = list(savedjpdcimage.keys())
         for jpdckey in cw.util.sorted_by_attr(jpdckeys):
-            header = savedjpdcimage[jpdckey]
+            savedjpdcheader = savedjpdcimage[jpdckey]
             self.datalist.InsertItem(i, "")
-            if header.scenarioauthor:
-                s = "JPDC - %s(%s)" % (header.scenarioname, header.scenarioauthor)
+            if savedjpdcheader.scenarioauthor:
+                s = "JPDC - %s(%s)" % (savedjpdcheader.scenarioname, savedjpdcheader.scenarioauthor)
             else:
-                s = "JPDC - %s" % (header.scenarioname)
+                s = "JPDC - %s" % (savedjpdcheader.scenarioname)
             self.datalist.SetItem(i, 0, s)
             self.datalist.SetItemColumnImage(i, 0, self.imgidx_savedjpdcimage_nc)
             self.datalist.CheckItem(i, False)
-            self.data.append(header)
+            self.data.append(savedjpdcheader)
             i += 1
 
         for header in itertools.chain(parties, standbys, cards):
@@ -264,6 +265,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     assert False
             else:
                 assert False
+            assert isinstance(header, (cw.header.PartyHeader, cw.header.AdventurerHeader, cw.header.CardHeader))
             self.datalist.InsertItem(i, "")
             self.datalist.SetItem(i, 0, header.name)
             self.datalist.SetItemColumnImage(i, 0, image)
@@ -309,16 +311,7 @@ class TransferYadoDataDialog(wx.Dialog):
         cw.cwpy.play_sound("signal")
         name1 = self.yadonames[index1]
         name2 = self.yadonames[index2]
-        seq: List[Union[cw.data.CWPyElement,
-                        int,
-                        List[cw.header.AdventurerHeader],
-                        List[cw.header.PartyRecordHeader],
-                        cw.header.PartyHeader,
-                        cw.header.AdventurerHeader,
-                        cw.header.CardHeader,
-                        cw.header.SavedJPDCImageHeader,
-                        Tuple[Tuple[str, str], cw.data.CWPyElement, bool],
-                        Tuple[str, cw.data.CWPyElement, bool, str, str]]] = []
+        seq: List[_TransferType] = []
         for i in range(self.datalist.GetItemCount()):
             if self.datalist.IsItemChecked(i):
                 seq.append(self.data[i])
@@ -850,16 +843,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
 class _TransferThread(threading.Thread):
     def __init__(self, outer: TransferYadoDataDialog, fromyado: str, toyado: str,
-                 seq: Iterable[Union[cw.data.CWPyElement,
-                                     int,
-                                     List[cw.header.AdventurerHeader],
-                                     List[cw.header.PartyRecordHeader],
-                                     cw.header.PartyHeader,
-                                     cw.header.AdventurerHeader,
-                                     cw.header.CardHeader,
-                                     cw.header.SavedJPDCImageHeader,
-                                     Tuple[Tuple[str, str], cw.data.CWPyElement, bool],
-                                     Tuple[str, cw.data.CWPyElement, bool, str, str]]]) -> None:
+                 seq: Iterable[_TransferType]) -> None:
         threading.Thread.__init__(self)
         self.outer = outer
         self.fromyado = fromyado
@@ -888,7 +872,7 @@ class _TransferThread(threading.Thread):
         self.skin_vars: Optional[Tuple[cw.data.CWPyElementTree,
                                        Dict[str,
                                             Tuple[cw.data.CWPyElement, Dict[str, bool], Dict[str, int],
-                                                  Dict[str, Union[str, decimal.Decimal, bool]]]]]] = None
+                                                  Dict[str, cw.data.VariantValueType]]]]] = None
         self.saved_variables = cw.data.YadoData.get_savedvariables(self.environment)
         self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", ""))
         self.imgpaths: Dict[str, str] = {}

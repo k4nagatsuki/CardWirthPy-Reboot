@@ -198,10 +198,12 @@ class StatusEditDialog(wx.Dialog):
         self._update_status()
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
-        def func(pcards: List[Union[cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]],
-                 updates: Iterable[int]) -> None:
+        def func(pcards: List[Union[cw.character.Character]], updates: Iterable[int]) -> None:
             for i in updates:
                 pcard = pcards[i]
+                assert isinstance(pcard, (cw.sprite.card.PlayerCard,
+                                          cw.sprite.card.EnemyCard,
+                                          cw.sprite.card.FriendCard))
                 cw.cwpy.play_sound("harvest")
                 battlespeed = cw.cwpy.is_battlestatus()
                 if pcard.status == "hidden":

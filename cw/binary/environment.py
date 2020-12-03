@@ -242,7 +242,7 @@ class UnusedCard(base.CWBinaryBase):
     from . import item
     from . import beast
 
-    def __init__(self, parent: Environment, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
+    def __init__(self, parent: Optional[Environment], f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         from . import skill
         from . import item
         from . import beast
@@ -314,6 +314,8 @@ class YadoCard(base.CWBinaryBase):
             restype = 2
         elif data.tag == "BeastCard":
             restype = 3
+        else:
+            assert False
         number = 1
 
         f.write_byte(0)

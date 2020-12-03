@@ -72,7 +72,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
     cw.cwpy.frame.kill_dlg(dlg)
 
     def change_cursor(cursor: str) -> None:
-        cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, force=True)
+        cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, True)
     oldcursor = cw.cwpy.cursor
     change_cursor("wait")
 
@@ -223,10 +223,10 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
 
             if switch_skin and installed:
                 newskin = installed
-                cw.cwpy.exec_func(func, newskin, restartop=cw.cwpy.setting.skindirname != newskin)
+                cw.cwpy.exec_func(func, newskin, cw.cwpy.setting.skindirname != newskin)
             else:
                 newskin = rename_table.get(cw.cwpy.setting.skindirname, "")
-                cw.cwpy.exec_func(func, newskin, restartop=False)
+                cw.cwpy.exec_func(func, newskin, False)
 
         except Exception:
             progdlg.Destroy()

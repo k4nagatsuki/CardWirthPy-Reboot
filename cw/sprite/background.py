@@ -3,7 +3,6 @@
 
 import itertools
 import os
-import decimal
 
 import pygame
 from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
@@ -604,7 +603,7 @@ class BackGround(base.CWPySprite):
             try:
                 for e_name in e_names:
                     vtype = e_name.getattr(".", "type", "")
-                    name: Union[str, int, bool, decimal.Decimal] = e_name.text if e_name.text else ""
+                    name: Union[int, bool, cw.data.VariantValueType] = e_name.text if e_name.text else ""
                     assert isinstance(name, str)
                     data: Optional[Union[cw.data.YadoData, cw.data.Party, cw.character.Player,
                                          cw.data.Flag, cw.data.Step, cw.data.Variant, str]]

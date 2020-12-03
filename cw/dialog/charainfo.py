@@ -1325,15 +1325,14 @@ class EditPanel(wx.Panel, Generic[_N]):
     def update_charalist(self, mlist: List[cw.character.Player]) -> None:
         """編集結果をヘッダ等に反映する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            def func(parentheaders: List[cw.header.AdventurerHeader], mlist: List[cw.sprite.card.PlayerCard]) -> None:
+            def func(parentheaders: List[_N], mlist: List[cw.character.Player]) -> None:
                 for i, header in enumerate(parentheaders):
                     ccard = mlist[i]
                     ccard.data.write_xml()
                     header.level = ccard.level
             cw.cwpy.exec_func(func, self.list, mlist)
         elif isinstance(self.Parent.Parent, StandbyCharaInfo):
-            def func2(index: int, headers: List[cw.header.AdventurerHeader],
-                      mlist: List[cw.sprite.card.PlayerCard]) -> None:
+            def func2(index: int, headers: List[_N], mlist: List[cw.character.Player]) -> None:
                 ccard = mlist[0]
                 ccard.data.write_xml()
                 headers[index].level = ccard.level
@@ -2139,6 +2138,8 @@ class CardPanel(wx.Panel, Generic[_A]):
                     s = "A"
                 else:
                     s = "B"
+            else:
+                assert False
 
             s = "[%s] %s" % (s, header.name)
             slen = cw.util.get_strlen(s)

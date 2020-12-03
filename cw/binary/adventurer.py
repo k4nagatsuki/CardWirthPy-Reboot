@@ -691,8 +691,8 @@ class Adventurer(base.CWBinaryBase):
         cardslen = 0
         if items is not None:
             for card in items:
+                pos = f.tell()
                 try:
-                    pos = f.tell()
                     item.ItemCard.unconv(f, card, True)
                     cardslen += 1
                 except cw.binary.cwfile.UnsupportedError as ex:
@@ -718,8 +718,8 @@ class Adventurer(base.CWBinaryBase):
         cardslen = 0
         if skills is not None:
             for card in skills:
+                pos = f.tell()
                 try:
-                    pos = f.tell()
                     skill.SkillCard.unconv(f, card, True)
                     cardslen += 1
                 except cw.binary.cwfile.UnsupportedError as ex:
@@ -745,8 +745,8 @@ class Adventurer(base.CWBinaryBase):
         cardslen = 0
         if beasts is not None:
             for card in beasts:
+                pos = f.tell()
                 try:
-                    pos = f.tell()
                     beast.BeastCard.unconv(f, card, True)
                     cardslen += 1
                 except cw.binary.cwfile.UnsupportedError as ex:

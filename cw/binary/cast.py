@@ -482,8 +482,8 @@ class CastCard(base.CWBinaryBase):
         if items is not None:
             cardslen = 0
             for card in items:
+                pos = f.tell()
                 try:
-                    pos = f.tell()
                     item.ItemCard.unconv(f, card, False)
                     cardslen += 1
                 except cw.binary.cwfile.UnsupportedError as ex:
@@ -509,8 +509,8 @@ class CastCard(base.CWBinaryBase):
         if skills is not None:
             cardslen = 0
             for card in skills:
+                pos = f.tell()
                 try:
-                    pos = f.tell()
                     skill.SkillCard.unconv(f, card, False)
                     cardslen += 1
                 except cw.binary.cwfile.UnsupportedError as ex:
@@ -536,8 +536,8 @@ class CastCard(base.CWBinaryBase):
         if beasts is not None:
             cardslen = 0
             for card in beasts:
+                pos = f.tell()
                 try:
-                    pos = f.tell()
                     beast.BeastCard.unconv(f, card, False)
                     cardslen += 1
                 except cw.binary.cwfile.UnsupportedError as ex:

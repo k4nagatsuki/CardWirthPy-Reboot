@@ -45,8 +45,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
     _arrange_bookmark: wx.MenuItem
 
     def __init__(self, parent: wx.TopLevelWindow, db: cw.scenariodb.Scenariodb, lastscenario: List[str],
-                 lastscenariopath: str,
-                 lastfindresult: List[Union[cw.header.ScenarioHeader, str, "FindResult"]]) -> None:
+                 lastscenariopath: str, lastfindresult: List[str]) -> None:
         from . import scenarioinstall
 
         assert cw.cwpy.ydata
@@ -72,7 +71,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
         self.db.update(self.nowdir, skintype=cw.cwpy.setting.skintype)
-        headers = self.db.search_dpath(self.nowdir, create=True, skintype=cw.cwpy.setting.skintype)
+        headers: List[Union[cw.header.ScenarioHeader, str]] = []
+        headers.extend(self.db.search_dpath(self.nowdir, create=True, skintype=cw.cwpy.setting.skintype))
         # nowdirにあるディレクトリリスト
         dpaths = scenarioinstall.get_dpaths(self.nowdir)
         # nowdirがディレクトリだった場合の内容リスト
@@ -197,7 +197,9 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         self.sort.SetSelection(cw.cwpy.setting.scenario_sorttype)
 
         # 選択リスト
-        self.list = dpaths + headers
+        self.list = []
+        self.list.extend(dpaths)
+        self.list.extend(headers)
         self.scetable[self._get_linktarget(self.nowdir)] = self.list
         self.list = self._narrow_scenario(self.list)
         self.index = 0
@@ -317,17 +319,19 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             lastfindresult = []
 
         dirs = []
-        headers = []
+        scheaders = []
         for fpath in lastfindresult:
             header = self.db.search_path(fpath)
             if header:
-                headers.append(header)
+                scheaders.append(header)
             else:
                 dirs.append(fpath)
-        if dirs or headers:
-            headers = self._sort_headers(headers)
-            headers = dirs + headers
-            self._set_findresult(headers, False, expand=False)
+        if dirs or scheaders:
+            scheaders = self._sort_headers(scheaders)
+            headers2: List[Union[cw.header.ScenarioHeader, str]] = []
+            headers2.extend(dirs)
+            headers2.extend(scheaders)
+            self._set_findresult(headers2, False, expand=False)
 
         if cw.cwpy.setting.open_lastscenario and (lastscenario or lastscenariopath):
             self.set_selected(lastscenario, lastscenariopath, findresults=headers, opendir=True)
@@ -672,7 +676,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         else:
             assert False
         self._no_treechangedsound = True
-        headers = self.db.find_headers(ftypes, value, skintype=cw.cwpy.setting.skintype)
+        headers: List[Union[cw.header.ScenarioHeader, str]] = []
+        headers.extend(self.db.find_headers(ftypes, value, skintype=cw.cwpy.setting.skintype))
         cw.cwpy.play_sound("harvest")
         self._set_findresult(headers, False)
 
@@ -680,7 +685,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             self.draw(True)
         self._no_treechangedsound = False
 
-    def _set_findresult(self, headers: List[Union[cw.header.ScenarioHeader, str, "FindResult"]], selfirstheader: bool,
+    def _set_findresult(self, headers: List[Union[cw.header.ScenarioHeader, str]], selfirstheader: bool,
                         expand: bool = True, selindex: int = -1) -> None:
         slist = self.scetable[self._get_linktarget(self.scedir)]
         if slist and isinstance(slist[0], FindResult):
@@ -695,7 +700,9 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             self.scetable[self._get_linktarget(self.scedir)] = slist
             updateindex = True
 
-        self.scetable[findresult] = headers[:]
+        headers2: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
+        headers2.extend(headers)
+        self.scetable[findresult] = headers2
         cansort = 1 < len(headers) and isinstance(headers[0], cw.header.ScenarioHeader)
         if cansort:
             seq: List[cw.header.ScenarioHeader] = []
@@ -1138,7 +1145,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                 seq.append(os.path.basename(sel))
             return seq, os.path.abspath(sel)
 
-    def get_findresult(self) -> List[Union[cw.header.ScenarioHeader, str, "FindResult"]]:
+    def get_findresult(self) -> List[str]:
         seq = self.scetable[self._get_linktarget(self.scedir)]
         if seq and isinstance(seq[0], FindResult):
             return list(map(lambda header:
@@ -1158,7 +1165,9 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         if not update and nowdir in self.scetable:
             return self.scetable[nowdir]
         if isinstance(nowdir, FindResult):
-            return nowdir.headers
+            headers: List[Union[cw.header.ScenarioHeader, str, "FindResult"]] = []
+            headers.extend(nowdir.headers)
+            return headers
         seq: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
         if nowdir == self.scedir and self.find_result:
             seq.append(self.find_result)
@@ -1169,7 +1178,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         return seq
 
     def set_selected(self, spaths: List[str], fullpath: str, opendir: bool = False, updatetree: bool = False,
-                     findresults: Optional[List[Union[cw.header.ScenarioHeader, str, "FindResult"]]] = None) -> None:
+                     findresults: Optional[List[Union[cw.header.ScenarioHeader, str]]] = None) -> None:
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
@@ -1184,8 +1193,8 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         updatetreeitem = None
 
         if fullpath and cw.scenariodb.is_scenario(fullpath):
-            header = self.db.search_path(fullpath)
-            if not self.is_showing(header):
+            scheader = self.db.search_path(fullpath)
+            if scheader and not self.is_showing(scheader):
                 exists_spaths = False
 
         if exists_spaths:
@@ -1210,15 +1219,15 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         selfullpath = False
         if not exists_spaths:
             keypath = cw.util.get_keypath(fullpath)
-            headers = []
+            headers: List[Union[cw.header.ScenarioHeader, str]] = []
             if findresults and isinstance(findresults[0], str):
                 index = -1
                 for obj in findresults:
                     assert isinstance(obj, str)
                     fpath = obj
-                    header = self.db.search_path(fpath)
-                    if header:
-                        headers.append(header)
+                    scheader = self.db.search_path(fpath)
+                    if scheader:
+                        headers.append(scheader)
                     elif os.path.exists(fpath):
                         headers.append(fpath)
                     else:
@@ -1240,12 +1249,22 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                         index = i
                         break
             if headers and index == -1:
-                header = self.db.search_path(fullpath)
-                if header:
-                    headers.append(header)
+                scheader = self.db.search_path(fullpath)
+                if scheader:
+                    headers.append(scheader)
                 elif os.path.exists(fullpath):
                     headers.append(fullpath)
-                headers = self._sort_headers(headers)
+                scheaders = []
+                dnames = []
+                for header2 in headers:
+                    if isinstance(header2, cw.header.ScenarioHeader):
+                        scheaders.append(header2)
+                    else:
+                        dnames.append(header2)
+                scheaders = self._sort_headers(scheaders)
+                headers = []
+                headers.extend(dnames)
+                headers.extend(scheaders)
                 for i, header2 in enumerate(headers):
                     if header == header2:
                         index = i
@@ -1258,9 +1277,9 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                     self._set_findresult(headers, True, selindex=index)
                     selfullpath = True
             elif cw.scenariodb.is_scenario(fullpath):
-                header = self.db.search_path(fullpath)
-                if header and self.is_showing(header):
-                    self._set_findresult([header], True)
+                scheader = self.db.search_path(fullpath)
+                if scheader and self.is_showing(scheader):
+                    self._set_findresult([scheader], True)
                     selfullpath = True
                 else:
                     exists_spaths = False
@@ -1313,7 +1332,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                             assert data is not None
                             index, header = data
                             if (not isinstance(header, cw.header.ScenarioHeader) and
-                                not isinstance(header, FindResult) and
+                                not isinstance(header, FindResult) and header is not None and
                                     os.path.normcase(os.path.basename(header)) ==
                                     os.path.normcase(fname)) or\
                                     (isinstance(header, FindResult) and fname == "/find_result"):
@@ -1442,8 +1461,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             seldname = ""
         return dpath, seldname
 
-    def _select_installedpaths(self, firstpath: str, seldname: str,
-                               paths: List[Union[cw.header.ScenarioHeader, str, "FindResult"]]) -> None:
+    def _select_installedpaths(self, firstpath: str, seldname: str, paths: List[str]) -> None:
         self._update_saveddirstack()
         lastscenario, lastscenariopath = self.get_selected()
         if lastscenario:
@@ -1459,7 +1477,9 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             else:
                 lastscenario = [os.path.basename(firstpath)]
         lastscenariopath = os.path.abspath(firstpath)
-        self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=paths)
+        paths2: List[Union[cw.header.ScenarioHeader, str]] = []
+        paths2.extend(paths)
+        self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=paths2)
 
     def OnCreateDirBtn(self, event: wx.CommandEvent) -> None:
         from . import scenarioinstall
@@ -1603,6 +1623,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
             cw.util.remove(fpath, trashbox=True)
             if isdir:
                 self.db.remove_dir(fpath)
+            assert isinstance(self.nowdir, str)
             self.db.update(self.nowdir, cw.cwpy.setting.skintype)
 
             if self.tree.IsShown():
@@ -1743,7 +1764,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         self._processing = True
         cw.cwpy.play_sound("equipment")
         self.narrow.SetValue("")
-        seq: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
+        seq: List[Union[cw.header.ScenarioHeader, str]] = []
         for value in headers.values():
             seq.extend(value)
         selfirstheader = (1 == len(seq))
@@ -3495,7 +3516,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
 
 class FindResult(object):
     def __init__(self) -> None:
-        self.headers: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
+        self.headers: List[Union[cw.header.ScenarioHeader, str]] = []
 
 
 class UpdateNamesThread(threading.Thread):
@@ -3546,7 +3567,9 @@ class UpdateNamesThread(threading.Thread):
         def func() -> None:
             if self.dlg:
                 if self.dlg.nowdir == self.nowdir:
-                    self.dlg.names = dnames + headers
+                    self.dlg.names = []
+                    self.dlg.names.extend(dnames)
+                    self.dlg.names.extend(headers)
                 if self.quit:
                     return
                 wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack, self.startdir, self.expandedset)

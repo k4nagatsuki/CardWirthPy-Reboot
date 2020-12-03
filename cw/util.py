@@ -73,11 +73,11 @@ class MusicInterface(object):
         self.fpath = ""
         self.subvolume = 100
         self.loopcount = 0
-        self.movie_scr = None
+        self.movie_scr: Optional[pygame.Surface] = None
         self.mastervolume = mastervolume
         self._winmm = False
         self._bass = False
-        self._movie = None
+        self._movie: Optional[pygame.movie.Movie] = None
         self.inusecard = False
 
     def update_scale(self) -> None:
@@ -1197,7 +1197,7 @@ _SortableByAttrT = TypeVar("_SortableByAttrT")
 _SortableT = TypeVar("_SortableT", Comparable, str, int, float)
 
 
-def _sorted_by_attr_impl(d: bool, seq: Iterable[_SortableByAttrT], *attr: typing.Any,
+def _sorted_by_attr_impl(d: bool, seq: Iterable[_SortableByAttrT], *attr: str,
                          cmpfunc: Optional[Callable[[_SortableT, _SortableT], int]] = None) -> List[_SortableByAttrT]:
     if attr:
         key_attr = operator.attrgetter(*attr)
@@ -1348,7 +1348,7 @@ def cmp(a: Optional[_SortableT], b: Optional[_SortableT]) -> int:
     return 0
 
 
-def sorted_by_attr(seq: Iterable[_SortableByAttrT], *attr: typing.Any) -> List[_SortableByAttrT]:
+def sorted_by_attr(seq: Iterable[_SortableByAttrT], *attr: str) -> List[_SortableByAttrT]:
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1356,7 +1356,7 @@ def sorted_by_attr(seq: Iterable[_SortableByAttrT], *attr: typing.Any) -> List[_
     return _sorted_by_attr_impl(False, seq, *attr)
 
 
-def sort_by_attr(seq: List[_SortableByAttrT], *attr: typing.Any) -> List[_SortableByAttrT]:
+def sort_by_attr(seq: List[_SortableByAttrT], *attr: str) -> List[_SortableByAttrT]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1376,7 +1376,7 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq: List[_SortableByAttrT], *attr: typing.Any) -> List[_SortableByAttrT]:
+def sort_by_filename(seq: List[_SortableByAttrT], *attr: str) -> List[_SortableByAttrT]:
     if sys.platform == "win32" and _shlwapi:
         def cmp_fname(a: str, b: str) -> int:
             result: int = _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
@@ -2137,6 +2137,8 @@ def get_materialpathfromskin(path: str, mtype: int, findskin: bool = True) -> st
                 path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_bgm)
             elif mtype == cw.M_SND:
                 path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_snd)
+            else:
+                assert False
             if path2:
                 return path2
 
@@ -2548,7 +2550,10 @@ def copytree_overwrite(src: str, dst: str, files_overwrite: int = OVERWRITE_ALWA
 # スレッド関係
 # ------------------------------------------------------------------------------
 
-def synclock(lock: threading.Lock) -> Callable[[Callable[..., typing.Any]], typing.Any]:
+_SyncLock = TypeVar("_SyncLock", bound=Callable[..., typing.Any])
+
+
+def synclock(lock: threading.Lock) -> Callable[[_SyncLock], _SyncLock]:
     """
     @synclock(_lock)
     def function():
@@ -2557,7 +2562,7 @@ def synclock(lock: threading.Lock) -> Callable[[Callable[..., typing.Any]], typi
     特定関数・メソッドの排他制御を行う。
     """
 
-    def synclock(f: Callable[..., typing.Any]) -> typing.Any:
+    def synclock(f: _SyncLock) -> _SyncLock:
         def acquire(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             lock.acquire()
             try:
@@ -2565,7 +2570,10 @@ def synclock(lock: threading.Lock) -> Callable[[Callable[..., typing.Any]], typi
             finally:
                 lock.release()
 
-        return acquire
+        # FIXME: error: Incompatible return value type (got "Callable[[VarArg(Any), KwArg(Any)], Any]",
+        #        expected "_SyncLock")
+        # return acquire
+        return typing.cast(_SyncLock, acquire)
 
     return synclock
 

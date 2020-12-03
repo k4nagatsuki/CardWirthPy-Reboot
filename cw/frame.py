@@ -16,7 +16,18 @@ import cw.debug.debugger
 from cw.util import synclock
 
 import typing
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
+
+_Arg1 = TypeVar("_Arg1")
+_Arg2 = TypeVar("_Arg2")
+_Arg3 = TypeVar("_Arg3")
+_Arg4 = TypeVar("_Arg4")
+_Arg5 = TypeVar("_Arg5")
+_Arg6 = TypeVar("_Arg6")
+_Arg7 = TypeVar("_Arg7")
+_Arg8 = TypeVar("_Arg8")
+_Arg9 = TypeVar("_Arg9")
+_Result = TypeVar("_Result")
 
 _killlist_mutex = threading.Lock()
 
@@ -411,6 +422,46 @@ class Frame(wx.Frame):
             cw.cwpy.force_exec_func(func)
             cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
 
+    @typing.overload
+    def exec_func(self, func: Callable[[], None]) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1], None], arg1: _Arg1) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2], None], arg1: _Arg1, arg2: _Arg2) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6,
+                  arg7: _Arg7) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8) -> None: ...
+
+    @typing.overload
+    def exec_func(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9], None],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8, arg9: _Arg9) -> None: ...
+
     def exec_func(self, func: Callable[..., None], *args: typing.Any, **kwargs: typing.Any) -> None:
         """wxPythonスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
@@ -423,7 +474,47 @@ class Frame(wx.Frame):
         event.kwargs = kwargs
         self.AddPendingEvent(event)
 
-    def sync_exec(self, func: Callable[..., typing.Any], *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    @typing.overload
+    def sync_exec(self, func: Callable[[], _Result]) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1], _Result], arg1: _Arg1) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2], _Result], arg1: _Arg1, arg2: _Arg2) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6,
+                  arg7: _Arg7) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8) -> _Result: ...
+
+    @typing.overload
+    def sync_exec(self, func: Callable[[_Arg1, _Arg2, _Arg3, _Arg4, _Arg5, _Arg6, _Arg7, _Arg8, _Arg9], _Result],
+                  arg1: _Arg1, arg2: _Arg2, arg3: _Arg3, arg4: _Arg4, arg5: _Arg5, arg6: _Arg6, arg7: _Arg7,
+                  arg8: _Arg8, arg9: _Arg9) -> _Result: ...
+
+    def sync_exec(self, func: Callable[..., _Result], *args: typing.Any, **kwargs: typing.Any) -> Optional[_Result]:
         """wxPythonスレッドで指定したファンクションを実行し、
         終了を待ち合わせる。ファンクションの戻り値を返す。
         func: 実行したいファンクションオブジェクト。
@@ -432,13 +523,13 @@ class Frame(wx.Frame):
             return func(*args, **kwargs)
         else:
             if not self:
-                return
-            self._sync_result = None
+                return None
+            result: List[Optional[_Result]] = [None]
             self._sync_running = True
 
             def func2(*args: typing.Any, **kwargs: typing.Any) -> None:
                 try:
-                    self._sync_result = func(*args, **kwargs)
+                    result[0] = func(*args, **kwargs)
                 finally:
                     self._sync_running = False
             event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
@@ -448,7 +539,7 @@ class Frame(wx.Frame):
             self.AddPendingEvent(event)
             while cw.cwpy.is_running() and self._sync_running:
                 time.sleep(0.001)
-            return self._sync_result
+            return result[0]
 
     def OnEXECFUNC(self, event: wx.PyCommandEvent) -> None:
         try:
@@ -596,7 +687,9 @@ class Frame(wx.Frame):
                     cw.cwpy.add_showingdlg()
                     dlg.ShowModal()
                     if dlg.select_skin:
-                        cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname, switch_skin=True)
+                        def update_skin(skindirname: str) -> None:
+                            cw.cwpy.update_skin(skindirname, switch_skin=True)
+                        cw.cwpy.exec_func(update_skin, dlg.skindirname)
                     self.kill_dlg(dlg)
                     break
                 except Exception:
@@ -846,6 +939,7 @@ class Frame(wx.Frame):
 
     def ok_scenarioselect(self, dlg: "cw.dialog.scenarioselect.ScenarioSelect") -> None:
         header = dlg.list[dlg.index]
+        assert isinstance(header, cw.header.ScenarioHeader)
         sel, selpath = dlg.get_selected()
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
 
@@ -1376,12 +1470,14 @@ class Frame(wx.Frame):
                 titledic = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
                 assert isinstance(titledic, tuple)
                 image, y = cw.util.create_screenshot(titledic[0])
+                w: int
+                h: int
                 w, h = image.get_size()
                 if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey() or sys.platform != "win32":
                     # linuxでは画像が壊れるので常にこちら
-                    buf = pygame.image.tostring(image, "RGBA")
+                    buf: bytes = pygame.image.tostring(image, "RGBA")
                     alpha = True
-                    colorkey = None
+                    colorkey: Optional[Tuple[int, int, int, int]] = None
                 else:
                     buf = pygame.image.tostring(image, "RGB")
                     alpha = False
@@ -1391,7 +1487,7 @@ class Frame(wx.Frame):
                     else:
                         colorkey = None
 
-                def func(w: int, h: int, alpha: bool, buf: bytes, colorkey: Tuple[int, int, int, int],
+                def func(w: int, h: int, alpha: bool, buf: bytes, colorkey: Optional[Tuple[int, int, int, int]],
                          titledicfn: Dict[str, str], y: int, fore: Tuple[int, int, int],
                          back: Tuple[int, int, int]) -> None:
                     if alpha:
@@ -1738,7 +1834,7 @@ class MyApp(wx.App):
                     elif not cw.cwpy.is_showingdlg():
                         cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
                 dlg = cw.cwpy.frame.find_activedialog()
-                updatedebug_on_dlg = dlg and not hasattr(dlg, "update_debug")
+                updatedebug_on_dlg = bool(dlg and not hasattr(dlg, "update_debug"))
                 cw.cwpy.force_exec_func(func, updatedebug_on_dlg)
                 event.Skip()
                 return True

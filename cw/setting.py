@@ -396,7 +396,7 @@ class Setting(object):
         self.lastscenario_init = self.lastscenario[:]
         self.lastscenariopath = ""
         self.lastscenariopath_init = self.lastscenariopath
-        self.lastfindresult: List[Union[cw.header.ScenarioHeader, str, cw.dialog.scenarioselect.FindResult]] = []
+        self.lastfindresult: List[str] = []
         self.lastfindresult_init = self.lastfindresult[:]
         self.window_position: Tuple[Optional[int], Optional[int]] = (None, None)
         self.window_position_init = self.window_position

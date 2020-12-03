@@ -352,8 +352,8 @@ class CharaInfo(object):
                         init_coupons[coupon[0]] = coupon[1]
                     break
             self.recalc_coupons: bool = True
-            for coupon, value in init_coupons.items():
-                if not pcard.has_coupon(coupon) or pcard.get_couponvalue(coupon) != value:
+            for coupon_name, value in init_coupons.items():
+                if not pcard.has_coupon(coupon_name) or pcard.get_couponvalue(coupon_name) != value:
                     self.recalc_coupons = False
                     break
             self.debug_coupon: bool = pcard.has_coupon("＠デバグ")
@@ -760,12 +760,12 @@ class CharaInfo(object):
             # 外部からレベルをセットしない場合は初期レベルを計算
             data.calc_level()
         if self.type:
-            data.agl = self.race.agl + self.type.aglbonus
-            data.dex = self.race.dex + self.type.dexbonus
-            data.int = self.race.int + self.type.intbonus
-            data.min = self.race.min + self.type.minbonus
-            data.str = self.race.str + self.type.strbonus
-            data.vit = self.race.vit + self.type.vitbonus
+            data.agl = int(self.race.agl + self.type.aglbonus)
+            data.dex = int(self.race.dex + self.type.dexbonus)
+            data.int = int(self.race.int + self.type.intbonus)
+            data.min = int(self.race.min + self.type.minbonus)
+            data.str = int(self.race.str + self.type.strbonus)
+            data.vit = int(self.race.vit + self.type.vitbonus)
             data.aggressive = self.race.aggressive + self.type.aggressive
             data.brave = self.race.brave + self.type.brave
             data.cautious = self.race.cautious + self.type.cautious
@@ -1164,7 +1164,7 @@ class CharaRequirementPanel(wx.Panel):
         sex = ""
         age = ""
         talent = ""
-        race = cw.cwpy.setting.unknown_race
+        race: cw.header.RaceHeader = cw.cwpy.setting.unknown_race
 
         infos = self._get_infos()
 

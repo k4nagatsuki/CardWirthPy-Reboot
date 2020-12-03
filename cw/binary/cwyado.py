@@ -693,15 +693,15 @@ class UnconvCWYado(object):
 
         # 待機中冒険者(*.wcp)とそのヘッダ(*.wch)
         for advheader in self.ydata.standbys:
+            self.message = "%s を変換中..." % (advheader.name)
+            self.curnum += 1
+
+            data = cw.data.xml2element(advheader.fpath)
+            cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
+
+            ppath = create_fpath(advheader.name, ".wcp")
+            hpath = create_fpath(advheader.name, ".wch")
             try:
-                self.message = "%s を変換中..." % (advheader.name)
-                self.curnum += 1
-
-                data = cw.data.xml2element(advheader.fpath)
-                cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
-
-                ppath = create_fpath(advheader.name, ".wcp")
-                hpath = create_fpath(advheader.name, ".wch")
                 with cwfile.CWFileWriter(ppath, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
@@ -764,33 +764,34 @@ class UnconvCWYado(object):
         yadodir = self.ydata.yadodir
         tempdir = self.ydata.tempdir
         for partyheader, pt in parties:
+            self.message = "%s を変換中..." % (partyheader.name)
+            self.curnum += 1
+
+            # log
+            if os.path.isdir(cw.util.join_paths(cw.tempdir, "ScenarioLog")):
+                cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
+            path = cw.util.splitext(pt.data.fpath)[0] + ".wsl"
+            if os.path.isfile(path):
+                cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
+                etree = cw.data.xml2etree(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
+                scenarioname = etree.gettext("Property/Name")
+                if not scenarioname:
+                    scenarioname = "noname"
+                logdir = cw.util.join_paths(cw.tempdir, "ScenarioLog")
+            else:
+                scenarioname = ""
+                logdir = ""
+
+            names = partyheader.get_membernames()
+            i = 0
+            membertbl: Dict[str, str] = {}
+            for member in partyheader.members:
+                membertbl[member] = names[i]
+                i += 1
+
+            fpath1 = create_fpath(pt.name, ".wpl")
+            fpath2 = create_fpath(pt.name, ".wpt")
             try:
-                self.message = "%s を変換中..." % (partyheader.name)
-                self.curnum += 1
-
-                # log
-                if os.path.isdir(cw.util.join_paths(cw.tempdir, "ScenarioLog")):
-                    cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
-                path = cw.util.splitext(pt.data.fpath)[0] + ".wsl"
-                if os.path.isfile(path):
-                    cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
-                    etree = cw.data.xml2etree(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
-                    scenarioname = etree.gettext("Property/Name")
-                    if not scenarioname:
-                        scenarioname = "noname"
-                    logdir = cw.util.join_paths(cw.tempdir, "ScenarioLog")
-                else:
-                    scenarioname = ""
-                    logdir = ""
-
-                names = partyheader.get_membernames()
-                i = 0
-                membertbl: Dict[str, str] = {}
-                for member in partyheader.members:
-                    membertbl[member] = names[i]
-                    i += 1
-
-                fpath1 = create_fpath(pt.name, ".wpl")
                 with cwfile.CWFileWriter(fpath1, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
@@ -798,7 +799,6 @@ class UnconvCWYado(object):
                     f.flush()
                     f.close()
 
-                fpath2 = create_fpath(pt.name, ".wpt")
                 with cwfile.CWFileWriter(fpath2, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
@@ -833,13 +833,13 @@ class UnconvCWYado(object):
 
         # アルバム(*.wrm)
         for advheader in self.ydata.album:
+            self.message = "%s を変換中..." % (advheader.name)
+            self.curnum += 1
+
+            data = cw.data.xml2element(advheader.fpath)
+
+            fpath = create_fpath(advheader.name, ".wrm")
             try:
-                self.message = "%s を変換中..." % (advheader.name)
-                self.curnum += 1
-
-                data = cw.data.xml2element(advheader.fpath)
-
-                fpath = create_fpath(advheader.name, ".wrm")
                 with cwfile.CWFileWriter(fpath, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:

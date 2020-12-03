@@ -98,6 +98,7 @@ def is_skin(path: str) -> bool:
     else:
         lpath = ltarg.lower()
         if lpath.endswith(".zip") or lpath.endswith(".lzh"):
+            z = None
             try:
                 z = cw.util.zip_file(path, "r")
                 for zname, info in zip(z.namelist(), z.infolist()):

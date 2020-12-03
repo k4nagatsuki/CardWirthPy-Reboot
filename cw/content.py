@@ -216,6 +216,7 @@ class EventContentBase(object):
             dlg.Destroy()
             return ret
         ret = cw.cwpy.frame.sync_exec(func)
+        assert ret is not None
 
         if ret == wx.ID_CANCEL:
             raise cw.event.EffectBreakError()
@@ -2280,7 +2281,9 @@ class ChangeAreaContent(EventContentBase):
         name = cw.cwpy.sdata.get_areaname(resid)
 
         if name is not None:
-            cw.cwpy.exec_func(cw.cwpy.change_area, resid, ttype=ttype)
+            def change_area(resid: int, ttype: Tuple[str, Union[str, int]]) -> None:
+                cw.cwpy.change_area(resid, ttype=ttype)
+            cw.cwpy.exec_func(change_area, resid, ttype)
             cw.cwpy._dealing = True
             raise cw.event.AreaChangeError()
         else:
@@ -3028,6 +3031,8 @@ class GetContent(EventContentBase):
                     seq = target.cardpocket[cw.POCKET_ITEM]
                 elif selcard.type == "BeastCard":
                     seq = target.cardpocket[cw.POCKET_BEAST]
+                else:
+                    assert False
             else:
                 assert isinstance(target, list)
                 seq = target
@@ -4345,7 +4350,7 @@ class TalkMessageContent(TalkContent):
                 talker_u = cw.cwpy.event.get_targetmember("Unselected")
 
                 # 選択外メンバがいなかったらスキップ
-                if not talker:
+                if not talker_u:
                     continue
                 assert not isinstance(talker_u, list)
                 talker = talker_u

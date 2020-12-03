@@ -384,6 +384,8 @@ class CWPyCard(base.SelectableSprite):
             val = 0 - nx
         elif f <= 3:
             val = -mx + nx
+        else:
+            assert False
 
         val = int(round(val))
 

@@ -11,7 +11,7 @@ import wx
 
 import cw
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 
 # ------------------------------------------------------------------------------
@@ -474,11 +474,7 @@ def create_dir(parentdialog: ScenarioInstall, dpath: str) -> str:
 def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
                      notscenariofiles: Dict[Tuple[str, str], List[str]], scedir: str, dstpath: str,
                      db: cw.scenariodb.Scenariodb,
-                     skintype: str) -> Tuple[bool,
-                                             List[Union[cw.header.ScenarioHeader,
-                                                        str,
-                                                        "cw.dialog.scenarioselect.FindResult"]],
-                                             List[str], bool]:
+                     skintype: str) -> Tuple[bool, List[str], List[str], bool]:
     """
     headersをインストールする。
     進捗ダイアログが表示される。
@@ -542,7 +538,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
             self.msg = ""
             self.failed: Optional[cw.header.ScenarioHeader] = None
             self.updates: Set[str] = set()
-            self.paths: List[Union[cw.header.ScenarioHeader, str, cw.dialog.scenarioselect.FindResult]] = []
+            self.paths: List[str] = []
             self.filepaths: List[str] = []
             self.repl_links: Dict[str, str] = {}
 
@@ -581,9 +577,10 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 return ret
 
             if allret[0] is None:
-                ret: int = cw.cwpy.frame.sync_exec(func)
+                ret = cw.cwpy.frame.sync_exec(func)
             else:
                 ret = allret[0]
+            assert ret is not None
             return ret
 
         def _install(self, parent: str, headers_seq: Iterable[cw.header.ScenarioHeader], dstpath: str,

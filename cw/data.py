@@ -597,8 +597,8 @@ class SystemData(object):
                 fpath = cw.util.join_paths(dpath, fname)
                 prop = cw.header.GetProperty(fpath)
                 old_coupons = set()
-                get_coupons = []
-                lose_coupons = []
+                get_coupons: List[Tuple[str, int]] = []
+                lose_coupons: List[Tuple[str, int]] = []
 
                 for _coupon, attrs, name in prop.third.get("Coupons", []):
                     old_coupons.add(name)
@@ -607,8 +607,9 @@ class SystemData(object):
                         lose_coupons.append((name, value))
                 for name in pcard.get_coupons():
                     if name not in old_coupons:
-                        value = pcard.get_couponvalue(name)
-                        get_coupons.append((name, value))
+                        value_e = pcard.get_couponvalue(name)
+                        assert value_e is not None
+                        get_coupons.append((name, value_e))
                 debuglog.add_player(pcard, get_coupons, lose_coupons)
 
             dpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party")
@@ -2426,10 +2427,12 @@ class Step(object):
                 self._parent.is_edited = True
 
 
+VariantValueType = Union[str, decimal.Decimal, bool]
+
+
 class Variant(object):
     def __init__(self, parent: Optional[Union["CWPyElementTree", "CWPyElement"]], data: Optional["CWPyElement"],
-                 value: Union[str, decimal.Decimal, bool], name: str,
-                 defaultvalue: Union[str, decimal.Decimal, bool]) -> None:
+                 value: VariantValueType, name: str, defaultvalue: VariantValueType) -> None:
         self.is_writable = parent is not None and data is not None
         self._parent = parent
         self._data = data
@@ -2439,7 +2442,7 @@ class Variant(object):
         self.defaultvalue = defaultvalue
         self.initialization = data.getattr(".", "initialize", "Leave") if data is not None else "Leave"
 
-    def set(self, value: Union[str, decimal.Decimal, bool], updatedebugger: bool = True) -> None:
+    def set(self, value: VariantValueType, updatedebugger: bool = True) -> None:
         if self.value != value:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
@@ -2450,7 +2453,7 @@ class Variant(object):
                 cw.cwpy.event.refresh_variable(self)
 
     @staticmethod
-    def value_to_type(value: Union[str, decimal.Decimal, bool]) -> str:
+    def value_to_type(value: VariantValueType) -> str:
         if isinstance(value, bool):
             return "Boolean"
         elif isinstance(value, decimal.Decimal):
@@ -2459,7 +2462,7 @@ class Variant(object):
             return "String"
 
     @staticmethod
-    def value_from_str(vtype: str, s: str) -> Union[str, decimal.Decimal, bool]:
+    def value_from_str(vtype: str, s: str) -> VariantValueType:
         if vtype == "Boolean":
             return cw.util.str2bool(s)
         elif vtype == "Number":
@@ -2468,7 +2471,7 @@ class Variant(object):
             return s
 
     @staticmethod
-    def value_to_str(value: Union[str, decimal.Decimal, bool]) -> str:
+    def value_to_str(value: VariantValueType) -> str:
         if isinstance(value, bool):
             return str(value).upper()
         elif isinstance(value, decimal.Decimal):
@@ -2572,7 +2575,7 @@ class YadoData(object):
                           Tuple["cw.data.CWPyElement",
                                 Dict[str, bool],
                                 Dict[str, int],
-                                Dict[str, Union[str, decimal.Decimal, bool]]]]
+                                Dict[str, VariantValueType]]]
     bookmarks: List[Tuple[List[str], str]]
 
     def __init__(self, yadodir: str, tempdir: str, loadparty: bool = True) -> None:
@@ -3680,7 +3683,7 @@ class YadoData(object):
                 cw.cwpy.call_modaldlg("DATACOMP", ccard=fcard)
 
             # システムクーポン
-            fcard.set_coupon("＿" + fcard.name, fcard.level * (fcard.level-1) * fcard.get_levelcoeff())
+            fcard.set_coupon("＿" + fcard.name, int(fcard.level * (fcard.level-1) * fcard.get_levelcoeff()))
             fcard.set_coupon("＠レベル原点", fcard.level)
             if not fcard.has_coupon("＠ＥＰ"):
                 fcard.set_coupon("＠ＥＰ", 0)
@@ -3879,7 +3882,7 @@ class YadoData(object):
                     Tuple["cw.data.CWPyElement",
                           Dict[str, bool],
                           Dict[str, int],
-                          Dict[str, Union[str, decimal.Decimal, bool]]]]:
+                          Dict[str, VariantValueType]]]:
         """保存された状態変数を((scenario, author), (element, flags, steps, variants))で返す。"""
         data = environment.find("SavedVariables")
         if data is None:
@@ -3891,7 +3894,7 @@ class YadoData(object):
     @staticmethod
     def _get_vartables(e: "cw.data.CWPyElement") -> Tuple[Dict[str, bool],
                                                           Dict[str, int],
-                                                          Dict[str, Union[str, decimal.Decimal, bool]]]:
+                                                          Dict[str, VariantValueType]]:
         assert e.tag == "Variables"
         flags = {}
         for e_flag in e.getfind("Flags", raiseerror=False):
@@ -3926,7 +3929,7 @@ class YadoData(object):
                     Tuple["cw.data.CWPyElement",
                           Dict[str, bool],
                           Dict[str, int],
-                          Dict[str, Union[str, decimal.Decimal, bool]]]]:
+                          Dict[str, VariantValueType]]]:
         d = {}
         for e in data:
             assert isinstance(e, cw.data.CWPyElement)
@@ -3943,7 +3946,7 @@ class YadoData(object):
                     Tuple["cw.data.CWPyElement",
                           Dict[str, bool],
                           Dict[str, int],
-                          Dict[str, Union[str, decimal.Decimal, bool]]]]:
+                          Dict[str, VariantValueType]]]:
         d = {}
         for e in data:
             assert isinstance(e, cw.data.CWPyElement)

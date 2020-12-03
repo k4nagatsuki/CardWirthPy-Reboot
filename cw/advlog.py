@@ -9,7 +9,26 @@ import threading
 
 import cw
 
-from typing import Callable, Iterable, List, Optional, TextIO, Tuple, Union
+from typing import Callable, Iterable, List, Optional, TextIO, Tuple, TypeVar, Union
+
+_LogType = TypeVar("_LogType",
+                   None,
+                   str,
+                   "cw.sprite.message.MessageWindow",
+                   int,
+                   Iterable[str],
+                   Tuple[str, str, bool, Optional[str], str, bool],
+                   Tuple[str, int, int, int, int, bool],
+                   Tuple[str, int, int, bool],
+                   Tuple[str, int, bool],
+                   Tuple[str, str, int, str, int, bool],
+                   Tuple[str, str, int, bool],
+                   Tuple[str, bool, bool, bool],
+                   Tuple[str, bool, bool],
+                   Tuple[str, bool],
+                   Tuple[str, cw.data.CWPyElement, bool],
+                   Tuple[str, int, int, int, int],
+                   Tuple[str, str, bool])
 
 VOID = 0
 INITIAL = 1
@@ -141,22 +160,7 @@ class AdventurerLogger(object):
         else:
             self._last_logtype = VOID
 
-    def _put(self, logtype: int, data: Union[Optional[str],
-                                             int,
-                                             Iterable[str],
-                                             Tuple[str, str, bool, Optional[str], str, bool],
-                                             Tuple[str, int, int, int, int, bool],
-                                             Tuple[str, int, int, bool],
-                                             Tuple[str, int, bool],
-                                             Tuple[str, str, int, str, int, bool],
-                                             Tuple[str, str, int, bool],
-                                             Tuple[str, bool, bool, bool],
-                                             Tuple[str, bool, bool],
-                                             Tuple[str, bool],
-                                             Tuple[str, cw.data.CWPyElement, bool],
-                                             Tuple[str, int, int, int, int],
-                                             Tuple[str, str, bool]],
-             func: Optional[Callable[..., Optional[str]]] = None,
+    def _put(self, logtype: int, data: _LogType, func: Optional[Callable[[_LogType], Optional[str]]] = None,
              usecard: bool = False) -> None:
         if logtype in (MOTION, MOTION_IN_BATTLE) and not usecard:
             if not (cw.cwpy.event.in_cardeffectmotion or cw.cwpy.event.in_inusecardevent):
@@ -171,7 +175,7 @@ class AdventurerLogger(object):
                 self._logger.queue.put_nowait((data, func))
             self._last_logtype = logtype
 
-    def show_message(self, mwin: Optional[str]) -> None:
+    def show_message(self, mwin: "cw.sprite.message.MessageWindow") -> None:
         self._put(MESSAGE, mwin, lambda mwin: cw.sprite.message.get_messagelogtext((mwin,), lastline=False))
 
     def separator(self) -> None:
@@ -226,7 +230,7 @@ class AdventurerLogger(object):
 
     def use_card(self, ccard: cw.character.Character, header: cw.header.CardHeader,
                  targets: Union["cw.sprite.card.CWPyCard", List["cw.sprite.card.CWPyCard"]]) -> None:
-        def use_card(params: Tuple[str, str, bool, str, str, bool]) -> str:
+        def use_card(params: Tuple[str, str, bool, Optional[str], str, bool]) -> str:
             (castname, cardname, isbeast, targetname, targettype, is_battlestatus) = params
             if is_battlestatus:
                 if isbeast:
@@ -771,21 +775,23 @@ class Logger(threading.Thread):
         threading.Thread.__init__(self)
         self.fpath = fpath
         self.queue: queue.Queue[Optional[Union[bool,
-                                         Tuple[Union[Optional[str],
-                                               int,
-                                               Iterable[str],
-                                               Tuple[str, str, bool, Optional[str], str, bool],
-                                               Tuple[str, int, int, int, int, bool],
-                                               Tuple[str, int, int, bool],
-                                               Tuple[str, int, bool],
-                                               Tuple[str, str, int, str, int, bool],
-                                               Tuple[str, str, int, bool],
-                                               Tuple[str, bool, bool, bool],
-                                               Tuple[str, bool, bool],
-                                               Tuple[str, bool],
-                                               Tuple[str, cw.data.CWPyElement, bool],
-                                               Tuple[str, int, int, int, int],
-                                               Tuple[str, str, bool]],
+                                         Tuple[Union[None,
+                                                     str,
+                                                     cw.sprite.message.MessageWindow,
+                                                     int,
+                                                     Iterable[str],
+                                                     Tuple[str, str, bool, Optional[str], str, bool],
+                                                     Tuple[str, int, int, int, int, bool],
+                                                     Tuple[str, int, int, bool],
+                                                     Tuple[str, int, bool],
+                                                     Tuple[str, str, int, str, int, bool],
+                                                     Tuple[str, str, int, bool],
+                                                     Tuple[str, bool, bool, bool],
+                                                     Tuple[str, bool, bool],
+                                                     Tuple[str, bool],
+                                                     Tuple[str, cw.data.CWPyElement, bool],
+                                                     Tuple[str, int, int, int, int],
+                                                     Tuple[str, str, bool]],
                                                Optional[Callable[..., Optional[str]]]]]]] = queue.Queue()
         self.enable = enable
 

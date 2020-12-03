@@ -6,7 +6,6 @@ import sys
 import itertools
 import threading
 import subprocess
-import decimal
 import wx
 import wx.lib.agw.aui.framemanager
 import wx.lib.mixins.listctrl
@@ -852,7 +851,7 @@ class Debugger(wx.Frame):
         cw.cwpy.exec_func(Debugger.exec_editor, self, content)
 
     @staticmethod
-    def exec_editor(parent: "Debugger", content: cw.data.CWPyElement) -> None:
+    def exec_editor(parent: "Debugger", content: Optional[cw.data.CWPyElement]) -> None:
         if not cw.cwpy.is_playingscenario() and not (cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata):
             return
         if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata:
@@ -1399,7 +1398,7 @@ class Debugger(wx.Frame):
                 if dlg.ShowModal() == wx.ID_OK:
                     header = dlg.get_selectedcard()
 
-                    def func(header: cw.header.CardHeader) -> None:
+                    def func(header: Optional[cw.header.CardHeader]) -> None:
                         if self.view_tree.enable_eventview() and cw.cwpy.is_runningevent():
                             cw.cwpy.event.set_selectedcard(header)
                     cw.cwpy.exec_func(func, header)
@@ -2062,7 +2061,7 @@ class VariableListCtrl(wx.ListCtrl):
     def _edit_variant(self, variant: cw.data.Variant, local: bool) -> None:
         dlg = cw.debug.edit.VariantEditDialog(self.Parent, variant.name, "コモンの型と値", variant.value)
         if dlg.ShowModal() == wx.ID_OK:
-            def func(item: cw.data.Variant, local: bool, value: Union[str, decimal.Decimal, bool]) -> None:
+            def func(item: cw.data.Variant, local: bool, value: cw.data.VariantValueType) -> None:
                 item.set(value)
                 item.write_value()
                 self._update_variablesowner()
@@ -2858,9 +2857,11 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
         assert cw.cwpy != threading.currentThread()
 
         def func(self: EventView) -> None:
-            def func(self: EventView, nowrunning: cw.event.Event, cur_content: Optional[cw.data.CWPyElement],
-                     stackinfo: Iterable[Union[cw.event.Event,
-                                               Tuple[cw.event.Event, Optional[cw.data.CWPyElement], int]]]) -> None:
+            def func(self: EventView, nowrunning: Optional[cw.event.Event], cur_content: Optional[cw.data.CWPyElement],
+                     stackinfo: Iterable[Optional[Union[cw.event.Event,
+                                                        Tuple[cw.event.Event,
+                                                              Optional[cw.data.CWPyElement],
+                                                              int]]]]) -> None:
                 if not self:
                     return
                 self.DeleteAllItems()

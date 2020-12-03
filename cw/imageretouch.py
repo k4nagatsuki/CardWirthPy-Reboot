@@ -14,7 +14,7 @@ from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND
 import cw
 
 import typing
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar
 
 
 try:
@@ -28,8 +28,32 @@ except ImportError as ex:
     print("failed to load _imageretouch module. %s" % (ex))
 
 
-def _retouch(func: Callable[..., bytes], image: pygame.Surface,
-             *args: typing.Any) -> pygame.Surface:
+_RetouchArg1 = TypeVar("_RetouchArg1")
+_RetouchArg2 = TypeVar("_RetouchArg2")
+_RetouchArg3 = TypeVar("_RetouchArg3")
+
+
+@typing.overload
+def _retouch(func: Callable[[bytes, Tuple[int, int]], bytes], image: pygame.Surface) -> pygame.Surface: ...
+
+
+@typing.overload
+def _retouch(func: Callable[[bytes, Tuple[int, int], _RetouchArg1], bytes], image: pygame.Surface,
+             __arg1: _RetouchArg1) -> pygame.Surface: ...
+
+
+@typing.overload
+def _retouch(func: Callable[[bytes, Tuple[int, int], _RetouchArg1, _RetouchArg2], bytes], image: pygame.Surface,
+             __arg1: _RetouchArg1, __arg2: _RetouchArg2) -> pygame.Surface: ...
+
+
+@typing.overload
+def _retouch(func: Callable[[bytes, Tuple[int, int], _RetouchArg1, _RetouchArg2, _RetouchArg3], bytes],
+             image: pygame.Surface, __arg1: _RetouchArg1, __arg2: _RetouchArg2,
+             __arg3: _RetouchArg3) -> pygame.Surface: ...
+
+
+def _retouch(func: Callable[..., bytes], image: pygame.Surface, *args: typing.Any) -> pygame.Surface:
     """_imageretouchの関数のラッパ。
     func: _imageretouchの関数オブジェクト。
     image: 対象イメージ
@@ -801,7 +825,7 @@ def blend_1_50(dest: pygame.Surface, pos: Tuple[int, int], source: pygame.Surfac
     rect2 = pygame.Rect(pos2, rect.size)
     source2 = source.subsurface(rect2)
 
-    func: Optional[Callable[[bytes, bytes], bytes]]
+    func: Optional[Callable[[bytes, Tuple[int, int], bytes], bytes]]
     if flag in (BLEND_ADD, BLEND_RGBA_ADD):
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_add_1_50
