@@ -326,12 +326,14 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
                 scheaders.append(header)
             else:
                 dirs.append(fpath)
+        headers = []
         if dirs or scheaders:
             scheaders = self._sort_headers(scheaders)
             headers2: List[Union[cw.header.ScenarioHeader, str]] = []
             headers2.extend(dirs)
             headers2.extend(scheaders)
             self._set_findresult(headers2, False, expand=False)
+            headers.extend(headers2)
 
         if cw.cwpy.setting.open_lastscenario and (lastscenario or lastscenariopath):
             self.set_selected(lastscenario, lastscenariopath, findresults=headers, opendir=True)
