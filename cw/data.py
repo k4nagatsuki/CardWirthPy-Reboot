@@ -4911,18 +4911,22 @@ class CWPyElement(_CWPyElementInterface, Sequence["CWPyElement"]):
         self.element.__delitem__(index)
 
     def __iter__(self) -> Iterator["CWPyElement"]:
-        self._iter = 0
-        self._reversed = False
-        return self
+        return _CWPyElementIterator(self)
 
     def __reversed__(self) -> Generator["CWPyElement", None, None]:
         for i in range(len(self), 0, -1):
             yield self[i - 1]
 
+
+class _CWPyElementIterator(object):
+    def __init__(self, e: CWPyElement) -> None:
+        self.e = e
+        self._iter = 0
+
     def __next__(self) -> "CWPyElement":
-        if self._iter < 0 or len(self) <= self._iter:
+        if self._iter < 0 or len(self.e) <= self._iter:
             raise StopIteration()
-        n = self[self._iter]
+        n = self.e[self._iter]
         self._iter += 1
         return n
 
