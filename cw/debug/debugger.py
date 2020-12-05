@@ -2749,7 +2749,6 @@ class EventView(wx.ScrolledWindow):
                     nextdata = ()
                 else:
                     nextdata = e
-            assert parent
             assert self.current_event
             item = EventViewItem(parent, self.current_event, content, nextdata, pos, self.lineheight, dc)
             assert content.tag != "ContentsLine"
@@ -2764,7 +2763,7 @@ class EventView(wx.ScrolledWindow):
 
 
 class EventViewItem(object):
-    def __init__(self, parent: cw.data.CWPyElement, event: cw.event.Event, content: cw.data.CWPyElement,
+    def __init__(self, parent: Optional[cw.data.CWPyElement], event: cw.event.Event, content: cw.data.CWPyElement,
                  nextdata: Sequence[cw.data.CWPyElement], pos: Tuple[int, int], lineheight: int, dc: wx.DC) -> None:
         assert threading.currentThread() != cw.cwpy
         self.parent = parent
