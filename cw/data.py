@@ -4923,6 +4923,10 @@ class _CWPyElementIterator(object):
         self.e = e
         self._iter = 0
 
+    def __iter__(self) -> Iterator["CWPyElement"]:
+        self._iter = 0
+        return _CWPyElementIterator(self.e)
+
     def __next__(self) -> "CWPyElement":
         if self._iter < 0 or len(self.e) <= self._iter:
             raise StopIteration()
