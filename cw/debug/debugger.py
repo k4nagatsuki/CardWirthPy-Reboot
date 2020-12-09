@@ -1458,7 +1458,7 @@ class Debugger(wx.Frame):
                 (not cw.cwpy.is_battlestatus() or not cw.cwpy.battle or cw.cwpy.battle.is_ready()):
             if self._currentfpath and os.path.isfile(self._currentfpath):
                 currentfpath = self._currentfpath
-            elif cw.cwpy.sdata.data:
+            elif cw.cwpy.sdata.data is not None:
                 currentfpath = cw.cwpy.sdata.data.fpath
             else:
                 currentfpath = ""
