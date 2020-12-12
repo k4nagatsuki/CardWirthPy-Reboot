@@ -4721,6 +4721,17 @@ class CWPy(_Singleton, threading.Thread):
         finally:
             self._elapse_time = False
 
+        if self.is_gameover() and self.is_playingscenario():
+            if cw.cwpy.is_battlestatus():
+                if fromevent:
+                    raise cw.event.EffectBreakError()
+                else:
+                    raise cw.battle.BattleDefeatError()
+            else:
+                cw.cwpy.set_gameover()
+                if fromevent:
+                    raise cw.event.ScenarioBadEndError()
+
     def interrupt_adventure(self) -> None:
         """冒険の中断。宿画面に遷移する。"""
         if self.status == "Scenario":
