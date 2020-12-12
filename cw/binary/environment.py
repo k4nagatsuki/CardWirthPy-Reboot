@@ -274,7 +274,7 @@ class UnusedCard(base.CWBinaryBase):
         self.data.limit = self.uselimit
         path = self.data.create_xml(dpath)
         root = self.get_root()
-        assert isinstance(root, Environment)
+        assert root
         yadodb = root.yadodb
         if yadodb:
             yadodb.insert_card(path, commit=False, cardorder=cardorder)

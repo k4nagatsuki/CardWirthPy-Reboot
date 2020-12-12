@@ -140,7 +140,7 @@ class Album(base.CWBinaryBase):
     def create_xml(self, dpath: str) -> str:
         path = base.CWBinaryBase.create_xml(self, dpath)
         root = self.get_root()
-        assert isinstance(root, cw.binary.environment.Environment)
+        assert root
         yadodb = root.yadodb
         if yadodb:
             yadodb.insert_adventurer(path, album=True, commit=False)

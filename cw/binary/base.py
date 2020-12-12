@@ -29,6 +29,8 @@ class CWBinaryBase(object):
         self.name = ""
         self.id = 0
         self.image: Optional[bytes] = None
+        self.dir = ""
+        self.imgdir = ""
 
         if parent:
             self.yadodata: Union[Optional[CWBinaryBase], bool] = parent.yadodata
@@ -48,24 +50,24 @@ class CWBinaryBase(object):
 
     def set_dir(self, path: str) -> None:
         root = self.get_root()
-        assert isinstance(root, cw.binary.cwscenario.CWScenario)
+        assert root
         root.dir = path
 
     def get_dir(self) -> str:
         root = self.get_root()
-        if isinstance(root, cw.binary.cwscenario.CWScenario):
+        if root:
             return root.dir
         else:
             return ""
 
     def set_imgdir(self, path: str) -> None:
         root = self.get_root()
-        assert isinstance(root, (cw.binary.environment.Environment, cw.binary.cwscenario.CWScenario))
+        assert root
         root.imgdir = path
 
     def get_imgdir(self) -> str:
         root = self.get_root()
-        assert isinstance(root, (cw.binary.environment.Environment, cw.binary.cwscenario.CWScenario))
+        assert root
         return root.imgdir
 
     def get_fname(self) -> str:
