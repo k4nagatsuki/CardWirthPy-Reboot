@@ -96,6 +96,7 @@ class CWFile(object):
     def dword(self) -> int:
         """dwordの値(4byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(4)
+        assert len(raw_data) == 4, len(raw_data)
         value: int = struct.unpack("<l", raw_data)[0]
         return value
 

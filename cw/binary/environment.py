@@ -26,6 +26,10 @@ class Environment(base.CWBinaryBase):
         else:
             self.dataversion_int = 0
 
+        if 13 <= self.dataversion_int:
+            # CardWirthNext 1.60
+            raise ValueError()
+
         if versiononly:
             return
 
