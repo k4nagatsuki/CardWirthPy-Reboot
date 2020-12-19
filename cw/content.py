@@ -2506,7 +2506,7 @@ class EffectContent(EventContentBase):
                 assert e_effectevent
                 e_effectevent.update_targets()
                 for card in e_effectevent.targets:
-                    assert isinstance(card, cw.character.Character) or isinstance(card, cw.sprite.card.CWPyCard)
+                    assert isinstance(card, (cw.character.Character, cw.sprite.card.CWPyCard))
                     target.append(card)
         else:
             target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
