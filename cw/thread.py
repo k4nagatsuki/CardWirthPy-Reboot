@@ -4188,6 +4188,8 @@ class CWPy(threading.Thread):
                 # 表示が切り替わる場合がある
                 assert self.sdata.data is not None
                 for mcard in self.sdata.sparea_mcards[areaid]:
+                    if not mcard.is_initialized():
+                        mcard.initialize()
                     if (mcard.debug_only and not self.is_debugmode()) or not mcard.is_flagtrue():
                         mcard.hide()
                     else:
