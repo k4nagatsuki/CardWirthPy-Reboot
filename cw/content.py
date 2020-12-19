@@ -2497,7 +2497,8 @@ class EffectContent(EventContentBase):
 
     def action(self) -> int:
         """効果コンテント。"""
-        target: Optional[Union[cw.character.Character, List[Union[cw.character.Character, cw.sprite.card.CWPyCard]], cw.header.CardHeader]]
+        target: Optional[Union[cw.character.Character, List[Union[cw.character.Character, cw.sprite.card.CWPyCard]],
+                               cw.header.CardHeader]]
         if self.targetm == "CardTarget":
             # カードの使用対象(Wsn.2)
             target = []

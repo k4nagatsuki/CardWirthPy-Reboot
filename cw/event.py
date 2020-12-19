@@ -308,7 +308,7 @@ class EventInterface(object):
             self._selectedmember = None
             self.refresh_selectedmembername()
 
-    def get_unselectedmember(self) -> "cw.character.Character":
+    def get_unselectedmember(self) -> Optional["cw.character.Character"]:
         """選択外のPlayerCardインスタンスを返す。"""
         if not self.has_selectedmember():
             return self.get_randommember()
@@ -322,7 +322,7 @@ class EventInterface(object):
             pcards = cw.cwpy.get_pcards("unreversed")
             pcards = [pcard for pcard in pcards if not pcard == selectedmember]
 
-        return cw.cwpy.dice.choice_exists(pcards)
+        return cw.cwpy.dice.choice(pcards)
 
     def get_firstmember(self, mode: str) -> Optional["cw.character.Character"]:
         """先頭のPlayerCardインスタンスを返す。
