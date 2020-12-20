@@ -1406,7 +1406,7 @@ def _get_targetinfo() -> List[str]:
         if ccard.has_coupon("＠効果対象外"):
             assert cw.cwpy.event.effectevent and ccard in cw.cwpy.event.effectevent.coupon_owners
             outoftargets.append(ccard.name)
-    seq = []
+    seq = [][:]
     seq.append("User          : %s" % ", ".join(user))
     seq.append("Event Target  : %s" % ", ".join(eventtarget))
     seq.append("Targets       : %s" % ", ".join(targets))
@@ -1695,8 +1695,7 @@ class CardEvent(Event, Targeting):
             is_menucard = isinstance(target, cw.sprite.card.MenuCard)
             cw.cwpy.event.is_changestate |= not is_menucard and not isinstance(target, cw.character.Player)
 
-            if not is_menucard and\
-                    target.is_unconscious() and\
+            if isinstance(target, cw.character.Character) and target.is_unconscious() and\
                     not (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or
                          eff.has_addablebeast(target) or
                          eff.has_removablebeast(target)):
@@ -1709,7 +1708,7 @@ class CardEvent(Event, Targeting):
                 # 非表示の場合は何もしない
                 clear_params(target)
                 continue
-            if not is_menucard and target.is_vanished():
+            if isinstance(target, cw.character.Character) and target.is_vanished():
                 clear_params(target)
                 continue
 
@@ -1741,6 +1740,7 @@ class CardEvent(Event, Targeting):
 
                     assert isinstance(target, cw.sprite.card.CWPyCard)
                     target.clear_cardtarget()
+                    assert isinstance(target, cw.character.Character)
                     is_dead = target.is_unconscious() or target.is_paralyze()
                     success = eff.apply(target, selectedmember=selectedmember)
                     target.remove_coupon("＠効果対象")
