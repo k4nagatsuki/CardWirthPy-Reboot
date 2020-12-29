@@ -1247,7 +1247,7 @@ def get_scenario(fpath: str) -> Optional[cw.data.ScenarioData]:
     if not t:
         return None
 
-    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {}
+    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {}.copy()
     dbrec["dpath"] = t[0]
     dbrec["type"] = t[1]
     dbrec["fname"] = t[2]
@@ -1263,9 +1263,9 @@ def get_scenario(fpath: str) -> Optional[cw.data.ScenarioData]:
     dbrec["tags"] = t[12]
     dbrec["ctime"] = t[13]
     dbrec["mtime"] = t[14]
-    dbrec["image"] = t[15]
-    dbrec["imgpath"] = t[16]
-    dbrec["wsnversion"] = t[17]
+    dbrec["wsnversion"] = t[15]
+    dbrec["image"] = t[16]
+    dbrec["imgpath"] = t[17]
     imgdbrec: List[Dict[str, Union[int, str, Optional[bytes]]]] = []
     for numorder, (image, info, scale) in enumerate(images):
         imgdbrec.append({

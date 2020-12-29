@@ -2033,7 +2033,7 @@ def enforce_optional_str(value: Union[Optional[str], int, float, bool, Optional[
     if isinstance(value, str):
         return value
     else:
-        assert value is None, str(type(value))
+        assert value is None, str(type(value)) + ":" + str(value)
         return value
 
 
