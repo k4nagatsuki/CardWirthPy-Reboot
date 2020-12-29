@@ -4000,8 +4000,12 @@ class CWPy(_Singleton, threading.Thread):
                         elif cardtarget == "Enemy":
                             targets = self.get_ecards("unreversed")
                         else:
-                            targets = self.get_pcards("unreversed")
-                            targets.extend(self.get_ecards("unreversed"))
+                            if isinstance(owner, cw.character.Enemy):
+                                targets = self.get_ecards("unreversed")[:]
+                                targets.extend(self.get_pcards("unreversed"))
+                            else:
+                                targets = self.get_pcards("unreversed")[:]
+                                targets.extend(self.get_ecards("unreversed"))
 
                         owner.set_action(targets, header)
                         self.clear_specialarea()
