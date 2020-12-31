@@ -5027,7 +5027,6 @@ class CWPy(threading.Thread):
                 self.show_party()
         else:
             # 新規パーティ結成
-            assert self.ydata.party
             self.cardgrp.remove(self.pcards)
             self.pcards = []
             if loadsprites and self.ydata.party:

@@ -1247,7 +1247,7 @@ def get_scenario(fpath: str) -> Optional[cw.data.ScenarioData]:
     if not t:
         return None
 
-    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {}.copy()
+    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {}
     dbrec["dpath"] = t[0]
     dbrec["type"] = t[1]
     dbrec["fname"] = t[2]
