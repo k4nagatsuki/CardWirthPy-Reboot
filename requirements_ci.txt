@@ -2,4 +2,4 @@ lhafile
 pygame
 #pypiwin32
 #pywin32
-wxPython
+#wxPython
