@@ -1,0 +1,21 @@
+image: python:3.8
+
+pipelines:
+  default:
+    - step:
+        name: Setup
+        caches:
+          - pip
+        script:
+          - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - parallel:
+      - step:
+          name: Lint code
+          script:
+            - pip install flake8
+            - flake8 cardwirth.py cw
+      - step:
+          name: Lint types
+          script:
+            - pip install mypy
+            - mypy cardwirth.py
