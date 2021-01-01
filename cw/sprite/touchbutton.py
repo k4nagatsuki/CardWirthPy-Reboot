@@ -7,7 +7,7 @@ import pygame.locals
 import cw
 from . import base
 
-from typing import Callable
+from typing import Callable, Optional
 
 
 class TouchButton(base.SelectableSprite):
@@ -36,7 +36,7 @@ class TouchButton(base.SelectableSprite):
         self.width = width
 
         self.shift_top = cw.s(0)
-        self._shift_start_top = None
+        self._shift_start_top: Optional[int] = None
 
         self.update_scale()
 
@@ -177,13 +177,13 @@ class TouchButton(base.SelectableSprite):
         cw.cwpy.statusbar.hide_touchbuttons()
 
 
-class _PointableTile(TouchButton):
+class PointableTile(TouchButton):
     """
     通常の選択は発生せず、マウスポインタが合った時に
     self.is_pointedがTrueになるタイル。
     """
     def __init__(self, icon: pygame.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
-                 is_enabled: Callable[[], bool], width: bool = 0) -> None:
+                 is_enabled: Callable[[], bool], width: int = 0) -> None:
         TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
     def update_selection(self) -> None:
@@ -209,7 +209,7 @@ class _PointableTile(TouchButton):
     def is_selection(self) -> bool:
         # 通常の衝突判定
         if 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
-                self.rect.collidepoint(cw.cwpy.mousepos):
+                self.rect.collidepoint(*cw.cwpy.mousepos):
             return True
         return False
 
@@ -219,12 +219,10 @@ def _calc_singlelinetileheight() -> int:
     タイルの縦幅を普通のタイルに合わせて計算する。
     """
     font = cw.cwpy.rsrc.fonts["sbardesc"]
-    tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
     spy = cw.s(4)
     th = spy*2
     # 表題
     th += cw.s(3)
-    fh = tfont.size("#")[1]
     h = font.get_height()
     th += h
     # 本文
@@ -232,12 +230,12 @@ def _calc_singlelinetileheight() -> int:
     return th
 
 
-class SwitchSpriteTile(_PointableTile):
+class SwitchSpriteTile(PointableTile):
     """
     画面上のスプライトを順番に選択するタイル。
     """
     def __init__(self, icon: pygame.Surface, move_count: int, width: int = 0) -> None:
-        _PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
+        PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
         self.move_count = move_count
 
     def update_scale(self) -> None:
@@ -274,13 +272,13 @@ class SwitchSpriteTile(_PointableTile):
             cw.cwpy.statusbar.update_tiles()
 
 
-class SimplePointableTile(_PointableTile):
+class SimplePointableTile(PointableTile):
     """
     選択されたスプライトのクリックイベントを発生させるタイル。
     """
     def __init__(self, icon: pygame.Surface, name: str, func: Callable[[], None], is_enabled: Callable[[], bool],
                  width: int = 0) -> None:
-        _PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
+        PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
 
     def update_scale(self) -> None:
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]

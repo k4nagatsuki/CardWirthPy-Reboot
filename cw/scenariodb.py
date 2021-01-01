@@ -329,10 +329,10 @@ class Scenariodb(object):
 
         if commit:
             self.con.commit()
-        dbpaths = set(dbpaths)
+        dbpaths_s = set(dbpaths)
 
         for path in get_scenariopaths(dpath):
-            if path not in dbpaths:
+            if path not in dbpaths_s:
                 self._insert_scenario(path, False, skintype=skintype)
 
         if commit:
@@ -389,8 +389,9 @@ class Scenariodb(object):
             self.con.commit()
 
     def insert(self, t: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
-                              bytes, Optional[str]],
-               images: List[Tuple[bytes, "cw.image.ImageInfo", int]], commit: bool = True, skintype: str = "") -> None:
+                              Optional[bytes], Optional[str]],
+               images: List[Tuple[Optional[bytes], "cw.image.ImageInfo", int]], commit: bool = True,
+               skintype: str = "") -> None:
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
                     levelmin, levelmax, coupons, couponsnum,
@@ -449,17 +450,7 @@ class Scenariodb(object):
         if t:
             self.insert(t, images, commit, skintype=skintype)
             return True
-        elif path.startswith("Scenario"):
-            # 登録できなかったファイルを移動
-            # (Scenarioフォルダ内のみ)
-            # dname = "UnregisteredScenario"
-
-            # if not os.path.isdir(dname):
-            #     os.makedirs(dname)
-
-            # dst = cw.util.join_paths(dname, os.path.basename(path))
-            # dst = cw.util.dupcheck_plus(dst, False)
-            # shutil.move(path, dst)
+        else:
             return False
 
     def create_header(self, data: Optional[sqlite3.Row], skintype: str = "",
@@ -486,7 +477,7 @@ class Scenariodb(object):
                 ORDER BY
                     numorder
             """
-            imgdbrec = self.cur.execute(s, (data["dpath"], data["fname"],))
+            imgdbrec: Optional[sqlite3.Cursor] = self.cur.execute(s, (data["dpath"], data["fname"],))
         else:
             imgdbrec = None
 
@@ -498,15 +489,16 @@ class Scenariodb(object):
         ltarg = cw.util.get_linktarget(path)
 
         if not os.path.isfile(ltarg):
-            def func(spath: str, header: cw.header.ScenarioHeader) -> cw.header.ScenarioHeader:
+            def func(spath: str, header: cw.header.ScenarioHeader) -> Optional[cw.header.ScenarioHeader]:
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
                     cs, images = read_summary(path)
                     if cs:
                         self.insert(cs, images, True, skintype=skintype)
                         # 更新後の情報を取得
-                        header = self._search_path(path, skintype=skintype)
-                        return header
+                        return self._search_path(path, skintype=skintype)
+                    else:
+                        return None
                 else:
                     # 更新は不要
                     return header
@@ -522,7 +514,7 @@ class Scenariodb(object):
         elif os.path.getmtime(ltarg) > header.mtime:
             if self._insert_scenario(path):
                 # 更新後の情報を取得
-                header = self._search_path(path, skintype=skintype)
+                return self._search_path(path, skintype=skintype)
             else:
                 return None
 
@@ -716,7 +708,7 @@ class Scenariodb(object):
     @synclock(_lock)
     def find_headers(self, ftypes: Iterable[int], value: str, skintype: str = "") -> List["cw.header.ScenarioHeader"]:
         where = []
-        values = []
+        values: List[Union[str, int]] = []
 
         def encode_like(value: str) -> str:
             value2 = value.replace("\\", "\\\\")
@@ -737,7 +729,8 @@ class Scenariodb(object):
                 values.append(encode_like(value))
             elif ftype == DATA_LEVEL:
                 try:
-                    intv = int(value)
+                    intv: Optional[int] = int(value)
+                    assert intv is not None
                     where.append("levelmin <= ? AND ? <= levelmax")
                     values.append(intv)
                     values.append(intv)
@@ -749,7 +742,7 @@ class Scenariodb(object):
             else:
                 raise Exception()
 
-        where = "(" + ") OR (".join(where) + ")"
+        where_str = "(" + ") OR (".join(where) + ")"
 
         if skintype:
             s = "SELECT" + \
@@ -773,9 +766,10 @@ class Scenariodb(object):
                 "     A.wsnversion" + \
                 " FROM scenariodb A LEFT JOIN scenariotype B" + \
                 " ON A.dpath=B.dpath AND A.fname=B.fname" + \
-                " WHERE (" + where + ")" \
-                                     "     AND (B.skintype=? OR B.skintype IS NULL)"
-            values = tuple(values) + (skintype,)
+                " WHERE (" + where_str + ")" + \
+                "     AND (B.skintype=? OR B.skintype IS NULL)"
+            values_t = tuple(values) + (skintype,)
+            self.cur.execute(s, values_t)
         else:
             s = "SELECT" + \
                 "     A.dpath," + \
@@ -796,10 +790,10 @@ class Scenariodb(object):
                 "     A.image," + \
                 "     A.imgpath," + \
                 "     A.wsnversion" + \
-                " FROM scenariodb A WHERE (" + where + ")"
-            values = tuple(values) + ()
+                " FROM scenariodb A WHERE (" + where_str + ")"
+            values_t2 = tuple(values)
+            self.cur.execute(s, values_t2)
 
-        self.cur.execute(s, values)
         data = self.cur.fetchall()
         # 検索ではスキン情報は更新しない
         headers, _names = self.create_headers(data, skintype="")
@@ -824,8 +818,8 @@ class Scenariodb(object):
         return self.sort_headers(seq)
 
     @synclock(_lock)
-    def find_scenario(self, name: str, author: str, skintype: str, ignore_dpath: Optional[str] = None,
-                      ignore_fname: Optional[str] = None) -> List["cw.header.ScenarioHeader"]:
+    def find_scenario(self, name: str, author: str, skintype: str, ignore_dpath: str = "",
+                      ignore_fname: str = "") -> List["cw.header.ScenarioHeader"]:
         """
         シナリオ名と作者名からシナリオDBを検索する。
         ただしファイルパスがignore_dpathとignore_fnameにマッチするシナリオは無視する。
@@ -899,8 +893,8 @@ def find_alldirectories(dpath: str, is_cancel: Optional[Callable[[], bool]] = No
     ディレクトリの一覧を取得する。
     シナリオのディレクトリ自体は除外される。
     """
-    result = set()
-    exclude = set()
+    result: Set[str] = set()
+    exclude: Set[str] = set()
     _find_alldirectories(dpath, result, exclude, is_cancel)
     return result
 
@@ -942,15 +936,17 @@ def is_scenario(path: str) -> bool:
 
 
 def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str, str, str, int, int, str, int, int,
-                                                        str, float, float, str, bytes, Optional[str]]],
-                                         List[Tuple[bytes, "cw.image.ImageInfo", int]]]:
-    def imgbufs_to_result(summaryinfos: List[Union[str, int, float]],
+                                                        str, float, float, str, Optional[bytes], Optional[str]]],
+                                         List[Tuple[Optional[bytes], "cw.image.ImageInfo", int]]]:
+    def imgbufs_to_result(summaryinfos: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float,
+                                              float, str],
                           imgbufs: List[Tuple[Optional[bytes], cw.image.ImageInfo, int]])\
-            -> Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str, bytes,
-                     Optional[str]]:
+            -> Tuple[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                           Optional[bytes], Optional[str]],
+                     List[Tuple[Optional[bytes], cw.image.ImageInfo, int]]]:
         if len(imgbufs) == 0:
-            imgbuf = ""
-            imgpath = None
+            imgbuf: Optional[bytes] = None
+            imgpath: Optional[str] = None
         elif len(imgbufs) == 1 and imgbufs[0][1].postype == "Default" and imgbufs[0][2] == 1:
             imgbuf = imgbufs[0][0]
             imgpath = imgbufs[0][1].path
@@ -958,9 +954,7 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
         else:
             imgbuf = None
             imgpath = None
-        summaryinfos.append(imgbuf)
-        summaryinfos.append(imgpath)
-        return tuple(summaryinfos), imgbufs
+        return summaryinfos + (imgbuf, imgpath), imgbufs
 
     path = cw.util.get_linktarget(basepath)
     if os.path.isdir(path):
@@ -975,11 +969,11 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
 
             spath = cw.util.join_paths(path, "Summary.xml")
             if os.path.isfile(spath):
-                rootattrs = {}
+                rootattrs: Dict[str, str] = {}
                 e = cw.data.xml2element(spath, "Property", rootattrs=rootattrs)
                 can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
                 imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, os.path.getmtime(spath), rootattrs)
-                imgbufs = []
+                imgbufs: List[Tuple[Optional[bytes], cw.image.ImageInfo, int]] = []
                 for info in imgpaths:
                     imgpath = cw.util.join_paths(path, info.path)
                     for imgpath, scale in cw.util.get_scaledimagepaths(imgpath, can_loaded_scaledimage):
@@ -1059,9 +1053,9 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
                                     ret = subprocess.call(s, shell=True)
                                     imgpath2 = cw.util.join_paths(dpath, imgpath)
                                     if ret == 0 and os.path.isfile(imgpath2):
-                                        with open(imgpath2, "rb") as f:
-                                            imgbuf = f.read()
-                                            f.close()
+                                        with open(imgpath2, "rb") as ff:
+                                            imgbuf = ff.read()
+                                            ff.close()
                                         imgbufs.append((imgbuf, info, scale))
                                     elif scale == 1:
                                         imgbufs.append((None, info, scale))
@@ -1100,19 +1094,17 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
         name = seq[0]
         if name.lower().endswith(".wsm"):
             fdata = z.read(name)
-            f = cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata))
-            return read_summary_classic(basepath, path, f)
+            with cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata)) as f:
+                summaryinfos_c, imgbufs = read_summary_classic(basepath, path, f)
+                f.close()
+            return summaryinfos_c, imgbufs
 
         scedir = os.path.dirname(seq2[0])
         scedir = cw.util.decode_zipname(scedir)
         fdata = z.read(name)
-        f = io.BytesIO(fdata)
-
-        try:
+        with io.BytesIO(fdata) as bytesio:
             rootattrs = {}
-            e = cw.data.xml2element(path, "Property", stream=f, rootattrs=rootattrs)
-        finally:
-            f.close()
+            e = cw.data.xml2element(path, "Property", stream=bytesio, rootattrs=rootattrs)
 
         imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, os.path.getmtime(path), rootattrs)
         can_loaded_scaledimage = cw.util.str2bool(rootattrs.get("scaledimage", "False"))
@@ -1144,7 +1136,9 @@ def read_summary(basepath: str) -> Tuple[Optional[Tuple[str, int, str, str, str,
 
 
 def parse_summarydata(basepath: str, data: cw.data.CWPyElement, scetype: int, mtime: float,
-                      rootattrs: Dict[str, str]) -> Tuple[List["cw.image.ImageInfo"], List[Union[str, int, float]]]:
+                      rootattrs: Dict[str, str]) -> Tuple[List["cw.image.ImageInfo"],
+                                                          Tuple[str, int, str, str, str, str, str, int, int, str, int,
+                                                                int, str, float, float, str]]:
     wsnversion = rootattrs.get("dataVersion", "")
     imgpaths = []
     e = data.find("ImagePath")
@@ -1158,38 +1152,30 @@ def parse_summarydata(basepath: str, data: cw.data.CWPyElement, scetype: int, mt
             e2text = cw.util.validate_filepath(e2.text)
             if e2.tag == "ImagePath" and e2text:
                 imgpaths.append(cw.image.ImageInfo(path=e2text, postype=e2.getattr(".", "positiontype", "Default")))
-    e = data.find("Name")
-    name = e.text or ""
-    e = data.find("Author")
-    author = e.text or ""
-    e = data.find("Description")
-    desc = e.text or ""
+    name = data.gettext("Name")
+    author = data.gettext("Author")
+    desc = data.gettext("Description")
     desc = cw.util.txtwrap(desc, 4)
-    e = data.find("Type")
-    skintype = e.text or ""
-    e = data.find("Level")
-    levelmin = int(e.get("min", 0))
-    levelmax = int(e.get("max", 0))
-    e = data.find("RequiredCoupons")
-    coupons = e.text or ""
+    skintype = data.gettext("Type")
+    levelmin = data.getint("Level", "min", 0)
+    levelmax = data.getint("Level", "max", 0)
+    coupons = data.gettext("RequiredCoupons", "")
     coupons = cw.util.decodewrap(coupons)
-    couponsnum = int(e.get("number", 0))
-    e = data.find("StartAreaId")
-    startid = int(e.text) if e.text else 0
-    e = data.find("Tags")
-    tags = e.text or ""
+    couponsnum = data.getint("RequiredCoupons", "number", 0)
+    startid = data.getint("StartAreaId", 0)
+    tags = data.gettext("Tags", "")
     tags = cw.util.decodewrap(tags)
     ctime = time.time()
     dpath, fname = os.path.split(basepath)
-    return (imgpaths, [dpath, scetype, fname, name, author, desc, skintype, levelmin,
-                       levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion])
+    return (imgpaths, (dpath, scetype, fname, name, author, desc, skintype, levelmin,
+                       levelmax, coupons, couponsnum, startid, tags, ctime, mtime, wsnversion))
 
 
 def read_summary_classic(basepath: str, spath: str,
                          f: Optional[cw.binary.cwfile.CWFile] = None)\
         -> Tuple[Optional[Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
-                                bytes, Optional[str]]],
-                 List[Tuple[bytes, "cw.image.ImageInfo", int]]]:
+                                Optional[bytes], Optional[str]]],
+                 List[Tuple[Optional[bytes], "cw.image.ImageInfo", int]]]:
     try:
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
@@ -1204,7 +1190,8 @@ def read_summary_classic(basepath: str, spath: str,
         cw.util.print_ex()
         return None, []
 
-    summaryinfos = [
+    summaryinfos: Tuple[str, int, str, str, str, str, str, int, int, str, int, int, str, float, float, str,
+                        Optional[bytes], Optional[str]] = (
         os.path.dirname(basepath),
         TYPE_CLASSIC,
         os.path.basename(basepath),
@@ -1220,11 +1207,11 @@ def read_summary_classic(basepath: str, spath: str,
         s.tags,
         ctime,
         mtime,
-        ""
-    ][:]
-    summaryinfos.append(imgbuf)
-    summaryinfos.append(None)
-    return tuple(summaryinfos), []
+        "",
+        imgbuf,
+        None
+    )
+    return summaryinfos, []
 
 
 def get_scenariopaths(path: str) -> Iterator[str]:
@@ -1250,7 +1237,7 @@ def get_scenariopaths(path: str) -> Iterator[str]:
                 yield fname
 
 
-def get_scenario(fpath: str) -> cw.data.ScenarioData:
+def get_scenario(fpath: str) -> Optional[cw.data.ScenarioData]:
     """fpathのシナリオのデータを生成して返す。"""
     lfpath = fpath.lower()
     if lfpath.endswith(".wsm") or lfpath.endswith(".xml"):
@@ -1260,7 +1247,7 @@ def get_scenario(fpath: str) -> cw.data.ScenarioData:
     if not t:
         return None
 
-    dbrec = {}.copy()
+    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {}
     dbrec["dpath"] = t[0]
     dbrec["type"] = t[1]
     dbrec["fname"] = t[2]
@@ -1276,10 +1263,10 @@ def get_scenario(fpath: str) -> cw.data.ScenarioData:
     dbrec["tags"] = t[12]
     dbrec["ctime"] = t[13]
     dbrec["mtime"] = t[14]
-    dbrec["image"] = t[15]
-    dbrec["imgpath"] = t[16]
-    dbrec["wsnversion"] = t[17]
-    imgdbrec = []
+    dbrec["wsnversion"] = t[15]
+    dbrec["image"] = t[16]
+    dbrec["imgpath"] = t[17]
+    imgdbrec: List[Dict[str, Union[int, str, Optional[bytes]]]] = []
     for numorder, (image, info, scale) in enumerate(images):
         imgdbrec.append({
             "scale": scale,

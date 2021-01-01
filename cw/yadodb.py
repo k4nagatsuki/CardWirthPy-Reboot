@@ -9,8 +9,7 @@ import time
 import cw
 from cw.util import synclock
 
-import typing
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 
 _lock = threading.Lock()
@@ -459,10 +458,14 @@ class YadoDB(object):
                 self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self, cards: bool = True, adventurers: bool = True, parties: bool = True,
-               cardorder: Optional[Dict[str, int]] = None, adventurerorder: Optional[Dict[str, int]] = None,
-               partyorder: Optional[Dict[str, int]] = None, partyrecord: bool = True,
-               savedjpdcimage: bool = True) -> None:
+    def update(self, cards: Union[Dict[str, "cw.header.CardHeader"], bool] = True,
+               adventurers: Union[Dict[str, "cw.header.AdventurerHeader"], bool] = True,
+               parties: Union[Dict[str, "cw.header.PartyHeader"], bool] = True,
+               cardorder: Optional[Dict[str, int]] = None,
+               adventurerorder: Optional[Dict[str, int]] = None,
+               partyorder: Optional[Dict[str, int]] = None,
+               partyrecord: Union[Dict[str, "cw.header.PartyRecordHeader"], bool] = True,
+               savedjpdcimage: Union[Dict[str, "cw.header.SavedJPDCImageHeader"], bool] = True) -> None:
         """データベースを更新する。"""
         cw.fsync.sync()
 
@@ -473,15 +476,16 @@ class YadoDB(object):
         if partyorder is None:
             partyorder = {}
 
+        HeaderType = TypeVar("HeaderType", cw.header.AdventurerHeader, cw.header.PartyHeader, cw.header.CardHeader,
+                             cw.header.PartyRecordHeader, cw.header.SavedJPDCImageHeader)
+        InsertArgs = TypeVar("InsertArgs")
+
         def walk(dpath: str,
-                 headertable: Union[bool, Dict[str, Union[cw.header.AdventurerHeader, cw.header.PartyHeader,
-                                                          cw.header.CardHeader, cw.header.PartyRecordHeader,
-                                                          cw.header.SavedJPDCImageHeader]]],
-                 xmlname: str, insert: Callable[[str, typing.Any], None],
-                 insertheader: Callable[[Union[cw.header.AdventurerHeader, cw.header.PartyHeader,
-                                               cw.header.CardHeader, cw.header.PartyRecordHeader,
-                                               cw.header.SavedJPDCImageHeader], typing.Any], None],
-                 *args) -> None:
+                 headertable: Union[bool, Dict[str, HeaderType]],
+                 xmlname: str,
+                 insert: Callable[[str, InsertArgs], None],
+                 insertheader: Callable[[HeaderType, InsertArgs], None],
+                 *args: InsertArgs) -> None:
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):
                 for fname in os.listdir(dname):
@@ -495,7 +499,8 @@ class YadoDB(object):
                         path = cw.util.join_paths(dpath, fname)
                     if path not in dbpaths:
                         if isinstance(headertable, dict) and path in headertable:
-                            insertheader(headertable[path], *args)
+                            header = headertable[path]
+                            insertheader(header, *args)
                         else:
                             insert(cw.util.join_paths(self.ypath, path), *args)
 
@@ -794,7 +799,7 @@ class YadoDB(object):
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
         if len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default":
-            imgpath = header.imgpaths[0].path
+            imgpath: Optional[str] = header.imgpaths[0].path
         elif not header.imgpaths:
             imgpath = ""
         else:
@@ -851,7 +856,7 @@ class YadoDB(object):
             DELETE FROM cardimage WHERE fpath=?
             """
             self.cur.execute(s, (fpath,))
-            for i, imgpath in enumerate(header.imgpaths):
+            for i, info in enumerate(header.imgpaths):
                 s = """
                 INSERT OR REPLACE INTO cardimage (
                     fpath,
@@ -865,11 +870,11 @@ class YadoDB(object):
                     ?
                 )
                 """
-                if imgpath.postype == "Default":
+                if info.postype == "Default":
                     postype = None
                 else:
-                    postype = imgpath.postype
-                self.cur.execute(s, (fpath, i, imgpath.path, postype,))
+                    postype = info.postype
+                self.cur.execute(s, (fpath, i, info.path, postype,))
 
         if commit:
             self.con.commit()
@@ -964,7 +969,7 @@ class YadoDB(object):
                 continue
             paths.add(keypath)
             if rec["imgpath"] is None:
-                imgdbrec = self.cur.execute(s, (fpath,))
+                imgdbrec: Optional[sqlite3.Cursor] = self.cur.execute(s, (fpath,))
             else:
                 imgdbrec = None
             header = cw.header.CardHeader(dbrec=rec, imgdbrec=imgdbrec, dbowner=owner)
@@ -1057,7 +1062,7 @@ class YadoDB(object):
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
         if len(header.imgpaths) == 1 and header.imgpaths[0].postype == "Default":
-            imgpath = header.imgpaths[0].path
+            imgpath: Optional[str] = header.imgpaths[0].path
         elif not header.imgpaths:
             imgpath = ""
         else:
@@ -1103,7 +1108,7 @@ class YadoDB(object):
             DELETE FROM adventurerimage WHERE fpath=?
             """
             self.cur.execute(s, (fpath,))
-            for i, imgpath in enumerate(header.imgpaths):
+            for i, info in enumerate(header.imgpaths):
                 s = """
                 INSERT OR REPLACE INTO adventurerimage (
                     fpath,
@@ -1117,11 +1122,11 @@ class YadoDB(object):
                     ?
                 )
                 """
-                if imgpath.postype == "Default":
+                if info.postype == "Default":
                     postype = None
                 else:
-                    postype = imgpath.postype
-                self.cur.execute(s, (fpath, i, imgpath.path, postype))
+                    postype = info.postype
+                self.cur.execute(s, (fpath, i, info.path, postype))
 
         if commit:
             self.con.commit()
@@ -1141,7 +1146,7 @@ class YadoDB(object):
     def get_adventurers(self, album: bool) -> List["cw.header.AdventurerHeader"]:
         if album:
             s = "SELECT * FROM adventurer WHERE album=? ORDER BY name"
-            album = 1
+            album_int = 1
         else:
             s = """
             SELECT
@@ -1158,8 +1163,8 @@ class YadoDB(object):
                 numorder,
                 name
             """
-            album = 0
-        self.cur.execute(s, (album,))
+            album_int = 0
+        self.cur.execute(s, (album_int,))
         headers = []
 
         s = """
@@ -1183,7 +1188,7 @@ class YadoDB(object):
                 continue
             paths.add(keypath)
             if rec["imgpath"] is None:
-                imgdbrec = self.cur.execute(s, (fpath,))
+                imgdbrec: Optional[sqlite3.Cursor] = self.cur.execute(s, (fpath,))
             else:
                 imgdbrec = None
             header = cw.header.AdventurerHeader(dbrec=rec, imgdbrec=imgdbrec)

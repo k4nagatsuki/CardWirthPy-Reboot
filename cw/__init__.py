@@ -45,7 +45,13 @@ from . import sprite
 from . import argparser
 from . import nctype
 
-from typing import List, Optional, Tuple, Union
+__all__ = ["util", "battle", "yadodb", "data", "dice", "effectmotion", "event", "eventhandler", "eventrelay",
+           "features", "scenariodb", "setting", "skin", "animation", "thread", "header", "image", "imageretouch",
+           "frame", "deck", "character", "effectbooster", "content", "xmlcreater", "bassplayer", "binary", "advlog",
+           "update", "calculator", "dialog", "debug", "sprite", "argparser", "nctype"]
+
+import typing
+from typing import List, Tuple, TypeVar
 
 # 実行ファイルのパス
 exepath = ""
@@ -58,7 +64,7 @@ else:
     filesystem_encoding = sys.getfilesystemencoding()
 
 # CWPyThread
-cwpy: Optional[thread.CWPy] = None
+cwpy: thread.CWPy = thread.CWPy()
 
 # ファイル出力スレッド
 fsync = util.FileSync()
@@ -102,7 +108,7 @@ SCALE_LIST = (2, 4, 8, 16)
 
 # 特殊エリアのID
 AREAS_SP = (-1, -2, -3, -4, -5)
-AREAS_TRADE = (-1, -2, -5)       # カード移動操作エリア
+AREAS_TRADE: Tuple[int, int, int] = (-1, -2, -5)    # カード移動操作エリア
 AREA_TRADE1 = -1                 # カード移動操作エリア(宿・パーティなし時)
 AREA_TRADE2 = -2                 # カード移動操作エリア(宿・パーティロード中時)
 AREA_TRADE3 = -5                 # カード移動操作エリア(キャンプエリア)
@@ -193,13 +199,13 @@ LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0)  # ログのスクロールバー
 LAYER_CLICKABLE_SPRITES = 0  # topgrpに表示されるClickableSprite
 
 # ゲーム画面構築の拡大率
-UP_SCR = 1
+UP_SCR = 1.0
 # ダイアログ描画時の拡大率(UP_SCRが1の時の値)
-UP_WIN = 1
+UP_WIN = 1.0
 # ゲーム画面の拡大率
 # フルスクリーン時にはダイアログを若干小さく表示するため、
 # UP_WINとは異なる値になる
-UP_WIN_M = 1
+UP_WIN_M = 1.0
 
 # wxPythonでイメージをスムージングしつつサイズ変更する際に用いるフラグ
 RESCALE_QUALITY = wx.IMAGE_QUALITY_BILINEAR
@@ -234,57 +240,35 @@ _argparser.add_argument("--force-skin", argtype=str, nargs=1, default="", metava
 _argparser.add_argument("--debug-skin", argtype=bool, nargs=0,
                         helptext="スキンデバッグモードで起動します。")
 
-OPTIONS = _argparser.parse_args(sys.argv[1:])
-if OPTIONS.help:
+_options = _argparser.parse_args(sys.argv[1:])
+if not _options or _options.getbool("help"):
     _argparser.print_help()
     sys.exit(0)
 
-if OPTIONS.force_skin:
-    OPTIONS.skin = OPTIONS.force_skin
+OPTIONS = _options
+
+if OPTIONS.getstr("force_skin"):
+    OPTIONS.setstr("skin", OPTIONS.getstr("force_skin"))
 
 # 起動オプション(スキン自動生成元)
 SKIN_CONV_ARGS: List[str] = []
 for arg in OPTIONS.leftovers:
-    if os.path.isfile(arg) and os.path.splitext(arg)[1].lower() == ".exe":
+    if os.path.isfile(arg) and util.splitext(arg)[1].lower() == ".exe":
         SKIN_CONV_ARGS.append(arg)
         sys.argv.remove(arg)
 
 
-def wins(num: Union[wx.Bitmap,
-                    wx.Image,
-                    pygame.Surface,
-                    pygame.Rect,
-                    Tuple[int, int],
-                    Tuple[int, int, int, int],
-                    int,
-                    float]) -> Union[wx.Bitmap,
-                                     wx.Image,
-                                     pygame.Surface,
-                                     pygame.Rect,
-                                     Tuple[int, int],
-                                     Tuple[int, int, int, int],
-                                     int,
-                                     float]:
+Scalable = TypeVar("Scalable", wx.Bitmap, wx.Image, pygame.Surface, pygame.Rect, Tuple[int, int],
+                   Tuple[int, int, int, int], int, float)
+
+
+def wins(num: Scalable) -> Scalable:
     """numを実際の表示サイズに変換する。
     """
     return _s_impl(num, UP_WIN)
 
 
-def s(num: Union[wx.Bitmap,
-                 wx.Image,
-                 pygame.Surface,
-                 pygame.Rect,
-                 Tuple[int, int],
-                 Tuple[int, int, int, int],
-                 int,
-                 float]) -> Union[wx.Bitmap,
-                                  wx.Image,
-                                  pygame.Surface,
-                                  pygame.Rect,
-                                  Tuple[int, int],
-                                  Tuple[int, int, int, int],
-                                  int,
-                                  float]:
+def s(num: Scalable) -> Scalable:
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
          or pygame.Surface or pygame.Bitmap or pygame.Image
@@ -292,125 +276,45 @@ def s(num: Union[wx.Bitmap,
     return _s_impl(num, UP_SCR)
 
 
-def scr2win_s(num: Union[wx.Bitmap,
-                         wx.Image,
-                         pygame.Surface,
-                         pygame.Rect,
-                         Tuple[int, int],
-                         Tuple[int, int, int, int],
-                         int,
-                         float]) -> Union[wx.Bitmap,
-                                          wx.Image,
-                                          pygame.Surface,
-                                          pygame.Rect,
-                                          Tuple[int, int],
-                                          Tuple[int, int, int, int],
-                                          int,
-                                          float]:
+def scr2win_s(num: Scalable) -> Scalable:
     """numを描画サイズから表示サイズに変換する。
     """
     if UP_WIN == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_WIN) / UP_SCR)
 
 
-def win2scr_s(num: Union[wx.Bitmap,
-                         wx.Image,
-                         pygame.Surface,
-                         pygame.Rect,
-                         Tuple[int, int],
-                         Tuple[int, int, int, int],
-                         int,
-                         float]) -> Union[wx.Bitmap,
-                                          wx.Image,
-                                          pygame.Surface,
-                                          pygame.Rect,
-                                          Tuple[int, int],
-                                          Tuple[int, int, int, int],
-                                          int,
-                                          float]:
+def win2scr_s(num: Scalable) -> Scalable:
     """numを表示サイズから描画サイズに変換する。
     """
     if UP_WIN == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN)
 
 
-def scr2mwin_s(num: Union[wx.Bitmap,
-                          wx.Image,
-                          pygame.Surface,
-                          pygame.Rect,
-                          Tuple[int, int],
-                          Tuple[int, int, int, int],
-                          int,
-                          float]) -> Union[wx.Bitmap,
-                                           wx.Image,
-                                           pygame.Surface,
-                                           pygame.Rect,
-                                           Tuple[int, int],
-                                           Tuple[int, int, int, int],
-                                           int,
-                                           float]:
+def scr2mwin_s(num: Scalable) -> Scalable:
     """numを描画サイズから表示サイズに変換する。
     """
     if UP_WIN_M == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_WIN_M) / UP_SCR)
 
 
-def mwin2scr_s(num: Union[wx.Bitmap,
-                          wx.Image,
-                          pygame.Surface,
-                          pygame.Rect,
-                          Tuple[int, int],
-                          Tuple[int, int, int, int],
-                          int,
-                          float]) -> Union[wx.Bitmap,
-                                           wx.Image,
-                                           pygame.Surface,
-                                           pygame.Rect,
-                                           Tuple[int, int],
-                                           Tuple[int, int, int, int],
-                                           int,
-                                           float]:
+def mwin2scr_s(num: Scalable) -> Scalable:
     """numを表示サイズから描画サイズに変換する。
     """
     if UP_WIN_M == UP_SCR:
-        return _s_impl(num, 1)
+        return _s_impl(num, 1.0)
     else:
         return _s_impl(num, float(UP_SCR) / UP_WIN_M)
 
 
-def _s_impl(num: Union[wx.Bitmap,
-                       wx.Image,
-                       pygame.Surface,
-                       pygame.Rect,
-                       Tuple[int, int],
-                       Tuple[int, int, int, int],
-                       int,
-                       float],
-            up_scr: Union[int, float]) -> Union[wx.Bitmap,
-                                                wx.Image,
-                                                pygame.Surface,
-                                                pygame.Rect,
-                                                Tuple[int, int],
-                                                Tuple[int, int, int, int],
-                                                int,
-                                                float]:
-    if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
-        # スケール情報無し
-        return _s_impl(num[:2], up_scr)
-
-    if up_scr == 1 and not (isinstance(num, tuple) and len(num) == 3):
-        # 拡大率が1倍で、スケール情報も無い
-        if isinstance(num, tuple) and len(num) == 2:
-            if isinstance(num[0], pygame.Surface) or isinstance(num[0], wx.Bitmap) or isinstance(num[0], wx.Image):
-                # 画像はそのままのサイズで表示
-                return num[0]
-        # 座標等はそのまま返す
+def _s_impl(num: Scalable, up_scr: float) -> Scalable:
+    if up_scr == 1.0:
+        # 拡大率が1倍なのでそのまま返す
         return num
 
     if isinstance(num, int) or isinstance(num, float):
@@ -419,60 +323,45 @@ def _s_impl(num: Union[wx.Bitmap,
 
     elif isinstance(num, pygame.Rect):
         # pygameの矩形情報
-        x = int(num.x * up_scr)
-        y = int(num.y * up_scr)
-        w = int(num.width * up_scr)
-        h = int(num.height * up_scr)
-        return pygame.Rect(x, y, w, h)
+        rect: pygame.Rect = num
+        x = int(rect.x * up_scr)
+        y = int(rect.y * up_scr)
+        w = int(rect.width * up_scr)
+        h = int(rect.height * up_scr)
+        # BUG: error: Returning Any from function declared to return "Tuple[int, int]"
+        #      error: Returning Any from function declared to return "Tuple[int, int, int, int]"
+        #      (mypy 0.790)
+        return typing.cast(Scalable, pygame.Rect(x, y, w, h))
 
     elif isinstance(num, tuple):
-        if isinstance(num[0], pygame.Surface):
-            assert False
-            bmp = num[0]
-            if bmp.get_width() <= 0 or bmp.get_width() <= 0:
-                return bmp
-            return _s_impl(bmp, up_scr)
-        elif isinstance(num[0], wx.Image):
-            assert False
-            img = num[0]
-            if img.GetWidth() <= 0 or img.GetHeight() <= 0:
-                return img
-            return _s_impl(img, up_scr)
-        elif isinstance(num[0], wx.Bitmap):
-            assert False
-            bmp = num[0]
-            bmpdepthis1 = hasattr(bmp, "bmpdepthis1")
-            maskcolour = bmp.maskcolour if hasattr(bmp, "maskcolour") else None
-            scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-            up_scr /= scr_scale
-            if up_scr == 1:
-                return bmp
-            if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
-                return bmp
-            # wx.Bitmap
-            if bmpdepthis1:
-                img = util.convert_to_image(bmp)
-            else:
-                img = bmp.ConvertToImage()
-            result = _s_impl((img, num[1]), up_scr).ConvertToBitmap()
-            if bmpdepthis1:
-                result.bmpdepthis1 = bmpdepthis1
-            if maskcolour:
-                result.maskcolour = maskcolour
-            return result
-
-        elif len(num) == 4:
+        if len(num) == 4:
             # 矩形
-            x = int(num[0] * up_scr)
-            y = int(num[1] * up_scr)
-            w = int(num[2] * up_scr)
-            h = int(num[3] * up_scr)
-            return (x, y, w, h)
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.790)
+            #      Tuple index out of range
+            t: Tuple[int, ...] = num
+            t4 = typing.cast(Tuple[int, int, int, int], t)
+            x = int(t4[0] * up_scr)
+            y = int(t4[1] * up_scr)
+            w = int(t4[2] * up_scr)
+            h = int(t4[3] * up_scr)
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.790)
+            #      Incompatible return value type (got "Tuple[int, int, int, int]", expecte "Tuple[int, int]")
+            # return (x, y, w, h)
+            # BUG: Redundant cast to "Tuple[int, int, int, int]" (mypy 0.790)
+            # return typing.cast(Scalable, (x, y, w, h))
+            return typing.cast(Scalable, typing.cast(Tuple[int, ...], (x, y, w, h)))
         elif len(num) == 2:
             # 座標
             x = int(num[0] * up_scr)
             y = int(num[1] * up_scr)
-            return (x, y)
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同され以下の警告が発生する(mypy 0.790)
+            #      Incompatible return value type (got "Tuple[int, int]", expected "Tuple[it, int, int, int]")
+            # return (x, y)
+            # BUG: Redundant cast to "Tuple[int, int]" (mypy 0.790)
+            # return typing.cast(Scalable, (x, y))
+            return typing.cast(Scalable, typing.cast(Tuple[int, ...], (x, y)))
+        else:
+            assert False
 
     elif isinstance(num, pygame.Surface):
         # スケール情報の無いpygame.Surface(単純拡大)
@@ -481,18 +370,18 @@ def _s_impl(num: Union[wx.Bitmap,
         up_scr /= scr_scale
         if up_scr == 1:
             return num
-        num: pygame.Surface = num
-        w = int(num.get_width() * up_scr)
-        h = int(num.get_height() * up_scr)
+        bmp: pygame.Surface = num
+        w = int(bmp.get_width() * up_scr)
+        h = int(bmp.get_height() * up_scr)
         if w <= 0 or h <= 0:
-            return num
+            return bmp
         size = (w, h)
         if up_scr % 1 == 0:
-            result = pygame.transform.scale(num, size)
+            result = pygame.transform.scale(bmp, size)
         else:
-            if not (num.get_flags() & pygame.locals.SRCALPHA) and num.get_colorkey():
-                num = num.convert_alpha()
-            result = image.smoothscale(num, size)
+            if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
+                bmp = bmp.convert_alpha()
+            result = image.smoothscale(bmp, size)
         if isinstance(bmp0, util.Depth1Surface):
             result = util.Depth1Surface(result, scr_scale)
             result.bmpdepthis1 = bmp0.bmpdepthis1
@@ -539,11 +428,11 @@ def _s_impl(num: Union[wx.Bitmap,
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
-        bmp = num
+        wxbmp = num
         if bmpdepthis1:
-            img = util.convert_to_image(bmp)
+            img = util.convert_to_image(wxbmp)
         else:
-            img = bmp.ConvertToImage()
+            img = wxbmp.ConvertToImage()
         img = _s_impl(img, up_scr)
         result = img.ConvertToBitmap()
 
@@ -556,28 +445,12 @@ def _s_impl(num: Union[wx.Bitmap,
     else:
         assert False, str(num)
 
-    return num
-
 
 dpi_level = 1
 
 
-def ppis(num: Union[wx.Bitmap,
-                    wx.Image,
-                    pygame.Surface,
-                    pygame.Rect,
-                    Tuple[int, int],
-                    Tuple[int, int, int, int],
-                    int,
-                    float]) -> Union[wx.Bitmap,
-                                     wx.Image,
-                                     pygame.Surface,
-                                     pygame.Rect,
-                                     Tuple[int, int],
-                                     Tuple[int, int, int, int],
-                                     int,
-                                     float]:
-    return _s_impl(num, dpi_level)
+def ppis(num: Scalable) -> Scalable:
+    return _s_impl(num, float(dpi_level))
 
 
 def main() -> None:

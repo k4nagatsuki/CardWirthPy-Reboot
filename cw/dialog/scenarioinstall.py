@@ -33,6 +33,7 @@ class SelectScenarioDirectory(wx.Dialog):
         self.skintype = skintype
         self.scedir = scedir
         self.path = ""
+        self._textheight = 0
 
         # メッセージ
         self.text = text
@@ -199,8 +200,11 @@ class SelectScenarioDirectory(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         csize = self.GetClientSize()
         btnw = self.createdirbtn.GetSize()[0]
-        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10),
-                                              lambda s: dc.GetTextExtent(s)[0])
+
+        def extent_w(s: str) -> int:
+            width: int = dc.GetTextExtent(s)[0]
+            return width
+        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20)-btnw-cw.wins(10), extent_w)
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnPaint(self, evt: wx.PaintEvent) -> None:
@@ -378,9 +382,9 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
     if not paths:
         return headers, notscenariofiles
 
-    exists = set()
+    exists: Set[Tuple[str, str]] = set()
 
-    if os.path.isfile(paths[0]) and os.path.splitext(paths[0])[1].lower() in (".xml", ".wsm"):
+    if os.path.isfile(paths[0]) and cw.util.splitext(paths[0])[1].lower() in (".xml", ".wsm"):
         paths = [os.path.dirname(paths[0])]
 
     allparent = os.path.dirname(paths[0])
@@ -429,7 +433,7 @@ def to_scenarioheaders(paths: List[str], db: cw.scenariodb.Scenariodb, skintype:
 
             return False
 
-        notscenariofiles2 = {}
+        notscenariofiles2: Dict[Tuple[str, str], List[str]] = {}
         if recurse(allparent, path, notscenariofiles2):
             for key, value in notscenariofiles2.items():
                 s = notscenariofiles.get(key, None)
@@ -469,7 +473,8 @@ def create_dir(parentdialog: ScenarioInstall, dpath: str) -> str:
 
 def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
                      notscenariofiles: Dict[Tuple[str, str], List[str]], scedir: str, dstpath: str,
-                     db: cw.scenariodb.Scenariodb, skintype: str) -> Tuple[None, List[str], List[str], bool]:
+                     db: cw.scenariodb.Scenariodb,
+                     skintype: str) -> Tuple[bool, List[str], List[str], bool]:
     """
     headersをインストールする。
     進捗ダイアログが表示される。
@@ -477,7 +482,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
     dstpath = cw.util.get_linktarget(dstpath)
 
     if not cw.cwpy.setting.install_notscenariofiles:
-        notscenariofiles: Dict[Tuple[str, str], List[str]] = {}
+        notscenariofiles = {}
 
     # インストール済みの情報が見つかったシナリオ
     db_exists: Dict[str, List[cw.header.ScenarioHeader]] = {}
@@ -531,7 +536,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
             self.db_repls = db_repls
             self.num = 0
             self.msg = ""
-            self.failed = None
+            self.failed: Optional[cw.header.ScenarioHeader] = None
             self.updates: Set[str] = set()
             self.paths: List[str] = []
             self.filepaths: List[str] = []
@@ -564,7 +569,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 )
                 dlg2 = message.Message(dlg, cw.cwpy.msgs["message"], s, mode=3, choices=choices)
                 cw.cwpy.frame.move_dlg(dlg2)
-                ret = dlg2.ShowModal()
+                ret: int = dlg2.ShowModal()
                 dlg2.Destroy()
                 if wx.GetKeyState(wx.WXK_SHIFT):
                     allret[0] = ret
@@ -575,6 +580,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 ret = cw.cwpy.frame.sync_exec(func)
             else:
                 ret = allret[0]
+            assert ret is not None
             return ret
 
         def _install(self, parent: str, headers_seq: Iterable[cw.header.ScenarioHeader], dstpath: str,
@@ -668,7 +674,6 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
                 if dlg.cancel:
                     break
                 try:
-                    repl_links = {}
                     rmpaths = []
                     self.msg = "ファイル「%s」をコピーしています..." % (os.path.basename(fpath))
 
@@ -768,7 +773,7 @@ def install_scenario(parentdialog: ScenarioInstall, headers: Dict[Tuple[str, str
         for dpath in thread.updates:
             db.update(dpath, skintype=skintype)
 
-    return thread.failed, thread.paths, thread.filepaths, False
+    return thread.failed is not None, thread.paths, thread.filepaths, False
 
 
 def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
@@ -786,7 +791,10 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
         cw.cwpy.setting.lastscenariopath = dst
 
     for i in range(0, len(cw.cwpy.setting.lastfindresult)):
-        normpath3 = cw.util.get_keypath(cw.cwpy.setting.lastfindresult[i])
+        lastfindresult = cw.cwpy.setting.lastfindresult[i]
+        if not isinstance(lastfindresult, str):
+            continue
+        normpath3 = cw.util.get_keypath(lastfindresult)
         if normpath == normpath3:
             cw.cwpy.setting.lastfindresult[i] = dst
 
@@ -822,8 +830,7 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
 
     # パーティのプレイ中情報
     for header in cw.cwpy.ydata.partys:
-        dpath = os.path.dirname(header.fpath)
-        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
+        wsl = cw.util.splitext(header.fpath)[0] + ".wsl"
         wsl = cw.util.get_yadofilepath(wsl)
         if not os.path.isfile(wsl):
             continue
@@ -839,7 +846,7 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
                 if normpath2 == normpath:
                     cw.cwpy.ydata.changed()
                     etree.edit("Property/WsnPath", dst)
-                    etree.write()
+                    etree.write_file()
 
                     if wsl.startswith(cw.cwpy.yadodir):
                         wsl = wsl.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
@@ -859,10 +866,10 @@ def update_scenariolog(normpath: str, dst: str, dstisfile: bool) -> None:
         cw.cwpy.ydata.recenthistory.update_scenariopath(normpath, dst)
     elif cw.cwpy.ydata.party:
         # カードイメージ
-        for header in cw.cwpy.ydata.party.get_allcardheaders():
-            if not header.scenariocard:
+        for cardheader in cw.cwpy.ydata.party.get_allcardheaders():
+            if not cardheader.scenariocard:
                 continue
-            header.update_scenariopath(normpath, dst)  # 次の表示で再初期化
+            cardheader.update_scenariopath(normpath, dst)  # 次の表示で再初期化
 
     cw.fsync.sync()
 
@@ -892,7 +899,7 @@ class OverwriteScenarioDialog(wx.Dialog):
         self.db_exists = db_exists
         self.scedir = scedir
         self.keys = []
-        self.db_repls = {}
+        self.db_repls: Dict[str, List[str]] = {}
 
         # メッセージ
         if 1 < len(self.db_exists):
@@ -960,7 +967,11 @@ class OverwriteScenarioDialog(wx.Dialog):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         csize = self.GetClientSize()
-        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), lambda s: dc.GetTextExtent(s)[0])
+
+        def extent_w(s: str) -> int:
+            width: int = dc.GetTextExtent(s)[0]
+            return width
+        self._wrapped_text = cw.util.wordwrap(self.text, csize[0]-cw.wins(20), extent_w)
         _w, self._textheight, _lineheight = dc.GetFullMultiLineTextExtent(self._wrapped_text)
 
     def OnOk(self, event: wx.CommandEvent) -> None:
@@ -998,7 +1009,6 @@ class OverwriteScenarioDialog(wx.Dialog):
     def _do_layout(self) -> None:
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
-        csize = self.GetClientSize()
 
         if self.datalist.GetContainingSizer():
             self.datalist.GetContainingSizer().Detach(self.datalist)

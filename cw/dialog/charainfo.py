@@ -10,21 +10,27 @@ import cw
 
 import wx.lib.agw.aui as aui
 
-from typing import Callable, Optional, List, Tuple, Union
+from typing import Callable, Generic, Optional, List, Sequence, Tuple, TypeVar, Union
+
+_T = TypeVar("_T", "cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard",
+             cw.character.Player, cw.character.AlbumPage)
+_N = TypeVar("_N", cw.character.Player, cw.character.AlbumPage)
+_L = TypeVar("_L", "cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard")
+_A = TypeVar("_A", "cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard",
+             cw.character.Player)
 
 
 # ------------------------------------------------------------------------------
 # キャラクター情報ダイアログ　スーパークラス
 # ------------------------------------------------------------------------------
 
-class CharaInfo(wx.Dialog):
+class CharaInfo(wx.Dialog, Generic[_T]):
     """
     キャラクター情報ダイアログ
     """
-    list: List[Union["cw.sprite.card.PlayerCard",
-                     "cw.sprite.card.EnemyCard",
-                     "cw.sprite.card.FriendCard",
-                     cw.header.AdventurerHeader]]
+    list: Union[List[_T], List[cw.header.AdventurerHeader]]
+    index: int
+    ccard: _T
 
     def __init__(self, parent: wx.TopLevelWindow, redrawfunc: Optional[Callable[[], None]], editable: bool,
                  party: Optional[cw.data.Party] = None) -> None:
@@ -68,14 +74,14 @@ class CharaInfo(wx.Dialog):
 
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
-        self.bottompanel = []
+        self.bottompanel: List[wx.Panel] = []
 
         # 解説
-        self.descpanel = DescPanel(self.notebook, self.ccard, editable)
+        self.descpanel: DescPanel[_T] = DescPanel[_T](self.notebook, self.ccard, editable)
         self.bottompanel.append(self.descpanel)
         self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
-        self.historypanel = HistoryPanel(self.notebook, self.ccard, editable)
+        self.historypanel: HistoryPanel[_T] = HistoryPanel[_T](self.notebook, self.ccard, editable)
         self.bottompanel.append(self.historypanel)
         self.notebook.AddPage(self.historypanel,  cw.cwpy.msgs["history"])
         # 編集または状態
@@ -90,6 +96,7 @@ class CharaInfo(wx.Dialog):
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
         # 各種所持カード
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         if self.ccard.data.hasfind("SkillCards"):
             # 技能
             self.skillpanel = SkillPanel(self.notebook, self.ccard)
@@ -347,12 +354,12 @@ class CharaInfo(wx.Dialog):
             # self.ProcessEvent(btnevent)
 
     def OnDebugMode(self, event: wx.CommandEvent) -> None:
-        def func(self: CharaInfo) -> None:
+        def func(self: CharaInfo[_T]) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self: CharaInfo) -> None:
+            def func(self: CharaInfo[_T]) -> None:
                 if not self:
                     return
                 self.update_debug()
@@ -360,6 +367,7 @@ class CharaInfo(wx.Dialog):
         cw.cwpy.exec_func(func, self)
 
     def update_debug(self) -> None:
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         if not self:
             return
         if self.descpanel.IsShown():
@@ -382,10 +390,12 @@ class CharaInfo(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnDestroy(self, event: wx.WindowDestroyEvent) -> None:
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         if isinstance(self, StandbyCharaInfo):
             self.ccard.data.write_xml()
 
     def OnClickLeftBtn(self, event: wx.PyCommandEvent) -> None:
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         if self.index == 0:
             self.index = len(self.list) - 1
         else:
@@ -394,6 +404,7 @@ class CharaInfo(wx.Dialog):
         if isinstance(self, StandbyCharaInfo):
             self.ccard.data.write_xml()
             header = self.list[self.index]
+            assert isinstance(header, cw.header.AdventurerHeader)
             data = cw.data.yadoxml2etree(header.fpath)
 
             if data.getroot().tag == "Album":
@@ -407,7 +418,9 @@ class CharaInfo(wx.Dialog):
                 self.Parent.OnClickLeftBtn(event)
         else:
             cw.cwpy.play_sound("page")
-            self.ccard = self.list[self.index]
+            ccard = self.list[self.index]
+            assert not isinstance(ccard, cw.header.AdventurerHeader)
+            self.ccard = ccard
             self.Parent.change_selection(self.list[self.index])
 
         self.toppanel.ccard = self.ccard
@@ -419,6 +432,7 @@ class CharaInfo(wx.Dialog):
             win.draw(True)
 
     def OnClickRightBtn(self, event: wx.PyCommandEvent) -> None:
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         if self.index == len(self.list) - 1:
             self.index = 0
         else:
@@ -427,6 +441,7 @@ class CharaInfo(wx.Dialog):
         if isinstance(self, StandbyCharaInfo):
             self.ccard.data.write_xml()
             header = self.list[self.index]
+            assert isinstance(header, cw.header.AdventurerHeader)
             data = cw.data.yadoxml2etree(header.fpath)
 
             if data.getroot().tag == "Album":
@@ -440,7 +455,9 @@ class CharaInfo(wx.Dialog):
                 self.Parent.OnClickRightBtn(event)
         else:
             cw.cwpy.play_sound("page")
-            self.ccard = self.list[self.index]
+            ccard = self.list[self.index]
+            assert not isinstance(ccard, cw.header.AdventurerHeader)
+            self.ccard = ccard
             self.Parent.change_selection(self.list[self.index])
 
         self.toppanel.ccard = self.ccard
@@ -498,41 +515,46 @@ class CharaInfo(wx.Dialog):
         self.Layout()
 
 
-class StandbyCharaInfo(CharaInfo):
-    def __init__(self, parent: wx.TopLevelWindow, headers: List[cw.header.AdventurerHeader], index: int,
+class StandbyCharaInfo(CharaInfo[_N], Generic[_N]):
+    def __init__(self, parent: wx.TopLevelWindow, headers: List[cw.header.AdventurerHeader], ccard: _N, index: int,
                  redrawfunc: Callable[[], None], is_playingscenario: bool = False,
                  party: Optional[cw.data.Party] = None) -> None:
-        self.is_playingscenario = is_playingscenario
+        self.is_playingscenario: bool = is_playingscenario
         self.list = headers
         self.index = index
-        header = self.list[self.index]
-        data = cw.data.yadoxml2etree(header.fpath)
-
-        if data.getroot().tag == "Album":
-            self.ccard = cw.character.AlbumPage(data)
+        self.ccard = ccard
+        if isinstance(ccard, cw.character.AlbumPage):
             editable = False
         else:
-            self.ccard = cw.character.Player(data)
+            assert isinstance(ccard, cw.character.Player)
             editable = True
 
         CharaInfo.__init__(self, parent, redrawfunc, editable, party=party)
 
 
-class StandbyPartyCharaInfo(StandbyCharaInfo):
+class StandbyPartyCharaInfo(StandbyCharaInfo[cw.character.Player]):
     def __init__(self, parent: wx.TopLevelWindow, partyheader: cw.header.PartyHeader,
                  redrawfunc: Callable[[], None]) -> None:
+        assert cw.cwpy.ydata
         party = cw.data.Party(partyheader, True)
         partyheader.data = party
         headers = []
         for memberpath in party.get_memberpaths():
             headers.append(cw.cwpy.ydata.create_advheader(memberpath))
+        header = headers[0]
+        data = cw.data.yadoxml2etree(header.fpath)
+        player = cw.character.Player(data)
 
-        StandbyCharaInfo.__init__(self, parent, headers, 0, redrawfunc, partyheader.is_adventuring(), party=party)
+        StandbyCharaInfo.__init__(self, parent, headers, player, 0, redrawfunc, partyheader.is_adventuring(),
+                                  party=party)
 
 
-class ActiveCharaInfo(CharaInfo):
+class ActiveCharaInfo(CharaInfo[_L], Generic[_L]):
     def __init__(self, parent: "cw.frame.Frame") -> None:
         self.is_playingscenario = cw.cwpy.is_playingscenario()
+        assert isinstance(cw.cwpy.selection, (cw.sprite.card.PlayerCard,
+                                              cw.sprite.card.EnemyCard,
+                                              cw.sprite.card.FriendCard))
         self.ccard = cw.cwpy.selection
 
         self._update_list()
@@ -565,26 +587,29 @@ class ActiveCharaInfo(CharaInfo):
             if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
                 self.list.reverse()
 
-        if self.ccard in self.list:
-            self.index = self.list.index(self.ccard)
-            return True
+        index = 0
+        seq: Union[List[_L], List[cw.header.AdventurerHeader]] = self.list
+        for ccard in seq:
+            if ccard is self.ccard:
+                self.index = index
+                return True
+            index += 1
         else:
             return False
 
 
-class TopPanel(wx.Panel):
+class TopPanel(wx.Panel, Generic[_T]):
     """
     顔画像などを描画するパネル
     """
-    def __init__(self, parent: ActiveCharaInfo, ccard: "cw.character.Character",
-                 redrawfunc: Optional[Callable[[], None]]) -> None:
+    def __init__(self, parent: CharaInfo[_T], ccard: _T, redrawfunc: Optional[Callable[[], None]]) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(105)))
         self.SetDoubleBuffered(True)
         # カードワース本来の背景値。暗くなりすぎるので保留
         # 将来的にはスキンオプション化出来た方が良いかも
         # self.SetBackgroundColour(wx.Colour(192, 192, 192))
         self.csize = self.GetClientSize()
-        self.ccard = ccard
+        self.ccard: _T = ccard
         self.redrawfunc = redrawfunc
         self.yadodir = cw.cwpy.yadodir
         # bmp
@@ -597,6 +622,7 @@ class TopPanel(wx.Panel):
 
     def draw(self, update: bool = False) -> None:
         # クーポンにある各種変数取得
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):
             ages = set(cw.cwpy.setting.periodcoupons)
@@ -604,7 +630,7 @@ class TopPanel(wx.Panel):
             self.sex = cw.cwpy.setting.sexes[0].name
             self.age = cw.cwpy.setting.periods[0].name
             self.ep = "0"
-            self.race = cw.cwpy.setting.unknown_race
+            self.race: cw.header.RaceHeader = cw.cwpy.setting.unknown_race
 
             for coupon in self.ccard.data.getfind("Property/Coupons"):
                 if coupon.text in ages:
@@ -641,11 +667,11 @@ class TopPanel(wx.Panel):
             is_override_image = False
 
         if is_override_image:
-            infos = cw.image.get_imageinfos(self.ccard.mcarddata.find("Property"), pcnumber=True)
+            assert isinstance(self.ccard, cw.sprite.card.EnemyCard)
+            infos = cw.image.get_imageinfos(self.ccard.mcarddata.find_exists("Property"), pcnumber=True)
             infos, can_loaded_scaledimages = cw.sprite.card.imageinfos_to_pathdata(infos)
-
         else:
-            infos = cw.image.get_imageinfos(self.ccard.data.find("Property"))
+            infos = cw.image.get_imageinfos(self.ccard.data.find_exists("Property"))
             can_loaded_scaledimage = self.ccard.data.getbool(".", "scaledimage", False)
             can_loaded_scaledimages = [can_loaded_scaledimage] * len(infos)
         setpos = any([info.postype not in (None, "Default") for info in infos])
@@ -696,10 +722,11 @@ class TopPanel(wx.Panel):
 
         # 次のレベルまで割合バー
         if cw.cwpy.setting.show_experiencebar and isinstance(self.ccard, cw.character.Player) and not maxlevel:
-            exp = self.ccard.get_couponsvalue()
-            curexp = int(baselevel * (baselevel-1) * self.ccard.get_levelcoeff())
+            player: cw.character.Player = self.ccard
+            exp = player.get_couponsvalue()
+            curexp = int(baselevel * (baselevel-1) * player.get_levelcoeff())
             nextlevel = baselevel + 1
-            nextexp = int(nextlevel * (nextlevel-1) * self.ccard.get_levelcoeff())
+            nextexp = int(nextlevel * (nextlevel-1) * player.get_levelcoeff())
 
             prange = nextexp - curexp
             x = cw.wins(5)+1
@@ -809,7 +836,7 @@ class TopPanel(wx.Panel):
             self.Refresh()
 
     def get_detailtext(self) -> str:
-        lines = []
+        lines: List[str] = []
         level = "%s" % (self.ccard.level)
         s = "[ %s ] Level %s" % (self.ccard.get_showingname(), level)
         if not isinstance(self.race, cw.header.UnknownRaceHeader):
@@ -823,11 +850,11 @@ class TopPanel(wx.Panel):
         return "\n".join(lines)
 
 
-class TitlePanel(wx.Panel):
+class TitlePanel(wx.Panel, Generic[_T]):
     """
     タイトルバーを描画するパネルを作る。
     """
-    def __init__(self, parent: ActiveCharaInfo, notebook: wx.lib.agw.aui.auibook.AuiNotebook) -> None:
+    def __init__(self, parent: CharaInfo[_T], notebook: wx.lib.agw.aui.auibook.AuiNotebook) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.width, cw.wins(24)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.notebook = notebook
@@ -868,22 +895,21 @@ class TitlePanel(wx.Panel):
         dc.DrawText(self.text, x, y)
 
 
-class DescPanel(wx.ScrolledWindow):
+class DescPanel(wx.ScrolledWindow, Generic[_T]):
     """
     解説文を描画するパネル。
     """
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook,
-                 ccard: "cw.character.Character", editable: bool) -> None:
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _T, editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
+        assert not isinstance(ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, ccard)
-        self._editable = editable
+        self._editable: bool = editable
 
         # エレメントオブジェクト
-        self.ccard = ccard
-        self.headers = []
+        self.ccard: _T = ccard
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
@@ -919,6 +945,7 @@ class DescPanel(wx.ScrolledWindow):
         dlg.Destroy()
 
     def _init_view(self) -> None:
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, self.ccard)
         self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
@@ -967,20 +994,20 @@ class DescPanel(wx.ScrolledWindow):
         return self.text
 
 
-class HistoryPanel(wx.ScrolledWindow):
+class HistoryPanel(wx.ScrolledWindow, Generic[_T]):
     """
     クーポンを描画するスクロールウィンドウ。
     """
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook,
-                 ccard: "cw.character.Character", editable: bool) -> None:
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _T, editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
+        assert not isinstance(ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, ccard)
-        self._editable = editable
+        self._editable: bool = editable
         # エレメントオブジェクト
-        self.ccard = ccard
+        self.ccard: _T = ccard
         # bmp
         self.gold = cw.cwpy.rsrc.dialogs["STATUS3"]
         self.silver = cw.cwpy.rsrc.dialogs["STATUS2"]
@@ -1003,9 +1030,6 @@ class HistoryPanel(wx.ScrolledWindow):
 
     def _get_bmps(self, name: str) -> wx.Bitmap:
         bmp = cw.cwpy.rsrc.dialogs[name]
-        x, y = cw.wins(0), cw.wins(0)
-        w, h = bmp.GetWidth(), bmp.GetHeight()
-
         img = bmp.ConvertToImage()
         img = cw.imageretouch.mul_wxalpha(img, 128)
         return img.ConvertToBitmap()
@@ -1027,8 +1051,8 @@ class HistoryPanel(wx.ScrolledWindow):
         dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
-            def func(panel: HistoryPanel) -> None:
-                def func(panel: HistoryPanel) -> None:
+            def func(panel: HistoryPanel[_T]) -> None:
+                def func(panel: HistoryPanel[_T]) -> None:
                     try:
                         panel.draw(True)
                         panel.Parent.Parent.toppanel.Refresh()
@@ -1043,11 +1067,11 @@ class HistoryPanel(wx.ScrolledWindow):
             self._init_view()
 
     def _init_view(self) -> None:
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, self.ccard)
-        csize = self.csize
 
         # クーポンリスト
-        self.coupons = []
+        self.coupons: List[Tuple[str, int]] = []
 
         isalbum = self.ccard.data.getroot().tag == "Album"
 
@@ -1182,24 +1206,24 @@ class EditButton():
         self.type = btype
         self.has_separator = has_separator
         self.negaflag = False
-        self.textpos: Optional[Tuple[int, int]] = None
+        self.textpos: Tuple[int, int] = (0, 0)
+        self.subrect = pygame.Rect(0, 0, 0, 0)
 
 
-class EditPanel(wx.Panel):
-    def __init__(self, parent: aui.AuiNotebook,
-                 mlist: List[Union["cw.sprite.card.PlayerCard", cw.header.AdventurerHeader]],
-                 ccard: Union["cw.sprite.card.PlayerCard", cw.header.AdventurerHeader]) -> None:
+class EditPanel(wx.Panel, Generic[_N]):
+    def __init__(self, parent: aui.AuiNotebook, mlist: List[_N], ccard: _N) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
-        self._destroy = False
+        self._destroy: bool = False
         self.SetDoubleBuffered(True)
+        assert not isinstance(ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, ccard)
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
-        self.list = mlist
-        self.ccard = ccard
-        self.selected = -1
+        self.list: List[_N] = mlist
+        self.ccard: _N = ccard
+        self.selected: int = -1
         # ボタン
-        self.headers = []
+        self.headers: Sequence[EditButton] = []
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
@@ -1219,10 +1243,11 @@ class EditPanel(wx.Panel):
                 if header.type == 0:
                     # デザインを変更する
                     cw.cwpy.play_sound("click")
+                    assert isinstance(self.ccard, cw.character.Player)
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        def func(panel: EditPanel) -> None:
+                        def func(panel: wx.Panel) -> None:
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
                                 panel.Parent.Parent.descpanel.draw(True)
@@ -1231,6 +1256,7 @@ class EditPanel(wx.Panel):
                 elif header.type == 1:
                     # レベルを調節する
                     cw.cwpy.play_sound("click")
+                    assert isinstance(self.ccard, cw.character.Player)
                     mlist = self.get_charalist()
                     self.selected = mlist.index(self.ccard)
                     party = self.Parent.Parent.party
@@ -1238,7 +1264,7 @@ class EditPanel(wx.Panel):
                                                          party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        def func(panel: EditPanel) -> None:
+                        def func(panel: wx.Panel) -> None:
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
                         self.update_charalist(mlist)
@@ -1247,13 +1273,13 @@ class EditPanel(wx.Panel):
                 else:
                     # 背景色を変更する
                     cw.cwpy.play_sound("click")
-
+                    assert isinstance(self.ccard, cw.character.Player)
                     dlg = cw.dialog.edit.BackColorEditDialog(self.Parent.Parent, ccard=self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if dlg.ShowModal() == wx.ID_OK:
-                        colour = get_bgcolor(self.ccard)
+                        colour: wx.Colour = get_bgcolor(self.ccard)
 
-                        def func(panel: EditPanel, ccard: cw.character.Character) -> None:
+                        def func2(panel: wx.Panel, ccard: cw.character.Character) -> None:
                             if panel:
                                 tabs = [panel.Parent.Parent.titlepanel, panel.Parent.Parent.descpanel,
                                         panel.Parent.Parent.historypanel, panel.Parent.Parent.editpanel]
@@ -1265,7 +1291,7 @@ class EditPanel(wx.Panel):
                                 for tab in tabs:
                                     tab.SetBackgroundColour(colour)
                                     tab.draw(True)
-                        cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self, self.ccard)
+                        cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func2, self, self.ccard)
                     dlg.Destroy()
                 self.draw(True)
                 return
@@ -1273,9 +1299,12 @@ class EditPanel(wx.Panel):
     def get_charalist(self) -> List[cw.character.Player]:
         """編集用のcw.character.Playerのリストを取得する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            seq = []
+            seq: List[cw.character.Player] = []
             for header in self.list:
+                assert not isinstance(self.ccard, cw.header.AdventurerHeader)
+                assert isinstance(header, cw.header.AdventurerHeader)
                 if self.ccard.data.fpath == header.fpath:
+                    assert isinstance(self.ccard, cw.character.Player)
                     seq.append(self.ccard)
                 else:
                     data = cw.data.yadoxml2etree(header.fpath)
@@ -1283,26 +1312,31 @@ class EditPanel(wx.Panel):
                     seq.append(ccard)
             return seq
         elif isinstance(self.Parent.Parent, StandbyCharaInfo):
+            assert isinstance(self.ccard, cw.character.Player)
             return [self.ccard]
         else:
-            return self.list
+            seq = []
+            for player in self.list:
+                assert isinstance(player, cw.character.Player)
+                seq.append(player)
+            assert len(seq) == len(self.list)
+            return seq
 
     def update_charalist(self, mlist: List[cw.character.Player]) -> None:
         """編集結果をヘッダ等に反映する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            def func(parentheaders: List[cw.header.AdventurerHeader], mlist: List[cw.sprite.card.PlayerCard]) -> None:
+            def func(parentheaders: List[_N], mlist: List[cw.character.Player]) -> None:
                 for i, header in enumerate(parentheaders):
                     ccard = mlist[i]
                     ccard.data.write_xml()
                     header.level = ccard.level
             cw.cwpy.exec_func(func, self.list, mlist)
         elif isinstance(self.Parent.Parent, StandbyCharaInfo):
-            def func(index: int, headers: List[cw.header.AdventurerHeader],
-                     mlist: List[cw.sprite.card.PlayerCard]) -> None:
+            def func2(index: int, headers: List[_N], mlist: List[cw.character.Player]) -> None:
                 ccard = mlist[0]
                 ccard.data.write_xml()
                 headers[index].level = ccard.level
-            cw.cwpy.exec_func(func, self.Parent.Parent.index, self.list, mlist)
+            cw.cwpy.exec_func(func2, self.Parent.Parent.index, self.list, mlist)
 
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
@@ -1324,7 +1358,7 @@ class EditPanel(wx.Panel):
     def update_negaflag(self) -> None:
         mousepos = self.ScreenToClient(wx.GetMousePosition())
         for header in self.headers:
-            if header.subrect.collidepoint(mousepos):
+            if header.subrect.collidepoint(*mousepos):
                 if not header.negaflag:
                     header.negaflag = True
             elif header.negaflag:
@@ -1337,7 +1371,7 @@ class EditPanel(wx.Panel):
     def _update_mousepos(self, mousepos: wx.Point) -> None:
         dc = wx.ClientDC(self)
         for header in self.headers:
-            if header.subrect.collidepoint(mousepos):
+            if header.subrect.collidepoint(*mousepos):
                 if not header.negaflag:
                     header.negaflag = True
                     self.draw_header(dc, header)
@@ -1396,6 +1430,7 @@ class EditPanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
+        assert not isinstance(self.ccard, cw.header.AdventurerHeader)
         apply_bgcolor(self, self.ccard)
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())//2,
@@ -1440,18 +1475,17 @@ class EditPanel(wx.Panel):
         return ""
 
 
-class StatusPanel(wx.ScrolledWindow):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, mlist: List["cw.character.Character"],
-                 ccard: "cw.character.Character", editable: bool) -> None:
+class StatusPanel(wx.ScrolledWindow, Generic[_L]):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, mlist: List[_L], ccard: _L, editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         apply_bgcolor(self, ccard)
         self.csize = self.GetClientSize()
-        self.list = mlist
-        self._editable = editable
+        self.list: List[_L] = mlist
+        self._editable: bool = editable
         # エレメントオブジェクト
-        self.ccard = ccard
+        self.ccard: _L = ccard
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
@@ -1479,7 +1513,9 @@ class StatusPanel(wx.ScrolledWindow):
         cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
-        dlg = cw.debug.statusedit.StatusEditDialog(parent, mlist=self.list, selected=selected)
+        seq: List[cw.character.Character] = []
+        seq.extend(self.list)
+        dlg = cw.debug.statusedit.StatusEditDialog(parent, mlist=seq, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)
@@ -1530,7 +1566,6 @@ class StatusPanel(wx.ScrolledWindow):
 
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.update_cursor()
-        csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
         vy *= self._ratey
@@ -1705,40 +1740,40 @@ class StatusPanel(wx.ScrolledWindow):
         if 0 == value:
             return None, None, ""
 
-        dur = cw.cwpy.msgs["duration"] % dur
+        dur_s = cw.cwpy.msgs["duration"] % dur
 
         if 10 <= value:
             colour = wx.Colour(255, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["maximum_bonus"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["maximum_bonus"] + " (%s)") % (enhname, dur_s)
         elif 7 <= value:
             colour = wx.Colour(175, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["big_bonus"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["big_bonus"] + " (%s)") % (enhname, dur_s)
         elif 4 <= value:
             colour = wx.Colour(127, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["middle_bonus"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["middle_bonus"] + " (%s)") % (enhname, dur_s)
         elif 1 <= value:
             colour = wx.Colour(79, 0, 0)
             bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
-            msg = (cw.cwpy.msgs["small_bonus"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["small_bonus"] + " (%s)") % (enhname, dur_s)
         elif -10 >= value:
             colour = wx.Colour(0, 0, 51)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["maximum_penalty"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["maximum_penalty"] + " (%s)") % (enhname, dur_s)
         elif -7 >= value:
             colour = wx.Colour(0, 0, 85)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["big_penalty"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["big_penalty"] + " (%s)") % (enhname, dur_s)
         elif -4 >= value:
             colour = wx.Colour(0, 0, 136)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["middle_penalty"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["middle_penalty"] + " (%s)") % (enhname, dur_s)
         elif -1 >= value:
             colour = wx.Colour(0, 0, 187)
             bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
-            msg = (cw.cwpy.msgs["small_penalty"] + " (%s)") % (enhname, dur)
+            msg = (cw.cwpy.msgs["small_penalty"] + " (%s)") % (enhname, dur_s)
 
         return colour, bmp, msg
 
@@ -1755,19 +1790,18 @@ class StatusPanel(wx.ScrolledWindow):
         return height + cw.wins(17)
 
 
-class CardPanel(wx.Panel):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook,
-                 ccard: "cw.character.Character", pocket: int) -> None:
+class CardPanel(wx.Panel, Generic[_A]):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A, pocket: int) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         apply_bgcolor(self, ccard)
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
-        self.ccard = ccard
+        self.ccard: _A = ccard
         # 所持カードの種別
-        self.pocket = pocket
+        self.pocket: int = pocket
         # headers
-        self.headers = []
+        self.headers: List[cw.header.CardHeader] = []
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         self._update_debug()
@@ -1783,7 +1817,7 @@ class CardPanel(wx.Panel):
     def _update_debug(self) -> None:
         # 「全てホールド」の領域
         if self.pocket != cw.POCKET_BEAST and (cw.cwpy.is_debugmode() or isinstance(self.ccard, cw.character.Player)):
-            self.hold_all = HoldAll()
+            self.hold_all: Optional[HoldAll] = HoldAll()
         else:
             self.hold_all = None
         dc = wx.ClientDC(self)
@@ -1845,7 +1879,7 @@ class CardPanel(wx.Panel):
         for header in self.headers:
             if header.negaflag:
                 cw.cwpy.play_sound("click")
-                dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
+                dlg = cardinfo.YadoCardInfo[cw.header.CardHeader](self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -1882,7 +1916,7 @@ class CardPanel(wx.Panel):
             self.hold_all.negaflag = self.hold_all.subrect.collidepoint(mousepos)
 
         for header in self.headers:
-            if header.subrect.collidepoint(mousepos):
+            if header.subrect.collidepoint(*mousepos):
                 if not header.negaflag:
                     header.negaflag = True
                     self.draw_header(dc, header)
@@ -1894,13 +1928,13 @@ class CardPanel(wx.Panel):
     def update_negaflag(self) -> None:
         mousepos = self.ScreenToClient(wx.GetMousePosition())
         for header in self.headers:
-            if header.subrect.collidepoint(mousepos):
+            if header.subrect.collidepoint(*mousepos):
                 if not header.negaflag:
                     header.negaflag = True
             elif header.negaflag:
                 header.negaflag = False
 
-    def draw_header(self, dc: wx.DC, header: EditButton) -> None:
+    def draw_header(self, dc: wx.DC, header: Union[cw.header.CardHeader, "HoldAll"]) -> None:
         if isinstance(header, HoldAll):
             self.Refresh()
             return
@@ -1917,7 +1951,8 @@ class CardPanel(wx.Panel):
         if not self.headers and not self.hold_all:
             return
         if self.hold_all:
-            headers = [self.hold_all]
+            holdalllist: List[Union[cw.header.CardHeader, HoldAll]] = [self.hold_all]
+            headers: Union[List[cw.header.CardHeader], List[Union[cw.header.CardHeader, HoldAll]]] = holdalllist
             headers.extend(self.headers)
         else:
             headers = self.headers
@@ -1939,7 +1974,8 @@ class CardPanel(wx.Panel):
         if not self.headers and not self.hold_all:
             return
         if self.hold_all:
-            headers = [self.hold_all]
+            holdalllist: List[Union[cw.header.CardHeader, HoldAll]] = [self.hold_all]
+            headers: Union[List[cw.header.CardHeader], List[Union[cw.header.CardHeader, HoldAll]]] = holdalllist
             headers.extend(self.headers)
         else:
             headers = self.headers
@@ -2013,7 +2049,6 @@ class CardPanel(wx.Panel):
         fw = dc.GetTextExtent("―")[0]
 
         if self.hold_all:
-            yp = 20
             s = cw.cwpy.msgs["hold_all"]
             if self.hold_all.negaflag:
                 dc.SetTextForeground(wx.RED)
@@ -2026,15 +2061,12 @@ class CardPanel(wx.Panel):
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
             dc.DrawBitmap(bmp, cw.wins(10), cw.wins(29), True)
-        else:
-            yp = 0
 
         for index, header in enumerate(self.headers):
             pos = header.textpos
 
             # カード名
             s = header.name
-            size = dc.GetTextExtent(s)
             if header.type in ("ItemCard", "BeastCard") and (header.uselimit or header.recycle):
                 s += "(%d)" % header.uselimit
 
@@ -2085,6 +2117,7 @@ class CardPanel(wx.Panel):
         return cw.cwpy.msgs["card_number"] % (n, maxn)
 
     def get_detailtext(self) -> str:
+        assert isinstance(self.ccard, cw.character.Character)
         lines = []
         if self.ccard.hold_all[self.pocket]:
             lines.append("%s <%s>" % (self._get_cardnum(), cw.cwpy.msgs["hold_all"]))
@@ -2105,6 +2138,8 @@ class CardPanel(wx.Panel):
                     s = "A"
                 else:
                     s = "B"
+            else:
+                assert False
 
             s = "[%s] %s" % (s, header.name)
             slen = cw.util.get_strlen(s)
@@ -2125,18 +2160,18 @@ class HoldAll(object):
         self.subrect = pygame.Rect(0, 0, 0, 0)
 
 
-class SkillPanel(CardPanel):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
+class SkillPanel(CardPanel[_A], Generic[_A]):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A) -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_SKILL)
 
 
-class ItemPanel(CardPanel):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
+class ItemPanel(CardPanel[_A], Generic[_A]):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A) -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_ITEM)
 
 
-class BeastPanel(SkillPanel):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: "cw.character.Character") -> None:
+class BeastPanel(SkillPanel[_A], Generic[_A]):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A) -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_BEAST)
 
     def OnLeftUp(self, event: wx.MouseEvent) -> None:
@@ -2144,7 +2179,7 @@ class BeastPanel(SkillPanel):
         self._open_cardinfo()
 
 
-def get_bgcolor(ccard: "cw.character.Character") -> wx.Colour:
+def get_bgcolor(ccard: Union[cw.character.Character, cw.character.AlbumPage]) -> wx.Colour:
     """キャラクター情報ダイアログ用の背景色を取得する。
     デフォルト値は濃い青。
     """
@@ -2159,7 +2194,7 @@ def get_bgcolor(ccard: "cw.character.Character") -> wx.Colour:
     return wx.Colour(r, g, b)
 
 
-def apply_bgcolor(currentpanel: wx.Window, ccard: "cw.character.Character") -> None:
+def apply_bgcolor(currentpanel: wx.Window, ccard: Union[cw.character.Character, cw.character.AlbumPage]) -> None:
     """キャラクター情報ダイアログの背景色を適用する。
     """
     colour = get_bgcolor(ccard)

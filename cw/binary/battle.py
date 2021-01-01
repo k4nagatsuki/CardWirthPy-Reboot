@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class Battle(base.CWBinaryBase):
     """widファイルのバトルデータ。"""
@@ -48,7 +50,7 @@ class Battle(base.CWBinaryBase):
         else:
             self.bgm = "DefBattle.mid"
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -79,9 +81,9 @@ class Battle(base.CWBinaryBase):
         restype = 1
         name = ""
         resid = 0
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
         spreadtype = 0
-        ecards = []
+        ecards: Optional[cw.data.CWPyElement] = None
         bgm = ""
 
         for e in data:
@@ -116,13 +118,19 @@ class Battle(base.CWBinaryBase):
         f.write_dword(0)  # 不明
         f.write_string(name)
         f.write_dword(resid + 40000)
-        f.write_dword(len(events))
-        for evt in events:
-            event.Event.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.Event.unconv(f, evt)
         f.write_byte(spreadtype)
-        f.write_dword(len(ecards))
-        for ecard in ecards:
-            EnemyCard.unconv(f, ecard)
+        if ecards is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(ecards))
+            for ecard in ecards:
+                EnemyCard.unconv(f, ecard)
         f.write_string(bgm)
 
 
@@ -144,7 +152,7 @@ class EnemyCard(base.CWBinaryBase):
         self.top = f.dword()
         self.escape = f.boolean()
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -174,7 +182,7 @@ class EnemyCard(base.CWBinaryBase):
         from . import event
 
         cast_id = 0
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
         flag = ""
         scale = 0
         left = 0
@@ -192,11 +200,11 @@ class EnemyCard(base.CWBinaryBase):
                         left = int(prop.get("left"))
                         top = int(prop.get("top"))
                     elif prop.tag == "Size":
-                        scale = prop.get("scale")
-                        if scale.endswith("%"):
-                            scale = int(scale[:-1])
+                        scale_str = prop.get("scale")
+                        if scale_str.endswith("%"):
+                            scale = int(scale_str[:-1])
                         else:
-                            scale = int(scale)
+                            scale = int(scale_str)
                     elif prop.tag == "Layer" and int(prop.text) != cw.LAYER_MCARDS:
                         f.check_wsnversion("1", "レイヤ")
                     elif prop.tag == "CardGroup" and prop.text:
@@ -218,9 +226,12 @@ class EnemyCard(base.CWBinaryBase):
                 events = e
 
         f.write_dword(cast_id)
-        f.write_dword(len(events))
-        for evt in events:
-            event.Event.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.Event.unconv(f, evt)
         f.write_string(flag)
         f.write_dword(scale)
         f.write_dword(left)

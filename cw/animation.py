@@ -11,14 +11,14 @@ from typing import Iterable, Tuple
 
 
 def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent: bool = True, background: bool = False,
-                   statusbutton: bool = False, battlespeed: bool = False) -> None:
+                   statusbutton: bool = False, battlespeed: bool = False) -> bool:
     if threading.currentThread() != cw.cwpy:
         raise Exception()
 
     if not hasattr(sprite, "update_" + anitype):
         print("Not found " + anitype + " animation.")
         print(sprite)
-        return
+        return False
 
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
@@ -97,7 +97,7 @@ def animate_sprites(sprites: Iterable["cw.sprite.base.CWPySprite"], anitype: str
 
 
 def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", str]], clearevent: bool = True,
-                     battlespeed: bool = False) -> None:
+                     battlespeed: bool = False) -> bool:
     """スプライト毎にアニメーション内容を指定する。
     """
     if threading.currentThread() != cw.cwpy:
@@ -107,7 +107,7 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
         if not hasattr(spr, "update_" + anitype):
             print("Not found " + anitype + " animation.")
             print(sprandanimes)
-            return
+            return False
 
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
@@ -255,7 +255,7 @@ def _get_skipstatus(clearevent: bool) -> bool:
         cw.thread.post_pygameevent(e)
 
     if not breakflag:
-        breakflag = cw.cwpy.event.get_event() and cw.cwpy.event.is_stoped()
+        breakflag = bool(cw.cwpy.event.get_event() and cw.cwpy.event.is_stoped())
 
     if breakflag or cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein():
         return True

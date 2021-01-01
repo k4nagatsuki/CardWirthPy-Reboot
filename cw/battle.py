@@ -5,6 +5,8 @@ import bisect
 
 import cw
 
+from typing import List, Tuple
+
 
 class BattleError(Exception):
     pass
@@ -27,6 +29,11 @@ class BattleDefeatError(BattleError):
 
 
 class BattleEngine(object):
+    possible_runaway: bool
+
+    round: int
+    in_roundevent: bool
+
     def __init__(self, data: "cw.data.CWPyElement") -> None:
         """
         戦闘関係のデータ・処理をまとめたクラス。
@@ -39,12 +46,12 @@ class BattleEngine(object):
         for fcard in cw.cwpy.get_fcards():
             fcard.deck.set(fcard, draw=False)
 
-        self.priorityacts = []
+        self.priorityacts: List[Tuple[str, List[cw.sprite.card.CWPyCard], cw.character.Character]] = []
 
         # ラウンド数
         self.round = 0
         # 戦闘参加メンバ
-        self.members = []
+        self.members: List[cw.character.Character] = []
         # 戦闘開始の準備完了フラグ
         self._ready = False
         # 戦闘行動中フラグ
@@ -298,6 +305,7 @@ class BattleEngine(object):
         """逃走処理。逃走イベントが存在する場合は、
         逃走イベント優先。
         """
+        assert cw.cwpy.sdata.events
         cw.cwpy.clear_fcardsprites()
         self.clear_playersaction()
         event = cw.cwpy.sdata.events.check_keynum(2)
@@ -381,6 +389,7 @@ class BattleEngine(object):
         """敗北処理。敗北イベント後、
         パーティが全滅状態だったら、ゲームオーバ画面に遷移。
         """
+        assert cw.cwpy.sdata.events
         # 行動内容のクリア
         for member in self.members:
             member.clear_action()
@@ -417,7 +426,7 @@ class BattleEngine(object):
 
         return flag
 
-    def check_defeat(self) -> None:
+    def check_defeat(self) -> bool:
         flag = True
 
         for pcard in cw.cwpy.get_pcards():
@@ -430,7 +439,8 @@ class BattleEngine(object):
         """戦闘参加メンバを設定する。
         行動可能でないものは除外。
         """
-        members = list(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_pcards("unreversed")))
+        members: List[cw.character.Character] = []
+        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_pcards("unreversed")))
         members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_ecards("unreversed")))
         members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_fcards("unreversed")))
         self.members = members

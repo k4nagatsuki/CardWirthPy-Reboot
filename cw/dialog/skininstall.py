@@ -11,7 +11,7 @@ import wx
 import cw
 from cw.util import synclock
 
-from typing import List, Tuple
+from typing import Dict, Iterable, List, Tuple, Union
 
 
 def install_skin(paths: List[str], parent: wx.TopLevelWindow,
@@ -47,7 +47,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
             s += "(%s)" % author
         s = "スキン「%s」をインストールします。よろしいですか？" % s
 
-    choices = (
+    choices: Iterable[Union[Tuple[str, int, int, str], Tuple[str, int, int, str], Tuple[str, int, int]]] = (
         ("はい(&Y)", wx.ID_YES, cw.ppis(105)),
         ("いいえ(&N)", wx.ID_NO, cw.ppis(105)),
     )
@@ -72,7 +72,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
     cw.cwpy.frame.kill_dlg(dlg)
 
     def change_cursor(cursor: str) -> None:
-        cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, force=True)
+        cw.cwpy.exec_func(cw.cwpy.change_cursor, cursor, True)
     oldcursor = cw.cwpy.cursor
     change_cursor("wait")
 
@@ -87,14 +87,18 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
             self.msg = ""
             self.value = 0
             self.maximum = progmax
-            self.errors = []
-            self.installed_skindirnames = []
+            self.errors: List[str] = []
+            self.installed_skindirnames: List[Tuple[str, str, str, str, bool]] = []
 
     obj = ProgressObj()
     lock = threading.Lock()
 
+    # プログレスダイアログ表示
+    progdlg = cw.dialog.progress.SysProgressDialog(parent, "スキンのインストール",
+                                                   "", maximum=obj.maximum)
+
     @synclock(lock)
-    def progress(msg, progress: int = 1) -> None:
+    def progress(msg: str, progress: int = 1) -> None:
         obj.value += progress
         obj.msg = msg
 
@@ -102,8 +106,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
         tempdir = "Data/Temp/SkinInstall"
         if not os.path.isdir(tempdir):
             os.makedirs(tempdir)
-        errors = []
-        rename_table = {}
+        rename_table: Dict[str, str] = {}
         installed = None
         all_removes_repl = []
         all_removes_base = []
@@ -117,7 +120,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
         try:
             for name, author, skintype, path, is_archive in seq:
                 if overwrite:
-                    removes = removes_table[(name, author)]
+                    removes: Iterable[str] = removes_table[(name, author)]
                 else:
                     removes = ()
                 oldvalue = obj.value
@@ -134,7 +137,8 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
                     #     installedpath = installedpath2
                     #     removes[0] = os.path.basename(rmpath)
 
-                    obj.installed_skindirnames.append((os.path.basename(installedpath), name, author, skintype))
+                    obj.installed_skindirnames.append((os.path.basename(installedpath), name, author, skintype,
+                                                       is_archive))
                     if not installed:
                         installed = os.path.basename(installedpath)
 
@@ -182,7 +186,7 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
                         newskin = rename_table.get(envskin, "")
                         if newskin:
                             etree.edit("Property/Skin", newskin)
-                            etree.write()
+                            etree.write_file()
             cw.fsync.sync()
 
             def func(newskin: str, restartop: bool) -> None:
@@ -219,10 +223,10 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
 
             if switch_skin and installed:
                 newskin = installed
-                cw.cwpy.exec_func(func, newskin, restartop=cw.cwpy.setting.skindirname != newskin)
+                cw.cwpy.exec_func(func, newskin, cw.cwpy.setting.skindirname != newskin)
             else:
                 newskin = rename_table.get(cw.cwpy.setting.skindirname, "")
-                cw.cwpy.exec_func(func, newskin, restartop=False)
+                cw.cwpy.exec_func(func, newskin, False)
 
         except Exception:
             progdlg.Destroy()
@@ -233,10 +237,6 @@ def install_skin(paths: List[str], parent: wx.TopLevelWindow,
 
     thread = threading.Thread(target=run)
     thread.start()
-
-    # プログレスダイアログ表示
-    progdlg = cw.dialog.progress.SysProgressDialog(parent, "スキンのインストール",
-                                                   "", maximum=obj.maximum)
 
     def progress_run() -> None:
         while thread.is_alive():

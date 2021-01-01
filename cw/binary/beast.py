@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 
 class BeastCard(base.CWBinaryBase):
@@ -14,12 +14,15 @@ class BeastCard(base.CWBinaryBase):
     target_all: 全体攻撃か否か(真偽値)
     limit: 使用回数
     """
+    from . import adventurer
     from . import cast
     from . import effectmotion
 
-    def __init__(self, parent: Optional[Union[cast.CastCard, effectmotion.EffectMotion]], f: "cw.binary.cwfile.CWFile",
-                 yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
-                 image_export: bool = True, summoneffect: bool = False) -> None:
+    limit: int
+
+    def __init__(self, parent: Optional[Union[adventurer.Adventurer, cast.CastCard, effectmotion.EffectMotion]],
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, nameonly: bool = False,
+                 materialdir: str = "Material", image_export: bool = True, summoneffect: bool = False) -> None:
         from . import adventurer
         from . import effectmotion
         from . import event
@@ -29,7 +32,7 @@ class BeastCard(base.CWBinaryBase):
         self.type = f.byte()
         self.image = f.image()
         self.imgpath = ""
-        self.name = f.string()
+        self.name: str = f.string()
         idl = f.dword()
 
         if idl <= 19999:
@@ -49,7 +52,7 @@ class BeastCard(base.CWBinaryBase):
             return
 
         if 5 <= dataversion:
-            self.fname = self.get_fname()
+            self.fname: str = self.get_fname()
 
         self.description = f.string(True)
         self.p_ability = f.dword()
@@ -71,7 +74,7 @@ class BeastCard(base.CWBinaryBase):
         self.sound_effect2 = f.string()
         self.keycodes = [f.string() for _cnt in range(5)]
         if 2 < dataversion:
-            self.premium = f.byte()
+            self.premium: int = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()
@@ -95,7 +98,7 @@ class BeastCard(base.CWBinaryBase):
 
         if 5 <= dataversion:
             # 宿データだとここに付帯召喚のデータ
-            self.attachment = f.boolean()
+            self.attachment: bool = f.boolean()
         elif self.get_root().is_yadodata():
             if isinstance(parent, adventurer.Adventurer):
                 # キャラクターが所持
@@ -107,7 +110,7 @@ class BeastCard(base.CWBinaryBase):
                 # カード置場・荷物袋
                 self.attachment = False
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -202,7 +205,7 @@ class BeastCard(base.CWBinaryBase):
         resist_type = 0
         success_rate = 0
         visual_effect = 0
-        motions = []
+        motions: Optional[cw.data.CWPyElement] = None
         enhance_avoid = 0
         enhance_resist = 0
         enhance_defense = 0
@@ -212,7 +215,7 @@ class BeastCard(base.CWBinaryBase):
         premium = 0
         scenario_name = ""
         scenario_author = ""
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
         hold = False
         limit = 0
         attachment = False
@@ -286,7 +289,7 @@ class BeastCard(base.CWBinaryBase):
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む
                         if 5 < len(keycodes):
-                            keycodes2 = []
+                            keycodes2: List[str] = []
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):
@@ -332,9 +335,12 @@ class BeastCard(base.CWBinaryBase):
         f.write_byte(resist_type)
         f.write_dword(success_rate)
         f.write_byte(visual_effect)
-        f.write_dword(len(motions))
-        for motion in motions:
-            effectmotion.EffectMotion.unconv(f, motion)
+        if motions is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(motions))
+            for motion in motions:
+                effectmotion.EffectMotion.unconv(f, motion)
         f.write_dword(enhance_avoid)
         f.write_dword(enhance_resist)
         f.write_dword(enhance_defense)
@@ -345,9 +351,12 @@ class BeastCard(base.CWBinaryBase):
         f.write_byte(premium)
         f.write_string(scenario_name)
         f.write_string(scenario_author)
-        f.write_dword(len(events))
-        for evt in events:
-            event.SimpleEvent.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.SimpleEvent.unconv(f, evt)
         f.write_bool(hold)
 
         # 宿データだとここに不明なデータ(4)が付加されている

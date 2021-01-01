@@ -22,10 +22,12 @@ class PartyEditor(wx.Dialog):
     def __init__(self, parent: wx.TopLevelWindow, party: Optional[cw.data.Party] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
+        assert cw.cwpy.ydata
         self.cwpy_debug = False
         if party:
             self.party = party
         else:
+            assert cw.cwpy.ydata.party
             self.party = cw.cwpy.ydata.party
 
         # パーティ名入力ボックス
@@ -99,12 +101,13 @@ class PartyEditor(wx.Dialog):
         money = self.panel.value
 
         def func(self: PartyEditor, party: cw.data.Party, suspend_levelup: bool) -> None:
+            assert cw.cwpy.ydata
             update = False
             if name != party.name:
                 party.set_name(name)
                 update = True
 
-            if suspend_levelup != party.suspend_levelup:
+            if suspend_levelup != party.is_suspendlevelup:
                 party.suspend_levelup(suspend_levelup)
 
             if money != party.money:
@@ -150,6 +153,7 @@ class PartyEditor(wx.Dialog):
 class MoneyEditPanel(wx.Panel):
     def __init__(self, parent: PartyEditor, party: cw.data.Party) -> None:
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
+        assert cw.cwpy.ydata
         self.party = party
         self.value = self.party.money
         maxvalue = self.party.money + cw.cwpy.ydata.money
@@ -575,6 +579,7 @@ class SliderWithButton(wx.Panel):
             self.set_value(value)
 
         self._timer = wx.Timer(self)
+        self._timerfunc: Optional[Callable[[], None]] = None
 
         self._do_layout()
         self._bind()
@@ -688,6 +693,7 @@ class SliderWithButton(wx.Panel):
     def OnTimer1(self, event: wx.TimerEvent) -> None:
         pos = self.ScreenToClient(wx.GetMousePosition())
         if self._timerbtn.GetRect().Contains(pos):
+            assert self._timerfunc
             self._timerfunc()
         self._timer.Stop()
         self.Bind(wx.EVT_TIMER, self.OnTimer2, self._timer)
@@ -696,6 +702,7 @@ class SliderWithButton(wx.Panel):
     def OnTimer2(self, event: wx.TimerEvent) -> None:
         pos = self.ScreenToClient(wx.GetMousePosition())
         if self._timerbtn.GetRect().Contains(pos):
+            assert self._timerfunc
             self._timerfunc()
 
     def OnLeftBtn(self, event: wx.CommandEvent) -> None:
@@ -750,7 +757,8 @@ class NumberEditor(wx.Panel):
         self._bind()
 
     def get_value(self) -> int:
-        return self.slider.slider.GetValue()
+        result: int = self.slider.slider.GetValue()
+        return result
 
     def set_value(self, value: int) -> None:
         self.slider.set_value(value)
@@ -800,7 +808,6 @@ class NumberEditor(wx.Panel):
 
 
 class ComboEditDialog(wx.Dialog):
-
     def __init__(self, parent: wx.TopLevelWindow, title: str, label: str, mlist: List[str], selected: int) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -813,8 +820,8 @@ class ComboEditDialog(wx.Dialog):
 
         # コンボボックス
         if 1 <= len(mlist) and not isinstance(mlist[0], str):
-            self._combo_panel = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
-            self.combo = wx.adv.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
+            self._combo_panel: Optional[wx.Panel] = wx.Panel(self.panel, -1, size=(-1, cw.wins(24)))
+            self.combo: wx.ItemContainer = wx.adv.BitmapComboBox(self._combo_panel, -1, style=wx.CB_READONLY)
         else:
             self._combo_panel = None
             self.combo = wx.ComboBox(self.panel, -1, style=wx.CB_READONLY)
@@ -848,6 +855,7 @@ class ComboEditDialog(wx.Dialog):
             def func(self: ComboEditDialog) -> None:
                 if not self:
                     return
+                assert self._combo_panel
                 w, h = self._combo_panel.GetSize()
                 self.combo.SetPosition(cw.wins((0, 0)))
                 self.combo.SetSize((w, h))
@@ -905,7 +913,7 @@ class ComboEditDialog2(wx.Dialog):
         self.combo = wx.Choice(self, -1, size=(cw.wins(200), -1), choices=choices)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.combo.SetFont(font)
-        self.selected = 0
+        self.selected: int = 0
         self.combo.Select(self.selected)
 
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((100, 30)), cw.cwpy.msgs["decide"])
@@ -978,7 +986,7 @@ class ComboEditDialog2(wx.Dialog):
 # ------------------------------------------------------------------------------
 
 class LevelEditDialog(wx.Dialog):
-    def __init__(self, parent: wx.TopLevelWindow, mlist: List["cw.sprite.card.PlayerCard"], selected: int,
+    def __init__(self, parent: wx.TopLevelWindow, mlist: List[cw.character.Player], selected: int,
                  party: Optional[cw.data.Party] = None) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -1019,7 +1027,7 @@ class LevelEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def get_selected(self) -> List["cw.sprite.card.PlayerCard"]:
+    def get_selected(self) -> List[cw.character.Player]:
         index = self.target.GetSelection()
         if index <= 0:
             return self.list
@@ -1119,7 +1127,7 @@ class LevelEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event: wx.CommandEvent) -> None:
-        def func(seq: Iterable[cw.sprite.card.PlayerCard], level: int, party: Optional[cw.data.Party]) -> None:
+        def func(seq: Iterable[cw.character.Player], level: int, party: Optional[cw.data.Party]) -> None:
             update = False
             for ccard in seq:
                 clevel = min(level, ccard.get_limitlevel())
@@ -1127,8 +1135,10 @@ class LevelEditDialog(wx.Dialog):
                     continue
 
                 ccard.set_level(clevel, regulate=True, backpack_party=party)
+                if not isinstance(ccard, cw.sprite.card.PlayerCard):
+                    continue
                 ccard.is_edited = True
-                if hasattr(ccard, "cardimg") and hasattr(ccard.cardimg, "set_levelimg"):
+                if ccard.has_cardimg():
                     update = True
                     cw.cwpy.play_sound("harvest")
                     cw.animation.animate_sprite(ccard, "hide")
@@ -1173,21 +1183,21 @@ class BackColorEditDialog(wx.Dialog):
         self.valuepanel = NoFlickPanel(self)
         self.valuepanel.SetDoubleBuffered(True)
 
-        self.presetcolor_list = []
+        self.presetcolor_list: List[Tuple[str, int, int, int]] = []
         self.presetcolor_names = [cw.cwpy.msgs["edit_bgcolor_preset"]]
         if os.path.isfile("Data/BackColors.xml"):
             try:
                 data = cw.data.xml2element("Data/BackColors.xml")
                 for e in data:
                     if e.tag == "PresetColor":
-                        r = e.getattr(".", "r", "")
-                        g = e.getattr(".", "g", "")
-                        b = e.getattr(".", "b", "")
+                        rs = e.getattr(".", "r", "")
+                        gs = e.getattr(".", "g", "")
+                        bs = e.getattr(".", "b", "")
                         name = e.text
-                        if r and g and b and name:
-                            r = max(0, min(128, int(r)))
-                            g = max(0, min(128, int(g)))
-                            b = max(0, min(128, int(b)))
+                        if rs and gs and bs and name:
+                            r = max(0, min(128, int(rs)))
+                            g = max(0, min(128, int(gs)))
+                            b = max(0, min(128, int(bs)))
                             self.presetcolor_list.append((name, r, g, b))
                             self.presetcolor_names.append(name)
             except Exception:
@@ -1236,8 +1246,9 @@ class BackColorEditDialog(wx.Dialog):
         self._do_layout()
         self._bind()
 
-    def hsv2rgb(self, hsv: Tuple[float, float, float]) -> List[int]:
-        return list(map(lambda x: round(x * 256), colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])))
+    def hsv2rgb(self, hsv: Tuple[float, float, float]) -> Tuple[int, int, int]:
+        rgbf = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])
+        return (round(rgbf[0] * 256), round(rgbf[1] * 256), round(rgbf[2] * 256))
 
     def rgb2hsv(self, rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
         return colorsys.rgb_to_hsv(rgb[0] / 256, rgb[1] / 256, rgb[2] / 256)
@@ -1551,23 +1562,21 @@ class BackColorEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event: wx.CommandEvent) -> None:
-        def func(ccard: cw.character.Character, rgb: Tuple[int, int, int]) -> None:
-            if not ccard.data.find("Property/BackColor") is None:
-                ccard.data.edit("Property/BackColor", rgb[0], "r")
-                ccard.data.edit("Property/BackColor", rgb[1], "g")
-                ccard.data.edit("Property/BackColor", rgb[2], "b")
-            else:
-                e = cw.data.make_element("BackColor", "")
-                ccard.data.insert("Property", e, 0)
-                ccard.data.edit("Property/BackColor", rgb[0], "r")
-                ccard.data.edit("Property/BackColor", rgb[1], "g")
-                ccard.data.edit("Property/BackColor", rgb[2], "b")
-            if cw.cwpy.ydata:
-                cw.cwpy.ydata.changed()
+        def func(ccard: cw.character.Player, rgb: Tuple[int, int, int]) -> None:
+            e_bcolour = ccard.data.find("Property/BackColor")
+            if e_bcolour is None:
+                e_bcolour = cw.data.make_element("BackColor", "")
+                ccard.data.append("Property", e_bcolour)
+            e_bcolour.set("r", str(rgb[0]))
+            e_bcolour.set("g", str(rgb[1]))
+            e_bcolour.set("b", str(rgb[2]))
+            assert cw.cwpy.ydata
+            cw.cwpy.ydata.changed()
 
             cw.cwpy.play_sound("harvest")
-            cw.animation.animate_sprite(ccard, "hide")
-            cw.animation.animate_sprite(ccard, "deal")
+            if isinstance(ccard, cw.sprite.card.PlayerCard):
+                cw.animation.animate_sprite(ccard, "hide")
+                cw.animation.animate_sprite(ccard, "deal")
 
         cw.cwpy.exec_func(func, self.ccard, self.hsv2rgb(self.hsv))
 
@@ -1601,7 +1610,7 @@ class InputTextDialog(wx.Dialog):
         self._textheight = h
         self.SetClientSize((max(w + cw.wins(10)*2, cw.wins(312)), cw.wins(97)+h))
 
-        self.textctrl = wx.TextCtrl(self, size=(cw.wins(175), -1))
+        self.textctrl: wx.TextCtrl = wx.TextCtrl(self, size=(cw.wins(175), -1))
         self.textctrl.SetMaxLength(maxlength)
         self.textctrl.SetValue(text)
         self.textctrl.SelectAll()
@@ -1616,7 +1625,7 @@ class InputTextDialog(wx.Dialog):
             tw = dc.GetTextExtent(s)[0] + cw.wins(16)
             self.addition = cw.cwpy.rsrc.create_wxbutton(self, -1, (tw, cw.wins(20)), s)
             self.addition.SetFont(font)
-            self.addition_func = addition_func
+            self.addition_func: Optional[Callable[[], str]] = addition_func
         else:
             self.addition = None
             self.addition_func = None
@@ -1637,6 +1646,7 @@ class InputTextDialog(wx.Dialog):
             self.okbtn.Disable()
 
     def OnAddition(self, event: wx.CommandEvent) -> None:
+        assert self.addition_func
         self.textctrl.SetValue(self.addition_func())
 
     def OnOk(self, event: wx.CommandEvent) -> None:
@@ -1659,7 +1669,6 @@ class InputTextDialog(wx.Dialog):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
-        s = self.msg
         w, h, _lineheight = dc.GetFullMultiLineTextExtent(self.msg)
         dc.DrawLabel(self.msg, (0, cw.wins(10), csize[0], h), wx.ALIGN_CENTER)
 

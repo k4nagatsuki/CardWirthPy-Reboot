@@ -6,30 +6,33 @@ import wx
 import cw
 from . import select
 
-from typing import Union, List, Optional
+from typing import Dict, Union, List, Optional, Tuple
 
 
 # ------------------------------------------------------------------------------
 # パーティの記録
 # ------------------------------------------------------------------------------
 
-class SelectPartyRecord(select.Select):
+class SelectPartyRecord(select.Select[Optional[cw.header.PartyRecordHeader]]):
     """
     パーティ記録・再結成ダイアログ。
     """
-    index: int
     list: List[Optional[cw.header.PartyRecordHeader]]
-    restorable: List[List[Optional[cw.header.PartyRecordHeader]]]
+    index: int
+
+    restorable: List[Optional[Tuple[bool, Dict[str, bool], List[bool]]]]
 
     def __init__(self, parent: Union["cw.dialog.select.PartySelect", "cw.dialog.select.PlayerSelect"]) -> None:
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_party_record"])
         # パーティ情報
-        self.list = cw.cwpy.ydata.partyrecord[:]
+        assert cw.cwpy.ydata
+        self.list = []
+        self.list.extend(cw.cwpy.ydata.partyrecord)
         self.list.append(None)
         self.restorable = [None]*len(self.list)
         self.index = 0
-        self.names = []
+        self.names: List[str] = []
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
         # restore
@@ -86,6 +89,7 @@ class SelectPartyRecord(select.Select):
         dlg.Destroy()
 
         def func(panel: SelectPartyRecord, header: Optional[cw.header.PartyRecordHeader], index: int) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.play_sound("harvest")
             partyrecord = cw.cwpy.get_partyrecord()
             if header:
@@ -95,7 +99,9 @@ class SelectPartyRecord(select.Select):
 
             def func(panel: SelectPartyRecord, header: cw.header.PartyRecordHeader) -> None:
                 if panel:
-                    panel.list = cw.cwpy.ydata.partyrecord[:]
+                    assert cw.cwpy.ydata
+                    panel.list = []
+                    panel.list.extend(cw.cwpy.ydata.partyrecord)
                     panel.list.append(None)
                     panel.restorable = [None]*len(panel.list)
                     panel.index = panel.list.index(header)
@@ -106,11 +112,12 @@ class SelectPartyRecord(select.Select):
     def OnClickRestoreBtn(self, event: wx.CommandEvent) -> None:
         """パーティの再結成。"""
         from . import message
+        assert cw.cwpy.ydata
 
         if isinstance(self.Parent, wx.Dialog) and self.Parent._processing:
             return
         header = self.list[self.index]
-        assert bool(header)
+        assert header
 
         if cw.cwpy.ydata.party:
             cw.cwpy.play_sound("signal")
@@ -125,7 +132,8 @@ class SelectPartyRecord(select.Select):
 
         def func(header: cw.header.PartyRecordHeader, panel: SelectPartyRecord,
                  parent: Union[select.PlayerSelect, select.PartySelect],
-                 selected: Union[cw.header.AdventurerHeader, cw.header.PartyHeader]) -> None:
+                 selected: Optional[Union[cw.header.AdventurerHeader, cw.header.PartyHeader]]) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.play_sound("harvest")
             updatelist = bool(cw.cwpy.ydata.party)
             if updatelist:
@@ -133,20 +141,30 @@ class SelectPartyRecord(select.Select):
             cw.cwpy.ydata.restore_party(header)
 
             def func(panel: SelectPartyRecord, parent: Union[select.PlayerSelect, select.PartySelect],
-                     selected: Union[cw.header.AdventurerHeader, cw.header.PartyHeader], updatelist: bool) -> None:
+                     selected: Optional[Union[cw.header.AdventurerHeader, cw.header.PartyHeader]],
+                     updatelist: bool) -> None:
+                assert cw.cwpy.ydata
                 if panel and updatelist:
                     header = panel.list[panel.index]
-                    panel.list = cw.cwpy.ydata.partyrecord[:]
+                    panel.list = []
+                    panel.list.extend(cw.cwpy.ydata.partyrecord)
                     panel.list.append(None)
                     panel.restorable = [None]*len(panel.list)
                     if header in panel.list:
                         panel.index = panel.list.index(header)
                 if panel:
                     panel.draw(True)
-                if isinstance(parent, wx.Dialog) and parent:
-                    assert isinstance(parent, (select.PlayerSelect, select.PartySelect))
-                    parent.update_standbys(selected)
+                if isinstance(parent, select.PlayerSelect):
+                    if selected:
+                        assert isinstance(selected, cw.header.AdventurerHeader)
+                        parent.update_standbys(selected)
                     parent._processing = False
+                elif isinstance(parent, select.PartySelect):
+                    if selected:
+                        assert isinstance(selected, cw.header.PartyHeader)
+                        parent.update_standbys(selected)
+                    parent._processing = False
+
             cw.cwpy.frame.exec_func(func, panel, parent, selected, updatelist)
 
         if isinstance(self.Parent, wx.Dialog):
@@ -159,13 +177,14 @@ class SelectPartyRecord(select.Select):
     def OnClickDeleteBtn(self, event: wx.CommandEvent) -> None:
         """パーティ記録の削除。"""
         from . import message
+        assert cw.cwpy.ydata
 
         if isinstance(self.Parent, wx.Dialog):
             assert isinstance(self.Parent, (select.PlayerSelect, select.PartySelect))
             if self.Parent.is_processing():
                 return
         header = self.list[self.index]
-        assert bool(header)
+        assert header
 
         cw.cwpy.play_sound("signal")
         s = cw.cwpy.msgs["delete_party_record"] % (header.name)
@@ -180,28 +199,31 @@ class SelectPartyRecord(select.Select):
         cw.cwpy.play_sound("dump")
 
         def func(header: cw.header.PartyRecordHeader) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.ydata.remove_partyrecord(header)
         cw.cwpy.exec_func(func, header)
         self.list.remove(header)
         self.index = max(0, min(self.index, len(self.list)-2))
         if 1 < len(self.list) or cw.cwpy.ydata.party:
-            def func(panel: SelectPartyRecord) -> None:
+            def func2(panel: SelectPartyRecord) -> None:
                 def func(panel: SelectPartyRecord) -> None:
                     panel.restorable = [None]*len(panel.list)
                     panel.draw(True)
                 cw.cwpy.frame.exec_func(func, panel)
-            cw.cwpy.exec_func(func, self)
+            cw.cwpy.exec_func(func2, self)
         else:
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
 
     def can_clickcenter(self) -> bool:
-        return self.restorebtn.IsEnabled()
+        result: bool = self.restorebtn.IsEnabled()
+        return result
 
     def can_clickside(self) -> bool:
         return 1 < len(self.list)
 
     def enable_btn(self) -> None:
+        assert cw.cwpy.ydata
         assert len(self.list)
         self.left2btn.Enable(1 < len(self.list))
         self.leftbtn.Enable(1 < len(self.list))
@@ -210,13 +232,16 @@ class SelectPartyRecord(select.Select):
 
         self._update_restorable()
         self.savebtn.Enable(bool(cw.cwpy.ydata.party))
-        self.restorebtn.Enable(bool(self.list[self.index] and self.restorable[self.index][0]))
+        header = self.list[self.index]
+        t = self.restorable[self.index]
+        self.restorebtn.Enable(bool(header and t and t[0]))
         self.deletebtn.Enable(bool(self.list[self.index]))
         buttonlist = [button for button in self.buttonlist if button.IsEnabled()]
         if buttonlist:
             buttonlist[0].SetFocus()
 
     def _update_restorable(self) -> None:
+        assert cw.cwpy.ydata
         header = self.list[self.index]
         if not header:
             return
@@ -277,10 +302,10 @@ class SelectPartyRecord(select.Select):
         header = self.list[self.index]
         self._update_restorable()
         restorable = self.restorable[self.index]
+        cards: Optional[List[bool]]
         if restorable:
             _can, members, cards = restorable
         else:
-            _can = False
             members = {}
             cards = None
         # 見出し
@@ -312,6 +337,7 @@ class SelectPartyRecord(select.Select):
         maxwidth = w - cw.wins(3)*2
 
         for index, s in enumerate(self.names):
+            assert header
             if members.get(header.members[index], False):
                 dc.SetTextForeground((0, 0, 0))
             else:

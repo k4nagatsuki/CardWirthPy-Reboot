@@ -11,49 +11,55 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import Callable, Tuple, Union, List
+import typing
+from typing import Callable, Sequence, Tuple, Union, List
+
+
+class BattleCommandCard(cw.image.CardImage):
+    def __init__(self, paths: List[cw.image.ImageInfo], bgtype: str, name: str,
+                 can_loaded_scaledimage: bool, func: Callable[[], None]) -> None:
+        cw.image.CardImage.__init__(self, paths, bgtype, name, can_loaded_scaledimage=can_loaded_scaledimage)
+        self.negaflag = False
+        self.func = func
 
 
 class BattleCommand(wx.Dialog):
-    list: List[cw.header.CardHeader]
+    list: List[BattleCommandCard]
 
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"],
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
+        assert cw.cwpy.battle
         self.cwpy_debug = False
         self.list = []
-        self._func_list = []
         self._clickedflag_index = -1
 
         # 行動開始
         path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        path = [cw.image.ImageInfo(path)]
-        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"], can_loaded_scaledimage=True)
+        paths = [cw.image.ImageInfo(path)]
+        header = BattleCommandCard(paths, "NORMAL", cw.cwpy.msgs["start_action"], can_loaded_scaledimage=True,
+                                   func=self.start)
         w = cw.scr2win_s(header.rect.width)
         h = cw.scr2win_s(header.rect.height)
         header.rect = pygame.Rect(cw.wins(5), cw.wins(5), w, h)
-        self._func_list.append(self.start)
-        header.negaflag = False
         self.list.append(header)
         if cw.cwpy.battle.possible_runaway:
             # 逃げる
             path = "Resource/Image/Card/ACTION9"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-            path = [cw.image.ImageInfo(path)]
-            header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True)
+            paths = [cw.image.ImageInfo(path)]
+            header = BattleCommandCard(paths, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True,
+                                       func=self.runaway)
             header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
-            header.negaflag = False
-            self._func_list.append(self.runaway)
             self.list.append(header)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        path = [cw.image.ImageInfo(path)]
-        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"], can_loaded_scaledimage=True)
+        paths = [cw.image.ImageInfo(path)]
+        header = BattleCommandCard(paths, "NORMAL", cw.cwpy.msgs["cancel"], can_loaded_scaledimage=True,
+                                   func=self.cancel)
         header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
-        header.negaflag = False
-        self._func_list.append(self.cancel)
         self.list.append(header)
 
         self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*2))
@@ -122,7 +128,7 @@ class BattleCommand(wx.Dialog):
                 if header.negaflag:
                     cw.cwpy.play_sound("click")
                     self.animate_click(header)
-                    self._func_list[i]()
+                    header.func()
                     return
         elif resid == self.leftkeyid:
             seq = self.list[:]
@@ -159,7 +165,7 @@ class BattleCommand(wx.Dialog):
             if header.rect.collidepoint(event.GetPosition()):
                 cw.cwpy.play_sound("click")
                 self.animate_click(header)
-                self._func_list[i]()
+                header.func()
                 return
 
     def start(self) -> None:
@@ -255,7 +261,7 @@ class BattleCommand(wx.Dialog):
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
 
-    def draw(self, update: bool = False) -> None:
+    def draw(self, update: bool = False) -> wx.DC:
         if update:
             dc = wx.ClientDC(self.toppanel)
             dc = wx.BufferedDC(dc, self.toppanel.GetSize())
@@ -272,7 +278,7 @@ class BattleCommand(wx.Dialog):
 
         return dc
 
-    def draw_card(self, dc: wx.DC, header: cw.image.CardImage, fromkeyevent: bool = False) -> None:
+    def draw_card(self, dc: wx.DC, header: BattleCommandCard, fromkeyevent: bool = False) -> None:
         if not fromkeyevent and self.IsActive():
             mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
             if header.rect.collidepoint(mousepos):
@@ -288,12 +294,12 @@ class BattleCommand(wx.Dialog):
             bmp = header.get_wxbmp()
 
         if self._clickedflag_index == self.list.index(header):
-            bmp = header.get_wxclickedbmp(header, bmp)
+            bmp = cw.image.CardImage.get_wxclickedbmp_static(bmp)
             pos = (pos[0]+cw.wins(4), pos[1]+cw.wins(5))
 
         dc.DrawBitmap(bmp, pos[0], pos[1], False)
 
-    def animate_click(self, header):
+    def animate_click(self, header: BattleCommandCard) -> None:
         # クリックアニメーション。4フレーム分。
         self._clickedflag_index = self.list.index(header)
         self.draw(True)
@@ -331,8 +337,8 @@ class ExtensionDialog(wx.Dialog):
     title: ダイアログのタイトル。
     """
     def __init__(self, parent: wx.TopLevelWindow, title: str,
-                 items: List[Union[Tuple[str, str, Callable[[], None]],
-                                   Tuple[str, str, Callable[[], None], bool]]]) -> None:
+                 items: Sequence[Union[Tuple[str, str, Callable[[], None]],
+                                       Tuple[str, str, Callable[[], None], bool]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = False
@@ -341,10 +347,12 @@ class ExtensionDialog(wx.Dialog):
         self.buttons = []
         for t in self.items:
             if len(t) == 3:
-                name, _desc, _func = t
+                # BUG: Too many values to unpack (3 expected, 4 provided) (mypy 0.790)
+                name, _desc, _func = typing.cast(Tuple[str, str, Callable[[], None]], t)
                 enable = True
             else:
-                name, _desc, _func, enable = t
+                # BUG: Need more than 3 values to unpack (4 expected) (mypy 0.790)
+                name, _desc, _func, enable = typing.cast(Tuple[str, str, Callable[[], None], bool], t)
             btn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(24)), name=name)
             btn.Enable(enable)
             self.buttons.append(btn)
@@ -423,6 +431,7 @@ class BookmarkDialog(wx.Dialog):
     def __init__(self, parent: wx.TopLevelWindow, scedir: str, db: cw.scenariodb.Scenariodb) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["arrange_bookmark"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
+        assert cw.cwpy.ydata
         self.cwpy_debug = False
 
         # リスト
@@ -490,7 +499,7 @@ class BookmarkDialog(wx.Dialog):
                     p = "[フォルダが見つかりません]"
 
                 elif sys.platform == "win32":
-                    sp = os.path.splitext(p)
+                    sp = cw.util.splitext(p)
                     if sp[1].lower() == ".lnk":
                         p = sp[0]
                 item = self.values.InsertItem(i, p)
@@ -675,6 +684,7 @@ class BookmarkDialog(wx.Dialog):
         cw.cwpy.play_sound("harvest")
 
         def func(bookmarks: List[Tuple[List[str], str]]) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.ydata.set_bookmarks(bookmarks)
         cw.cwpy.exec_func(func, self.bookmark)
         self.Destroy()

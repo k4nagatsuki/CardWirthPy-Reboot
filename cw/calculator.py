@@ -48,7 +48,8 @@ class FunctionIsNotDefinedException(ComputeException):
 
 class ArgumentIsNotDecimalException(ComputeException):
     """関数の引数が数値でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str, line: int, pos: int) -> None:
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
+                 line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
         self.arg_index = arg_index
@@ -57,7 +58,8 @@ class ArgumentIsNotDecimalException(ComputeException):
 
 class ArgumentIsNotStringException(ComputeException):
     """関数の引数が文字列でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str, line: int, pos: int) -> None:
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
+                 line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
         self.arg_index = arg_index
@@ -66,7 +68,8 @@ class ArgumentIsNotStringException(ComputeException):
 
 class ArgumentIsNotBooleanException(ComputeException):
     """関数の引数が真偽値でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str, line: int, pos: int) -> None:
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
+                 line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
         self.arg_index = arg_index
@@ -124,7 +127,8 @@ class DifferentScenarioException(ComputeException):
 
 class Function(object):
     """関数の名前と引数を保持し、計算を行う。"""
-    def __init__(self, name: str, line: int, pos: int, args: List["ValueType"]) -> None:
+    def __init__(self, name: str, line: int, pos: int,
+                 args: List[List[Union["ValueType", "Function", "UnaryOperator", "Operator"]]]) -> None:
         self.name = name.lower()
         self.line = line
         self.pos = pos
@@ -134,7 +138,8 @@ class Function(object):
         args = []
         for arg in self.args:
             class F(object):
-                def __init__(self, arg: ValueType, is_differentscenario: bool) -> None:
+                def __init__(self, arg: List[Union[ValueType, Function, UnaryOperator, Operator]],
+                             is_differentscenario: bool) -> None:
                     self.arg = arg
                     self.is_differentscenario = is_differentscenario
 
@@ -190,68 +195,74 @@ class Operator(object):
     def call(self, lhs: "ValueType", rhs: "ValueType") -> "ValueType":
         o = self.operator
 
-        def chk_num() -> None:
+        def chk_num() -> Tuple[decimal.Decimal, decimal.Decimal]:
             if not isinstance(lhs, DecimalValue):
                 raise SemanticsException("lhs [%s] is not number." % lhs.value, lhs.line, lhs.pos)
             if not isinstance(rhs, DecimalValue):
                 raise SemanticsException("rhs [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+            assert isinstance(lhs.value, decimal.Decimal)
+            assert isinstance(rhs.value, decimal.Decimal)
+            return lhs.value, rhs.value
 
-        def chk_bool() -> None:
+        def chk_bool() -> Tuple[bool, bool]:
             if not isinstance(lhs, BooleanValue):
                 raise SemanticsException("lhs [%s] is not boolean." % lhs.value, lhs.line, lhs.pos)
             if not isinstance(rhs, BooleanValue):
                 raise SemanticsException("rhs [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
+            assert isinstance(lhs.value, bool)
+            assert isinstance(rhs.value, bool)
+            return lhs.value, rhs.value
         if o == '+':
-            chk_num()
-            return DecimalValue(lhs.value + rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return DecimalValue(lhs_int + rhs_int, self.line, self.pos)
         elif o == '-':
-            chk_num()
-            return DecimalValue(lhs.value - rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return DecimalValue(lhs_int - rhs_int, self.line, self.pos)
         elif o == '*':
-            chk_num()
-            return DecimalValue(lhs.value * rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return DecimalValue(lhs_int * rhs_int, self.line, self.pos)
         elif o == '/':
-            chk_num()
+            lhs_int, rhs_int = chk_num()
             if rhs.value == 0:
                 raise ZeroDivisionException("Division by zero.", self.line, self.pos)
-            return DecimalValue(lhs.value / rhs.value, self.line, self.pos)
+            return DecimalValue(lhs_int / rhs_int, self.line, self.pos)
         elif o == '%':
-            chk_num()
+            lhs_int, rhs_int = chk_num()
             if rhs.value == 0:
                 raise ZeroDivisionException("Division by zero.", self.line, self.pos)
-            return DecimalValue(lhs.value % rhs.value, self.line, self.pos)
+            return DecimalValue(lhs_int % rhs_int, self.line, self.pos)
         elif o == '~':
             return StringValue(lhs.to_str() + rhs.to_str(), self.line, self.pos)
         elif o == "<=":
-            chk_num()
-            return BooleanValue(lhs.value <= rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return BooleanValue(lhs_int <= rhs_int, self.line, self.pos)
         elif o == ">=":
-            chk_num()
-            return BooleanValue(lhs.value >= rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return BooleanValue(lhs_int >= rhs_int, self.line, self.pos)
         elif o == "<":
-            chk_num()
-            return BooleanValue(lhs.value < rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return BooleanValue(lhs_int < rhs_int, self.line, self.pos)
         elif o == ">":
-            chk_num()
-            return BooleanValue(lhs.value > rhs.value, self.line, self.pos)
+            lhs_int, rhs_int = chk_num()
+            return BooleanValue(lhs_int > rhs_int, self.line, self.pos)
         elif o in ("=", "<>"):
             if isinstance(lhs, StringValue) or isinstance(rhs, StringValue):
                 r = lhs.to_str() == rhs.to_str()
             elif isinstance(lhs, BooleanValue) or isinstance(rhs, BooleanValue):
-                chk_bool()
-                r = lhs.value == rhs.value
+                lhs_bool, rhs_bool = chk_bool()
+                r = lhs_bool == rhs_bool
             else:
-                chk_num()
-                r = lhs.value == rhs.value
+                lhs_int, rhs_int = chk_num()
+                r = lhs_int == rhs_int
             if o == "<>":
                 r = not r
             return BooleanValue(r, self.line, self.pos)
         elif o.lower() == "and":
-            chk_bool()
-            return BooleanValue(lhs.value and rhs.value, self.line, self.pos)
+            lhs_bool, rhs_bool = chk_bool()
+            return BooleanValue(lhs_bool and rhs_bool, self.line, self.pos)
         elif o.lower() == "or":
-            chk_bool()
-            return BooleanValue(lhs.value or rhs.value, self.line, self.pos)
+            lhs_bool, rhs_bool = chk_bool()
+            return BooleanValue(lhs_bool or rhs_bool, self.line, self.pos)
         else:
             raise SemanticsException("Invalid operator: %s" % o, self.line, self.pos)
 
@@ -271,7 +282,7 @@ class Token(object):
 
 
 class ValueType(object):
-    value: Union[str, decimal.Decimal, bool]
+    value: cw.data.VariantValueType
     line: int
     pos: int
 
@@ -281,6 +292,8 @@ class ValueType(object):
 
 class DecimalValue(ValueType):
     """数値トークン。"""
+    value: decimal.Decimal
+
     def __init__(self, s: Union[str, decimal.Decimal, int], line: int, pos: int) -> None:
         self.value = decimal.Decimal(s)
         self.line = line
@@ -298,6 +311,8 @@ class DecimalValue(ValueType):
 
 class StringValue(ValueType):
     """文字列トークン。"""
+    value: str
+
     def __init__(self, s: str, line: int, pos: int) -> None:
         self.value = s
         self.line = line
@@ -312,6 +327,8 @@ class StringValue(ValueType):
 
 class BooleanValue(ValueType):
     """真偽値トークン。"""
+    value: bool
+
     def __init__(self, s: bool, line: int, pos: int) -> None:
         self.value = s
         self.line = line
@@ -328,13 +345,14 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
     """文字列sを式として解析し、スタックを生成する。"""
     tokens = []
     bpos = 0
-    bm = None
+    bm: Optional[re.Match[str]] = None
     line = 1
     pos = 1
     reg = "[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|@?\"([^\"]|\"\")*\"|or|and|"\
           "<=|>=|<>|<|>|=|true|false|\\n|\\s+"
     for m in re.finditer(reg, s, re.I):
         if bpos is None or m.start() != bpos:
+            assert bm is not None
             raise TokanizeException("Invalid Character: %s" % s[bm.end():m.start()], line, pos)
         bpos = m.end()
         t = m.group()
@@ -371,8 +389,8 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
 
     def parse_semantics(tokens: List[Token],
                         i: int) -> Tuple[int, List[Union[ValueType, Function, UnaryOperator, Operator]]]:
-        num = []
-        op = []
+        num: List[Union[ValueType, Function, UnaryOperator, Operator]] = []
+        op: List[Tuple[int, int, bool, Token]] = []
 
         isop = True
         parlevel = 0
@@ -525,7 +543,7 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
 def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
               is_differentscenario: bool = False) -> ValueType:
     """スタックstの式を実行する。"""
-    op = []
+    op: List[ValueType] = []
     for t in st:
         if isinstance(t, Function):
             # 関数呼び出し
@@ -575,36 +593,47 @@ def _chk_argscount2(args: List[Callable[[], ValueType]], n1: int, n2: int, func_
                                       pos)
 
 
-def _chk_decimal(arg: DecimalValue, func_name: str, arg_index: int) -> None:
+def _chk_decimal(arg: ValueType, func_name: str, arg_index: int) -> decimal.Decimal:
     """argがDecimalValueか調べる。"""
-    if not isinstance(arg, DecimalValue):
+    if isinstance(arg, DecimalValue):
+        assert isinstance(arg.value, decimal.Decimal)
+        return arg.value
+    else:
         raise ArgumentIsNotDecimalException("%s is not Decimal." % arg.value, func_name, arg_index, arg.to_str(),
                                             arg.line, arg.pos)
 
 
-def _chk_minvalue(arg: DecimalValue, func_name: str, arg_index: int, minvalue: int = 0) -> None:
+def _chk_minvalue(arg: ValueType, func_name: str, arg_index: int, minvalue: int = 0) -> decimal.Decimal:
     """argが0以上のDecimalValueか調べる。"""
-    _chk_decimal(arg, func_name, arg_index)
-    if arg.value < minvalue:
-        raise InvalidArgumentException("%s < %s." % (arg.value, minvalue), func_name, arg_index, arg.to_str(),
+    r = _chk_decimal(arg, func_name, arg_index)
+    if r < minvalue:
+        raise InvalidArgumentException("%s < %s." % (r, minvalue), func_name, arg_index, arg.to_str(),
                                        arg.line, arg.pos)
+    else:
+        return r
 
 
-def _chk_string(arg: StringValue, func_name: str, arg_index: int) -> None:
+def _chk_string(arg: ValueType, func_name: str, arg_index: int) -> str:
     """argがStringValueか調べる。"""
-    if not isinstance(arg, StringValue):
+    if isinstance(arg, StringValue):
+        assert isinstance(arg.value, str)
+        return arg.value
+    else:
         raise ArgumentIsNotStringException("%s is not String." % arg.value, func_name, arg_index, arg.value,
                                            arg.line, arg.pos)
 
 
-def _chk_boolean(arg: BooleanValue, func_name: str, arg_index: int) -> None:
+def _chk_boolean(arg: ValueType, func_name: str, arg_index: int) -> bool:
     """argがBooleanValueか調べる。"""
-    if not isinstance(arg, BooleanValue):
+    if isinstance(arg, BooleanValue):
+        assert isinstance(arg.value, bool)
+        return arg.value
+    else:
         raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.value, func_name, arg_index, arg.value,
                                             arg.line, arg.pos)
 
 
-def _is_alldecimal(args: List[DecimalValue], func_name: str) -> bool:
+def _is_alldecimal(args: List[ValueType], func_name: str) -> bool:
     """argsが全てDecimalValueで構成されているか検査する。"""
     for i, arg in enumerate(args):
         _chk_decimal(arg, func_name, i)
@@ -612,50 +641,42 @@ def _is_alldecimal(args: List[DecimalValue], func_name: str) -> bool:
 
 
 def _all_eval(args: List[Callable[[], ValueType]]) -> List[ValueType]:
-    for i, arg in enumerate(args):
-        args[i] = arg()
-    return args
+    return [arg() for arg in args]
 
 
 def _func_max(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数中の最大の値を返す。"""
-    args = _all_eval(args)
-    if len(args) and _is_alldecimal(args, "MAX"):
-        return DecimalValue(max(*map(lambda a: a.value, args)) if 1 < len(args) else args[0].value, line, pos)
+    args_r = _all_eval(args)
+    if len(args_r) and _is_alldecimal(args_r, "MAX"):
+        return DecimalValue(max(*map(lambda a: a.value, args_r)) if 1 < len(args_r) else args_r[0].value, line, pos)
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
 
 
 def _func_min(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数中の最小の値を返す。"""
-    args = _all_eval(args)
-    if len(args) and _is_alldecimal(args, "MIN"):
-        return DecimalValue(min(*map(lambda a: a.value, args)) if 1 < len(args) else args[0].value, line, pos)
+    args_r = _all_eval(args)
+    if len(args_r) and _is_alldecimal(args_r, "MIN"):
+        return DecimalValue(min(*map(lambda a: a.value, args_r)) if 1 < len(args_r) else args_r[0].value, line, pos)
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
 
 
 def _func_len(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """文字列の文字数を返す。"""
     _chk_argscount(args, 1, "LEN", line, pos)
-    args = _all_eval(args)
-    a = args[0]
-    _chk_string(a, "LEN", 0)
-    return DecimalValue(len(a.value), line, pos)
+    args_r = _all_eval(args)
+    a = args_r[0]
+    return DecimalValue(len(_chk_string(a, "LEN", 0)), line, pos)
 
 
 def _func_find(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """文字列内を検索する。"""
     _chk_argscount2(args, 2, 3, "FIND", line, pos)
-    args = _all_eval(args)
-    a = args[0]
-    _chk_string(a, "FIND", 0)
-    a = a.value
-    t = args[1]
-    _chk_string(t, "FIND", 1)
-    t = t.value
-    if 2 < len(args):
-        n = args[2]
-        _chk_minvalue(n, "FIND", 2)
-        start = int(n.value)
+    args_r = _all_eval(args)
+    a = _chk_string(args_r[0], "FIND", 0)
+    t = _chk_string(args_r[1], "FIND", 1)
+    if 2 < len(args_r):
+        n = args_r[2]
+        start = int(_chk_minvalue(n, "FIND", 2))
         if start == 0:
             return DecimalValue(0, line, pos)
         start -= 1
@@ -675,47 +696,41 @@ def _func_find(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
 def _func_left(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の左側を取り出す。"""
     _chk_argscount(args, 2, "LEFT", line, pos)
-    args = _all_eval(args)
-    s = args[0]
-    n = args[1]
-    _chk_string(s, "LEFT", 0)
-    _chk_minvalue(n, "LEFT", 1)
-    a = s.value
-    v = min(n.value, len(a))
+    args_r = _all_eval(args)
+    s = args_r[0]
+    n = args_r[1]
+    a = _chk_string(s, "LEFT", 0)
+    v = min(int(_chk_minvalue(n, "LEFT", 1)), len(a))
     return StringValue(a[:int(v)], line, pos)
 
 
 def _func_right(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の右側を取り出す。"""
     _chk_argscount(args, 2, "RIGHT", line, pos)
-    args = _all_eval(args)
-    s = args[0]
-    n = args[1]
-    _chk_string(s, "RIGHT", 0)
-    _chk_minvalue(n, "RIGHT", 1)
-    a = s.value
-    v = len(a) - min(n.value, len(a))
+    args_r = _all_eval(args)
+    s = args_r[0]
+    n = args_r[1]
+    a = _chk_string(s, "RIGHT", 0)
+    v = len(a) - min(int(_chk_minvalue(n, "RIGHT", 1)), len(a))
     return StringValue(a[int(v):], line, pos)
 
 
 def _func_mid(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """文字列の[N1-1:N1+N2]の範囲を取り出す。"""
     _chk_argscount2(args, 2, 3, "MID", line, pos)
-    args = _all_eval(args)
-    s = args[0]
-    n1 = args[1]
-    _chk_string(s, "MID", 0)
-    _chk_minvalue(n1, "MID", 1, 1)
-    a = s.value
-    if len(a)+1 <= n1.value:
+    args_r = _all_eval(args)
+    s = args_r[0]
+    n1 = args_r[1]
+    a = _chk_string(s, "MID", 0)
+    n1value = int(_chk_minvalue(n1, "MID", 1, 1))
+    if len(a)+1 <= n1value:
         a = ""
     else:
-        v = n1.value - 1
+        v = n1value - 1
         a = a[int(v):]
-        if len(args) == 3:
-            n2 = args[2]
-            _chk_minvalue(n2, "MID", 2)
-            v = min(n2.value, len(a))
+        if len(args_r) == 3:
+            n2 = args_r[2]
+            v = min(int(_chk_minvalue(n2, "MID", 2)), len(a))
             a = a[:int(v)]
     return StringValue(a, line, pos)
 
@@ -723,8 +738,8 @@ def _func_mid(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
 def _func_str(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """引数を文字列に変換する。"""
     _chk_argscount(args, 1, "STR", line, pos)
-    args = _all_eval(args)
-    return StringValue(args[0].to_str(), line, pos)
+    args_r = _all_eval(args)
+    return StringValue(args_r[0].to_str(), line, pos)
 
 
 _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
@@ -733,11 +748,13 @@ _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 def _func_value(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE", line, pos)
-    args = _all_eval(args)
-    a = args[0]
+    args_r = _all_eval(args)
+    a = args_r[0]
     if isinstance(a, DecimalValue):
+        assert isinstance(a.value, decimal.Decimal)
         value = a.value
     elif isinstance(a, StringValue):
+        assert isinstance(a.value, str)
         if not _NUM_REG.match(a.value):
             raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
         try:
@@ -752,9 +769,10 @@ def _func_value(args: List[Callable[[], ValueType]], is_differentscenario: bool,
 def _func_int(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """引数を整数化する。"""
     _chk_argscount(args, 1, "INT", line, pos)
-    args = _all_eval(args)
-    a = args[0]
+    args_r = _all_eval(args)
+    a = args_r[0]
     if isinstance(a, DecimalValue):
+        assert isinstance(a.value, decimal.Decimal)
         value = a.value
     elif isinstance(a, StringValue):
         try:
@@ -770,18 +788,17 @@ def _func_if(args: List[Callable[[], ValueType]], is_differentscenario: bool, li
     """args[0]がTrueであればargs[1]を、そうでなければargs[2]を返す。"""
     _chk_argscount(args, 3, "IF", line, pos)
     a = args[0]()
-    _chk_boolean(a, "IF", 0)
+    a_bool = _chk_boolean(a, "IF", 0)
     t = args[1]
     f = args[2]
-    return t() if a.value else f()
+    return t() if a_bool else f()
 
 
 def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ValueType:
     """汎用変数の値を読む。"""
     _chk_argscount(args, 1, "VAR", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "VAR", 0)
-    path = args[0].value
+    args_r = _all_eval(args)
+    path = _chk_string(args_r[0], "VAR", 0)
 
     event = cw.cwpy.event.get_nowrunningevent()
     if event and path in event.variants:
@@ -790,22 +807,26 @@ def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
         _chk_diffsc(is_differentscenario, line, pos)
         variant = cw.cwpy.sdata.variants[path]
     else:
-        raise VariantNotFoundException("Variant \"%s\" is not found.", path, args[0].line, args[0].pos)
+        raise VariantNotFoundException("Variant \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
     if variant.type == "Boolean":
+        assert isinstance(variant.value, bool)
         return BooleanValue(variant.value, line, pos)
     elif variant.type == "Number":
+        assert isinstance(variant.value, decimal.Decimal)
         return DecimalValue(variant.value, line, pos)
-    else:  # String
+    else:
+        assert variant.type == "String"
+        assert isinstance(variant.value, str)
         return StringValue(variant.value, line, pos)
 
 
-def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario, line: int, pos: int) -> BooleanValue:
+def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> BooleanValue:
     """フラグの値を読む。"""
     _chk_argscount(args, 1, "FLAGVALUE", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "FLAGVALUE", 0)
-    path = args[0].value
+    args_r = _all_eval(args)
+    path = _chk_string(args_r[0], "FLAGVALUE", 0)
 
     event = cw.cwpy.event.get_nowrunningevent()
     if event and path in event.flags:
@@ -814,7 +835,7 @@ def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario, l
         _chk_diffsc(is_differentscenario, line, pos)
         flag = cw.cwpy.sdata.flags[path]
     else:
-        raise FlagNotFoundException("Flag \"%s\" is not found.", path, args[0].line, args[0].pos)
+        raise FlagNotFoundException("Flag \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
     return BooleanValue(flag.value, line, pos)
 
@@ -822,9 +843,8 @@ def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario, l
 def _func_flagtext(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """フラグの値の文字列を読む。"""
     _chk_argscount2(args, 1, 2, "FLAGTEXT", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "FLAGTEXT", 0)
-    path = args[0].value
+    args_r = _all_eval(args)
+    path = _chk_string(args_r[0], "FLAGTEXT", 0)
 
     event = cw.cwpy.event.get_nowrunningevent()
     if event and path in event.flags:
@@ -833,11 +853,10 @@ def _func_flagtext(args: List[Callable[[], ValueType]], is_differentscenario: bo
         _chk_diffsc(is_differentscenario, line, pos)
         flag = cw.cwpy.sdata.flags[path]
     else:
-        raise FlagNotFoundException("Flag \"%s\" is not found.", path, args[0].line, args[0].pos)
+        raise FlagNotFoundException("Flag \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
-    if len(args) == 2:
-        _chk_boolean(args[1], "FLAGTEXT", 1)
-        value = args[1].value
+    if len(args_r) == 2:
+        value = _chk_boolean(args_r[1], "FLAGTEXT", 1)
     else:
         value = flag.value
 
@@ -853,9 +872,8 @@ def _func_stepvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
                     pos: int) -> DecimalValue:
     """ステップの値を読む。"""
     _chk_argscount(args, 1, "STEPVALUE", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "STEPVALUE", 0)
-    path = args[0].value
+    args_r = _all_eval(args)
+    path = _chk_string(args_r[0], "STEPVALUE", 0)
 
     event = cw.cwpy.event.get_nowrunningevent()
     if event and path in event.steps:
@@ -864,7 +882,7 @@ def _func_stepvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
         _chk_diffsc(is_differentscenario, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
-        raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
+        raise StepNotFoundException("Step \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
     return DecimalValue(decimal.Decimal(step.value), line, pos)
 
@@ -872,9 +890,8 @@ def _func_stepvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
 def _func_steptext(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """ステップの値の文字列を読む。"""
     _chk_argscount2(args, 1, 2, "STEPTEXT", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "STEPTEXT", 0)
-    path = args[0].value
+    args_r = _all_eval(args)
+    path = _chk_string(args_r[0], "STEPTEXT", 0)
 
     event = cw.cwpy.event.get_nowrunningevent()
     if event and path in event.steps:
@@ -883,16 +900,15 @@ def _func_steptext(args: List[Callable[[], ValueType]], is_differentscenario: bo
         _chk_diffsc(is_differentscenario, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
-        raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
+        raise StepNotFoundException("Step \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
-    if len(args) == 2:
-        _chk_decimal(args[1], "STEPTEXT", 1)
-        value = int(args[1].value)
+    if len(args_r) == 2:
+        value = int(_chk_decimal(args_r[1], "STEPTEXT", 1))
     else:
         value = step.value
 
     if value < 0 or len(step.valuenames) <= value:
-        raise InvalidStepValueException("Invalid step value: \"%s\"[%s]" % (path, value), args[1].line, args[1].pos)
+        raise InvalidStepValueException("Invalid step value: \"%s\"[%s]" % (path, value), args_r[1].line, args_r[1].pos)
 
     s = step.get_valuename(value)
 
@@ -905,9 +921,8 @@ def _func_steptext(args: List[Callable[[], ValueType]], is_differentscenario: bo
 def _func_stepmax(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """ステップの最大値を取得する。"""
     _chk_argscount(args, 1, "STEPMAX", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "STEPMAX", 0)
-    path = args[0].value
+    args_r = _all_eval(args)
+    path = _chk_string(args_r[0], "STEPMAX", 0)
 
     event = cw.cwpy.event.get_nowrunningevent()
     if event and path in event.steps:
@@ -916,7 +931,7 @@ def _func_stepmax(args: List[Callable[[], ValueType]], is_differentscenario: boo
         _chk_diffsc(is_differentscenario, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
-        raise StepNotFoundException("Step \"%s\" is not found.", path, args[0].line, args[0].pos)
+        raise StepNotFoundException("Step \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
     return DecimalValue(decimal.Decimal(len(step.valuenames)-1), line, pos)
 
@@ -924,13 +939,9 @@ def _func_stepmax(args: List[Callable[[], ValueType]], is_differentscenario: boo
 def _func_dice(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
     """ダイスを振って結果の値を返す。"""
     _chk_argscount(args, 2, "DICE", line, pos)
-    args = _all_eval(args)
-    t = args[0]
-    s = args[1]
-    _chk_minvalue(t, "DICE", 0)
-    _chk_minvalue(s, "DICE", 0)
-    t = int(t.value)
-    s = int(s.value)
+    args_r = _all_eval(args)
+    t = int(_chk_minvalue(args_r[0], "DICE", 0))
+    s = int(_chk_minvalue(args_r[1], "DICE", 0))
     if t == 0 or s == 0:
         n = 0
     else:
@@ -942,18 +953,17 @@ def _func_selected(args: List[Callable[[], ValueType]], is_differentscenario: bo
                    pos: int) -> DecimalValue:
     """選択メンバのキャラクター番号を数値(1～)で返す。"""
     _chk_argscount(args, 0, "SELECTED", line, pos)
-    args = _all_eval(args)
     if cw.cwpy.event.has_selectedmember():
         try:
             ccard = cw.cwpy.event.get_selectedmember()
-            if isinstance(ccard, cw.character.Player):
+            if isinstance(ccard, cw.sprite.card.PlayerCard):
                 pcards = cw.cwpy.get_pcards()
                 n = pcards.index(ccard) + 1
-            elif isinstance(ccard, cw.character.Enemy):
+            elif isinstance(ccard, cw.sprite.card.EnemyCard):
                 pcards_len = len(cw.cwpy.get_pcards())
                 ecards = cw.cwpy.get_ecards()
                 n = ecards.index(ccard) + 1 + pcards_len
-            elif isinstance(ccard, cw.character.Friend):
+            elif isinstance(ccard, cw.sprite.card.FriendCard):
                 pcards_len = len(cw.cwpy.get_pcards())
                 ecards_len = len(cw.cwpy.get_ecards())
                 fcards = cw.cwpy.get_fcards()
@@ -969,8 +979,7 @@ def _func_selected(args: List[Callable[[], ValueType]], is_differentscenario: bo
 
 
 def _ccard_from(arg: ValueType, func_name: str) -> Optional[cw.character.Character]:
-    _chk_minvalue(arg, func_name, 0)
-    n = int(arg.value)
+    n = int(_chk_minvalue(arg, func_name, 0))
     if n == 0:
         return None
     else:
@@ -993,8 +1002,8 @@ def _func_casttype(args: List[Callable[[], ValueType]], is_differentscenario: bo
                    pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターのタイプ(1=Player,2=Enemy,3=Friend)を返す。"""
     _chk_argscount(args, 1, "CASTTYPE", line, pos)
-    args = _all_eval(args)
-    ccard = _ccard_from(args[0], "CASTTYPE")
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "CASTTYPE")
     if isinstance(ccard, cw.character.Player):
         return DecimalValue(1, line, pos)
     elif isinstance(ccard, cw.character.Enemy):
@@ -1008,8 +1017,8 @@ def _func_casttype(args: List[Callable[[], ValueType]], is_differentscenario: bo
 def _func_castname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
     """キャラクター番号からキャラクターの名前を返す。"""
     _chk_argscount(args, 1, "CASTNAME", line, pos)
-    args = _all_eval(args)
-    ccard = _ccard_from(args[0], "CASTNAME")
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "CASTNAME")
     if ccard:
         return StringValue(ccard.get_showingname(), line, pos)
     else:
@@ -1020,15 +1029,13 @@ def _func_findcoupon(args: List[Callable[[], ValueType]], is_differentscenario: 
                      pos: int) -> DecimalValue:
     """キャラクター番号のキャラクターのクーポンを検索してクーポン番号を返す。"""
     _chk_argscount2(args, 2, 3, "FINDCOUPON", line, pos)
-    args = _all_eval(args)
-    ccard = _ccard_from(args[0], "FINDCOUPON")
-    _chk_string(args[1], "FINDCOUPON", 1)
-    pattern = args[1].value
-    if len(args) < 3:
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "FINDCOUPON")
+    pattern = _chk_string(args_r[1], "FINDCOUPON", 1)
+    if len(args_r) < 3:
         startpos = 1
     else:
-        _chk_minvalue(args[2], "FINDCOUPON", 0)
-        startpos = int(args[2].value)
+        startpos = int(_chk_minvalue(args_r[2], "FINDCOUPON", 0))
     if ccard is None:
         return DecimalValue(0, line, pos)
     startindex = startpos - 1
@@ -1043,12 +1050,12 @@ def _func_coupontext(args: List[Callable[[], ValueType]], is_differentscenario: 
                      pos: int) -> StringValue:
     """キャラクター番号のキャラクターの所持するクーポン名を返す。"""
     _chk_argscount(args, 2, "COUPONTEXT", line, pos)
-    args = _all_eval(args)
-    ccard = _ccard_from(args[0], "COUPONTEXT")
-    _chk_minvalue(args[1], "COUPONTEXT", 0)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "COUPONTEXT")
+    index_d = _chk_minvalue(args_r[1], "COUPONTEXT", 0)
     if ccard is None:
         return StringValue("", line, pos)
-    index = int(args[1].value) - 1
+    index = int(index_d) - 1
     if index < 0 or ccard.coupons_len() <= index:
         return StringValue("", line, pos)
     return StringValue(ccard.get_coupon_at(index)[0], line, pos)
@@ -1058,16 +1065,14 @@ def _func_findgossip(args: List[Callable[[], ValueType]], is_differentscenario: 
                      pos: int) -> DecimalValue:
     """ゴシップを検索してゴシップ番号を返す。"""
     _chk_argscount2(args, 1, 2, "FINDGOSSIP", line, pos)
-    args = _all_eval(args)
-    _chk_string(args[0], "FINDGOSSIP", 0)
-    pattern = args[0].value
-    if len(args) < 2:
+    args_r = _all_eval(args)
+    pattern = _chk_string(args_r[0], "FINDGOSSIP", 0)
+    if len(args_r) < 2:
         startpos = 1
     else:
-        _chk_minvalue(args[1], "FINDGOSSIP", 0)
-        startpos = int(args[1].value)
+        startpos = int(_chk_minvalue(args_r[1], "FINDGOSSIP", 0))
     startindex = startpos - 1
-    if startindex < 0 or cw.cwpy.ydata.gossips_len() <= startindex:
+    if cw.cwpy.ydata is None or startindex < 0 or cw.cwpy.ydata.gossips_len() <= startindex:
         return DecimalValue(0, line, pos)
     reg = re.compile(fnmatch.translate(pattern))
     index = cw.cwpy.ydata.find_gossip(lambda name: bool(reg.match(name)), startindex)
@@ -1078,10 +1083,9 @@ def _func_gossiptext(args: List[Callable[[], ValueType]], is_differentscenario: 
                      pos: int) -> StringValue:
     """ゴシップ名を返す。"""
     _chk_argscount(args, 1, "GOSSIPTEXT", line, pos)
-    args = _all_eval(args)
-    _chk_minvalue(args[0], "GOSSIPTEXT", 0)
-    index = int(args[0].value) - 1
-    if index < 0 or cw.cwpy.ydata.gossips_len() <= index:
+    args_r = _all_eval(args)
+    index = int(_chk_minvalue(args_r[0], "GOSSIPTEXT", 0)) - 1
+    if cw.cwpy.ydata is None or index < 0 or cw.cwpy.ydata.gossips_len() <= index:
         return StringValue("", line, pos)
     return StringValue(cw.cwpy.ydata.get_gossip_at(index), line, pos)
 
@@ -1090,8 +1094,7 @@ def _func_partyname(args: List[Callable[[], ValueType]], is_differentscenario: b
                     pos: int) -> StringValue:
     """パーティ名を返す。"""
     _chk_argscount(args, 0, "PARTYNAME", line, pos)
-    args = _all_eval(args)
-    if cw.cwpy.ydata.party is None:
+    if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
         return StringValue("", line, pos)
     return StringValue(cw.cwpy.ydata.party.get_showingname(), line, pos)
 
@@ -1223,17 +1226,17 @@ assert calculate(parse("If(2=2,99,88)")).value == 99
 try:
     assert calculate(parse("5 / (2-1-1)"))
     assert False
-except ZeroDivisionException as ex:
+except ZeroDivisionException:
     pass
 try:
     assert calculate(parse("5 % (2-1-1)"))
     assert False
-except ZeroDivisionException as ex:
+except ZeroDivisionException:
     pass
 try:
     assert calculate(parse("MAX()"))
     assert False
-except ArgumentsCountException as ex:
+except ArgumentsCountException:
     pass
 
 

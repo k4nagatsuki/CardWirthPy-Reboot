@@ -6,7 +6,7 @@ import shutil
 
 import cw
 
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 
 class CWScenario(object):
@@ -17,6 +17,7 @@ class CWScenario(object):
         dstdir: 変換先ディレクトリ。
         skintype: スキンタイプ。
         """
+        from . import base
         from . import util
 
         self.name = os.path.basename(path)
@@ -31,7 +32,7 @@ class CWScenario(object):
         self.curnum = 0
         self.maxnum = 1
         # 読み込んだデータリスト
-        self.datalist = []
+        self.datalist: List[base.CWBinaryBase] = []
         # エラーログ
         self.errorlog = ""
         # pathにあるファイル・ディレクトリを
@@ -44,8 +45,10 @@ class CWScenario(object):
         self.summarypath = None
 
         # 互換性マーク
-        self.versionhint = None
+        self.versionhint: Optional[Tuple[str, str, bool, bool, bool]] = None
         self.hasmodeini = False
+
+        self.imgdir: str = ""
 
         if self.path == "":
             return
@@ -99,6 +102,9 @@ class CWScenario(object):
     def write_errorlog(self, s: str) -> None:
         self.errorlog += s + "\n"
 
+    def is_yadodata(self) -> bool:
+        return False
+
     def load(self) -> None:
         """シナリオファイルのリストを読み込む。
         種類はtypeで判別できる(見出しは"-1"、パッケージは"7"となっている)。
@@ -140,6 +146,8 @@ class CWScenario(object):
         from . import skill
         from . import beast
 
+        data: Union[summary.Summary, area.Area, battle.Battle, cast.CastCard, item.ItemCard, info.InfoCard,
+                    package.Package, skill.SkillCard, beast.BeastCard]
         try:
             f = cwfile.CWFile(path, "rb", decodewrap=decodewrap)
 

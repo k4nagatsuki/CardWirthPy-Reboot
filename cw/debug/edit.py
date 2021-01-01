@@ -8,7 +8,7 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import Callable, Dict, Iterable, List, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Reversible, Set, Tuple, TypeVar
 
 
 # ------------------------------------------------------------------------------
@@ -48,10 +48,10 @@ class CouponEditDialog(wx.Dialog):
         # リスト
         self.values = EditableListCtrl(self, -1, size=cw.ppis((250, 300)), style=wx.LC_REPORT)
         self.values.imglist = wx.ImageList(cw.ppis(14), cw.ppis(14))
-        self.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3_dbg"])
-        self.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2_dbg"])
-        self.imgidx_0 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1_dbg"])
-        self.imgidx_m1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS0_dbg"])
+        self.imgidx_2: int = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3_dbg"])
+        self.imgidx_1: int = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2_dbg"])
+        self.imgidx_0: int = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1_dbg"])
+        self.imgidx_m1: int = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS0_dbg"])
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, "名称")
         self.values.InsertColumn(1, "得点")
@@ -370,7 +370,7 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
-        def func(pcards: cw.character.Character, coupons: List[List[Tuple[str, int]]], syscoupons: Set[str],
+        def func(pcards: Iterable[cw.character.Character], coupons: List[List[Tuple[str, int]]], syscoupons: Set[str],
                  cindex: int, adjust_level: bool) -> None:
             update = False
             for i, pcard in enumerate(pcards):
@@ -762,11 +762,13 @@ class ListEditDialog(wx.Dialog):
 
 class GossipEditDialog(ListEditDialog):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
+        assert cw.cwpy.ydata
         ListEditDialog.__init__(self, parent, "ゴシップの編集",
                                 cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
         def func(seq: Iterable[str]) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.clear_gossips()
             for name in seq:
@@ -777,11 +779,13 @@ class GossipEditDialog(ListEditDialog):
 
 class CompStampEditDialog(ListEditDialog):
     def __init__(self, parent: wx.TopLevelWindow) -> None:
+        assert cw.cwpy.ydata
         ListEditDialog.__init__(self, parent, "終了印の編集",
                                 cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
         def func(seq: Iterable[str]) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.clear_compstamps()
             for name in seq:
@@ -825,7 +829,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         self.cwpy_debug = True
         keys = iter(savedjpdcimage.keys())
         self.list = list(cw.util.sorted_by_attr(keys))
-        self._removed = []
+        self._removed: List[Tuple[str, str]] = []
 
         # リスト
         image = cw.cwpy.rsrc.debugs["JPDCIMAGE_dbg"]
@@ -899,6 +903,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
         def func(removedlist: Iterable[Tuple[str, str]]) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.ydata.savedjpdcimage:
@@ -935,16 +940,16 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 class SavedVariablesEditDialog(wx.Dialog):
 
     def __init__(self, parent: wx.TopLevelWindow,
-                 savedvariables: Dict[Tuple[str, str], Tuple[cw.data.CWPyElement,
-                                                             Dict[str, bool],
-                                                             Dict[str, int],
-                                                             Dict[str, Union[str, decimal.Decimal, bool]]]]) -> None:
+                 savedvariables: Dict[Tuple[str, str],
+                                      Tuple[cw.data.CWPyElement, Dict[str, bool],
+                                            Dict[str, int],
+                                            Dict[str, cw.data.VariantValueType]]]) -> None:
         wx.Dialog.__init__(self, parent, -1, "状態変数を保存したシナリオ",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         keys = iter(savedvariables.keys())
         self.list = list(cw.util.sorted_by_attr(keys))
-        self._removed = []
+        self._removed: List[Tuple[str, str]] = []
 
         # リスト
         image = cw.cwpy.rsrc.debugs["VARIABLES_dbg"]
@@ -1018,6 +1023,7 @@ class SavedVariablesEditDialog(wx.Dialog):
 
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
         def func(removedlist: Iterable[Tuple[str, str]]) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.ydata.saved_variables:
@@ -1057,7 +1063,7 @@ class BreakpointEditDialog(wx.Dialog):
         self.cwpy_debug = True
         keys = iter(breakpoint_table.keys())
         self.list = list(cw.util.sorted_by_attr(keys))
-        self._removed = []
+        self._removed: List[Tuple[str, str]] = []
 
         # リスト
         image = cw.cwpy.rsrc.debugs["BREAKPOINT_dbg"]
@@ -1318,12 +1324,12 @@ class FindPanel(wx.Panel):
 
 class EditBookmarksForCardEditDialog(wx.Dialog):
 
-    def __init__(self, parent: wx.TopLevelWindow, bookmarks: Dict[Tuple[str, str], Tuple[str, str]]) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, bookmarks: List[Tuple[str, str]]) -> None:
         wx.Dialog.__init__(self, parent, -1, "ブックマーク",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.MINIMIZE_BOX)
         self.cwpy_debug = True
         self.list = bookmarks[:]
-        self._removed = []
+        self._removed: List[Tuple[str, str]] = []
 
         # リスト
         image = cw.cwpy.rsrc.dialogs["SUMMARY_dbg"]
@@ -1418,6 +1424,8 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
                 break
             try:
                 scdata = cw.scenariodb.get_scenario(self.values.GetItem(index, 1).GetText())
+                if not scdata:
+                    raise ValueError()
                 self.values.SetItem(index, 0, scdata.name)
                 self.list[index] = (self.list[index][0], scdata.name)
             except Exception:
@@ -1477,7 +1485,7 @@ class EditBookmarksForCardEditDialog(wx.Dialog):
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
 
-        def set_item(index: int, string: str, image: int) -> None:
+        def set_item(index: int, string: Tuple[str, str], image: int) -> None:
             self.values.SetItem(index, 0, string[0])
             self.values.SetItem(index, 1, string[1])
             self.values.SetItemImage(index, image)
@@ -1538,7 +1546,10 @@ def _get_iteminfos(values: EditableListCtrl) -> Tuple[List[List[str]], List[int]
     return names, images
 
 
-def up_to_top(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: List[int]) -> None:
+_T = TypeVar("_T")
+
+
+def up_to_top(values: EditableListCtrl, seq: List[_T], indexes: Reversible[int]) -> None:
     """
     indexesが指すseq内のアイテムを最上段へ移動し、
     移動結果によってvalues(wx.ListCtrl)を更新する。
@@ -1578,7 +1589,7 @@ def up_to_top(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: Lis
     values.EnsureVisible(0)
 
 
-def down_to_bottom(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes: List[int]) -> None:
+def down_to_bottom(values: EditableListCtrl, seq: List[_T], indexes: Reversible[int]) -> None:
     """
     indexesが指すseq内のアイテムを最下段へ移動し、
     移動結果によってvalues(wx.ListCtrl)を更新する。
@@ -1622,8 +1633,7 @@ def down_to_bottom(values: EditableListCtrl, seq: List[Tuple[str, int]], indexes
 
 class VariantEditDialog(wx.Dialog):
 
-    def __init__(self, parent: wx.TopLevelWindow, title: str, label: str,
-                 value: Union[str, decimal.Decimal, int]) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, title: str, label: str, value: cw.data.VariantValueType) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
         self.cwpy_debug = True

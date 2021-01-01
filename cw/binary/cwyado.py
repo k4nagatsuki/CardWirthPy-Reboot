@@ -10,7 +10,7 @@ import itertools
 
 import cw
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 
 class CWYado(object):
@@ -18,12 +18,21 @@ class CWYado(object):
     その他ファイルもコピー。
     """
     from . import environment
+    from . import adventurer
+    from . import album
     from . import party
+    from . import skill
+    from . import item
+    from . import beast
 
     wyd: Optional[environment.Environment]
 
     def __init__(self, path: str, dstpath: str, skintype: str = "") -> None:
         from . import util
+        from . import environment
+        from . import adventurer
+        from . import album
+        from . import party
 
         self.name = os.path.basename(path)
         self.path = path
@@ -35,14 +44,15 @@ class CWYado(object):
         self.curnum = 0
         self.maxnum = 1
         # 読み込んだデータリスト
-        self.datalist = []
-        self.wyd = None
-        self.wchs = []
-        self.wcps = []
-        self.wrms = []
-        self.wpls = []
-        self.wpts = []
-        self.nowadventuringparties = []
+        self.datalist: List[Union[environment.Environment, adventurer.AdventurerHeader, adventurer.AdventurerCard,
+                                  album.Album, party.Party, party.PartyMembers]] = []
+        self.wyd: Optional[environment.Environment] = None
+        self.wchs: List[adventurer.AdventurerHeader] = []
+        self.wcps: List[adventurer.AdventurerCard] = []
+        self.wrms: List[album.Album] = []
+        self.wpls: List[party.Party] = []
+        self.wpts: List[party.PartyMembers] = []
+        self.nowadventuringparties: List[Tuple[party.Party, party.PartyMembers]] = []
         # エラーログ
         self.errorlog = ""
         # pathにあるファイル・ディレクトリを
@@ -79,11 +89,15 @@ class CWYado(object):
         self.errorlog += s + "\n"
 
     def is_convertible(self) -> bool:
+        from . import environment
+
         if not self.environmentpath:
             return False
 
         try:
             data = self.load_yadofile(self.environmentpath)
+            if not isinstance(data, environment.Environment):
+                raise ValueError()
         except Exception:
             cw.util.print_ex()
             return False
@@ -98,10 +112,12 @@ class CWYado(object):
 
     def convert(self) -> str:
         from . import util
+        from . import environment
         from . import party
 
         if not self.datalist:
             self.load()
+        assert self.wyd
 
         self.curnum_n = 0
         self.curnum = 50
@@ -121,11 +137,13 @@ class CWYado(object):
 
                 if isinstance(data, party.Party) and\
                         self.wyd.partyname == cw.util.splitext(os.path.basename(data.fpath))[0]:
+                    assert fpath is not None
                     fpath = cw.util.relpath(fpath, self.dir)
                     fpath = cw.util.join_paths(fpath)
                     self.wyd.cwpypartyname = fpath
 
                 if hasattr(data, "errorcards"):
+                    assert isinstance(data, (environment.Environment, party.Party))
                     for errcard in data.errorcards:
                         s = errcard.fname
                         s = "%s は読込できませんでした。\n" % (s)
@@ -232,6 +250,7 @@ class CWYado(object):
 
         # ファイルネームからカードの種類を判別する辞書を作成し、
         # カードデータを読み込む
+        assert self.wyd
         cardtypes = self.wyd.get_cardtypedict()
         carddatadict = {}
 
@@ -318,7 +337,7 @@ class CWYado(object):
                     ".wci": 2,
                     ".wcb": 3
                 }
-                ctype = cd.get(os.path.splitext(fname)[1].lower(), 0)
+                ctype = cd.get(cw.util.splitext(fname)[1].lower(), 0)
                 if ctype:
                     carddata.type = ctype
                     carddata.fname = fname
@@ -343,7 +362,9 @@ class CWYado(object):
         self.maxnum += len(self.otherdirs)
         self.maxnum += len(self.nowadventuringparties)
 
-    def load_yadofile(self, path: str) -> environment.Environment:
+    def load_yadofile(self, path: str) -> Optional[Union[environment.Environment, adventurer.AdventurerHeader,
+                                                         adventurer.AdventurerCard, album.Album, party.Party,
+                                                         party.PartyMembers]]:
         """ファイル("wch", "wcp", "wpl", "wpt", "wyd", "wrm")を読み込む。"""
         from . import cwfile
         from . import environment
@@ -351,6 +372,8 @@ class CWYado(object):
         from . import party
         from . import album
 
+        data: Optional[Union[environment.Environment, adventurer.AdventurerHeader, adventurer.AdventurerCard,
+                             album.Album, party.Party, party.PartyMembers]]
         with cwfile.CWFile(path, "rb") as f:
             lpath = path.lower()
             if lpath.endswith(".wyd"):
@@ -386,7 +409,7 @@ class CWYado(object):
 
         return data
 
-    def load_cardfile(self, path: str, d: Dict[str, int]) -> "cw.data.CWPyElement":
+    def load_cardfile(self, path: str, d: Dict[str, int]) -> Union[skill.SkillCard, item.ItemCard, beast.BeastCard]:
         """引数のファイル(wid, wsmファイル)を読み込む。
         読み込みに際し、wydファイルから作成できる
         ファイルネームでカードの種類を判別する辞書が必要。
@@ -401,7 +424,7 @@ class CWYado(object):
             fname = os.path.basename(path)
             if fname.lower().endswith(".wcl"):
                 # 1.20以前の「カード購入」にあるカード
-                name = os.path.splitext(path)[0]
+                name = cw.util.splitext(path)[0]
                 # 拡張子で識別する
                 cd = {
                     ".wck": skill.SkillCard,
@@ -411,10 +434,10 @@ class CWYado(object):
                 for ext in (".wck", ".wci", ".wcb"):
                     if os.path.isfile(name + ext):
                         with cwfile.CWFile(name + ext, "rb") as f2:
-                            data = cd[ext](None, f2, True)
+                            data: Union[skill.SkillCard, item.ItemCard, beast.BeastCard] = cd[ext](None, f2, True)
                             f2.close()
-                        _dataversion = f.string()
-                        _name = f.string()
+                        _ = f.string()  # データバージョン
+                        _ = f.string()  # カード名
                         data.image = f.image()
                         data.fname = os.path.basename(name + ext)
                         break
@@ -442,6 +465,7 @@ class CWYado(object):
         """シナリオ進行状況とF9用データの変換を行う。"""
         if not partymembers.nowadventuring:
             return
+        assert self.wyd
         # log
         element = cw.data.make_element("ScenarioLog")
         # Property
@@ -476,16 +500,16 @@ class CWYado(object):
         e_flag = cw.data.make_element("Flags")
         element.append(e_flag)
 
-        for name, value in partymembers.flags.items():
-            e = cw.data.make_element("Flag", name, {"value": str(value)})
+        for name, value_b in partymembers.flags.items():
+            e = cw.data.make_element("Flag", name, {"value": str(value_b)})
             e_flag.append(e)
 
         # step
         e_step = cw.data.make_element("Steps")
         element.append(e_step)
 
-        for name, value in partymembers.steps.items():
-            e = cw.data.make_element("Step", name, {"value": str(value)})
+        for name, value_i in partymembers.steps.items():
+            e = cw.data.make_element("Step", name, {"value": str(value_i)})
             e_step.append(e)
 
         # gossip(無し)
@@ -520,16 +544,16 @@ class CWYado(object):
         element.append(e_lost)
 
         partymembers.create_vanisheds_xml(partymembers.get_dir())
-        for adventurer in partymembers.vanisheds:
-            fpath = adventurer.xmlpath
-            fpath = cw.util.relpath(fpath, adventurer.get_dir())
+        for adv in partymembers.vanisheds:
+            fpath = adv.xmlpath
+            fpath = cw.util.relpath(fpath, adv.get_dir())
             fpath = cw.util.join_paths(fpath)
             e = cw.data.make_element("LostAdventurer", fpath)
             e_lost.append(e)
 
         # ファイル書き込み
         etree = cw.data.xml2etree(element=element)
-        etree.write(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
+        etree.write_file(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
 
         # party
         element = cw.data.make_element("ScenarioLog")
@@ -545,22 +569,22 @@ class CWYado(object):
         # Members
         e_members = cw.data.make_element("Members")
         e_prop.append(e_members)
-        for adventurer in partymembers.adventurers + partymembers.vanisheds:
-            fpath = os.path.basename(adventurer.xmlpath)
+        for adv in partymembers.adventurers + partymembers.vanisheds:
+            fpath = os.path.basename(adv.xmlpath)
             fpath = cw.util.splitext(fpath)[0]
             e = cw.data.make_element("LostAdventurer", fpath)
             e_members.append(e)
 
         etree = cw.data.xml2etree(element=element)
-        etree.write(cw.util.join_paths(cw.tempdir, "ScenarioLog/Party/Party.xml"))
+        etree.write_file(cw.util.join_paths(cw.tempdir, "ScenarioLog/Party/Party.xml"))
 
         # member
         os.makedirs(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"))
-        for adventurer in partymembers.adventurers + partymembers.vanisheds:
+        for adv in partymembers.adventurers + partymembers.vanisheds:
             dstpath = cw.util.join_paths(cw.util.join_paths(cw.tempdir, "ScenarioLog/Members"),
-                                         os.path.basename(adventurer.xmlpath))
-            etree = cw.data.xml2etree(element=adventurer.get_f9data())
-            etree.write(dstpath)
+                                         os.path.basename(adv.xmlpath))
+            etree = cw.data.xml2etree(element=adv.get_f9data())
+            etree.write_file(dstpath)
 
         # 荷物袋内のカード群(ファイルパスのみ)
         element = cw.data.make_element("BackpackFiles")
@@ -572,7 +596,7 @@ class CWYado(object):
             element.append(cw.data.make_element("File", fpath))
         path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(element=element)
-        etree.write(path)
+        etree.write_file(path)
 
         # create_zip
         path = cw.util.splitext(party.xmlpath)[0] + ".wsl"
@@ -615,9 +639,6 @@ class UnconvCWYado(object):
         from . import skill
         from . import item
         from . import beast
-
-        # 変換中情報
-        table = {"yadoname": self.name}
 
         def create_fpath(name: str, ext: str) -> str:
             fpath = util.join_paths(self.dir, util.check_filename(name) + ext)
@@ -669,19 +690,18 @@ class UnconvCWYado(object):
                 cw.util.print_ex(file=sys.stderr)
                 s = "%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
-        table["unusedcards"] = unusedcards
 
         # 待機中冒険者(*.wcp)とそのヘッダ(*.wch)
-        for header in self.ydata.standbys:
+        for advheader in self.ydata.standbys:
+            self.message = "%s を変換中..." % (advheader.name)
+            self.curnum += 1
+
+            data = cw.data.xml2element(advheader.fpath)
+            cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
+
+            ppath = create_fpath(advheader.name, ".wcp")
+            hpath = create_fpath(advheader.name, ".wch")
             try:
-                self.message = "%s を変換中..." % (header.name)
-                self.curnum += 1
-
-                data = cw.data.xml2element(header.fpath)
-                cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
-
-                ppath = create_fpath(header.name, ".wcp")
-                hpath = create_fpath(header.name, ".wch")
                 with cwfile.CWFileWriter(ppath, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
@@ -700,13 +720,14 @@ class UnconvCWYado(object):
                 if ex.msg:
                     s = ex.msg
                 else:
-                    s = "%s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (header.name, ex.funcname)
+                    s = "%s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (advheader.name,
+                                                                        ex.funcname)
                 self.write_errorlog(s)
                 cw.util.remove(ppath)
                 cw.util.remove(hpath)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
-                s = "%s は変換できませんでした。\n" % (header.name)
+                s = "%s は変換できませんでした。\n" % (advheader.name)
                 self.write_errorlog(s)
                 cw.util.remove(ppath)
                 cw.util.remove(hpath)
@@ -738,53 +759,50 @@ class UnconvCWYado(object):
                     s = "%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
                     self.write_errorlog(s)
 
-        table["yadocards"] = yadocards
-
         # パーティ(*.wpl)とパーティ内冒険者(*.wpt)
         partytable = {}
         yadodir = self.ydata.yadodir
         tempdir = self.ydata.tempdir
         for partyheader, pt in parties:
+            self.message = "%s を変換中..." % (partyheader.name)
+            self.curnum += 1
+
+            # log
+            if os.path.isdir(cw.util.join_paths(cw.tempdir, "ScenarioLog")):
+                cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
+            path = cw.util.splitext(pt.data.fpath)[0] + ".wsl"
+            if os.path.isfile(path):
+                cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
+                etree = cw.data.xml2etree(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
+                scenarioname = etree.gettext("Property/Name")
+                if not scenarioname:
+                    scenarioname = "noname"
+                logdir = cw.util.join_paths(cw.tempdir, "ScenarioLog")
+            else:
+                scenarioname = ""
+                logdir = ""
+
+            names = partyheader.get_membernames()
+            i = 0
+            membertbl: Dict[str, str] = {}
+            for member in partyheader.members:
+                membertbl[member] = names[i]
+                i += 1
+
+            fpath1 = create_fpath(pt.name, ".wpl")
+            fpath2 = create_fpath(pt.name, ".wpt")
             try:
-                self.message = "%s を変換中..." % (partyheader.name)
-                self.curnum += 1
-
-                # log
-                if os.path.isdir(cw.util.join_paths(cw.tempdir, "ScenarioLog")):
-                    cw.util.remove(cw.util.join_paths(cw.tempdir, "ScenarioLog"))
-                path = cw.util.splitext(pt.data.fpath)[0] + ".wsl"
-                if os.path.isfile(path):
-                    cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
-                    etree = cw.data.xml2etree(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"))
-                    scenarioname = etree.gettext("Property/Name")
-                    if not scenarioname:
-                        scenarioname = "noname"
-                    logdir = cw.util.join_paths(cw.tempdir, "ScenarioLog")
-                else:
-                    scenarioname = ""
-                    logdir = ""
-
-                atbl = {"yadoname": self.ydata.name}
-                names = partyheader.get_membernames()
-                i = 0
-                for member in partyheader.members:
-                    atbl[member] = names[i]
-                    i += 1
-                atbl["adventurers"] = atbl
-
-                fpath1 = create_fpath(pt.name, ".wpl")
                 with cwfile.CWFileWriter(fpath1, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
-                    party.Party.unconv(f, pt.data.find("."), atbl, scenarioname)
+                    party.Party.unconv(f, pt.data.find_exists("."), self.ydata.name, membertbl, scenarioname)
                     f.flush()
                     f.close()
 
-                fpath2 = create_fpath(pt.name, ".wpt")
                 with cwfile.CWFileWriter(fpath2, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
-                    party.PartyMembers.unconv(f, pt, table, logdir)
+                    party.PartyMembers.unconv(f, pt, yadocards, logdir)
                     f.flush()
                     f.close()
 
@@ -801,7 +819,8 @@ class UnconvCWYado(object):
                 if ex.msg:
                     s = ex.msg
                 else:
-                    s = "%s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (partyheader.name, ex.funcname)
+                    s = "%s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (partyheader.name,
+                                                                        ex.funcname)
                 self.write_errorlog(s)
                 cw.util.remove(fpath1)
                 cw.util.remove(fpath2)
@@ -812,17 +831,15 @@ class UnconvCWYado(object):
                 cw.util.remove(fpath1)
                 cw.util.remove(fpath2)
 
-        table["party"] = partytable
-
         # アルバム(*.wrm)
-        for header in self.ydata.album:
+        for advheader in self.ydata.album:
+            self.message = "%s を変換中..." % (advheader.name)
+            self.curnum += 1
+
+            data = cw.data.xml2element(advheader.fpath)
+
+            fpath = create_fpath(advheader.name, ".wrm")
             try:
-                self.message = "%s を変換中..." % (header.name)
-                self.curnum += 1
-
-                data = cw.data.xml2element(header.fpath)
-
-                fpath = create_fpath(header.name, ".wrm")
                 with cwfile.CWFileWriter(fpath, "wb",
                                          targetengine=self.targetengine,
                                          write_errorlog=self.write_errorlog) as f:
@@ -834,12 +851,13 @@ class UnconvCWYado(object):
                 if ex.msg:
                     s = ex.msg
                 else:
-                    s = "%s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (header.name, ex.funcname)
+                    s = "%s は対象エンジンで使用できない機能(%s)を使用しているため、変換しません。\n" % (advheader.name,
+                                                                        ex.funcname)
                 self.write_errorlog(s)
                 cw.util.remove(fpath)
             except Exception:
                 cw.util.print_ex(file=sys.stderr)
-                s = "%s は変換できませんでした。\n" % (header.name)
+                s = "%s は変換できませんでした。\n" % (advheader.name)
                 self.write_errorlog(s)
                 cw.util.remove(fpath)
 
@@ -847,12 +865,12 @@ class UnconvCWYado(object):
         self.message = "宿情報を変換中..."
         self.curnum += 1
         try:
-            data = self.ydata.environment.find(".")
+            data = self.ydata.environment.find_exists(".")
             fpath = cw.util.join_paths(self.dir, "Environment.wyd")
             with cwfile.CWFileWriter(fpath, "wb",
                                      targetengine=self.targetengine,
                                      write_errorlog=self.write_errorlog) as f:
-                environment.Environment.unconv(f, data, table)
+                environment.Environment.unconv(f, data, partytable, unusedcards, yadocards)
                 f.flush()
                 f.close()
 

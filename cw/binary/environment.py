@@ -6,13 +6,15 @@ from . import base
 
 import cw
 
-from typing import Dict
+from typing import Dict, List, Optional, Tuple, Union
 
 
 class Environment(base.CWBinaryBase):
     """Environment.wyd(type=-1)
     システム設定とかゴシップとか終了印とかいろいろまとめているデータ。
     """
+    dataversion_int: int
+
     def __init__(self, parent: None, f: "cw.binary.cwfile.CWFile", yadodata: bool = False,
                  versiononly: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -23,6 +25,10 @@ class Environment(base.CWBinaryBase):
             self.dataversion_int = int(self.dataversion[len("DATAVERSION_"):])
         else:
             self.dataversion_int = 0
+
+        if 13 <= self.dataversion_int:
+            # CardWirthNext 1.60
+            raise ValueError()
 
         if versiononly:
             return
@@ -37,8 +43,8 @@ class Environment(base.CWBinaryBase):
             self.correct_scaledown = f.boolean()  # カードのスムージング(縮小)
             self.correct_scaleup = f.boolean()  # カードのスムージング(拡大)
         else:
-            _b = f.boolean()  # レアリティのないカードも買い戻せるようにする
-            _b = f.boolean()  # 売却・破棄時に確認メッセージの表示
+            _ = f.boolean()  # レアリティのないカードも買い戻せるようにする
+            _ = f.boolean()  # 売却・破棄時に確認メッセージの表示
         self.autoselect_party = f.boolean()  # 宿を開いた時に最後のパーティを選択
         self.clickcancel = f.boolean()  # 背景右クリックでキャンセル
         if 10 <= self.dataversion_int:
@@ -83,9 +89,11 @@ class Environment(base.CWBinaryBase):
         # スキンディレクトリ。現在の設定を使用
         self.skinname = cw.cwpy.setting.skindirname if cw.cwpy and cw.cwpy.setting else ""
         # データの取得に失敗したカード。変換時に追加する
-        self.errorcards = []
+        self.errorcards: List[UnusedCard] = []
 
-        self.data = None
+        self.imgdir: str = ""
+
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -130,7 +138,7 @@ class Environment(base.CWBinaryBase):
 
         return self.data
 
-    def get_cardtypedict(self) -> Dict[str, str]:
+    def get_cardtypedict(self) -> Dict[str, int]:
         d = {}
 
         for card in self.yadocards:
@@ -139,8 +147,9 @@ class Environment(base.CWBinaryBase):
         return d
 
     @staticmethod
-    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement",
-               table: Dict[str, Dict[str, str]]) -> None:
+    def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement", party: Dict[str, str],
+               unusedcards: List[Tuple[str, "cw.data.CWPyElement"]],
+               yadocards: Dict[str, Tuple[str, "cw.data.CWPyElement"]]) -> None:
         yadotype = 1  # 常に通常宿とする
         play_bgm = True
         play_sound = True
@@ -184,7 +193,7 @@ class Environment(base.CWBinaryBase):
                         money = int(prop.text)
                         money = cw.util.numwrap(money, 0, 999999)
                     elif prop.tag == "NowSelectingParty":
-                        partyname = table["party"].get(prop.text, "")
+                        partyname = party.get(prop.text, "")
             elif e.tag == "CompleteStamps":
                 seq = []
                 for cse in e:
@@ -219,11 +228,9 @@ class Environment(base.CWBinaryBase):
         f.write_string(compstamps, True)
         f.write_string(scenarioname)
         f.write_string(gossips, True)
-        unusedcards = table["unusedcards"]
         f.write_dword(len(unusedcards))
         for fname, card in unusedcards:
             UnusedCard.unconv(f, card, fname)
-        yadocards = table["yadocards"]
         f.write_dword(len(yadocards))
         for fname, card in list(yadocards.values()):
             YadoCard.unconv(f, card, fname)
@@ -235,7 +242,15 @@ class UnusedCard(base.CWBinaryBase):
     """カード置き場のカードのデータ。
     self.dataにwidファイルから読み込んだカードデータがある。
     """
-    def __init__(self, parent: Environment, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
+    from . import skill
+    from . import item
+    from . import beast
+
+    def __init__(self, parent: Optional[Environment], f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
+        from . import skill
+        from . import item
+        from . import beast
+
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         if f:
             self.fname = f.rawstring()
@@ -244,13 +259,14 @@ class UnusedCard(base.CWBinaryBase):
         else:
             self.fname = ""
             self.uselimit = 0
-        self.data = None
+        self.data: Optional[Union[skill.SkillCard, item.ItemCard, beast.BeastCard]] = None
 
-    def set_data(self, data: "cw.data.CWPyElement") -> None:
+    def set_data(self, data: Union[skill.SkillCard, item.ItemCard, beast.BeastCard]) -> None:
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
 
     def get_data(self) -> "cw.data.CWPyElement":
+        assert self.data is not None
         return self.data.get_data()
 
     def create_xml(self, dpath: str) -> str:
@@ -258,9 +274,12 @@ class UnusedCard(base.CWBinaryBase):
 
     def create_xml2(self, dpath: str, cardorder: int) -> str:
         """self.data.create_xml()"""
+        assert self.data is not None
         self.data.limit = self.uselimit
         path = self.data.create_xml(dpath)
-        yadodb = self.get_root().yadodb
+        root = self.get_root()
+        assert root
+        yadodb = root.yadodb
         if yadodb:
             yadodb.insert_card(path, commit=False, cardorder=cardorder)
         return path
@@ -276,6 +295,9 @@ class YadoCard(base.CWBinaryBase):
     """カード置き場のカードと荷物袋のカードのデータ。
     ここのtypeで宿にあるカードのタイプ(技能・アイテム・召喚獣)を判別できる。
     """
+    type: int
+    fname: str
+
     def __init__(self, parent: Environment, f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         f.byte()
@@ -296,6 +318,8 @@ class YadoCard(base.CWBinaryBase):
             restype = 2
         elif data.tag == "BeastCard":
             restype = 3
+        else:
+            assert False
         number = 1
 
         f.write_byte(0)

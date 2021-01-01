@@ -17,9 +17,9 @@ put_errorlog = ""
 
 
 class WriteError(TextIO):
-    def __init__(self):
+    def __init__(self) -> None:
         self.f: Optional[TextIO] = None
-        self._last_time = 0
+        self._last_time = 0.0
         self._re_fpath = re.compile("^\\s*File\\s\"(.+?)\"", re.IGNORECASE)
         self._sep = os.sep
 
@@ -55,7 +55,8 @@ class WriteError(TextIO):
             put_errorlog = os.path.basename(name)
             self._last_time = time.process_time()
 
-    def _write_datetime(self):
+    def _write_datetime(self) -> None:
+        assert self.f
         d = datetime.datetime.today()
         self.f.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
 

@@ -42,7 +42,10 @@ from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREV
 import cw
 
 import typing
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, TextIO, Tuple, Type, Union
+from typing import BinaryIO, Callable, Dict, Iterable, List, Literal, Optional, Sequence, Set, TextIO, Tuple, Type,\
+    TypeVar, Union
+import abc
+
 
 if sys.platform == "win32":
     import win32api
@@ -70,11 +73,11 @@ class MusicInterface(object):
         self.fpath = ""
         self.subvolume = 100
         self.loopcount = 0
-        self.movie_scr = None
+        self.movie_scr: Optional[pygame.Surface] = None
         self.mastervolume = mastervolume
         self._winmm = False
         self._bass = False
-        self._movie = None
+        self._movie: Optional[pygame.movie.Movie] = None
         self.inusecard = False
 
     def update_scale(self) -> None:
@@ -275,7 +278,7 @@ class MusicInterface(object):
 
         return volume * self.mastervolume / 100.0
 
-    def set_volume(self, volume: float = None, fade: int = 0) -> None:
+    def set_volume(self, volume: Optional[float] = None, fade: int = 0) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, volume)
             return
@@ -292,7 +295,7 @@ class MusicInterface(object):
         elif cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
             pygame.mixer.music.set_volume(volume)
 
-    def set_mastervolume(self, volume: float) -> None:
+    def set_mastervolume(self, volume: int) -> None:
         if threading.currentThread() != cw.cwpy:
             cw.cwpy.exec_func(self.set_mastervolume, volume)
             return
@@ -319,7 +322,8 @@ class MusicInterface(object):
 
 
 class SoundInterface(object):
-    def __init__(self, sound: Optional["SoundInterface"] = None, path: str = "", is_midi: bool = False) -> None:
+    def __init__(self, sound: Optional[Union[str, pygame.mixer.Sound]] = None, path: str = "",
+                 is_midi: bool = False) -> None:
         self._sound = sound
         self._path = path
         self.subvolume = 100
@@ -344,8 +348,9 @@ class SoundInterface(object):
 
     def _play_before(self, from_scenario: bool, channel: int, fade: int) -> str:
         if from_scenario:
-            if cw.cwpy.lastsound_scenario[channel]:
-                cw.cwpy.lastsound_scenario[channel].stop_impl(from_scenario, fade=fade, stopfadeout=False)
+            sound = cw.cwpy.lastsound_scenario[channel]
+            if sound:
+                sound.stop_impl(from_scenario, fade=fade, stopfadeout=False)
                 cw.cwpy.lastsound_scenario[channel] = None
             cw.cwpy.lastsound_scenario[channel] = self
             return "Sound"
@@ -415,6 +420,7 @@ class SoundInterface(object):
                     else:
                         chan = pygame.mixer.Channel(0)
 
+                    assert isinstance(self._sound, pygame.mixer.Sound)
                     self._sound.set_volume(volume)
                     chan.play(self._sound, loopcount - 1, fade_ms=fade)
                     self._type = 2
@@ -470,7 +476,7 @@ class SoundInterface(object):
                     else:
                         chan.stop()
 
-    def _get_volumevalue(self, fpath: str) -> int:
+    def _get_volumevalue(self, fpath: str) -> float:
         if not cw.cwpy.setting.play_sound:
             return 0
 
@@ -497,22 +503,25 @@ class SoundInterface(object):
             return
 
         if volume is None:
-            volume = self._get_volumevalue(self._path)
-        volume = volume * self.subvolume / 100.0
+            fvolume = self._get_volumevalue(self._path)
+        else:
+            fvolume = float(volume)
+        fvolume = fvolume * self.subvolume / 100.0
 
         assert threading.currentThread() == cw.cwpy
         if self._type == 0:
-            cw.bassplayer.set_soundvolume(volume, from_scenario, channel=self.channel, fade=0)
+            cw.bassplayer.set_soundvolume(fvolume, from_scenario, channel=self.channel, fade=0)
         elif self._type == 1:
-            volume = int(volume * 1000)
+            volume = int(fvolume * 1000)
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
             if from_scenario:
                 name = "cwsnd1_" + str(self.channel)
             else:
                 name = "cwsnd2"
-            mciSendStringW("setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+            mciSendStringW("setaudio %s volume to %s" % (name, fvolume), 0, 0, 0)
         elif self._type == 2:
-            self._sound.set_volume(volume)
+            assert isinstance(self._sound, pygame.mixer.Sound)
+            self._sound.set_volume(fvolume)
 
 
 # ------------------------------------------------------------------------------
@@ -520,14 +529,15 @@ class SoundInterface(object):
 # ------------------------------------------------------------------------------
 
 def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullscreen: bool = False,
-         soundfonts: Optional[List[str]] = None, fullscreensize: Tuple[int, int] = (0, 0),
-         sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, pygame.Surface, pygame.time.Clock]:
+         soundfonts: Optional[List[Tuple[str, bool, int]]] = None, fullscreensize: Tuple[int, int] = (0, 0),
+         sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, Optional[pygame.Surface],
+                                                  pygame.time.Clock]:
     """pygame初期化。"""
     if sys.platform == "win32":
         # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
         #        キーボードレイアウトが増えていた場合に限り除去
         #        おそらくSDL2では発生しないので、更新した時には以下のコードを取り除けるはず
-        active = win32api.GetKeyboardLayout(0)
+        _ = win32api.GetKeyboardLayout(0)
         hkls = set()
         for hkl in win32api.GetKeyboardLayoutList():
             hkls.add(hkl)
@@ -567,8 +577,8 @@ def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullsc
     # BASS Audioを初期化(使用できない事もある)
     if soundfonts is None:
         soundfonts = [(cw.DEFAULT_SOUNDFONT, True, 100)]
-    soundfonts = [(sfont[0], sfont[2] / 100.0) for sfont in soundfonts if sfont[1]]
-    if not cw.bassplayer.init_bass(soundfonts):
+    soundfonts2 = [(sfont[0], sfont[2] / 100.0) for sfont in soundfonts if sfont[1]]
+    if not cw.bassplayer.init_bass(soundfonts2):
         if sdlmixer_enabled:
             # BASS Audioが使用できない場合に限りpygame.mixerを初期化
             # (BASSとpygame.mixerを同時に初期化した場合、
@@ -586,7 +596,7 @@ def sdlmixer_init() -> None:
         cw.util.print_ex(file=sys.stderr)
 
 
-def convert_maskpos(maskpos: Tuple[int, int], width: int, height: int) -> Tuple[int, int]:
+def convert_maskpos(maskpos: Union[Tuple[int, int], str], width: int, height: int) -> Tuple[int, int]:
     """maskposが座標ではなくキーワード"center"または"right"
     であった場合、それぞれ画像の中央、右上の座標を返す。
     """
@@ -606,7 +616,7 @@ def get_scaledimagepaths(path: str, can_loaded_scaledimage: bool) -> List[Tuple[
     """
     seq = [(path, 1)]
     if can_loaded_scaledimage:
-        spext = os.path.splitext(path)
+        spext = cw.util.splitext(path)
         for scale in cw.SCALE_LIST:
             fname = "%s.x%d%s" % (spext[0], scale, spext[1])
             seq.append((fname, scale))
@@ -619,9 +629,9 @@ def copy_scaledimagepaths(frompath: str, topath: str, can_loaded_scaledimage: bo
     実際に存在するファイルであればコピーする。
     """
     shutil.copy2(frompath, topath)
-    fromspext = os.path.splitext(frompath)
+    fromspext = cw.util.splitext(frompath)
     if can_loaded_scaledimage and fromspext[1].lower() in cw.EXTS_IMG:
-        tospext = os.path.splitext(topath)
+        tospext = cw.util.splitext(topath)
         for scale in cw.SCALE_LIST:
             fname = "%s.x%d%s" % (fromspext[0], scale, fromspext[1])
             fname = cw.cwpy.rsrc.get_filepath(fname)
@@ -636,7 +646,7 @@ def remove_scaledimagepaths(fpath: str, can_loaded_scaledimage: bool, trashbox: 
     if not os.path.isfile(fpath):
         return
     remove(fpath, trashbox=trashbox)
-    fpathext = os.path.splitext(fpath)
+    fpathext = cw.util.splitext(fpath)
     if can_loaded_scaledimage and fpathext[1].lower() in cw.EXTS_IMG:
         for scale in cw.SCALE_LIST:
             fname = "%s.x%d%s" % (fpathext[0], scale, fpathext[1])
@@ -659,7 +669,7 @@ def find_scaledimagepath(path: str, up_scr: float, can_loaded_scaledimage: bool,
                         path.startswith(cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile") + "/") or
                         path.startswith(cw.util.join_paths(cw.cwpy.skindir, "Table") + "/")):
         scale = int(math.pow(2, int(math.log(up_scr, 2))))
-        spext = os.path.splitext(path)
+        spext = cw.util.splitext(path)
         while 2 <= scale:
             fname = "%s.x%d%s" % (spext[0], scale, spext[1])
             fname = cw.cwpy.rsrc.get_filepath(fname)
@@ -685,7 +695,7 @@ def find_noscalepath(path: str) -> str:
     return path
 
 
-def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0), f: Optional[io.RawIOBase] = None,
+def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0), f: Optional[BinaryIO] = None,
                retry: bool = True, isback: bool = False, can_loaded_scaledimage: bool = True,
                noscale: bool = False, up_scr: Optional[Union[int, float]] = None,
                use_excache: bool = False) -> pygame.Surface:
@@ -706,11 +716,13 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
         npath = get_keypath(get_symlinktarget(path))
         if cw.cwpy.sdata and npath in cw.cwpy.sdata.ex_cache:
             caches = cw.cwpy.sdata.ex_cache[npath]
-            data = None
+            data = b""
             up_scr2 = 1
             for i, scale in enumerate(itertools.chain((1,), cw.SCALE_LIST)):
-                if caches[i]:
-                    data = caches[i]
+                data2 = caches[i]
+                if data2:
+                    assert isinstance(data2, bytes)
+                    data = data2
                     up_scr2 = scale
                 if scale == up_scr:
                     break
@@ -736,6 +748,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
             if ext == ".bmp":
                 data = cw.image.patch_rle4bitmap(data)
                 bmpdepth = cw.image.get_bmpdepth(data)
+            f2: BinaryIO
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
@@ -744,7 +757,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
-            ext = os.path.splitext(path)[1].lower()
+            ext = cw.util.splitext(path)[1].lower()
             isbmp = ext == ".bmp"
             ispng = ext == ".png"
             isgif = ext == ".gif"
@@ -837,7 +850,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
 
 
 class Depth1Surface(pygame.Surface):
-    def __init__(self, surface: pygame.Surface, scr_scale: int, bmpdepth: int = 24) -> None:
+    def __init__(self, surface: pygame.Surface, scr_scale: float, bmpdepth: int = 24) -> None:
         pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(),
                                 surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
@@ -867,14 +880,16 @@ def calc_imagesize(image: pygame.Surface) -> int:
     """imageのデータサイズを概算する。
     結果は正確ではない。
     """
-    return image.get_bitsize() * image.get_width() * image.get_height() // 8
+    result: int = image.get_bitsize() * image.get_width() * image.get_height() // 8
+    return result
 
 
 def calc_wxbmpsize(wxbmp: wx.Bitmap) -> int:
     """wx.Bitmapのデータサイズを概算する。
     結果は正確ではない。
     """
-    return wxbmp.GetDepth() * wxbmp.GetWidth() * wxbmp.GetHeight() // 8
+    result: int = wxbmp.GetDepth() * wxbmp.GetWidth() * wxbmp.GetHeight() // 8
+    return result
 
 
 def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
@@ -897,7 +912,7 @@ def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
     y = image.get_height() - subimg.get_height()
     pos = (x, y)
     for i, c in enumerate(s):
-        cimg = font.render(c, 2 <= cw.UP_SCR, (0, 0, 0))
+        cimg = font.render(c, 2.0 <= cw.UP_SCR, (0, 0, 0))
         image.blit(cimg, (pos[0] + 1 + i * w, pos[1] + 1))
         image.blit(cimg, (pos[0] + 1 + i * w, pos[1] - 1))
         image.blit(cimg, (pos[0] - 1 + i * w, pos[1] + 1))
@@ -906,7 +921,7 @@ def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
         image.blit(cimg, (pos[0] - 1 + i * w, pos[1]))
         image.blit(cimg, (pos[0] + i * w, pos[1] + 1))
         image.blit(cimg, (pos[0] + i * w, pos[1] - 1))
-        cimg = font.render(c, 2 <= cw.UP_SCR, (255, 255, 255))
+        cimg = font.render(c, 2.0 <= cw.UP_SCR, (255, 255, 255))
         image.blit(cimg, (pos[0] + i * w, pos[1]))
     return image
 
@@ -929,7 +944,8 @@ def get_imageext(b: bytes) -> str:
     return ""
 
 
-def get_facepaths(sexcoupon: str, agecoupon: str, adddefaults: bool = True) -> Dict[str, List[str]]:
+def get_facepaths(sexcoupon: str, agecoupon: str,
+                  adddefaults: bool = True) -> Dict[Optional[Tuple[int, str, str]], List[List["cw.image.ImageInfo"]]]:
     """sexとageに対応したFaceディレクトリ内の画像パスを辞書で返す。
     辞書の内容は、(ソートキー, ディレクトリ, ディレクトリ表示名)をキーにした
     当該ディレクトリ内のファイルパスのlistとなる。
@@ -938,19 +954,19 @@ def get_facepaths(sexcoupon: str, agecoupon: str, adddefaults: bool = True) -> D
     adddefaults: 1件もなかった場合、Resource/Image/Cardにある
                  FATHERまたはMOTHERを使用する。
     """
-    imgpaths = {}
+    imgpaths: Dict[Optional[Tuple[int, str, str]], List[List[cw.image.ImageInfo]]] = {}
 
     sex = ""
-    for f in cw.cwpy.setting.sexes:
-        if sexcoupon == "＿" + f.name:
-            sex = f.subname
+    for fsex in cw.cwpy.setting.sexes:
+        if sexcoupon == "＿" + fsex.name:
+            sex = fsex.subname
 
     age = ""
-    for f in cw.cwpy.setting.periods:
-        if agecoupon == "＿" + f.name:
-            age = f.abbr
+    for fperiods in cw.cwpy.setting.periods:
+        if agecoupon == "＿" + fperiods.name:
+            age = fperiods.abbr
 
-    dpaths = []  # (実際のパス, 表示するパス)
+    dpaths: List[Tuple[int, str, str]] = []  # (実際のパス, 表示するパス)
     facedir1 = cw.util.join_paths(cw.cwpy.skindir, "Face")  # スキン付属
     facedir2 = "Data/Face"  # 全スキン共通
 
@@ -975,29 +991,29 @@ def get_facepaths(sexcoupon: str, agecoupon: str, adddefaults: bool = True) -> D
         # 汎用
         add(3, "Common")
 
-    passed = set()
+    passed: Set[str] = set()
     _get_facepaths(facedir, imgpaths, dpaths, passed)
     if not imgpaths and adddefaults:
         seq = []
         dpath = join_paths(cw.cwpy.skindir, "Resource/Image/Card")
-        for sex in cw.cwpy.setting.sexes:
-            if "＿" + sex.name == sexcoupon:
-                if sex.father:
+        for fsex in cw.cwpy.setting.sexes:
+            if "＿" + fsex.name == sexcoupon:
+                if fsex.father:
                     fpath = join_paths(dpath, "FATHER")
                     fpath = find_resource(fpath, cw.M_IMG)
-                    seq.append(fpath)
-                if sex.mother:
+                    seq.append(cw.dialog.create.path_to_imageinfo(fpath))
+                if fsex.mother:
                     fpath = join_paths(dpath, "MOTHER")
                     fpath = find_resource(fpath, cw.M_IMG)
-                    seq.append(fpath)
+                    seq.append(cw.dialog.create.path_to_imageinfo(fpath))
                 break
         if seq:
-            imgpaths[(dpath, "Resource/Image/Card")] = seq
+            imgpaths[(0, dpath, "Resource/Image/Card")] = seq
     return imgpaths
 
 
-def _get_facepaths(facedir: str, imgpaths: Dict[Tuple[Optional[str], str, str], List[str]],
-                   dpaths: Iterable[Tuple[Optional[str], str, str]], passed: Set[str]) -> None:
+def _get_facepaths(facedir: str, imgpaths: Dict[Optional[Tuple[int, str, str]], List[List["cw.image.ImageInfo"]]],
+                   dpaths: Iterable[Tuple[int, str, str]], passed: Set[str]) -> None:
     for sortkey, showdpath, dpath in dpaths:
         if not os.path.isdir(dpath):
             continue
@@ -1006,7 +1022,7 @@ def _get_facepaths(facedir: str, imgpaths: Dict[Tuple[Optional[str], str, str], 
             continue
         passed.add(abspath)
 
-        dpaths2 = [][:]
+        dpaths2 = []
         seq = []
         scales = "|".join([str(s) for s in cw.SCALE_LIST])
         re_xn = re.compile("\\A.+\\.x(%s)\\Z" % (scales), re.IGNORECASE)
@@ -1014,14 +1030,14 @@ def _get_facepaths(facedir: str, imgpaths: Dict[Tuple[Optional[str], str, str], 
             path1 = join_paths(dpath, fname)
             path = get_linktarget(path1)
             if os.path.isfile(path):
-                spext = os.path.splitext(path)
+                spext = cw.util.splitext(path)
                 ext = spext[1].lower()
                 if ext in cw.EXTS_IMG and not re_xn.match(spext[0]):
-                    seq.append(path)
+                    seq.append(cw.dialog.create.path_to_imageinfo(path))
             elif os.path.isdir(path):
                 showpath = join_paths(showdpath, fname)
                 if sys.platform == "win32" and path1 != path and showpath.lower().endswith(".lnk"):
-                    showpath = os.path.splitext(showpath)[0]
+                    showpath = cw.util.splitext(showpath)[0]
                 dpaths2.append((sortkey, showpath, path))
 
         if seq:
@@ -1099,7 +1115,9 @@ def load_sound(path: str) -> SoundInterface:
         return SoundInterface()
 
     if cw.cwpy.is_playingscenario() and path in cw.cwpy.sdata.resource_cache:
-        return cw.cwpy.sdata.resource_cache[path].copy()
+        obj = cw.cwpy.sdata.resource_cache[path]
+        assert isinstance(obj, SoundInterface)
+        return obj.copy()
 
     try:
         assert threading.currentThread() == cw.cwpy
@@ -1113,9 +1131,9 @@ def load_sound(path: str) -> SoundInterface:
             sound = SoundInterface(path, path, is_midi=is_midi(path))
         elif cw.cwpy.setting.sdlmixer_enabled and pygame.mixer.get_init():
             with open(path, "rb") as f:
-                sound = pygame.mixer.Sound(f)
+                mixer_sound = pygame.mixer.Sound(f)
                 f.close()
-            sound = SoundInterface(sound, path, is_midi=is_midi(path))
+            sound = SoundInterface(mixer_sound, path, is_midi=is_midi(path))
         else:
             return SoundInterface()
     except Exception:
@@ -1139,7 +1157,7 @@ def is_midi(path: str) -> bool:
                 return f.read(4) == b"MThd"
     except Exception:
         pass
-    return os.path.splitext(path)[1].lower() in (".mid", ".midi")
+    return cw.util.splitext(path)[1].lower() in (".mid", ".midi")
 
 
 def get_soundfilepath(basedir: str, path: str) -> str:
@@ -1170,77 +1188,32 @@ def remove_soundtempfile(basedir: str) -> None:
             remove(dpath)
 
 
-def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, str]], *attr,
-                         cmpfunc: Optional[Callable[[typing.Any, typing.Any], int]] = None)\
-        -> List[Union[Optional[object], int, float, str]]:
+class Comparable(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __lt__(self, other: typing.Any) -> bool: ...
+
+
+_SortableByAttrT = TypeVar("_SortableByAttrT")
+_SortableT = TypeVar("_SortableT", Comparable, str, int, float)
+
+
+def _sorted_by_attr_impl(d: bool, seq: Iterable[_SortableByAttrT], *attr: str,
+                         cmpfunc: Optional[Callable[[_SortableT, _SortableT], int]] = None) -> List[_SortableByAttrT]:
     if attr:
-        get = operator.attrgetter(*attr)
+        key_attr = operator.attrgetter(*attr)
+
+        def get_keyattr(a: _SortableByAttrT) -> _SortableT:
+            return typing.cast(_SortableT, key_attr(a))
+        get = get_keyattr
     else:
-        def ret(a: typing.Any) -> typing.Any:
-            return a
+        def ret(a: _SortableByAttrT) -> _SortableT:
+            return typing.cast(_SortableT, a)
 
         get = ret
-    re_num = re.compile("([0-9]+)")
-    str_table = {}
 
-    class LogicalStr(object):
-        def __init__(self, s: str) -> None:
-            self.seq = []
-            self.s = s
-            if not s:
-                return
-            pos = 0
-            while s != "":
-                m = re_num.search(s, pos=pos)
-                if m is None:
-                    self.seq.append(s[pos:].lower())
-                    break
-                si = m.start()
-                ei = m.end()
-                # 末尾に'0'をつける事で0より小さな文字コードの文字が前に来るようにする
-                # 以下のケースでは、'0'をつけなければ"cw 1"が先頭に来てしまう
-                #  cw 1 -> ['cw ', (1, '1')]
-                #  cw ! -> ['cw !']
-                #  cw a -> ['cw a']
-                # '0'をつける事で以下のようにASCII順で並ぶ
-                #  cw ! -> ['cw !']
-                #  cw 1 -> ['cw 0', (1, '1')]
-                #  cw a -> ['cw a']
-                self.seq.append(s[pos:si].lower() + '0')
-                ss = s[si:ei]
-                self.seq.append((int(ss), ss))
-                pos = ei
+    str_table: Dict[str, LogicalStr] = {}
 
-        def __lt__(self, other: "LogicalStr") -> bool:
-            if self.seq < other.seq:
-                return True
-            elif other.seq < self.seq:
-                return False
-            return self.s < other.s
-
-        def __eq__(self, other: "LogicalStr") -> bool:
-            return self.seq == other.seq and self.s == other.s
-
-    assert LogicalStr("a1234b") > LogicalStr("a12b")
-    assert LogicalStr("a12b") < LogicalStr("a1234b")
-    assert LogicalStr("a12b") != LogicalStr("a1234b")
-    assert LogicalStr("a12b") < LogicalStr("ab")
-    assert LogicalStr("cw 1") < LogicalStr("cw a")
-    assert LogicalStr("cw 1") > LogicalStr("cw !")
-    assert LogicalStr("cw 1") > LogicalStr("cw ")
-    assert LogicalStr("cw 1") > LogicalStr("cw  ")
-    assert LogicalStr("cw 1") < LogicalStr("cw 2")
-    assert LogicalStr("a0b") < LogicalStr("a1b")
-    assert LogicalStr("a0 b") < LogicalStr("a1b")
-    assert LogicalStr("a2 b") > LogicalStr("a1b")
-    assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
-           LogicalStr("a9b")
-    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
-           LogicalStr("a8b")
-    assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") <\
-           LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b")
-
-    def logical_cmp_str(a: Optional[str], b: Optional[str]) -> int:
+    def logical_cmp_str(a: _SortableT, b: _SortableT) -> int:
         if not (isinstance(a, str) and isinstance(b, str)):
             return cmp(a, b)
         if a in str_table:
@@ -1255,7 +1228,7 @@ def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, 
             str_table[b] = bl
         return cmp(al, bl)
 
-    def logical_cmp_impl(a: typing.Any, b: typing.Any) -> int:
+    def logical_cmp_impl(a: _SortableT, b: _SortableT) -> int:
         if (isinstance(a, tuple) and isinstance(b, tuple)) or \
                 (isinstance(a, list) and isinstance(b, list)):
             r = 0
@@ -1274,7 +1247,7 @@ def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, 
             r = logical_cmp_str(a, b)
             return r
 
-    def logical_cmp(aobj: typing.Any, bobj: typing.Any) -> int:
+    def logical_cmp(aobj: _SortableByAttrT, bobj: _SortableByAttrT) -> int:
         a = get(aobj)
         b = get(bobj)
         if cmpfunc:
@@ -1284,13 +1257,78 @@ def _sorted_by_attr_impl(d: bool, seq: List[Union[Optional[object], int, float, 
 
     key = functools.cmp_to_key(logical_cmp)
     if d:
+        assert isinstance(seq, list)
         seq.sort(key=key)
         return seq
     else:
         return sorted(seq, key=key)
 
 
-def cmp(a: Optional[Union[Tuple[int, str], int]], b: Optional[Union[Tuple[int, str], int]]) -> int:
+_re_num = re.compile("([0-9]+)")
+
+
+class LogicalStr(Comparable):
+    def __init__(self, s: str) -> None:
+        self.seq: List[Union[str, Tuple[int, str]]] = []
+        self.s = s
+        if not s:
+            return
+        pos = 0
+        while s != "":
+            m = _re_num.search(s, pos=pos)
+            if m is None:
+                self.seq.append(s[pos:].lower())
+                break
+            si = m.start()
+            ei = m.end()
+            # 末尾に'0'をつける事で0より小さな文字コードの文字が前に来るようにする
+            # 以下のケースでは、'0'をつけなければ"cw 1"が先頭に来てしまう
+            #  cw 1 -> ['cw ', (1, '1')]
+            #  cw ! -> ['cw !']
+            #  cw a -> ['cw a']
+            # '0'をつける事で以下のようにASCII順で並ぶ
+            #  cw ! -> ['cw !']
+            #  cw 1 -> ['cw 0', (1, '1')]
+            #  cw a -> ['cw a']
+            self.seq.append(s[pos:si].lower() + '0')
+            ss = s[si:ei]
+            self.seq.append((int(ss), ss))
+            pos = ei
+
+    def __lt__(self, other: object) -> bool:
+        assert isinstance(other, LogicalStr)
+        if self.seq < other.seq:
+            return True
+        elif other.seq < self.seq:
+            return False
+        return self.s < other.s
+
+    def __eq__(self, other: object) -> bool:
+        assert isinstance(other, LogicalStr)
+        return self.seq == other.seq and self.s == other.s
+
+
+assert LogicalStr("a1234b") > LogicalStr("a12b")
+assert LogicalStr("a12b") < LogicalStr("a1234b")
+assert LogicalStr("a12b") != LogicalStr("a1234b")
+assert LogicalStr("a12b") < LogicalStr("ab")
+assert LogicalStr("cw 1") < LogicalStr("cw a")
+assert LogicalStr("cw 1") > LogicalStr("cw !")
+assert LogicalStr("cw 1") > LogicalStr("cw ")
+assert LogicalStr("cw 1") > LogicalStr("cw  ")
+assert LogicalStr("cw 1") < LogicalStr("cw 2")
+assert LogicalStr("a0b") < LogicalStr("a1b")
+assert LogicalStr("a0 b") < LogicalStr("a1b")
+assert LogicalStr("a2 b") > LogicalStr("a1b")
+assert LogicalStr("a899999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
+       LogicalStr("a9b")
+assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b") >\
+       LogicalStr("a8b")
+assert LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999998b") <\
+       LogicalStr("a999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999b")
+
+
+def cmp(a: Optional[_SortableT], b: Optional[_SortableT]) -> int:
     if a is None and b is None:
         return 0
     elif a is None:
@@ -1310,8 +1348,7 @@ def cmp(a: Optional[Union[Tuple[int, str], int]], b: Optional[Union[Tuple[int, s
     return 0
 
 
-def sorted_by_attr(seq: List[Union[Optional[object], int, float, str]],
-                   *attr) -> List[Union[Optional[object], int, float, str]]:
+def sorted_by_attr(seq: Iterable[_SortableByAttrT], *attr: str) -> List[_SortableByAttrT]:
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1319,8 +1356,7 @@ def sorted_by_attr(seq: List[Union[Optional[object], int, float, str]],
     return _sorted_by_attr_impl(False, seq, *attr)
 
 
-def sort_by_attr(seq: List[Union[Optional[object], int, float, str]],
-                 *attr) -> List[Union[Optional[object], int, float, str]]:
+def sort_by_attr(seq: List[_SortableByAttrT], *attr: str) -> List[_SortableByAttrT]:
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
@@ -1340,18 +1376,21 @@ if sys.platform == "win32":
         _shlwapi.StrCmpLogicalW.restype = ctypes.wintypes.INT
 
 
-def sort_by_filename(seq: List[str], *attr) -> List[str]:
+def sort_by_filename(seq: List[_SortableByAttrT], *attr: str) -> List[_SortableByAttrT]:
     if sys.platform == "win32" and _shlwapi:
-        def cmp(a: str, b: str) -> int:
-            return _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+        def cmp_fname(a: str, b: str) -> int:
+            result: int = _shlwapi.StrCmpLogicalW(ctypes.wintypes.LPCWSTR(a), ctypes.wintypes.LPCWSTR(b))
+            return result
 
-        seq = _sorted_by_attr_impl(True, seq, *attr, cmpfunc=cmp)
+        seq = _sorted_by_attr_impl(True, seq, *attr, cmpfunc=cmp_fname)
     else:
         seq = _sorted_by_attr_impl(True, seq, *attr)
     return seq
 
 
-def new_order(seq: Union["cw.header.AdventurerHeader", "cw.header.CardHeader", "cw.header.PartyHeader"],
+def new_order(seq: Union[Iterable["cw.header.AdventurerHeader"],
+                         Iterable["cw.header.CardHeader"],
+                         Iterable["cw.header.PartyHeader"]],
               mode: int = 1) -> int:
     """order属性を持つアイテムのlistを
     走査して新しいorderを返す。
@@ -1369,7 +1408,7 @@ def new_order(seq: Union["cw.header.AdventurerHeader", "cw.header.CardHeader", "
         return 0
 
 
-def join_paths(*paths) -> str:
+def join_paths(*paths: str) -> str:
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     セキュリティ上の問題を避けるため、あえて絶対パスは取り扱わない。
     *paths: パス結合する文字列
@@ -1406,6 +1445,14 @@ assert relpath("/a", "..").replace("\\", "/") == os.path.relpath("/a", "..").rep
 assert relpath("a", "../bcde").replace("\\", "/") == os.path.relpath("a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", "../bcde").replace("\\", "/")
 assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
+
+
+@typing.overload
+def validate_filepath(fpath: Optional[str]) -> str: ...
+
+
+@typing.overload
+def validate_filepath(fpath: List[Optional[str]]) -> List[str]: ...
 
 
 def validate_filepath(fpath: Optional[Union[str, List[Optional[str]]]]) -> Union[List[str], str]:
@@ -1445,22 +1492,22 @@ def is_descendant(path: str, start: str) -> str:
     ある場合は相対パスを返す。
     """
     if not path or not start:
-        return False
+        return ""
     rel = join_paths(relpath(path, start))
     if os.path.isabs(rel):
-        return False
+        return ""
     if rel.startswith("../"):
-        return False
+        return ""
     return rel
 
 
-def splitext(p: str) -> Tuple[str, str]:
+def splitext(fname: str) -> Tuple[str, str]:
     """パスの拡張子以外の部分と拡張子部分の分割。
     os.path.splitext()との違いは、".ext"のような
     拡張子部分だけのパスの時、(".ext", "")ではなく
     ("", ".ext")を返す事である。
     """
-    p = os.path.splitext(p)
+    p = os.path.splitext(fname)
     if p[0].startswith(".") and not p[1]:
         return (p[1], p[0])
     return p
@@ -1487,7 +1534,15 @@ def str2bool(s: str) -> bool:
             raise ValueError("%s is incorrect value!" % (s))
 
 
-def numwrap(n: int, nmin: int, nmax: int) -> int:
+@typing.overload
+def numwrap(n: int, nmin: int, nmax: int) -> int: ...
+
+
+@typing.overload
+def numwrap(n: float, nmin: float, nmax: float) -> float: ...
+
+
+def numwrap(n: Union[int, float], nmin: Union[int, float], nmax: Union[int, float]) -> Union[int, float]:
     """最小値、最大値の範囲内でnの値を返す。
     n: 範囲内で調整される値。
     nmin: 最小値。
@@ -1540,7 +1595,7 @@ def get_truetypefontname(path: str) -> str:
         dnamehead = snamehead.unpack_from(fnametable, 0)
 
         sname = struct.Struct(">HHHHHH")
-        fontname = ""
+        fontname = b""
 
         for i in range(dnamehead[1]):  # name table records
             dname = sname.unpack_from(fnametable, snamehead.size + i * sname.size)
@@ -1643,12 +1698,14 @@ def screenshot() -> None:
     """スクリーンショットをファイルへ書き出す。
     """
     cw.cwpy.play_sound("screenshot")
-    titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+    t = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+    assert isinstance(t, tuple)
+    titledic, titledicfn = t
     filename = create_screenshotfilename(titledicfn)
     try:
         dpath = os.path.dirname(filename)
         if os.path.isdir(dpath):
-            fpath = dupcheck_plus(filename, yado=False)
+            filename = dupcheck_plus(filename, yado=False)
         else:
             os.makedirs(dpath)
         bmp, y = create_screenshot(titledic)
@@ -1663,7 +1720,7 @@ def create_screenshotfilename(titledic: Dict[str, str]) -> str:
     """スクリーンショット用のファイルパスを作成する。
     """
     fpath = format_title(cw.cwpy.setting.ssfnameformat, titledic)
-    if not os.path.splitext(fpath)[1].lower() in cw.EXTS_IMG:
+    if not cw.util.splitext(fpath)[1].lower() in cw.EXTS_IMG:
         fpath += ".png"
     return fpath
 
@@ -1713,18 +1770,20 @@ def create_screenshot(titledic: Dict[str, str]) -> Tuple[pygame.Surface, int]:
     return bmp, y
 
 
-def card_screenshot() -> bool:
+def card_screenshot() -> None:
     """ パーティー所持カードのスクリーンショットをファイルへ書き出す。
     """
     if cw.cwpy.ydata:
         if cw.cwpy.ydata.party:
             cw.cwpy.play_sound("screenshot")
-            titledic, titledicfn = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+            t = cw.cwpy.get_titledic(with_datetime=True, for_fname=True)
+            assert isinstance(t, tuple)
+            titledic, titledicfn = t
             filename = create_cardscreenshotfilename(titledicfn)
             try:
                 dpath = os.path.dirname(filename)
                 if os.path.isdir(dpath):
-                    fpath = dupcheck_plus(filename, yado=False)
+                    filename = dupcheck_plus(filename, yado=False)
                 else:
                     os.makedirs(dpath)
                 bmp = create_cardscreenshot(titledic)
@@ -1733,15 +1792,13 @@ def card_screenshot() -> bool:
                 cw.util.print_ex()
                 s = "スクリーンショットの保存に失敗しました。\n%s" % (filename)
                 cw.cwpy.call_modaldlg("ERROR", text=s)
-            return True
-    return False
 
 
 def create_cardscreenshotfilename(titledic: Dict[str, str]) -> str:
     """パーティー所持カードスクリーンショット用のファイルパスを作成する。
     """
     fpath = format_title(cw.cwpy.setting.cardssfnameformat, titledic)
-    if not os.path.splitext(fpath)[1].lower() in cw.EXTS_IMG:
+    if not cw.util.splitext(fpath)[1].lower() in cw.EXTS_IMG:
         fpath += ".png"
     return fpath
 
@@ -1989,7 +2046,6 @@ def get_yadofilepath(path: str) -> str:
 def find_resource(path: str, mtype: int) -> str:
     """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
     cw.fsync.sync()
-    imgpath = ""
     if mtype == cw.M_IMG:
         t = (".png", ".bmp", ".gif", ".jpg")
     elif mtype == cw.M_MSC:
@@ -2004,9 +2060,11 @@ def find_resource(path: str, mtype: int) -> str:
         for t2 in t[:]:
             seq.append(t2)
             seq.append(t2.upper())
-        t = seq
+        seq2: Iterable[str] = seq
+    else:
+        seq2 = t
 
-    for ext in t:
+    for ext in seq2:
         path2 = path + ext
         if cw.cwpy:
             path2 = cw.cwpy.rsrc.get_filepath(path2)
@@ -2031,6 +2089,8 @@ def get_inusecardmaterialpath(path: str, mtype: int, inusecard: Optional["cw.hea
         if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
             if not inusecard:
                 inusecard = cw.cwpy.event.get_inusecard()
+            assert inusecard
+            assert inusecard.carddata is not None
             if not inusecard.carddata.getbool(".", "scenariocard", False) or \
                     inusecard.carddata.gettext("Property/Materials", ""):
                 imgpath = cw.util.join_yadodir(path)
@@ -2038,7 +2098,7 @@ def get_inusecardmaterialpath(path: str, mtype: int, inusecard: Optional["cw.hea
     return imgpath
 
 
-def get_materialpath(path: str, mtype: str, scedir: str = "", system: bool = False, findskin: bool = True) -> str:
+def get_materialpath(path: str, mtype: int, scedir: str = "", system: bool = False, findskin: bool = True) -> str:
     """pathが指す素材を、シナリオプレイ中はシナリオ内から探し、
     プレイ中でない場合や存在しない場合はスキンから探す。
     path: 素材の相対パス。
@@ -2064,7 +2124,7 @@ def get_materialpath(path: str, mtype: str, scedir: str = "", system: bool = Fal
     return get_materialpathfromskin(path, mtype, findskin=findskin)
 
 
-def get_materialpathfromskin(path: str, mtype: str, findskin: bool = True) -> str:
+def get_materialpathfromskin(path: str, mtype: int, findskin: bool = True) -> str:
     cw.fsync.sync()
     if not os.path.isfile(path):
         if not findskin:
@@ -2077,6 +2137,8 @@ def get_materialpathfromskin(path: str, mtype: str, findskin: bool = True) -> st
                 path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_bgm)
             elif mtype == cw.M_SND:
                 path2 = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_snd)
+            else:
+                assert False
             if path2:
                 return path2
 
@@ -2117,14 +2179,14 @@ class FileSync(threading.Thread):
     def __init__(self) -> None:
         threading.Thread.__init__(self)
         self._quit = False
-        self._files = []
+        self._files: List[Tuple[str, Union[bytes, str], str, Optional[str]]] = []
         self._mutex = threading.Lock()
 
     def quit(self) -> None:
         """全てのファイル出力が完了してからスレッドを終了する。"""
         self._quit = True
 
-    def push(self, file: str, data: bytes, mode: str = "wb", encoding: Optional[str] = None) -> None:
+    def push(self, file: str, data: Union[bytes, str], mode: str = "wb", encoding: Optional[str] = None) -> None:
         """出力対象を追加する。"""
         with self._mutex:
             self._files.append((file, data, mode, encoding))
@@ -2188,7 +2250,8 @@ class FileSync(threading.Thread):
         self._write_files()
 
 
-def write_file(file: str, data: bytes, fsync: FileSync, mode: str = "wb", encoding: Optional[str] = None) -> None:
+def write_file(file: str, data: Union[str, bytes], fsync: FileSync, mode: str = "wb",
+               encoding: Optional[str] = None) -> None:
     """ファイルを出力する。"""
     if fsync:
         fsync.push(file, data, mode=mode, encoding=encoding)
@@ -2306,7 +2369,8 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
                     if os.path.isdir(path):
                         try:
                             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                        except WindowsError as err:
+                        except WindowsError:
+                            print_ex()
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
                             return
@@ -2316,7 +2380,8 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
                     if os.path.isfile(path):
                         try:
                             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                        except WindowsError as err:
+                        except WindowsError:
+                            print_ex()
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
                             return
@@ -2394,7 +2459,6 @@ def send_trashbox(path: str) -> None:
     """
     cw.fsync.sync()
     if sys.platform == "win32":
-        path2 = path
         path = os.path.normpath(os.path.abspath(path))
         ope = win32com.shell.shellcon.FO_DELETE
         flags = (
@@ -2402,7 +2466,7 @@ def send_trashbox(path: str) -> None:
                 win32com.shell.shellcon.FOF_ALLOWUNDO |
                 win32com.shell.shellcon.FOF_SILENT
         )
-        r = win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
+        _ = win32com.shell.shell.SHFileOperation((None, ope, path + '\0\0', None, flags, None, None))
     elif os.path.isfile(path):
         os.remove(path)
     elif os.path.isdir(path):
@@ -2422,7 +2486,7 @@ def send_trashbox2(paths: Iterable[str]) -> None:
                 win32com.shell.shellcon.FOF_SILENT
         )
         paths = "\0".join(map(lambda path: os.path.normpath(os.path.abspath(path)), paths)) + '\0\0'
-        r = win32com.shell.shell.SHFileOperation((None, ope, paths, None, flags, None, None))
+        win32com.shell.shell.SHFileOperation((None, ope, paths, None, flags, None, None))
     else:
         for path in paths:
             if os.path.isfile(path):
@@ -2449,7 +2513,7 @@ NO_OVERWRITE = 1
 OVERWRITE_WITH_LATEST_FILES = 2
 
 
-def copytree_overwrite(src: str, dst: str, files_overwrite: bool = OVERWRITE_ALWAYS) -> None:
+def copytree_overwrite(src: str, dst: str, files_overwrite: int = OVERWRITE_ALWAYS) -> None:
     """
     ディレクトリを上書きコピーないし統合する。
     files_overwrite=Falseの時は同一のファイルを上書きしない。
@@ -2486,7 +2550,10 @@ def copytree_overwrite(src: str, dst: str, files_overwrite: bool = OVERWRITE_ALW
 # スレッド関係
 # ------------------------------------------------------------------------------
 
-def synclock(lock: threading.Lock) -> typing.Any:
+_SyncLock = TypeVar("_SyncLock", bound=Callable[..., typing.Any])
+
+
+def synclock(lock: threading.Lock) -> Callable[[_SyncLock], _SyncLock]:
     """
     @synclock(_lock)
     def function():
@@ -2495,15 +2562,18 @@ def synclock(lock: threading.Lock) -> typing.Any:
     特定関数・メソッドの排他制御を行う。
     """
 
-    def synclock(f: Callable[..., typing.Any]) -> typing.Any:
-        def acquire(*args, **kw) -> typing.Any:
+    def synclock(f: _SyncLock) -> _SyncLock:
+        def acquire(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             lock.acquire()
             try:
-                return f(*args, **kw)
+                return f(*args, **kwargs)
             finally:
                 lock.release()
 
-        return acquire
+        # FIXME: error: Incompatible return value type (got "Callable[[VarArg(Any), KwArg(Any)], Any]",
+        #        expected "_SyncLock")
+        # return acquire
+        return typing.cast(_SyncLock, acquire)
 
     return synclock
 
@@ -2513,19 +2583,21 @@ def synclock(lock: threading.Lock) -> typing.Any:
 # ------------------------------------------------------------------------------
 
 class _LhafileWrapper(lhafile.Lhafile):
+    f: BinaryIO
+
     def __init__(self, path: str, mode: str) -> None:
         # 十六進数のファイルサイズを表す文字列+Windows改行コードが
         # 冒頭に入っていることがある。
         # その場合は末尾にも余計なデータもあるため、冒頭で指定された
         # サイズにファイルを切り詰めなくてはならない。
         f = open(path, "rb")
-        b = str(f.read(1))
-        strnum = []
-        while b in ("0123456789abcdefABCDEF"):
-            strnum.append(b)
-            b = str(f.read(1))
-        if strnum and b == '\r' and f.read(1) == '\n':
-            strnum = "".join(strnum)
+        b = f.read(1)
+        seq = []
+        while b in (b"0123456789abcdefABCDEF"):
+            seq.append(b)
+            b = f.read(1)
+        if seq and b == b'\r' and f.read(1) == b'\n':
+            strnum = b"".join(seq)
             num = int(strnum, 16)
             data = f.read(num)
             f.close()
@@ -2541,7 +2613,7 @@ class _LhafileWrapper(lhafile.Lhafile):
         return self
 
     def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException],
-                 traceback: Optional[types.TracebackType]) -> bool:
+                 traceback: Optional[types.TracebackType]) -> Literal[False]:
         self.close()
         return False
 
@@ -2581,8 +2653,6 @@ def compress_zip(path: str, zpath: str, unicodefilename: bool = False) -> str:
     path: 圧縮するディレクトリパス
     """
     cw.fsync.sync()
-    if not unicodefilename:
-        encoding = cw.filesystem_encoding
     dpath = os.path.dirname(zpath)
 
     if dpath and not os.path.isdir(dpath):
@@ -2609,14 +2679,14 @@ def compress_zip(path: str, zpath: str, unicodefilename: bool = False) -> str:
                 if unicodefilename:
                     z.write(fpath, zname)
                 else:
-                    z.write(fpath, zname.encode(encoding, errors="replace"))
+                    raise ValueError("Unsupported not Unicode File Name.")
 
     z.close()
     return zpath
 
 
 def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Callable[[int], None]] = None,
-                   progress: Optional[Callable[[int], None]] = None, overwrite: bool = False,
+                   progress: Optional[Callable[[int], bool]] = None, overwrite: bool = False,
                    z: Optional[zipfile.ZipFile] = None) -> str:
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
@@ -2627,7 +2697,8 @@ def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
             z = zip_file(path, "r")
         except Exception:
             print_ex()
-            return None
+            return ""
+    assert z
 
     if not dname:
         dname = splitext(os.path.basename(path))[0]
@@ -2649,7 +2720,7 @@ def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
                 else:
                     z.close()
                     remove(dstdir)
-                    return
+                    return ""
         name = decode_zipfilename(zname, info)
         normpath = os.path.normpath(name)
         if os.path.isabs(normpath):
@@ -2744,71 +2815,61 @@ def decode_zipfilename(zname: str, info: Union[zipfile.ZipInfo, lhafile.LhaInfo]
 def decode_zipname(name: Union[str, bytes]) -> str:
     if not isinstance(name, str):
         try:
-            name = str(name, "utf_8_sig")
+            r_name = str(name, "utf_8_sig")
         except UnicodeDecodeError:
             try:
-                name = str(name, cw.MBCS)
+                r_name = str(name, cw.MBCS)
             except UnicodeDecodeError:
                 try:
-                    name = str(name, "euc-jp")
+                    r_name = str(name, "euc-jp")
                 except UnicodeDecodeError:
                     try:
-                        name = str(name, "utf-8")
+                        r_name = str(name, "utf-8")
                     except UnicodeDecodeError:
                         try:
-                            name = str(name, "utf-16")
+                            r_name = str(name, "utf-16")
                         except UnicodeDecodeError:
                             try:
-                                name = str(name, "utf-32")
+                                r_name = str(name, "utf-32")
                             except UnicodeDecodeError:
-                                name = str(name, "cp437")
+                                r_name = str(name, "cp437")
+        return r_name
 
     return name
 
 
-def decode_text(name: Union[str, bytes]) -> str:
-    if not isinstance(name, str):
+def decode_text(name: bytes) -> str:
+    try:
+        r_name = str(name, "utf_8_sig")
+    except UnicodeDecodeError:
         try:
-            name = str(name, "utf_8_sig")
+            r_name = str(name, "utf-8")
         except UnicodeDecodeError:
             try:
-                name = str(name, "utf-8")
+                r_name = str(name, "shift_jis")
             except UnicodeDecodeError:
                 try:
-                    name = str(name, "shift_jis")
+                    r_name = str(name, "utf-16")
                 except UnicodeDecodeError:
                     try:
-                        name = str(name, "utf-16")
+                        r_name = str(name, "utf-32")
                     except UnicodeDecodeError:
                         try:
-                            name = str(name, "utf-32")
+                            r_name = str(name, cw.MBCS)
                         except UnicodeDecodeError:
                             try:
-                                name = str(name, cw.MBCS)
+                                r_name = str(name, "euc-jp")
                             except UnicodeDecodeError:
-                                try:
-                                    name = str(name, "euc-jp")
-                                except UnicodeDecodeError:
-                                    name = str(name, "cp437")
-
-    return name
+                                r_name = str(name, "cp437")
+    return r_name
 
 
 def read_zipdata(zfile: zipfile.ZipFile, name: str) -> bytes:
     try:
         data = zfile.read(name)
     except KeyError:
-        try:
-            data = zfile.read(name.encode(cw.MBCS))
-        except KeyError:
-            try:
-                data = zfile.read(name.encode("euc-jp"))
-            except KeyError:
-                try:
-                    data = zfile.read(name.encode("utf-8"))
-                except KeyError:
-                    data = ""
-
+        print_ex()
+        data = b""
     return data
 
 
@@ -2825,7 +2886,7 @@ def get_elementfromzip(zpath: str, name: str, tag: str = "") -> "cw.data.CWPyEle
 
 
 def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Optional[Callable[[int], None]] = None,
-                   progress: Optional[Callable[[int], None]] = None,
+                   progress: Optional[Callable[[int], bool]] = None,
                    overwrite: bool = False) -> str:
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
@@ -2876,7 +2937,7 @@ def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
         if progress:
             class Progress(object):
                 def __init__(self) -> None:
-                    self.result = None
+                    self.result: Optional[str] = None
                     self.cancel = False
 
                 def run(self) -> None:
@@ -2910,14 +2971,14 @@ def decompress_cab(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
                     time.sleep(0.001)
             if prog.cancel and not overwrite:
                 remove(dstdir)
-                return None
+                return ""
         else:
             for s in ss:
                 if subprocess.call(s, shell=True, close_fds=True) != 0:
-                    return None
+                    return ""
     except Exception:
         cw.util.print_ex()
-        return None
+        return ""
 
     if progress:
         progress(filenum)
@@ -2936,14 +2997,14 @@ def cab_filenum(cab: str) -> int:
             if buf[:4] != b"MSCF":
                 return 0
 
-            cfiles = word.unpack(buf[28:30])[0]
+            cfiles: int = word.unpack(buf[28:30])[0]
             return cfiles
     except Exception:
         cw.util.print_ex()
     return 0
 
 
-def cab_hasfile(cab: str, fname: str) -> str:
+def cab_hasfile(cab: str, fname: Union[str, Iterable[str]]) -> str:
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""
     if not os.path.isfile(cab):
         return ""
@@ -2974,16 +3035,18 @@ def cab_hasfile(cab: str, fname: str) -> str:
             for _i in range(cfiles):
                 buf = f.read(16)
                 attribs = word.unpack(buf[14:16])[0]
-                name = []
+                seq = []
                 while True:
                     c = f.read(1)
                     if c == b'\0':
                         break
-                    name.append(c)
-                name = b"".join(name)
+                    seq.append(c)
+                b_name = b"".join(seq)
                 _A_NAME_IS_UTF = 0x80
-                if not (attribs & _A_NAME_IS_UTF):
-                    name = str(name, encoding)
+                if attribs & _A_NAME_IS_UTF:
+                    name = str(b_name, "utf-8")
+                else:
+                    name = str(b_name, encoding)
                 if isinstance(fname, str):
                     if fname == os.path.normcase(os.path.basename(name)):
                         f.close()
@@ -3000,13 +3063,12 @@ def cab_hasfile(cab: str, fname: str) -> str:
 
 def cab_dpaths(cab: str) -> Set[str]:
     """CABアーカイブ内のディレクトリのsetを返す。"""
+    r: Set[str] = set()
     if not os.path.isfile(cab):
-        return ""
+        return r
 
     dword = struct.Struct("<l")
     word = struct.Struct("<h")
-
-    r = set()
 
     encoding = "cp932"
     try:
@@ -3015,7 +3077,7 @@ def cab_dpaths(cab: str) -> Set[str]:
             buf = f.read(36)
             if buf[:4] != b"MSCF":
                 f.close()
-                return ""
+                return r
 
             cofffiles = dword.unpack(buf[16:20])[0]
             cfiles = word.unpack(buf[28:30])[0]
@@ -3024,16 +3086,18 @@ def cab_dpaths(cab: str) -> Set[str]:
             for _i in range(cfiles):
                 buf = f.read(16)
                 attribs = word.unpack(buf[14:16])[0]
-                name = []
+                seq = []
                 while True:
                     c = f.read(1)
                     if c == b'\0':
                         break
-                    name.append(c)
-                name = b"".join(name)
+                    seq.append(c)
+                b_name = b"".join(seq)
                 _A_NAME_IS_UTF = 0x80
-                if not (attribs & _A_NAME_IS_UTF):
-                    name = str(name, encoding)
+                if attribs & _A_NAME_IS_UTF:
+                    name = str(b_name, "utf-8")
+                else:
+                    name = str(b_name, encoding)
                 i = name.rfind("\\")
                 if i == -1:
                     r.add("")
@@ -3195,7 +3259,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
     re_color = "&[\x20-\x7E]"
     r_spchar = re.compile("#.|" + re_color) if mode in (2, 3) else None
     if spcharinfo is not None:
-        spcharinfo2 = []
+        spcharinfo2: List[int] = []
     cnt = 0
     asciicnt = 0
     wraped = False
@@ -3203,7 +3267,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
     spchar = False
     defspchar = False
     wrapafter = False
-    seq = []
+    seq: List[str] = []
     seqlen = 0
     skipchars = ""
 
@@ -3359,7 +3423,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
     return "".join(seq).rstrip()
 
 
-def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_chars: str, close_chars: str,
+def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]], open_chars: str, close_chars: str,
                    startindex: int, resultindex: int, spcharinfo: Optional[Set[int]],
                    spcharinfo2: Optional[List[int]]) -> str:
     """
@@ -3373,7 +3437,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_cha
     iterwords = re.findall("[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
     if spcharinfo is not None:
         # 特殊文字と単語を分離しておく
-        iter2 = []
+        iter2: List[str] = []
         index = startindex
         spc = None
         for word in iterwords:
@@ -3391,7 +3455,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_cha
         iterwords = iter2
 
     lines = []
-    buf = []
+    buf: List[Tuple[str, bool]] = []
     buflen = 0
     hw = get_width("#")
     index = startindex
@@ -3432,6 +3496,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_cha
             def append_word_wrap(buf: List[Tuple[str, bool]], buflen: int,
                                  word: str) -> Tuple[List[Tuple[str, bool]], int, str]:
                 # wordを強制的に折り返しながら行に加える
+                assert get_width
                 if is_spchar:
                     return buf, buflen, word
                 while width < buflen + get_width(word):
@@ -3445,9 +3510,10 @@ def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_cha
                     buflen = 0
                 return [], 0, word
 
-            def break_before_openchar(buf2, buf: Sequence[Tuple[str, bool]], buflen: int,
+            def break_before_openchar(buf2: Sequence[Tuple[str, bool]], buf: List[Tuple[str, bool]], buflen: int,
                                       word: str) -> Tuple[List[Tuple[str, bool]], int, str]:
                 # 行末禁止文字の位置まで遡って折り返す
+                assert get_width
                 while buf2 and match_op_last(buf2):
                     buf2 = buf2[:-1]
                 if buf2:
@@ -3510,7 +3576,6 @@ def _wordwrap_impl(s: str, width: int, get_width: Callable[[str], int], open_cha
         seq = []
         for i, buf in enumerate(lines):
             line = []
-            seqlen = 0
             for word, is_spchar in buf:
                 if is_spchar:
                     spcharinfo2.append(resultindex)
@@ -3529,7 +3594,7 @@ def wordwrap(s: str, width: int, get_width: Optional[Callable[[str], int]] = Non
                                 "ぁぃぅぇぉァィゥェォｧｨｩｪｫヵっッｯゃゅょャュョｬｭｮゎヮㇵㇶㇷㇸㇹㇺ…―ーｰ",
              spcharinfo: Optional[Set[int]] = None) -> str:
     if spcharinfo is not None:
-        spcharinfo2 = []
+        spcharinfo2: Optional[List[int]] = []
     else:
         spcharinfo2 = None
     lines = []
@@ -3543,6 +3608,7 @@ def wordwrap(s: str, width: int, get_width: Optional[Callable[[str], int]] = Non
         resultindex += len(wrapped) + len("\n")
 
     if spcharinfo is not None:
+        assert spcharinfo2 is not None
         spcharinfo.clear()
         spcharinfo.update(spcharinfo2)
 
@@ -3604,15 +3670,27 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
 
     class _FormatPart(object):
         """フォーマット内の変数。"""
-
         def __init__(self, name: str) -> None:
             self.name = name
 
-    def eat_parts(fmt: str, subsection: bool) -> Tuple[str, List[str]]:
+    # BUG: undefined name '_List' Pyflakes (2.2.0)
+    # class _List(object):
+    #     def __init__(self, seq: List[Union[str, _FormatPart, "_List"]]) -> None:
+    #         self.seq = seq
+
+    class _AbsList(object):
+        def __init__(self) -> None:
+            self.seq: List[Union[str, _FormatPart, _AbsList]] = []
+
+    class _List(_AbsList):
+        def __init__(self, seq: List[Union[str, _FormatPart, _AbsList]]) -> None:
+            self.seq = seq
+
+    def eat_parts(fmt: str, subsection: bool) -> Tuple[str, List[Union[str, _FormatPart, _AbsList]]]:
         """formatを文字列とFormatPartのリストに分解。
         []で囲われた部分はサブリストとする。
         """
-        seq = []
+        seq: List[Union[str, _FormatPart, _AbsList]] = []
         bs = False
         while fmt:
             c = fmt[0]
@@ -3634,7 +3712,7 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
                     fmt = fmt[ci + 1:]
             elif c == "[":
                 fmt, list2 = eat_parts(fmt, True)
-                seq.append(list2)
+                seq.append(_List(list2))
             else:
                 seq.append(c)
         return fmt, seq
@@ -3642,7 +3720,7 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
     fmt, sl = eat_parts(fmt, False)
     assert not fmt
 
-    def do_format(secs: Iterable[Union[_FormatPart, List, str]]) -> Tuple[str, bool]:
+    def do_format(secs: Iterable[Union[str, _FormatPart, _AbsList]]) -> Tuple[str, bool]:
         """フォーマットを実行する。"""
         seq = []
         use = False
@@ -3652,8 +3730,8 @@ def format_title(fmt: str, d: Dict[str, str], use_lf: bool = False) -> str:
                 if name:
                     use = True
                     seq.append(name)
-            elif isinstance(sec, list):
-                text, use2 = do_format(sec)
+            elif isinstance(sec, _AbsList):
+                text, use2 = do_format(sec.seq)
                 if use2:
                     seq.append(text)
                     use = True
@@ -3676,7 +3754,7 @@ assert format_title("1\\%2\\[3\\]4\\\\", {}) == "1%2[3]4\\"
 # ------------------------------------------------------------------------------
 
 def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
-               maskpos: Union[Tuple[int, int], str] = (0, 0), f: Optional[io.RawIOBase] = None, retry: bool = True,
+               maskpos: Union[Tuple[int, int], str] = (0, 0), f: Optional[BinaryIO] = None, retry: bool = True,
                can_loaded_scaledimage: bool = True,
                noscale: bool = False, up_scr: Optional[Union[int, float]] = None) -> wx.Bitmap:
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
@@ -3706,7 +3784,6 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
     haspngalpha = False
     bmpdepth = 0
     maskcolour = None
-    isjpg = False
     if mask:
         if not image:
             try:
@@ -3745,7 +3822,7 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
                 print("画像が読み込めません(load_wxbmp)", name)
                 return masked_empty_bitmap()
 
-        def set_mask(image: wx.Image, maskpos: Tuple[int, int]) -> Tuple[int, int, int]:
+        def set_mask(image: wx.Image, maskpos: Union[Tuple[int, int], str]) -> Tuple[int, int, int]:
             if image.HasAlpha():
                 r = image.GetMaskRed()
                 g = image.GetMaskGreen()
@@ -3774,10 +3851,10 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
         if mask and image.HasMask() and wxbmp.GetDepth() <= 8:
             palette = wxbmp.GetPalette()
             if palette is not None:
-                mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
+                maskcolor = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
                 maskok = False
                 for pixel in range(palette.GetColoursCount()):
-                    if palette.GetRGB(pixel) == mask:
+                    if palette.GetRGB(pixel) == maskcolor:
                         maskok = True
                         break
                 if not maskok:
@@ -3851,10 +3928,10 @@ def convert_to_image(bmp: wx.Bitmap) -> wx.Image:
     return img
 
 
-def wxbmp_to_buffer(bmp: wx.Bitmap) -> array.array:
+def wxbmp_to_buffer(bmp: wx.Bitmap) -> Sequence[int]:
     """wx.BitmapをRGBのバイト配列へ変換する。"""
     w, h = bmp.GetSize()
-    buf = array.array('B', [0] * (w * h * 3))
+    buf: array.ArrayType[int] = array.array('B', [0] * (w * h * 3))
     bmp.CopyToBuffer(buf)
     return buf
 
@@ -3984,9 +4061,9 @@ def draw_adjusted(dc: wx.MemoryDC, s: str, x: int, y: int, maxwidth: int, align:
                              quality=quality, scaledown=False, bordering=False, align=align)
 
 
-def draw_antialiasedtext(dc: wx.MemoryDC, text: str, x: int, y: int, white: bool, maxwidth: int, padding: int,
+def draw_antialiasedtext(dc: wx.DC, text: str, x: int, y: int, white: bool, maxwidth: int, padding: int,
                          quality: Optional[int] = None, scaledown: bool = True, alpha: int = 64,
-                         bordering: bool = False, width_coeff: int = 1, align: int = wx.ALIGN_LEFT) -> None:
+                         bordering: bool = False, width_coeff: float = 1.0, align: int = wx.ALIGN_LEFT) -> None:
     if not text:
         return
     w = dc.GetTextExtent(text)[0]
@@ -4011,7 +4088,7 @@ def draw_antialiasedtext(dc: wx.MemoryDC, text: str, x: int, y: int, white: bool
 
 def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int, padding: int,
                            quality: Optional[int] = None, scaledown: bool = True, alpha: int = 255,
-                           width_coeff: int = 1) -> wx.Bitmap:
+                           width_coeff: float = 1.0) -> wx.Bitmap:
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
         quality = wx.IMAGE_QUALITY_BICUBIC
@@ -4023,7 +4100,6 @@ def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int,
     upfont = 0 < maxwidth and maxwidth < w and not scaledown
     if upfont:
         scaledown = True
-        basefont = font
         pixelsize = font.GetPixelSize()[1]
         family = font.GetFamily()
         style = font.GetStyle()
@@ -4031,7 +4107,7 @@ def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int,
         underline = font.GetUnderlined()
         facename = font.GetFaceName()
         encoding = font.GetEncoding()
-        font = wx.Font(wx.Size(0, pixelsize * 2), family, style, weight, 0, facename, encoding)
+        font = wx.Font(wx.Size(0, pixelsize * 2), family, style, weight, underline, facename, encoding)
         basedc.SetFont(font)
         w, h = basedc.GetTextExtent(text)
     else:
@@ -4122,8 +4198,8 @@ def get_boxpointlist(pos: Tuple[int, int], size: Tuple[int, int]) -> List[Tuple[
 
 def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl], message: str, wildcard: str = "*.*",
                          seldir: bool = False, getbasedir: Optional[Callable[[], str]] = None,
-                         callback: Optional[Callable[[str], None]] = None, winsize: bool = False,
-                         multiple: bool = False) -> wx.Button:
+                         callback: Optional[Union[Callable[[Sequence[str]], None], Callable[[str], None]]] = None,
+                         winsize: bool = False, multiple: bool = False) -> wx.Button:
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
     parent: ボタンの親パネル。
@@ -4165,7 +4241,7 @@ def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl
             dlg = wx.FileDialog(parent.TopLevelParent, message, dpath, fpath, wildcard, flags)
             if dlg.ShowModal() == wx.ID_OK:
                 files = dlg.GetFilenames()
-                seq = []
+                seq: List[str] = []
                 fnames = ""
                 for fname in files:
                     fpath = os.path.join(dlg.GetDirectory(), fname)
@@ -4180,7 +4256,11 @@ def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl
                         fnames += fpath
                     seq.append(fpath)
                 if callback:
-                    callback(seq if multiple else seq[0])
+                    if multiple:
+                        callback2: Callable[..., bool] = callable
+                        callback2(seq)
+                    else:
+                        callback(seq[0])
                 if target is not None:
                     target.SetValue(fnames)
             dlg.Destroy()
@@ -4221,25 +4301,11 @@ class CWPyStaticBitmap(wx.Panel):
     正しく表示できない場合があるので代替する。
     複数重ねての表示にも対応。
     """
-
     def __init__(self, parent: wx.Panel, cid: int, bmps: List[wx.Bitmap], bmps_bmpdepthkey: List[wx.Bitmap],
                  size: Optional[Tuple[int, int]] = None, infos: Optional[List["cw.image.ImageInfo"]] = None,
-                 ss: Optional[Callable[[Union[wx.Bitmap,
-                                              wx.Image,
-                                              pygame.Surface,
-                                              Tuple[int, int],
-                                              int,
-                                              wx.Rect,
-                                              pygame.Rect,
-                                              Tuple[int, int, int, int]]],
-                                       Union[wx.Bitmap,
-                                             wx.Image,
-                                             pygame.Surface,
-                                             Tuple[int, int],
-                                             int,
-                                             wx.Rect,
-                                             pygame.Rect,
-                                             Tuple[int, int, int, int]]]] = None) -> None:
+                 ss: Optional[Callable[["cw.Scalable"], "cw.Scalable"]] = None) -> None:
+        if not ss:
+            ss = cw.ppis
         if not size and bmps:
             w = 0
             h = 0
@@ -4252,7 +4318,8 @@ class CWPyStaticBitmap(wx.Panel):
         self.bmps = bmps
         self.bmps_bmpdepthkey = bmps_bmpdepthkey
         self.infos = infos
-        self.ss = ss
+        # BUG: self._ss: Callable[[cw.Scalable], cw.Scalable] にすると謎の警告が発生する(mypy 0.782)
+        self._ss: Callable[..., typing.Any] = ss
         self._bind()
 
     def _bind(self) -> None:
@@ -4273,7 +4340,7 @@ class CWPyStaticBitmap(wx.Panel):
                 baserect = info.calc_basecardposition_wx((w, h), noscale=True,
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
-                baserect = self.ss(baserect)
+                baserect = self._ss(baserect)
                 x, y = baserect.x, baserect.y
             else:
                 x, y = 0, 0
@@ -4482,12 +4549,14 @@ def add_sideclickhandlers(toppanel: wx.Panel, leftbtn: wx.BitmapButton, rightbtn
     def _is_cursorinleft() -> bool:
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
-        return x < rect.x + rect.width // 4 and leftbtn.IsEnabled()
+        enabled: bool = leftbtn.IsEnabled()
+        return x < rect.x + rect.width // 4 and enabled
 
     def _is_cursorinright() -> bool:
         rect = toppanel.GetClientRect()
         x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
-        return rect.x + rect.width // 4 * 3 < x and rightbtn.IsEnabled()
+        enabled: bool = rightbtn.IsEnabled()
+        return rect.x + rect.width // 4 * 3 < x and enabled
 
     def _update_mousepos() -> None:
         if _is_cursorinleft():
@@ -4514,8 +4583,7 @@ def add_sideclickhandlers(toppanel: wx.Panel, leftbtn: wx.BitmapButton, rightbtn
 
 
 def set_acceleratortable(panel: wx.Window, seq: List[Tuple[int, int, int]],
-                         ignoreleftrightkeys: Tuple[type(wx.Control), ...]
-                         = (wx.TextCtrl, wx.Dialog, wx.Panel)) -> None:
+                         ignoreleftrightkeys: Tuple[wx.Control, ...] = (wx.TextCtrl, wx.Dialog, wx.Panel)) -> None:
     """panelにseqから生成したAcceleratorTableを設定する。
     """
     # テキスト入力欄に限り左右キーを取り除く
@@ -4575,7 +4643,7 @@ def has_modalchild(frame: wx.TopLevelWindow) -> bool:
 
 
 class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
-    _search_engines = None
+    _search_engines: Optional[List[Tuple[str, str, int]]] = None
 
     def __init__(self, parent: wx.Panel, wid: int, text: str = "", size: Tuple[int, int] = (-1, -1),
                  style: int = 0, searchmenu: bool = False) -> None:
@@ -4633,7 +4701,7 @@ class CWPyRichTextCtrl(wx.richtext.RichTextCtrl):
                 except Exception:
                     cw.util.print_ex(file=sys.stderr)
 
-    def set_text(self, value: str, linkurl: bool = False) -> None:
+    def set_text(self, value: bytes, linkurl: bool = False) -> None:
         # ZIPアーカイブのファイルエンコーディングと
         # 読み込むテキストファイルのエンコーディングが異なる場合、
         # エラーが出るので
@@ -4760,10 +4828,11 @@ def get_wheelrotation(event: wx.MouseEvent) -> int:
     取得できる回転量の値は直感と逆転しているので
     この関数をラッパとして反転した値を取得する。
     """
+    rotation: int = event.GetWheelRotation()
     if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
-        return -event.GetWheelRotation()
+        return -rotation
     else:
-        return event.GetWheelRotation()
+        return rotation
 
 
 class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
@@ -4786,7 +4855,8 @@ class CWTabArt(wx.lib.agw.aui.tabart.AuiDefaultTabArt):
         self._tab_size = self.GetTabSize(dc, wnd, page.caption, page.bitmap, page.active, close_button_state,
                                          page.control)[0]
         page.caption = ""
-        r = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state, paint_control)
+        r: Tuple[wx.Rect, wx.Rect, int] = super(CWTabArt, self).DrawTab(dc, wnd, page, in_rect, close_button_state,
+                                                                        paint_control)
         page.caption = self._cwtabart_caption
         # テキストを描画
         dc.SetFont(wnd.GetFont())
@@ -4853,7 +4923,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         if choices is None:
             choices = []
         wx.adv.OwnerDrawnComboBox.__init__(self, parent, wid, value, pos, size, choices, style, validator, name)
-        self._items = []
+        self._items: List[Tuple[str, wx.Bitmap]] = []
 
     def Clear(self) -> None:
         del self._items[:]
@@ -4892,7 +4962,7 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         return 0 == len(self._items)
 
     def IsTextEmpty(self) -> bool:
-        index = self.GetSelection()
+        index: int = self.GetSelection()
         return index == -1 or self._items[index][0] == ""
 
     def OnDrawBackground(self, dc: wx.DC, rect: wx.Rect, item: int, flags: int) -> None:
@@ -4911,13 +4981,15 @@ class CWPyBitmapComboBox(wx.adv.OwnerDrawnComboBox):
         dc = wx.ClientDC(self)
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
-        return max(bmp.GetHeight(), sz[1])
+        result: int = max(bmp.GetHeight(), sz[1])
+        return result
 
     def OnMeasureItemWidth(self, item: int) -> int:
         dc = wx.ClientDC(self)
         s, bmp = self._items[item]
         sz = dc.GetTextExtent(s)
-        return bmp.GetWidth() + sz[0]
+        result: int = bmp.GetWidth() + sz[0]
+        return result
 
 
 # ------------------------------------------------------------------------------
@@ -4970,7 +5042,7 @@ def set_linktarget(fpath: str, targetpath: str) -> None:
     リンク先をtargetpathに変更する。
     """
     if sys.platform != "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
-        return fpath
+        return
 
     _co_initialize()
     shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
@@ -5100,11 +5172,10 @@ if sys.platform == "win32":
             ('hEvent', ctypes.wintypes.HANDLE),
         ]
 
-
     class _Unlock(object):
-        def __init__(self, name: str, f: io.TextIOWrapper) -> None:
+        def __init__(self, name: str, f: TextIO) -> None:
             self.name = name
-            self.f = f
+            self.f: Optional[TextIO] = f
 
         def unlock(self) -> None:
             if self.f:
@@ -5234,7 +5305,9 @@ def clear_mutex() -> None:
 
 
 def main() -> None:
-    pass
+    # FIXME: cx_Freeze用にimportしているwin32timezoneの未使用警告を潰す
+    if sys.platform == "win32":
+        win32timezone.now()
 
 
 if __name__ == "__main__":

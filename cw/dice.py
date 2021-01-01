@@ -4,8 +4,9 @@
 import random
 import copy
 
-import typing
-from typing import List, Sequence
+from typing import List, Optional, Sequence, TypeVar
+
+_T = TypeVar("_T")
 
 
 class Dice(object):
@@ -25,18 +26,22 @@ class Dice(object):
 
         return n
 
-    def choice(self, seq: Sequence[typing.Any]) -> typing.Any:
+    def choice(self, seq: Sequence[_T]) -> Optional[_T]:
         if seq:
             return random.choice(seq)
         else:
             return None
 
-    def shuffle(self, seq: Sequence[typing.Any]) -> Sequence[typing.Any]:
+    def choice_exists(self, seq: Sequence[_T]) -> _T:
+        assert seq
+        return random.choice(seq)
+
+    def shuffle(self, seq: List[_T]) -> List[_T]:
         seq2 = copy.copy(seq)
         random.shuffle(seq2)
         return seq2
 
-    def pop(self, seq: List[typing.Any]) -> typing.Any:
+    def pop(self, seq: List[_T]) -> Optional[_T]:
         item = self.choice(seq)
 
         if item:

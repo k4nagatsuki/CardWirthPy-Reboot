@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-
 import wx
 
 import cw
@@ -15,6 +13,10 @@ from typing import List
 # ------------------------------------------------------------------------------
 
 class Text(wx.Dialog):
+    index: int
+    list2: List[bytes]
+    index2: int
+
     def __init__(self, parent: wx.TopLevelWindow, name: str) -> None:
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((550, 290)),
@@ -301,7 +303,7 @@ class Readme(Text):
 class ReadmeData(object):
     def __init__(self, name: str, content: bytes) -> None:
         self.name = name
-        self.noextname = os.path.splitext(name)[0].lower().split("/")
+        self.noextname = cw.util.splitext(name)[0].lower().split("/")
         self.noextname.reverse()
         self.content = content
 

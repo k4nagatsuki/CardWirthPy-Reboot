@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Union
+from typing import List, Optional, Union
 
 
 class SkillCard(base.CWBinaryBase):
@@ -15,7 +15,9 @@ class SkillCard(base.CWBinaryBase):
     from . import adventurer
     from . import cast
 
-    def __init__(self, parent: Union[adventurer.Adventurer, cast.CastCard], f: "cw.binary.cwfile.CWFile",
+    limit: int
+
+    def __init__(self, parent: Optional[Union[adventurer.Adventurer, cast.CastCard]], f: "cw.binary.cwfile.CWFile",
                  yadodata: bool = False, nameonly: bool = False, materialdir: str = "Material",
                  image_export: bool = True) -> None:
         from . import effectmotion
@@ -25,7 +27,7 @@ class SkillCard(base.CWBinaryBase):
         self.type = f.byte()
         self.image = f.image()
         self.imgpath = ""
-        self.name = f.string()
+        self.name: str = f.string()
         idl = f.dword()
 
         if idl <= 19999:
@@ -45,7 +47,7 @@ class SkillCard(base.CWBinaryBase):
             return
 
         if 5 <= dataversion:
-            self.fname = self.get_fname()
+            self.fname: str = self.get_fname()
 
         self.description = f.string(True)
         self.p_ability = f.dword()
@@ -67,7 +69,7 @@ class SkillCard(base.CWBinaryBase):
         self.sound_effect2 = f.string()
         self.keycodes = [f.string() for _cnt in range(5)]
         if 2 < dataversion:
-            self.premium = f.byte()
+            self.premium: int = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()
@@ -85,12 +87,12 @@ class SkillCard(base.CWBinaryBase):
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if 5 <= dataversion:
-            _dw = f.dword()
+            _ = f.dword()
 
         self.level = f.dword()
         self.limit = f.dword()
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -185,17 +187,17 @@ class SkillCard(base.CWBinaryBase):
         resist_type = 0
         success_rate = 0
         visual_effect = 0
-        motions = []
+        motions: Optional[cw.data.CWPyElement] = None
         enhance_avoid = 0
         enhance_resist = 0
         enhance_defense = 0
         sound_effect = ""
         sound_effect2 = ""
-        keycodes = []
+        keycodes: List[str] = []
         premium = 0
         scenario_name = ""
         scenario_author = ""
-        events = []
+        events: Optional[cw.data.CWPyElement] = None
         hold = False
         level = 0
         limit = 0
@@ -247,7 +249,7 @@ class SkillCard(base.CWBinaryBase):
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む
                         if 5 < len(keycodes):
-                            keycodes2 = []
+                            keycodes2: List[str] = []
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):
@@ -291,9 +293,12 @@ class SkillCard(base.CWBinaryBase):
         f.write_byte(resist_type)
         f.write_dword(success_rate)
         f.write_byte(visual_effect)
-        f.write_dword(len(motions))
-        for motion in motions:
-            effectmotion.EffectMotion.unconv(f, motion)
+        if motions is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(motions))
+            for motion in motions:
+                effectmotion.EffectMotion.unconv(f, motion)
         f.write_dword(enhance_avoid)
         f.write_dword(enhance_resist)
         f.write_dword(enhance_defense)
@@ -304,9 +309,12 @@ class SkillCard(base.CWBinaryBase):
         f.write_byte(premium)
         f.write_string(scenario_name)
         f.write_string(scenario_author)
-        f.write_dword(len(events))
-        for evt in events:
-            event.SimpleEvent.unconv(f, evt)
+        if events is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(events))
+            for evt in events:
+                event.SimpleEvent.unconv(f, evt)
         f.write_bool(hold)
 
         # 宿データだとここに不明なデータ(4)が付加されている

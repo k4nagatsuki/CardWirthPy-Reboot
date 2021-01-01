@@ -17,7 +17,7 @@ from . import select
 
 from cw.util import synclock
 
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 _lockupdatescenario = threading.Lock()
 
@@ -33,17 +33,23 @@ _NARROW_FNAME = 5
 # 貼り紙選択ダイアログ
 # ------------------------------------------------------------------------------
 
-class ScenarioSelect(select.Select):
+class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindResult"]]):
     """
     貼り紙選択ダイアログ。
     """
 
-    scetable: Dict[str, List[Union[cw.header.ScenarioHeader, str, "FindResult"]]]
-    list: List[Union[cw.header.ScenarioHeader, str, "FindResult"]]
+    scetable: Dict[Union[str, "FindResult"], List[Union[cw.header.ScenarioHeader, str, "FindResult"]]]
+    toppanel: wx.Panel
+    _saved_index: int
+    _add_bookmark: wx.MenuItem
+    _arrange_bookmark: wx.MenuItem
 
     def __init__(self, parent: wx.TopLevelWindow, db: cw.scenariodb.Scenariodb, lastscenario: List[str],
                  lastscenariopath: str, lastfindresult: List[str]) -> None:
         from . import scenarioinstall
+
+        assert cw.cwpy.ydata
+        assert cw.cwpy.ydata.party
 
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
@@ -54,23 +60,24 @@ class ScenarioSelect(select.Select):
         self._last_narrowparams = None
 
         # ディレクトリとシナリオリストの対応
-        self.scetable = {}
+        self.scetable: Dict[Union[str, FindResult], List[Union[cw.header.ScenarioHeader, str, FindResult]]] = {}
         # シナリオディレクトリ
         self.scedir = cw.cwpy.setting.get_scedir()
         # 現在開いているディレクトリ
-        self.nowdir = self.scedir
+        self.nowdir: Union[str, FindResult] = self.scedir
         # 開いたディレクトリの階層
-        self.dirstack = []
+        self.dirstack: List[Tuple[Union[str, FindResult], str]] = []
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
         self.db.update(self.nowdir, skintype=cw.cwpy.setting.skintype)
-        headers = self.db.search_dpath(self.nowdir, create=True, skintype=cw.cwpy.setting.skintype)
+        headers: List[Union[cw.header.ScenarioHeader, str]] = []
+        headers.extend(self.db.search_dpath(self.nowdir, create=True, skintype=cw.cwpy.setting.skintype))
         # nowdirにあるディレクトリリスト
         dpaths = scenarioinstall.get_dpaths(self.nowdir)
         # nowdirがディレクトリだった場合の内容リスト
-        self.names = []
-        self.updatenames_thr = None
+        self.names: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
+        self.updatenames_thr: Optional[UpdateNamesThread] = None
         self._gray_idx = -1
         # クリアシナリオ名の集合
         self.stamps = cw.cwpy.ydata.get_compstamps()
@@ -78,9 +85,11 @@ class ScenarioSelect(select.Select):
         self.coupons = cw.cwpy.ydata.party.get_coupontable()
         # 現在進行中のシナリオパスの集合
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
+        # 現在選択中のシナリオかディレクトリの添付テキスト
+        self.texts: List[cw.dialog.text.ReadmeData] = []
 
         # 検索結果
-        self.find_result = None
+        self.find_result: Optional[FindResult] = None
 
         # 表示設定
         def create_btn(msg: str, bmp: wx.Bitmap,
@@ -118,6 +127,7 @@ class ScenarioSelect(select.Select):
         # 絞り込み欄等の表示設定
         if not cw.cwpy.setting.show_paperandtree:
             self.create_addctrlbtn(self, self._get_bg(), cw.cwpy.setting.show_additional_scenario)
+            assert self.addctrlbtn
             self._addctrlbg = self.addctrlbtn.GetBackgroundColour()
 
         # toppanelとツリー表示用のビュー
@@ -177,17 +187,19 @@ class ScenarioSelect(select.Select):
         self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title2"])
         self.sort_label.SetFont(font)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
-        choices = (cw.cwpy.msgs["target_level"],
-                   cw.cwpy.msgs["title"],
-                   cw.cwpy.msgs["author"],
-                   cw.cwpy.msgs["file_name"],
-                   cw.cwpy.msgs["modified_date"])
-        self.sort = wx.Choice(self, -1, size=(-1, self.narrow.GetBestSize()[1]), choices=choices)
+        choices_sort = (cw.cwpy.msgs["target_level"],
+                        cw.cwpy.msgs["title"],
+                        cw.cwpy.msgs["author"],
+                        cw.cwpy.msgs["file_name"],
+                        cw.cwpy.msgs["modified_date"])
+        self.sort = wx.Choice(self, -1, size=(-1, self.narrow.GetBestSize()[1]), choices=choices_sort)
         self.sort.SetFont(font)
         self.sort.SetSelection(cw.cwpy.setting.scenario_sorttype)
 
         # 選択リスト
-        self.list = dpaths + headers
+        self.list = []
+        self.list.extend(dpaths)
+        self.list.extend(headers)
         self.scetable[self._get_linktarget(self.nowdir)] = self.list
         self.list = self._narrow_scenario(self.list)
         self.index = 0
@@ -307,17 +319,21 @@ class ScenarioSelect(select.Select):
             lastfindresult = []
 
         dirs = []
-        headers = []
+        scheaders = []
         for fpath in lastfindresult:
             header = self.db.search_path(fpath)
             if header:
-                headers.append(header)
+                scheaders.append(header)
             else:
                 dirs.append(fpath)
-        if dirs or headers:
-            headers = self._sort_headers(headers)
-            headers = dirs + headers
-            self._set_findresult(headers, False, expand=False)
+        headers = []
+        if dirs or scheaders:
+            scheaders = self._sort_headers(scheaders)
+            headers2: List[Union[cw.header.ScenarioHeader, str]] = []
+            headers2.extend(dirs)
+            headers2.extend(scheaders)
+            self._set_findresult(headers2, False, expand=False)
+            headers.extend(headers2)
 
         if cw.cwpy.setting.open_lastscenario and (lastscenario or lastscenariopath):
             self.set_selected(lastscenario, lastscenariopath, findresults=headers, opendir=True)
@@ -369,9 +385,12 @@ class ScenarioSelect(select.Select):
         cw.util.set_acceleratortable(self, seq)
 
     def is_showingaddctrl(self) -> bool:
-        return self.addctrlbtn.GetToggle() or self.tree.IsShown()
+        assert self.addctrlbtn
+        result: bool = self.addctrlbtn.GetToggle() or self.tree.IsShown()
+        return result
 
     def update_additionals(self) -> None:
+        assert self.addctrlbtn
         if self.is_showingaddctrl() or cw.cwpy.setting.show_scenariotree:
             self.addctrlbtn.Reparent(self)
         else:
@@ -415,7 +434,7 @@ class ScenarioSelect(select.Select):
 
         self._do_layout()
 
-    def _get_linktarget(self, path: str) -> str:
+    def _get_linktarget(self, path: Union[str, "FindResult"]) -> Union[str, "FindResult"]:
         if isinstance(path, FindResult):
             return path
         return cw.util.get_linktarget(path)
@@ -432,12 +451,12 @@ class ScenarioSelect(select.Select):
         cw.util.to_clipboard(s)
 
     def OnDebugMode(self, event: wx.CommandEvent) -> None:
-        def func(self) -> None:
+        def func(self: ScenarioSelect) -> None:
             cw.cwpy.play_sound("page")
             value = not cw.cwpy.is_debugmode()
             cw.cwpy.set_debug(value)
 
-            def func(self) -> None:
+            def func(self: ScenarioSelect) -> None:
                 if not self:
                     return
                 self.update_debug()
@@ -619,11 +638,11 @@ class ScenarioSelect(select.Select):
         return nsizer
 
     def _get_findpanelheight(self) -> int:
-        h1 = self.keyword_label.GetSize()[1] + self.narrow.GetSize()[1] + cw.wins(1)*2
-        h2 = self.narrow_label.GetSize()[1] + self.narrow_type.GetSize()[1] + cw.wins(1)*2
-        h3 = self.sort_label.GetSize()[1] + self.sort.GetSize()[1]
-        h4 = self.find.GetSize()[1]
-        h5 = self.bookmark.GetSize()[1]
+        h1: int = self.keyword_label.GetSize()[1] + self.narrow.GetSize()[1] + cw.wins(1)*2
+        h2: int = self.narrow_label.GetSize()[1] + self.narrow_type.GetSize()[1] + cw.wins(1)*2
+        h3: int = self.sort_label.GetSize()[1] + self.sort.GetSize()[1]
+        h4: int = self.find.GetSize()[1]
+        h5: int = self.bookmark.GetSize()[1]
         return max(h1, h2, h3, h4, h5)
 
     def OnFind(self, event: wx.CommandEvent) -> None:
@@ -650,7 +669,7 @@ class ScenarioSelect(select.Select):
         elif narrow == _NARROW_LEVEL:
             ftypes.add(cw.scenariodb.DATA_LEVEL)
             try:
-                _v = int(value)
+                _ = int(value)
             except Exception:
                 cw.cwpy.play_sound("error")
                 return
@@ -659,7 +678,8 @@ class ScenarioSelect(select.Select):
         else:
             assert False
         self._no_treechangedsound = True
-        headers = self.db.find_headers(ftypes, value, skintype=cw.cwpy.setting.skintype)
+        headers: List[Union[cw.header.ScenarioHeader, str]] = []
+        headers.extend(self.db.find_headers(ftypes, value, skintype=cw.cwpy.setting.skintype))
         cw.cwpy.play_sound("harvest")
         self._set_findresult(headers, False)
 
@@ -667,11 +687,13 @@ class ScenarioSelect(select.Select):
             self.draw(True)
         self._no_treechangedsound = False
 
-    def _set_findresult(self, headers: List[cw.header.ScenarioHeader], selfirstheader: bool, expand: bool = True,
-                        selindex: int = -1) -> None:
+    def _set_findresult(self, headers: List[Union[cw.header.ScenarioHeader, str]], selfirstheader: bool,
+                        expand: bool = True, selindex: int = -1) -> None:
         slist = self.scetable[self._get_linktarget(self.scedir)]
         if slist and isinstance(slist[0], FindResult):
-            findresult = slist[0]
+            obj = slist[0]
+            assert isinstance(obj, FindResult)
+            findresult = obj
             updateindex = False
         else:
             findresult = FindResult()
@@ -680,10 +702,17 @@ class ScenarioSelect(select.Select):
             self.scetable[self._get_linktarget(self.scedir)] = slist
             updateindex = True
 
-        self.scetable[findresult] = headers[:]
+        headers2: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
+        headers2.extend(headers)
+        self.scetable[findresult] = headers2
         cansort = 1 < len(headers) and isinstance(headers[0], cw.header.ScenarioHeader)
         if cansort:
-            findresult.headers = self._sort_headers(headers)
+            seq: List[cw.header.ScenarioHeader] = []
+            for header in headers:
+                assert isinstance(header, cw.header.ScenarioHeader)
+                seq.append(header)
+            del findresult.headers[:]
+            findresult.headers.extend(self._sort_headers(seq))
         else:
             findresult.headers = headers[:]
 
@@ -719,12 +748,15 @@ class ScenarioSelect(select.Select):
             elif headers and selfirstheader:
                 item, _cookie = self.tree.GetFirstChild(parent)
                 self.tree.SelectItem(item)
+                assert self.find_result
+                self.nowdir = self.find_result
                 slist = self.scetable[self.find_result]
             else:
                 self.tree.SelectItem(parent)
             self._tree_selchanged()
         else:
             if headers and selfirstheader:
+                assert self.find_result
                 self.nowdir = self.find_result
                 slist = self.scetable[self.find_result]
             else:
@@ -846,6 +878,7 @@ class ScenarioSelect(select.Select):
 
     def OnBookmark(self, event: wx.CommandEvent) -> None:
         # ブックマークメニューを生成して表示する
+        assert cw.cwpy.ydata
         cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
@@ -854,6 +887,7 @@ class ScenarioSelect(select.Select):
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
     def OnBookmark2(self, event: wx.CommandEvent) -> None:
+        assert cw.cwpy.ydata
         if not self.bookmark.IsShown():
             return
         cw.cwpy.play_sound("page")
@@ -868,6 +902,7 @@ class ScenarioSelect(select.Select):
         return not self.list or isinstance(self.list[self.index], FindResult)
 
     def create_bookmarkmenu(self) -> None:
+        assert cw.cwpy.ydata
         if self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
         menu = wx.Menu()
@@ -963,7 +998,7 @@ class ScenarioSelect(select.Select):
                         p = "[フォルダが見つかりません]"
                         enable = False
                     elif sys.platform == "win32":
-                        sp = os.path.splitext(p)
+                        sp = cw.util.splitext(p)
                         if sp[1].lower() == ".lnk":
                             p = sp[0]
                     item = wx.MenuItem(menu, -1, p.replace("&", "&&"))
@@ -988,7 +1023,7 @@ class ScenarioSelect(select.Select):
         else:
             name = os.path.basename(header)
             if sys.platform == "win32":
-                sp = os.path.splitext(name)
+                sp = cw.util.splitext(name)
                 if sp[1].lower() == ".lnk":
                     name = sp[0]
         s = cw.cwpy.msgs["add_bookmark_message"] % (name)
@@ -1000,7 +1035,8 @@ class ScenarioSelect(select.Select):
             return
         dlg.Destroy()
 
-        def func(panel, selected: List[str], selectedpath: str) -> None:
+        def func(panel: ScenarioSelect, selected: List[str], selectedpath: str) -> None:
+            assert cw.cwpy.ydata
             cw.cwpy.ydata.add_bookmark(selected, selectedpath)
             cw.cwpy.play_sound("harvest")
 
@@ -1083,14 +1119,15 @@ class ScenarioSelect(select.Select):
             self._tree_dclick()
 
     def can_clickcenter(self) -> bool:
-        return self.yesbtn.IsEnabled()
+        result: bool = self.yesbtn.IsEnabled()
+        return result
 
     def get_selected(self) -> Tuple[List[str], str]:
         """
         現在選択されているシナリオを経路形式
         (ディレクトリ・ファイル名の配列)で返す。
         """
-        seq = []
+        seq: List[str] = []
         if not self.list or not self._saved_list:
             return seq, ""
 
@@ -1119,8 +1156,8 @@ class ScenarioSelect(select.Select):
         else:
             return []
 
-    def _get_nowlist(self, nowdir: Optional[str] = None,
-                     update: bool = True) -> List[Union[str, cw.header.ScenarioHeader]]:
+    def _get_nowlist(self, nowdir: Optional[Union[str, "FindResult"]] = None,
+                     update: bool = True) -> List[Union[cw.header.ScenarioHeader, str, "FindResult"]]:
         from . import scenarioinstall
 
         if nowdir is None:
@@ -1130,8 +1167,10 @@ class ScenarioSelect(select.Select):
         if not update and nowdir in self.scetable:
             return self.scetable[nowdir]
         if isinstance(nowdir, FindResult):
-            return nowdir.headers
-        seq = []
+            headers: List[Union[cw.header.ScenarioHeader, str, "FindResult"]] = []
+            headers.extend(nowdir.headers)
+            return headers
+        seq: List[Union[cw.header.ScenarioHeader, str, FindResult]] = []
         if nowdir == self.scedir and self.find_result:
             seq.append(self.find_result)
         if update:
@@ -1141,7 +1180,7 @@ class ScenarioSelect(select.Select):
         return seq
 
     def set_selected(self, spaths: List[str], fullpath: str, opendir: bool = False, updatetree: bool = False,
-                     findresults: Optional[List[Union[str, cw.header.ScenarioHeader]]] = None) -> None:
+                     findresults: Optional[List[Union[cw.header.ScenarioHeader, str]]] = None) -> None:
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
@@ -1156,8 +1195,8 @@ class ScenarioSelect(select.Select):
         updatetreeitem = None
 
         if fullpath and cw.scenariodb.is_scenario(fullpath):
-            header = self.db.search_path(fullpath)
-            if not self.is_showing(header):
+            scheader = self.db.search_path(fullpath)
+            if scheader and not self.is_showing(scheader):
                 exists_spaths = False
 
         if exists_spaths:
@@ -1167,8 +1206,11 @@ class ScenarioSelect(select.Select):
                     exists_spaths = bool(findresults)
                     break
                 if path == "/find_result":
-                    assert findresults and not isinstance(findresults[0], cw.header.ScenarioHeader)
-                    spath = os.path.dirname(findresults[0])
+                    assert findresults
+                    dpath = findresults[0]
+                    assert not isinstance(dpath, cw.header.ScenarioHeader)
+                    assert not isinstance(dpath, FindResult)
+                    spath = os.path.dirname(dpath)
                     continue
                 spath = cw.util.join_paths(spath, path)
                 spath = cw.util.get_linktarget(spath)
@@ -1179,13 +1221,15 @@ class ScenarioSelect(select.Select):
         selfullpath = False
         if not exists_spaths:
             keypath = cw.util.get_keypath(fullpath)
-            headers = []
+            headers: List[Union[cw.header.ScenarioHeader, str]] = []
             if findresults and isinstance(findresults[0], str):
                 index = -1
-                for fpath in findresults:
-                    header = self.db.search_path(fpath)
-                    if header:
-                        headers.append(header)
+                for obj in findresults:
+                    assert isinstance(obj, str)
+                    fpath = obj
+                    scheader = self.db.search_path(fpath)
+                    if scheader:
+                        headers.append(scheader)
                     elif os.path.exists(fpath):
                         headers.append(fpath)
                     else:
@@ -1196,6 +1240,7 @@ class ScenarioSelect(select.Select):
                 index = -1
                 headers = findresults
                 for i, header in enumerate(findresults):
+                    assert not isinstance(header, FindResult)
                     if isinstance(header, cw.header.ScenarioHeader):
                         fpath = header.get_fpath()
                     elif os.path.exists(header):
@@ -1206,12 +1251,22 @@ class ScenarioSelect(select.Select):
                         index = i
                         break
             if headers and index == -1:
-                header = self.db.search_path(fullpath)
-                if header:
-                    headers.append(header)
+                scheader = self.db.search_path(fullpath)
+                if scheader:
+                    headers.append(scheader)
                 elif os.path.exists(fullpath):
                     headers.append(fullpath)
-                headers = self._sort_headers(headers)
+                scheaders = []
+                dnames = []
+                for header2 in headers:
+                    if isinstance(header2, cw.header.ScenarioHeader):
+                        scheaders.append(header2)
+                    else:
+                        dnames.append(header2)
+                scheaders = self._sort_headers(scheaders)
+                headers = []
+                headers.extend(dnames)
+                headers.extend(scheaders)
                 for i, header2 in enumerate(headers):
                     if header == header2:
                         index = i
@@ -1224,9 +1279,9 @@ class ScenarioSelect(select.Select):
                     self._set_findresult(headers, True, selindex=index)
                     selfullpath = True
             elif cw.scenariodb.is_scenario(fullpath):
-                header = self.db.search_path(fullpath)
-                if header and self.is_showing(header):
-                    self._set_findresult([header], True)
+                scheader = self.db.search_path(fullpath)
+                if scheader and self.is_showing(scheader):
+                    self._set_findresult([scheader], True)
                     selfullpath = True
                 else:
                     exists_spaths = False
@@ -1247,7 +1302,7 @@ class ScenarioSelect(select.Select):
 
         elif not selfullpath:
             # 経路をたどれる場合
-            parent = self.scedir
+            parent: Union[str, FindResult] = self.scedir
             self.dirstack = []
             exists = True
             treeitem = self._root
@@ -1256,8 +1311,10 @@ class ScenarioSelect(select.Select):
                     if isinstance(parent, FindResult):
                         if findresults and not isinstance(findresults[0], FindResult):
                             # 検索結果がフォルダ一件の場合(ブックマークからフォルダを開いたケース)
-                            self.dirstack.append((os.path.dirname(findresults[0]), fname))
-                            parent = cw.util.get_linktarget(findresults[0])
+                            dpath = findresults[0]
+                            assert isinstance(dpath, str)
+                            self.dirstack.append((os.path.dirname(dpath), fname))
+                            parent = cw.util.get_linktarget(dpath)
                         else:
                             # 普通の検索結果
                             self.dirstack.append(("/find_result", fname))
@@ -1277,7 +1334,7 @@ class ScenarioSelect(select.Select):
                             assert data is not None
                             index, header = data
                             if (not isinstance(header, cw.header.ScenarioHeader) and
-                                not isinstance(header, FindResult) and
+                                not isinstance(header, FindResult) and header is not None and
                                     os.path.normcase(os.path.basename(header)) ==
                                     os.path.normcase(fname)) or\
                                     (isinstance(header, FindResult) and fname == "/find_result"):
@@ -1344,8 +1401,11 @@ class ScenarioSelect(select.Select):
         self._update_saveddirstack()
 
     def _update_saveddirstack(self) -> None:
-        if len(self.dirstack) == 1 and self.dirstack[0][0].startswith("/"):
-            return
+        if len(self.dirstack) == 1:
+            dpath = self.dirstack[0][0]
+            assert not isinstance(dpath, FindResult)
+            if dpath.startswith("/"):
+                return
         self._saved_dirstack = self.dirstack[:]
         self._saved_list = self.list[:]
         self._saved_index = self.index
@@ -1403,31 +1463,32 @@ class ScenarioSelect(select.Select):
             seldname = ""
         return dpath, seldname
 
-    def _select_installedpaths(self, firstpath: str, seldname: str,
-                               paths: List[Union[str, cw.header.ScenarioHeader]]) -> None:
+    def _select_installedpaths(self, firstpath: str, seldname: str, paths: List[str]) -> None:
         self._update_saveddirstack()
         lastscenario, lastscenariopath = self.get_selected()
         if lastscenario:
-            dpath = cw.util.get_linktarget(self.nowdir)
+            assert not isinstance(self.nowdir, FindResult)
             if seldname:
                 lastscenario[-1] = seldname
                 lastscenario.append(os.path.basename(firstpath))
             else:
                 lastscenario[-1] = os.path.basename(firstpath)
         else:
-            dpath = cw.util.get_linktarget(self.scedir)
             if seldname:
                 lastscenario = [seldname, os.path.basename(firstpath)]
             else:
                 lastscenario = [os.path.basename(firstpath)]
         lastscenariopath = os.path.abspath(firstpath)
-        self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=paths)
+        paths2: List[Union[cw.header.ScenarioHeader, str]] = []
+        paths2.extend(paths)
+        self.set_selected(lastscenario, lastscenariopath, opendir=True, updatetree=True, findresults=paths2)
 
     def OnCreateDirBtn(self, event: wx.CommandEvent) -> None:
         from . import scenarioinstall
 
         dpath, seldname = self._get_installtarget()
 
+        assert not isinstance(self.nowdir, FindResult)
         dpath = scenarioinstall.create_dir(self, self.nowdir)
         if dpath:
             cw.cwpy.play_sound("harvest")
@@ -1455,7 +1516,7 @@ class ScenarioSelect(select.Select):
             fpath = header
             name = os.path.basename(fpath)
             if sys.platform == "win32" and name.lower().endswith(".lnk"):
-                s = "ショートカット「%s」の移動先を選択してください。" % os.path.splitext(name)[0]
+                s = "ショートカット「%s」の移動先を選択してください。" % cw.util.splitext(name)[0]
             else:
                 s = "「%s」の移動先を選択してください。\n大量のシナリオやサブフォルダがある場合、移動には時間がかかる可能性があります。" % name
 
@@ -1495,6 +1556,7 @@ class ScenarioSelect(select.Select):
                 cw.util.rename_file(fpath, dst)
                 if os.path.isdir(dst):
                     self.db.rename_dir(fpath, dst)
+                assert not isinstance(self.nowdir, FindResult)
                 self.db.update(self.nowdir, cw.cwpy.setting.skintype)
 
                 if self.tree.IsShown():
@@ -1543,7 +1605,7 @@ class ScenarioSelect(select.Select):
             fpath = header
             name = os.path.basename(fpath)
             if sys.platform == "win32" and os.path.isfile(fpath) and name.lower().endswith(".lnk"):
-                name = os.path.splitext(name)[0]
+                name = cw.util.splitext(name)[0]
                 s = "ショートカット「%s」を削除します。\nよろしいですか？" % name
             else:
                 s = "フォルダ「%s」を削除します。\nフォルダの中に存在する全てのサブフォルダとシナリオも削除されます。よろしいですか？" % name
@@ -1563,6 +1625,7 @@ class ScenarioSelect(select.Select):
             cw.util.remove(fpath, trashbox=True)
             if isdir:
                 self.db.remove_dir(fpath)
+            assert isinstance(self.nowdir, str)
             self.db.update(self.nowdir, cw.cwpy.setting.skintype)
 
             if self.tree.IsShown():
@@ -1610,7 +1673,7 @@ class ScenarioSelect(select.Select):
             fname, ext = os.path.basename(fpath), ""
         else:
             # ファイルの場合は拡張子を変更の対象外とする
-            fname, ext = os.path.splitext(os.path.basename(fpath))
+            fname, ext = cw.util.splitext(os.path.basename(fpath))
 
         s = "「%s」の新しい名前を入力してください。" % (fname)
         dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["rename"],
@@ -1621,6 +1684,7 @@ class ScenarioSelect(select.Select):
             dlg.Destroy()
             dpath, seldname = self._get_installtarget()
 
+            assert isinstance(self.nowdir, str)
             dst = cw.util.join_paths(self.nowdir, dlg.text)
             dst = cw.util.dupcheck_plus(dst, yado=False)
             dst += ext
@@ -1649,12 +1713,12 @@ class ScenarioSelect(select.Select):
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
             headers, notscenariofiles = self._to_headers(paths, link=True)
-            headers = functools.reduce(lambda a, b: a + b, iter(headers.values()))
-            if headers:
+            seq = functools.reduce(lambda a, b: a + b, iter(headers.values()))
+            if seq:
                 cw.cwpy.play_sound("harvest")
                 dpath, _seldname = self._get_installtarget()
-                link0 = None
-                for header in headers:
+                link0 = ""
+                for header in seq:
                     fpath = header.get_fpath()
                     link = cw.util.join_paths(cw.util.get_linktarget(dpath), os.path.basename(fpath)) + ".lnk"
                     link = cw.binary.util.check_duplicate(link)
@@ -1702,9 +1766,11 @@ class ScenarioSelect(select.Select):
         self._processing = True
         cw.cwpy.play_sound("equipment")
         self.narrow.SetValue("")
-        headers = functools.reduce(lambda a, b: a + b, iter(headers.values()))
-        selfirstheader = (1 == len(headers))
-        self._set_findresult(headers, selfirstheader=selfirstheader)
+        seq: List[Union[cw.header.ScenarioHeader, str]] = []
+        for value in headers.values():
+            seq.extend(value)
+        selfirstheader = (1 == len(seq))
+        self._set_findresult(seq, selfirstheader=selfirstheader)
 
         self._processing = False
         if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
@@ -1713,7 +1779,8 @@ class ScenarioSelect(select.Select):
         self.enable_btn()
 
     def _install_scenario(self, headers: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
-                          headers_with_link: bool, notscenariofiles: Dict[Tuple[str, str], List[str]]) -> None:
+                          headers_with_link: Dict[Tuple[str, str], List[cw.header.ScenarioHeader]],
+                          notscenariofiles: Dict[Tuple[str, str], List[str]]) -> None:
         """
         headersを選択中のディレクトリにインストールする。
         シナリオDB内に同じ名前・作者のシナリオがあった場合は
@@ -1730,8 +1797,8 @@ class ScenarioSelect(select.Select):
 
         cw.cwpy.play_sound("signal")
         headers_seq = functools.reduce(lambda a, b: a + b, iter(headers.values()))
-        if sys.platform == "win32" and os.path.isfile(dpath) and os.path.splitext(dpath)[1].lower() == ".lnk":
-            dname = os.path.splitext(os.path.basename(dpath))[0]
+        if sys.platform == "win32" and os.path.isfile(dpath) and cw.util.splitext(dpath)[1].lower() == ".lnk":
+            dname = cw.util.splitext(os.path.basename(dpath))[0]
         else:
             dname = os.path.basename(dpath)
         if 1 < len(headers_seq):
@@ -1752,7 +1819,7 @@ class ScenarioSelect(select.Select):
             else:
                 name = "「%s」" % (headers_seq[0].name)
         desc = scenarioinstall.create_installdesc(headers_seq)
-        choices = (
+        choices: Iterable[Union[Tuple[str, int, int, str], Tuple[str, int, int, str], Tuple[str, int, int]]] = (
             ("インストール", wx.ID_YES, cw.wins(105), desc),
             ("表示のみ", wx.ID_NO, cw.wins(105), "%sを検索結果として表示します。" % (name)),
             ("キャンセル", wx.ID_CANCEL, cw.wins(105)),
@@ -1772,6 +1839,7 @@ class ScenarioSelect(select.Select):
 
             if paths:
                 firstpath = paths[0]
+                assert isinstance(firstpath, str)
                 cw.cwpy.play_sound("harvest")
                 self._processing = True
                 self.narrow.SetValue("")
@@ -1820,12 +1888,14 @@ class ScenarioSelect(select.Select):
                 self._no_treechangedsound = False
             else:
                 cw.cwpy.play_sound("equipment")
-                if isinstance(self.list[self.index], FindResult):
+                obj = self.list[self.index]
+                assert not isinstance(obj, cw.header.ScenarioHeader)
+                if isinstance(obj, FindResult):
                     self.dirstack.append((self.nowdir, "/find_result"))
-                    self.nowdir = self.list[self.index]
+                    self.nowdir = obj
                 else:
-                    self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
-                    self.nowdir = cw.util.get_linktarget(self.list[self.index])
+                    self.dirstack.append((self.nowdir, os.path.basename(obj)))
+                    self.nowdir = cw.util.get_linktarget(obj)
                 self.list = self._get_nowlist(update=False)
                 self.list = self._narrow_scenario(self.list)
                 self.index = 0
@@ -1867,6 +1937,7 @@ class ScenarioSelect(select.Select):
     def OnClickViewBtn(self, event: Union[wx.PyCommandEvent, wx.CommandEvent]) -> None:
         if cw.cwpy.setting.show_paperandtree:
             return
+        assert self.addctrlbtn
 
         cw.cwpy.play_sound("equipment")
         if not self.addctrlbtn.GetToggle():
@@ -1939,7 +2010,6 @@ class ScenarioSelect(select.Select):
         def open_dir(dpath: str) -> None:
             dpath = os.path.normpath(dpath)
             filer = cw.cwpy.setting.filer_dir
-            encoding = cw.filesystem_encoding
             if filer:
                 seq = [filer, dpath]
                 try:
@@ -2111,29 +2181,31 @@ class ScenarioSelect(select.Select):
             return ""
 
         lines = []
-        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
-            header = self.list[self.index]
+        obj = self.list[self.index]
+        if isinstance(obj, cw.header.ScenarioHeader):
+            header = obj
             lines.append(cw.sprite.bill.get_detailtext(header))
 
         else:
-            dpath = self.list[self.index]
-            if isinstance(dpath, FindResult):
+            if isinstance(obj, FindResult):
                 name = "[ %s ]" % cw.cwpy.msgs["find_result"]
+                dpath: Union[str, FindResult] = obj
             else:
-                dpath = os.path.basename(dpath)
+                dpath = os.path.basename(obj)
                 if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
-                    dpath = os.path.splitext(dpath)[0]
+                    dpath = cw.util.splitext(dpath)[0]
                 name = "[ %s ]" % dpath
             slen = cw.util.get_strlen(name)
             if slen < 38:
                 name += "-" * (38 - slen)
             lines.append(name)
 
-            for name in self.names:
+            for obj in self.names:
+                assert not isinstance(obj, FindResult)
                 addition = ""
-                if isinstance(name, cw.header.ScenarioHeader):
-                    header = name
-                    name = name.name
+                if isinstance(obj, cw.header.ScenarioHeader):
+                    header = obj
+                    name = obj.name
                     if self.sort.GetSelection() == 2:
                         # 整列条件: 作者名
                         if header.author:
@@ -2151,9 +2223,10 @@ class ScenarioSelect(select.Select):
                             addition = "[%s～%s]" % (levelmin, levelmax)
                     if self.is_playing(header) or self.is_complete(header) or self.is_invisible(header):
                         pass
+                elif isinstance(dpath, FindResult):
+                    name = "[%s]" % (os.path.basename(obj))
                 else:
-                    if isinstance(dpath, FindResult):
-                        name = "[%s]" % (os.path.basename(name))
+                    name = obj
                 if addition:
                     name += " %s" % addition
                 lines.append(name)
@@ -2268,12 +2341,14 @@ class ScenarioSelect(select.Select):
             self.draw3(dc, dest, update)
             return
 
-        if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
-            dpath = self.list[self.index]
+        obj = self.list[self.index]
+        if not isinstance(obj, cw.header.ScenarioHeader):
+            dpath = obj
 
             if update:
                 if isinstance(dpath, FindResult):
-                    self.names = dpath.headers
+                    del self.names[:]
+                    self.names.extend(dpath.headers)
                     self._gray_idx = -1
                 else:
                     if self.updatenames_thr:
@@ -2281,6 +2356,7 @@ class ScenarioSelect(select.Select):
                         self.updatenames_thr = None
                     self.names = [cw.cwpy.msgs["now_loading"]]
                     self._gray_idx = 0
+                    assert not isinstance(self.nowdir, FindResult)
                     self.updatenames_thr = UpdateNamesThread(self, self.nowdir, dpath, self.dirstack[:],
                                                              startdir=dpath, expandedset=set(),
                                                              skintype=cw.cwpy.setting.skintype)
@@ -2349,11 +2425,12 @@ class ScenarioSelect(select.Select):
                 self._gray_idx = -1
 
             y = cw.wins(130)
-            for idx, name in enumerate(names):
+            for idx, obj in enumerate(names):
+                assert not isinstance(obj, FindResult)
                 addition = ""
-                if isinstance(name, cw.header.ScenarioHeader):
-                    header = name
-                    name = name.name
+                if isinstance(obj, cw.header.ScenarioHeader):
+                    header = obj
+                    name = obj.name
                     if self.sort.GetSelection() == 2:
                         # 整列条件: 作者名
                         if header.author:
@@ -2363,7 +2440,7 @@ class ScenarioSelect(select.Select):
                     #     # 整列条件: ファイル名
                     #     fname = header.fname
                     #     if sys.platform == "win32" and fname.lower().endswith(".lnk"):
-                    #         fname = os.path.splitext(fname)[0]
+                    #         fname = cw.util.splitext(fname)[0]
                     #     addition = fname
                     elif self.sort.GetSelection() == 4:
                         # 整列条件: 更新日時
@@ -2382,9 +2459,12 @@ class ScenarioSelect(select.Select):
                         dc.SetTextForeground((0, 0, 0))
                 elif idx == self._gray_idx:
                     dc.SetTextForeground((128, 128, 128))
+                    name = obj
                 else:
                     if isinstance(dpath, FindResult):
-                        name = "[%s]" % (os.path.basename(name))
+                        name = "[%s]" % (os.path.basename(obj))
+                    else:
+                        name = obj
                     dc.SetTextForeground((0, 0, 0))
 
                 dc.SetFont(font)
@@ -2417,7 +2497,7 @@ class ScenarioSelect(select.Select):
 
             self._enable_btn2(dpath, dc=dc)
         else:
-            header = self.list[self.index]
+            header = obj
 
             # 見出し画像
             wxbmps = header.get_wxbmps()
@@ -2492,7 +2572,8 @@ class ScenarioSelect(select.Select):
                 if buttonlist:
                     buttonlist[0].SetFocus()
 
-    def _enable_btn2(self, header: Union[str, cw.header.ScenarioHeader], dc: Optional[wx.MemoryDC] = None) -> None:
+    def _enable_btn2(self, header: Union[cw.header.ScenarioHeader, str, "FindResult"],
+                     dc: Optional[wx.DC] = None) -> None:
         bmpw, bmph = self.toppanel.GetClientSize()
         if isinstance(header, cw.header.ScenarioHeader):
             bmp = None
@@ -2549,7 +2630,6 @@ class ScenarioSelect(select.Select):
             if not selitem:
                 self._processing = False
                 return
-            paritem = self.tree.GetItemParent(selitem)
 
             def recurse(parent: wx.TreeItemId) -> None:
                 index, nowdir = self.tree.GetItemData(parent)
@@ -2719,7 +2799,7 @@ class ScenarioSelect(select.Select):
             # ファイル名による整列中
             fname = header.fname
             if sys.platform == "win32" and fname.lower().endswith(".lnk"):
-                fname = os.path.splitext(fname)[0]
+                fname = cw.util.splitext(fname)[0]
             name = "%s (%s)" % (name, fname)
         elif self.sort.GetSelection() == 2 and header.author:
             # 作者名による整列中
@@ -2734,7 +2814,7 @@ class ScenarioSelect(select.Select):
         self.tree.DeleteChildren(self._root)
 
         treeitem = self._root
-        itemlist = []
+        itemlist: List[wx.TreeItemId] = []
         dirstack = self.dirstack[:]
         while True:
             itemlist, dpaths = self.create_treeitems(treeitem, freeze=freeze)
@@ -2886,8 +2966,8 @@ class ScenarioSelect(select.Select):
 
         self.enable_btn()
 
-    def get_dirstack(self, paritem: wx.TreeItemId) -> List[Tuple[str, str]]:
-        dirstack = []
+    def get_dirstack(self, paritem: wx.TreeItemId) -> List[Tuple[Union[str, "FindResult"], str]]:
+        dirstack: List[Tuple[Union[str, FindResult], str]] = []
         while paritem:
             _i, parpath = self.tree.GetItemData(paritem)
             _i, selpath = self.tree.GetItemData(paritem)
@@ -2921,7 +3001,8 @@ class ScenarioSelect(select.Select):
             item, cookie = self.tree.GetNextChild(paritem, cookie)
             i += 1
 
-    def updated_names(self, dpath: str, dirstack: List[Tuple[str, str]], startdir: str, expandedset: Set[str]) -> None:
+    def updated_names(self, dpath: str, dirstack: List[Tuple[Union[str, "FindResult"], str]], startdir: str,
+                      expandedset: Set[str]) -> None:
         if self.toppanel.IsShown():
             self.toppanel.Refresh()
 
@@ -2970,13 +3051,11 @@ class ScenarioSelect(select.Select):
         if focus:
             focus.SetFocus()
 
-    def _narrow_scenario(self, headers: Union[List[str],
-                                              List[Union[str, cw.header.ScenarioHeader]],
-                                              List[cw.header.ScenarioHeader]]) \
-            -> Union[List[str], List[Union[str, cw.header.ScenarioHeader]], List[cw.header.ScenarioHeader]]:
+    def _narrow_scenario(self, headers: List[Union[cw.header.ScenarioHeader, str, "FindResult"]]) \
+            -> List[Union[cw.header.ScenarioHeader, str, "FindResult"]]:
         """設定に応じて表示しないシナリオを除去する。"""
         ntypes, narrow, intnarrow, donarrow, level, _unfitness, _complete, _invisible, _sort = self._get_narrowparams()
-        dseq = []
+        dseq: List[Union[cw.header.ScenarioHeader, str, "FindResult"]] = []
         seq = []
         for header in headers:
             if not self._is_showing(header, ntypes, narrow, intnarrow, donarrow, level):
@@ -2986,7 +3065,8 @@ class ScenarioSelect(select.Select):
             else:
                 dseq.append(header)
 
-        return dseq + self._sort_headers(seq)
+        dseq.extend(self._sort_headers(seq))
+        return dseq
 
     def _update_narrowparams(self) -> bool:
         t = self._get_narrowparams()
@@ -3023,7 +3103,7 @@ class ScenarioSelect(select.Select):
         if _NARROW_LEVEL in ntypes and donarrow:
             # レベル
             try:
-                intnarrow = int(narrow)
+                intnarrow: Optional[int] = int(narrow)
             except Exception:
                 intnarrow = None
         else:
@@ -3033,7 +3113,7 @@ class ScenarioSelect(select.Select):
                 cw.cwpy.setting.show_completedscenario, cw.cwpy.setting.show_invisiblescenario,
                 self.sort.GetSelection())
 
-    def _is_showing(self, header: Optional[Union[str, cw.header.ScenarioHeader]], ntypes: Set[int], narrow: str,
+    def _is_showing(self, header: Union[cw.header.ScenarioHeader, str, "FindResult"], ntypes: Set[int], narrow: str,
                     intnarrow: Optional[int], donarrow: bool, level: int) -> bool:
         if isinstance(header, cw.header.ScenarioHeader):
             if not cw.cwpy.setting.show_unfitnessscenario and not (ntypes == {_NARROW_LEVEL} and donarrow) and\
@@ -3192,8 +3272,8 @@ class ScenarioSelect(select.Select):
             return []
 
         seq = []
-        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
-            header = self.list[self.index]
+        header = self.list[self.index]
+        if isinstance(header, cw.header.ScenarioHeader):
             path = header.get_fpath()
             path = cw.util.get_linktarget(path)
             if os.path.isfile(path):
@@ -3254,11 +3334,11 @@ class ScenarioSelect(select.Select):
                     name = cw.util.join_paths(name)
                     seq.append(text.ReadmeData(name, data))
 
-        elif not isinstance(self.list[self.index], FindResult):
-            dpath = cw.util.get_linktarget(self.list[self.index])
+        elif not isinstance(header, FindResult):
+            dpath = cw.util.get_linktarget(header)
             if os.path.isdir(dpath):
                 for fname in os.listdir(dpath):
-                    if os.path.splitext(fname)[1].lower().endswith(".txt"):
+                    if cw.util.splitext(fname)[1].lower().endswith(".txt"):
                         fpath = cw.util.join_paths(dpath, fname)
                         with open(fpath, "rb") as f:
                             data = f.read()
@@ -3272,6 +3352,10 @@ class ScenarioSelect(select.Select):
         CardWirthのシナリオデータを変換。
         """
         from . import message
+
+        if isinstance(self.nowdir, FindResult):
+            cw.cwpy.play_sound("error")
+            return
 
         # CardWirthのシナリオデータか確認
         if not os.path.isfile(cw.util.join_paths(path, "Summary.wsm")):
@@ -3328,6 +3412,7 @@ class ScenarioSelect(select.Select):
             # zip圧縮
             temppath = thread.path
             zpath = os.path.basename(temppath) + ".wsn"
+            assert not isinstance(self.nowdir, FindResult)
             zpath = cw.util.join_paths(self.nowdir, zpath)
             zpath = cw.util.dupcheck_plus(zpath, False)
             cw.util.compress_zip(temppath, zpath, unicodefilename=True)
@@ -3366,7 +3451,7 @@ class ScenarioSelect(select.Select):
         # 変換したシナリオのインデックスを取得
         header = None
         for index, lheader in enumerate(self.list):
-            if not hasattr(lheader, "fname"):
+            if not isinstance(lheader, cw.header.ScenarioHeader):
                 continue
 
             if os.path.basename(zpath) == lheader.fname:
@@ -3433,13 +3518,13 @@ class ScenarioSelect(select.Select):
 
 class FindResult(object):
     def __init__(self) -> None:
-        self.headers = []
+        self.headers: List[Union[cw.header.ScenarioHeader, str]] = []
 
 
 class UpdateNamesThread(threading.Thread):
 
-    def __init__(self, dlg: ScenarioSelect, nowdir: str, dpath: str, dirstack: List[Tuple[str, str]], startdir: str,
-                 expandedset: Set[str], skintype: str) -> None:
+    def __init__(self, dlg: ScenarioSelect, nowdir: str, dpath: str, dirstack: List[Tuple[Union[str, FindResult], str]],
+                 startdir: str, expandedset: Set[str], skintype: str) -> None:
         from . import scenarioinstall
 
         threading.Thread.__init__(self)
@@ -3484,7 +3569,9 @@ class UpdateNamesThread(threading.Thread):
         def func() -> None:
             if self.dlg:
                 if self.dlg.nowdir == self.nowdir:
-                    self.dlg.names = dnames + headers
+                    self.dlg.names = []
+                    self.dlg.names.extend(dnames)
+                    self.dlg.names.extend(headers)
                 if self.quit:
                     return
                 wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack, self.startdir, self.expandedset)

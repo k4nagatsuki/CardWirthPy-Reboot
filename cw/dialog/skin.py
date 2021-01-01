@@ -37,6 +37,7 @@ class SkinConversionDialog(wx.Dialog):
             use_copybase = True
         else:
             self.local = cw.setting.LocalSetting()
+            self.local.init()
 
             def get_local() -> cw.setting.LocalSetting:
                 return self.local
@@ -105,28 +106,30 @@ class SkinConversionDialog(wx.Dialog):
         self.conv.datadir = self.pane_base.datactrl.GetValue()
         self.conv.scenariodir = self.pane_base.scenarioctrl.GetValue()
         self.conv.yadodir = self.pane_base.yadoctrl.GetValue()
-        e = self.conv.data.find("Property/Name")
+        assert self.conv.data is not None
+        e = self.conv.data.find_exists("Property/Name")
         e.text = self.pane_base.info.namectrl.GetValue()
-        e = self.conv.data.find("Property/Type")
+        e = self.conv.data.find_exists("Property/Type")
         e.text = self.pane_base.info.typectrl.GetValue()
-        e = self.conv.data.find("Property/Author")
+        e = self.conv.data.find_exists("Property/Author")
         e.text = self.pane_base.info.authorctrl.GetValue()
-        e = self.conv.data.find("Property/Description")
+        e = self.conv.data.find_exists("Property/Description")
         e.text = self.pane_base.info.descctrl.GetValue()
-        e = self.conv.data.find("Property/CW120VocationLevel")
+        e = self.conv.data.find_exists("Property/CW120VocationLevel")
         e.text = str(self.pane_base.info.vocation120.GetValue())
-        e = self.conv.data.find("Property/InitialCash")
+        e = self.conv.data.find_exists("Property/InitialCash")
         e.text = str(self.pane_base.info.initialcash.GetValue())
-        e = self.conv.data.find("Settings")
-        if e is None:
-            e = cw.data.make_element("Settings", "")
-            self.conv.data.append(e)
+        e_settings = self.conv.data.find("Settings")
+        if e_settings is None:
+            e_settings = cw.data.make_element("Settings", "")
+            self.conv.data.getroot().append(e_settings)
         else:
-            e.clear()
+            e_settings.clear()
         self.local = cw.setting.LocalSetting()
+        self.local.init()
         self.pane_draw.apply_localsettings(self.local)
         self.pane_font.apply_localsettings(self.local)
-        cw.xmlcreater.create_localsettings(e, self.local)
+        cw.xmlcreater.create_localsettings(e_settings, self.local)
 
         self.conv.start()
 
@@ -176,6 +179,7 @@ class SkinConversionDialog(wx.Dialog):
                     setting = cw.cwpy.setting
                 else:
                     setting = cw.setting.Setting()
+                    setting.init_settings()
                 for skintype, _folder in setting.folderoftype:
                     if skintype == self.conv.skintype:
                         break  # 登録済み
@@ -310,6 +314,7 @@ class SkinEditDialog(wx.Dialog):
                 self.local = get_localsettings()
             else:
                 self.local = cw.setting.LocalSetting()
+                self.local.init()
                 self.local.load(e)
 
         self.warning = wx.StaticText(self, -1, "ここでの編集結果は、設定ダイアログでのOK・キャンセルの選択に関わらず即時に反映されます。")
@@ -370,12 +375,12 @@ class SkinEditDialog(wx.Dialog):
         e.edit("Property/Author", author)
         e.edit("Property/Description", desc)
         if e.find("Property/CW120VocationLevel") is None:
-            prop = e.find("Property")
+            prop = e.find_exists("Property")
             prop.append(cw.data.make_element("CW120VocationLevel", str(vocation120)))
         else:
             e.edit("Property/CW120VocationLevel", str(vocation120))
         if e.find("Property/InitialCash") is None:
-            prop = e.find("Property")
+            prop = e.find_exists("Property")
             prop.append(cw.data.make_element("InitialCash", str(initialcash)))
         else:
             e.edit("Property/InitialCash", str(initialcash))
@@ -387,11 +392,12 @@ class SkinEditDialog(wx.Dialog):
         else:
             element.clear()
         self.local = cw.setting.LocalSetting()
+        self.local.init()
         updatemessage, updatecurtain, updatefullscreen = self.pane_draw.apply_localsettings(self.local)
         updatefont = self.pane_font.apply_localsettings(self.local)
         cw.xmlcreater.create_localsettings(element, self.local)
 
-        e.write(skinpath)
+        e.write_file(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
             def func(local: cw.setting.LocalSetting, skinname: str, vocation120: bool, initialcash: int) -> None:
@@ -404,7 +410,9 @@ class SkinEditDialog(wx.Dialog):
             cw.cwpy.exec_func(func, self.local, skinname, vocation120, initialcash)
 
             if updatefont:
-                cw.cwpy.exec_func(cw.cwpy.update_skin, self.skindirname, restartop=False, switch_skin=True)
+                def update_skin(skindirname: str) -> None:
+                    cw.cwpy.update_skin(skindirname, restartop=False, switch_skin=True)
+                cw.cwpy.exec_func(update_skin, self.skindirname)
             else:
                 if updatemessage:
                     cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
@@ -433,12 +441,12 @@ class SkinEditDialog(wx.Dialog):
                     imgtbl[key.lower()] = value
                 for key, value in cw.skin.convert.IMGTBL_C.items():
                     imgtbl[key.lower()] = value
-                curtbl = {}
+                curtbl: Dict[str, str] = {}
                 for key, value in cw.skin.convert.CURTBL.items():
                     imgtbl[key.lower()] = value
 
                 for fname in os.listdir(dpath):
-                    resname, ext = os.path.splitext(fname)
+                    resname, ext = cw.util.splitext(fname)
                     resname = resname.lower()
 
                     def import_res(dpath: str, fname: str, ext: str, newresname: str) -> None:
@@ -518,7 +526,7 @@ class SkinBasePanel(wx.Panel):
 
         # 実行ファイルのパス
         self.exelabel = wx.StaticText(self, -1, "本体")
-        self.exectrl = wx.TextCtrl(self)
+        self.exectrl: wx.TextCtrl = wx.TextCtrl(self)
         self.exectrl.SetValue(conv.exe)
         self.exeref = cw.util.create_fileselection(
             self,
@@ -530,7 +538,7 @@ class SkinBasePanel(wx.Panel):
         )
         # Dataディレクトリの名前
         self.datalabel = wx.StaticText(self, -1, "データ")
-        self.datactrl = wx.TextCtrl(self)
+        self.datactrl: wx.TextCtrl = wx.TextCtrl(self)
         self.datactrl.SetValue(conv.datadir)
         self.dataref = cw.util.create_fileselection(
             self,
@@ -541,7 +549,7 @@ class SkinBasePanel(wx.Panel):
         )
         # Scenarioディレクトリの名前
         self.scenariolabel = wx.StaticText(self, -1, "シナリオ")
-        self.scenarioctrl = wx.TextCtrl(self)
+        self.scenarioctrl: wx.TextCtrl = wx.TextCtrl(self)
         self.scenarioctrl.SetValue(conv.scenariodir)
         self.scenarioref = cw.util.create_fileselection(
             self,
@@ -552,7 +560,7 @@ class SkinBasePanel(wx.Panel):
         )
         # Yadoディレクトリの名前
         self.yadolabel = wx.StaticText(self, -1, "宿")
-        self.yadoctrl = wx.TextCtrl(self)
+        self.yadoctrl: wx.TextCtrl = wx.TextCtrl(self)
         self.yadoctrl.SetValue(conv.yadodir)
         self.yadoref = cw.util.create_fileselection(
             self,
@@ -563,7 +571,7 @@ class SkinBasePanel(wx.Panel):
         )
 
         self.box_info = wx.StaticBox(self, -1, "スキン情報")
-        self.info = SkinInfoPanel(self)
+        self.info: SkinInfoPanel = SkinInfoPanel(self)
         self.info.typectrl.SetValue(conv.data.gettext("Property/Type", ""))
         self.info.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
         self.info.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
@@ -629,8 +637,9 @@ class SkinBasePanel(wx.Panel):
         if exe:
             self._selected_exe(exe)
 
-    def _get_basedir(self) -> None:
-        return os.path.dirname(self.exectrl.GetValue())
+    def _get_basedir(self) -> str:
+        path: str = self.exectrl.GetValue()
+        return os.path.dirname(path)
 
     def _selected_exe(self, exe: str) -> None:
         if not os.path.isfile(exe) or exe == self.exe:
@@ -681,7 +690,7 @@ class SkinInfoPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         # スキンタイプ一覧
-        self.types = {
+        types = {
             "MedievalFantasy",
             "Modern",
             "Monsters",
@@ -695,8 +704,8 @@ class SkinInfoPanel(wx.Panel):
                 skinpath = cw.util.join_paths("Data/Skin", name, "Skin.xml")
                 if os.path.isdir(path) and os.path.isfile(skinpath):
                     e = cw.data.xml2element(skinpath, "Property")
-                    self.types.add(e.gettext("Type", ""))
-        self.types = list(self.types)
+                    types.add(e.gettext("Type", ""))
+        self.types = list(types)
         cw.util.sort_by_attr(self.types)
 
         # 種別
@@ -829,14 +838,14 @@ class SkinFeaturePanel(wx.Panel):
     def set_values(self, conv: cw.skin.convert.Converter) -> None:
         def set_rowdata(data: cw.data.CWPyElement, row: int) -> int:
             self.grid.SetCellValue(row, 0, data.gettext("Name", ""))
-            e = data.find("Physical")
+            e = data.find_exists("Physical")
             self.grid.SetCellValue(row, 1, e.get("dex", "0"))
             self.grid.SetCellValue(row, 2, e.get("agl", "0"))
             self.grid.SetCellValue(row, 3, e.get("int", "0"))
             self.grid.SetCellValue(row, 4, e.get("str", "0"))
             self.grid.SetCellValue(row, 5, e.get("vit", "0"))
             self.grid.SetCellValue(row, 6, e.get("min", "0"))
-            e = data.find("Mental")
+            e = data.find_exists("Mental")
             self.grid.SetCellValue(row, 7, e.get("aggressive", "0"))
             self.grid.SetCellValue(row, 8, e.get("cheerful", "0"))
             self.grid.SetCellValue(row, 9, e.get("brave", "0"))
@@ -858,15 +867,15 @@ class SkinFeaturePanel(wx.Panel):
         row = 0
 
         def get_rowdata(data: cw.data.CWPyElement, row: int) -> int:
-            data.find("Name").text = self.grid.GetCellValue(row, 0)
-            e = data.find("Physical")
+            data.find_exists("Name").text = self.grid.GetCellValue(row, 0)
+            e = data.find_exists("Physical")
             e.set("dex", self.grid.GetCellValue(row, 1))
             e.set("agl", self.grid.GetCellValue(row, 2))
             e.set("int", self.grid.GetCellValue(row, 3))
             e.set("str", self.grid.GetCellValue(row, 4))
             e.set("vit", self.grid.GetCellValue(row, 5))
             e.set("min", self.grid.GetCellValue(row, 6))
-            e = data.find("Mental")
+            e = data.find_exists("Mental")
             e.set("aggressive", self.grid.GetCellValue(row, 7))
             e.set("cheerful", self.grid.GetCellValue(row, 8))
             e.set("brave", self.grid.GetCellValue(row, 9))
@@ -899,7 +908,7 @@ class SkinSoundPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
-        basesounds = base.find("Sounds")
+        basesounds = base.find_exists("Sounds")
 
         self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
         self.grid.CreateGrid(len(basesounds), 1)
@@ -918,11 +927,11 @@ class SkinSoundPanel(wx.Panel):
         self._do_layout()
 
     def set_values(self, conv: cw.skin.convert.Converter) -> None:
-        for row, e in enumerate(conv.data.find("Sounds")):
+        for row, e in enumerate(conv.data.find_exists("Sounds")):
             self.grid.SetCellValue(row, 0, e.text)
 
     def get_values(self, conv: cw.skin.convert.Converter) -> None:
-        for row, e in enumerate(conv.data.find("Sounds")):
+        for row, e in enumerate(conv.data.find_exists("Sounds")):
             e.text = self.grid.GetCellValue(row, 0)
 
     def _do_layout(self) -> None:
@@ -942,7 +951,7 @@ class SkinMessagePanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         base = cw.data.xml2etree("Data/SkinBase/Skin.xml")
-        basemsgs = base.find("Messages")
+        basemsgs = base.find_exists("Messages")
 
         self.grid = wx.grid.Grid(self, -1, size=cw.ppis((200, 200)), style=wx.BORDER)
         self.grid.CreateGrid(len(basemsgs) + 6 + 2 + 4, 1)
@@ -962,27 +971,27 @@ class SkinMessagePanel(wx.Panel):
             row += 1
 
         for e in base.getfind("Natures")[:6]:
-            e = e.find("Description")
+            e = e.find_exists("Description")
             s = cw.util.encodewrap(e.text)
             self.grid.SetRowLabelValue(row, s)
             row += 1
 
-        e = base.find("Periods/Period[3]/Coupons/Coupon")
+        e = base.find_exists("Periods/Period[3]/Coupons/Coupon")
         self.grid.SetRowLabelValue(row, cw.util.encodewrap(e.text))
         row += 1
-        e = base.find("Periods/Period[4]/Coupons/Coupon")
+        e = base.find_exists("Periods/Period[4]/Coupons/Coupon")
         self.grid.SetRowLabelValue(row, cw.util.encodewrap(e.text))
         row += 1
 
         basegameover = cw.data.xml2etree("Data/SkinBase/Resource/Xml/GameOver/01_GameOver.xml")
-        e = basegameover.find("Events/Event//Talk")
-        self.grid.SetRowLabelValue(row, e.find("Text").text)
+        e = basegameover.find_exists("Events/Event//Talk")
+        self.grid.SetRowLabelValue(row, e.find_exists("Text").text)
         row += 1
-        self.grid.SetRowLabelValue(row, e.find("Contents/Post[1]").get("name"))
+        self.grid.SetRowLabelValue(row, e.find_exists("Contents/Post[1]").get("name"))
         row += 1
-        self.grid.SetRowLabelValue(row, e.find("Contents/Post[2]").get("name"))
+        self.grid.SetRowLabelValue(row, e.find_exists("Contents/Post[2]").get("name"))
         row += 1
-        self.grid.SetRowLabelValue(row, e.find("Contents/Post[4]").get("name"))
+        self.grid.SetRowLabelValue(row, e.find_exists("Contents/Post[4]").get("name"))
         row += 1
 
         self.set_values(conv)
@@ -991,62 +1000,62 @@ class SkinMessagePanel(wx.Panel):
 
     def set_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
-        for e in conv.data.find("Messages"):
+        for e in conv.data.find_exists("Messages"):
             s = cw.util.encodewrap(e.text)
             self.grid.SetCellValue(row, 0, s)
             row += 1
 
         for e in conv.data.getfind("Natures")[:6]:
-            e = e.find("Description")
+            e = e.find_exists("Description")
             s = cw.util.encodewrap(e.text)
             self.grid.SetCellValue(row, 0, s)
             row += 1
 
-        e = conv.data.find("Periods/Period[3]/Coupons/Coupon")
+        e = conv.data.find_exists("Periods/Period[3]/Coupons/Coupon")
         self.grid.SetCellValue(row, 0, cw.util.encodewrap(e.text))
         row += 1
-        e = conv.data.find("Periods/Period[4]/Coupons/Coupon")
+        e = conv.data.find_exists("Periods/Period[4]/Coupons/Coupon")
         self.grid.SetCellValue(row, 0, cw.util.encodewrap(e.text))
         row += 1
 
         data = conv.gameover["01_GameOver"]
-        e = data.find("Events/Event//Talk")
-        self.grid.SetCellValue(row, 0, e.find("Text").text)
+        e = data.find_exists("Events/Event//Talk")
+        self.grid.SetCellValue(row, 0, e.find_exists("Text").text)
         row += 1
-        self.grid.SetCellValue(row, 0, e.find("Contents/Post[1]").get("name"))
+        self.grid.SetCellValue(row, 0, e.find_exists("Contents/Post[1]").get("name"))
         row += 1
-        self.grid.SetCellValue(row, 0, e.find("Contents/Post[2]").get("name"))
+        self.grid.SetCellValue(row, 0, e.find_exists("Contents/Post[2]").get("name"))
         row += 1
-        self.grid.SetCellValue(row, 0, e.find("Contents/Post[4]").get("name"))
+        self.grid.SetCellValue(row, 0, e.find_exists("Contents/Post[4]").get("name"))
         row += 1
 
     def get_values(self, conv: cw.skin.convert.Converter) -> None:
         row = 0
-        for e in conv.data.find("Messages"):
+        for e in conv.data.find_exists("Messages"):
             e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
             row += 1
 
         for e in conv.data.getfind("Natures")[:6]:
-            e = e.find("Description")
+            e = e.find_exists("Description")
             e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
             row += 1
 
-        e = conv.data.find("Periods/Period[3]/Coupons/Coupon")
+        e = conv.data.find_exists("Periods/Period[3]/Coupons/Coupon")
         e.text = self.grid.GetCellValue(row, 0)
         row += 1
-        e = conv.data.find("Periods/Period[4]/Coupons/Coupon")
+        e = conv.data.find_exists("Periods/Period[4]/Coupons/Coupon")
         e.text = self.grid.GetCellValue(row, 0)
         row += 1
 
         data = conv.gameover["01_GameOver"]
-        e = data.find("Events/Event//Talk")
-        e.find("Text").text = self.grid.GetCellValue(row, 0)
+        e = data.find_exists("Events/Event//Talk")
+        e.find_exists("Text").text = self.grid.GetCellValue(row, 0)
         row += 1
-        e.find("Contents/Post[1]").set("name", self.grid.GetCellValue(row, 0))
+        e.find_exists("Contents/Post[1]").set("name", self.grid.GetCellValue(row, 0))
         row += 1
-        e.find("Contents/Post[2]").set("name", self.grid.GetCellValue(row, 0))
+        e.find_exists("Contents/Post[2]").set("name", self.grid.GetCellValue(row, 0))
         row += 1
-        e.find("Contents/Post[4]").get("name", self.grid.GetCellValue(row, 0))
+        e.find_exists("Contents/Post[4]").get("name", self.grid.GetCellValue(row, 0))
         row += 1
 
     def _do_layout(self) -> None:
@@ -1089,7 +1098,7 @@ class SkinCardPanel(wx.Panel):
             self.grid.SetRowLabelValue(row, "特殊カード:" + name)
             row += 1
 
-        def put_areacards(table: Dict[str, cw.data.CWPyElement], row: int) -> int:
+        def put_areacards(table: Dict[str, cw.data.CWPyElementTree], row: int) -> int:
             for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 areaname = data.gettext("Property/Name", "")
@@ -1131,7 +1140,7 @@ class SkinCardPanel(wx.Panel):
             self.grid.SetCellValue(row, 1, desc)
             row += 1
 
-        def put_areacards(table: Dict[str, cw.data.CWPyElement], row: int) -> int:
+        def put_areacards(table: Dict[str, cw.data.CWPyElementTree], row: int) -> int:
             for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 cards = data.getfind("MenuCards")
@@ -1154,26 +1163,26 @@ class SkinCardPanel(wx.Panel):
             e = conv.actioncard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
-            name = e.find("Property/Name").text = name
-            desc = e.find("Property/Description").text = desc
+            name = e.find_exists("Property/Name").text = name
+            desc = e.find_exists("Property/Description").text = desc
             row += 1
         for key in cw.util.sorted_by_attr(iter(conv.specialcard.keys())):
             e = conv.specialcard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
-            name = e.find("Property/Name").text = name
-            desc = e.find("Property/Description").text = desc
+            name = e.find_exists("Property/Name").text = name
+            desc = e.find_exists("Property/Description").text = desc
             row += 1
 
-        def get_areacards(table: Dict[str, cw.data.CWPyElement], row: int) -> int:
+        def get_areacards(table: Dict[str, cw.data.CWPyElementTree], row: int) -> int:
             for key in cw.util.sorted_by_attr(iter(table.keys())):
                 data = table[key]
                 cards = data.getfind("MenuCards")
                 for e in cards:
                     name = self.grid.GetCellValue(row, 0)
                     desc = self.grid.GetCellValue(row, 1)
-                    e.find("Property/Name").text = name
-                    e.find("Property/Description").text = desc
+                    e.find_exists("Property/Name").text = name
+                    e.find_exists("Property/Description").text = desc
                     row += 1
             return row
 

@@ -112,10 +112,10 @@ CC111 = 111
 _bass = None
 _bassmidi = None
 _bassfx = None
-_sfonts = []
+_sfonts = b""
 _paused = False
 
-_streams = [0, 0, 0, 0, 0]
+_streams: List[c_DWORD] = [c_DWORD(0), c_DWORD(0), c_DWORD(0), c_DWORD(0), c_DWORD(0)]
 _fadeoutstreams: List[Optional[Tuple[c_HSYNC, int, int]]] = [None, None, None, None, None]
 _loopstarts = [0, 0, 0, 0, 0]
 _loopcounts = [0, 1, 1, 1, 1]
@@ -139,21 +139,26 @@ def _cc111loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: c_
 CC111LOOP = SYNCPROC(_cc111loop)
 
 
-def _free_channel(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
-    global _bass, _fadeoutstreams
+def _free_channel(handle: Optional[c_HSYNC], channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
+    global _bass
+    assert _bass
     _bass.BASS_ChannelStop(channel)
     _bass.BASS_StreamFree(channel)
     if streamindex is None:
-        streamindex = 0
+        streamindex_i = 0
+    else:
+        streamindex_i = struct.unpack("@N", streamindex)[0]
 
     @synclock(_fadeoutlock)
     def func(streamindex: int) -> None:
+        global _fadeoutstreams
         _fadeoutstreams[streamindex] = None
-    func(streamindex)
+    func(streamindex_i)
 
 
-def _free_channel_lockfree(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
+def _free_channel_lockfree(handle: Optional[c_HSYNC], channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
     global _bass, _fadeoutstreams
+    assert _bass
     _bass.BASS_ChannelStop(channel)
     _bass.BASS_StreamFree(channel)
     if streamindex is None:
@@ -167,6 +172,7 @@ FREE_CHANNEL = SYNCPROC(_free_channel)
 @synclock(_lock)
 def _loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
     global _bass, _loopcounts, _loopstarts, _fadeoutstreams
+    assert _bass
     fadeouting = _fadeoutstreams[streamindex] and _fadeoutstreams[streamindex][0] == channel
     if fadeouting:
         # フェードアウト中のチャンネル
@@ -194,7 +200,7 @@ def is_alivable() -> bool:
 
 def is_alivablemidi() -> bool:
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
-    return _bassmidi and _sfonts
+    return bool(_bassmidi and _sfonts)
 
 
 def is_alivablewithpath(path: str) -> bool:
@@ -263,6 +269,10 @@ def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
         cw.util.print_ex()
 
     if not _bass:
+        return False
+    if not _bassmidi:
+        return False
+    if not _bassfx:
         return False
 
     # 使用している関数の argtypes と restype の設定
@@ -350,7 +360,7 @@ def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
     return True
 
 
-def change_soundfonts(soundfonts: Iterable[Tuple[str, int]]) -> bool:
+def change_soundfonts(soundfonts: Iterable[Tuple[str, float]]) -> bool:
     """サウンドフォントの差し替えを行う。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if _bassmidi:
@@ -381,6 +391,7 @@ def pause() -> bool:
     全てのチャネルを一時停止する。
     """
     global _bass, _paused
+    assert _bass
     if _bass.BASS_Pause():
         _paused = True
         return True
@@ -393,6 +404,7 @@ def start() -> bool:
     一時停止を解除する。
     """
     global _bass, _paused
+    assert _bass
 
     _switch_device()
     if _bass.BASS_Start():
@@ -407,6 +419,7 @@ def _switch_device() -> None:
     使用中のデバイスが変更されていた場合は再生先を変更する
     """
     global _bass, _streams, _fadeoutstreams
+    assert _bass
 
     # 使用中のデバイスが変更されていた場合は再生先を変更する
     info = BASS_DEVICEINFO()
@@ -437,6 +450,9 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
     pitch: ピッチを変更する場合は-60～60の値を指定。
     """
     global _bass, _bassmidi, _bassfx, _sfonts, _paused
+    assert _bass
+    assert _bassmidi
+    assert _bassfx
     encoding = cw.filesystem_encoding
     # BUG: BASS 2.4.13.8でBGMが無い時に"システム・改ページ.wav"等を鳴らすと
     #      鳴り出しでノイズと遅延が発生する。
@@ -456,7 +472,6 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
     if cw.cwpy.setting.bassmidi_sample32bit:
         flag |= BASS_SAMPLE_FLOAT
 
-    _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
     if os.path.isfile(fpath) and 4 <= os.path.getsize(fpath):
         with open(fpath, "rb") as f:
@@ -465,8 +480,8 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
         ismidi = (head == b"MThd")
     if ismidi:
         if not is_alivablemidi():
-            return
-        stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
+            return c_HSYNC(0)
+        stream: c_HSYNC = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
         if stream:
             if _sfonts:
                 if not _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3)):
@@ -495,10 +510,10 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
             count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
             for i in range(0, count, 4*5):
                 bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
-                _event = bassMidiEvent[0]  # 使用しない
+                # event = bassMidiEvent[0]
                 param = bassMidiEvent[1]
-                _chan = bassMidiEvent[2]  # 使用しない
-                _tick = bassMidiEvent[3]  # 使用しない
+                # chan = bassMidiEvent[2]
+                # tick = bassMidiEvent[3]
                 pos = bassMidiEvent[4]
                 if (param & 0x00ff) == CC111:  # CC#111があったのでここでループする
                     loopinfo = (pos, -1)
@@ -549,6 +564,7 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
 
 def _get_attribute(stream: c_HSYNC, flag: c_DWORD) -> float:
     global _bass
+    assert _bass
     attr = c_float()
     _bass.BASS_ChannelGetAttribute(stream, flag, ctypes.byref(attr))
     return attr.value
@@ -559,6 +575,7 @@ def _get_loopinfo(fpath: str, stream: c_HSYNC) -> Optional[Tuple[int, int]]:
     ループ情報が存在すれば取得して返す。
     """
     global _bass
+    assert _bass
 
     info = BASS_CHANNELINFO()
     if not _bass.BASS_ChannelGetInfo(stream, ctypes.byref(info)):
@@ -613,9 +630,9 @@ def _get_loopinfo(fpath: str, stream: c_HSYNC) -> Optional[Tuple[int, int]]:
             cw.util.print_ex()
 
     # Ogg Vorbisコメント埋め込み
-    s = _bass.BASS_ChannelGetTags(stream, BASS_TAG_OGG)
-    if s:
-        comment = ctypes.string_at(s)
+    tags = _bass.BASS_ChannelGetTags(stream, BASS_TAG_OGG)
+    if tags:
+        comment = ctypes.string_at(tags)
         loopstart = -1
         looplength = -1
         while comment:
@@ -623,8 +640,8 @@ def _get_loopinfo(fpath: str, stream: c_HSYNC) -> Optional[Tuple[int, int]]:
                 loopstart = int(comment[len(b"LOOPSTART="):])
             if comment.startswith(b"LOOPLENGTH="):
                 looplength = int(comment[len(b"LOOPLENGTH="):])
-            s += len(comment)+1
-            comment = ctypes.string_at(s)
+            tags += len(comment)+1
+            comment = ctypes.string_at(tags)
         if 0 <= loopstart:
             if 0 <= looplength:
                 loopend = loopstart + looplength
@@ -642,6 +659,7 @@ def _get_loopinfo(fpath: str, stream: c_HSYNC) -> Optional[Tuple[int, int]]:
 @synclock(_lock)
 def set_loopcount(loopcount: int, streamindex: int) -> None:
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
+    assert _bass
     if not _streams[streamindex]:
         return
     if _bass.BASS_ChannelIsActive(_streams[streamindex]) == BASS_ACTIVE_STOPPED:
@@ -660,6 +678,7 @@ def dispose_bass() -> None:
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
+    assert _bass
 
     if _bassmidi:
         for i in range(0, len(_sfonts), 4*3):
@@ -675,9 +694,7 @@ def dispose_bass() -> None:
         dev += 1
 
     del _bass
-    _bass = None
     del _bassmidi
-    _bassmidi = None
 
 
 def play_bgm(fpath: str, volume: float = 1.0, loopcount: int = 0, channel: int = 0, fade: int = 0) -> bool:
@@ -697,14 +714,14 @@ def play_bgm(fpath: str, volume: float = 1.0, loopcount: int = 0, channel: int =
     stop_bgm(channel, fade=fade)
     channel += STREAM_BGM
     _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
-    return _streams[channel] != 0
+    return _streams[channel] != c_DWORD(0)
 
 
 def set_bgmloopcount(loopcount: int, channel: int = 0) -> None:
     set_loopcount(loopcount, STREAM_BGM+channel)
 
 
-def play_sound(fpath: str, volume: float = 1.0, fromscenario: int = False, loopcount: int = 1, channel: int = 0,
+def play_sound(fpath: str, volume: float = 1.0, fromscenario: bool = False, loopcount: int = 1, channel: int = 0,
                fade: int = 0) -> bool:
     """
     BASS Audioによってfileを効果音として演奏する。
@@ -722,14 +739,15 @@ def play_sound(fpath: str, volume: float = 1.0, fromscenario: int = False, loopc
     if fromscenario:
         channel += STREAM_SOUND1
         _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
-        return _streams[channel] != 0
+        return _streams[channel] != c_DWORD(0)
     else:
         _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, fade)
-        return _streams[STREAM_SOUND2] != 0
+        return _streams[STREAM_SOUND2] != c_DWORD(0)
 
 
 def _stop(streamindex: int, fade: int, stopfadeout: bool) -> None:
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
+    assert _bass
 
     if stopfadeout:
         _free_fadeoutstream(streamindex)
@@ -747,15 +765,16 @@ def _stop(streamindex: int, fade: int, stopfadeout: bool) -> None:
                 _fadeoutstreams[streamindex] = (stream, _loopcounts[streamindex], _loopstarts[streamindex])
             func(stream)
         else:
-            _free_channel(None, stream, 0, streamindex)
-        _streams[streamindex] = 0
+            _free_channel(None, stream, c_DWORD(0), c_void_p(streamindex))
+        _streams[streamindex] = c_DWORD(0)
 
 
 @synclock(_fadeoutlock)
 def _free_fadeoutstream(streamindex: int) -> None:
-    if _fadeoutstreams[streamindex]:
-        channel = _fadeoutstreams[streamindex][0]
-        _free_channel_lockfree(None, channel, 0, streamindex)
+    t = _fadeoutstreams[streamindex]
+    if t:
+        channel = t[0]
+        _free_channel_lockfree(None, channel, c_DWORD(0), c_void_p(streamindex))
 
 
 def stop_bgm(channel: int = 0, fade: int = 0, stopfadeout: bool = False) -> None:
@@ -783,9 +802,12 @@ def stop_sound(fromscenario: bool = False, channel: int = 0, fade: int = 0, stop
 
 def _set_volume(volume: float, streamindex: int, fade: int) -> None:
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
-    if _fadeoutstreams[streamindex] and volume == 0 and fade == 0:
-        _bass.BASS_ChannelStop(_fadeoutstreams[streamindex][0])
-        _bass.BASS_StreamFree(_fadeoutstreams[streamindex][0])
+    assert _bass
+    t = _fadeoutstreams[streamindex]
+    if t and volume == 0 and fade == 0:
+        assert t
+        _bass.BASS_ChannelStop(t[0])
+        _bass.BASS_StreamFree(t[0])
         _fadeoutstreams[streamindex] = None
 
     if _streams[streamindex]:
@@ -816,7 +838,7 @@ def set_soundvolume(volume: float, fromscenario: bool = False, channel: int = 0,
 def main() -> None:
     import time
     print("Test BASS Audio. Sound Font: %s, File: %s, %s" % (sys.argv[1], sys.argv[2], sys.argv[3]))
-    init_bass([sys.argv[1], 1.0])
+    init_bass([(sys.argv[1], 1.0)])
     play_bgm(sys.argv[2])
     time.sleep(200)
     play_sound(sys.argv[3])

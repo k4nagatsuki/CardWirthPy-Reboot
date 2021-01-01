@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Union
+from typing import Dict, Optional, Union
 
 
 class EffectMotion(base.CWBinaryBase):
@@ -18,7 +18,7 @@ class EffectMotion(base.CWBinaryBase):
     from . import content
 
     def __init__(self, parent: Union["skill.SkillCard", "item.ItemCard", "beast.BeastCard", "content.Content"],
-                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, dataversion: str = 4) -> None:
+                 f: "cw.binary.cwfile.CWFile", yadodata: bool = False, dataversion: int = 4) -> None:
         from . import beast
 
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -27,7 +27,7 @@ class EffectMotion(base.CWBinaryBase):
         if 2 < dataversion:
             # 不明なバイト列(8,5,0,0,0)。読み飛ばし。
             for _cnt in range(5):
-                _b = f.byte()
+                _ = f.byte()
 
         self.element = f.byte()
 
@@ -38,7 +38,7 @@ class EffectMotion(base.CWBinaryBase):
             self.type = f.byte()
 
         # 初期化
-        self.properties = {}
+        self.properties: Dict[str, Union[str, int]] = {}
         self.beasts = None
 
         # 生命力, 肉体
@@ -70,7 +70,7 @@ class EffectMotion(base.CWBinaryBase):
         else:
             raise ValueError(self.fpath)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -84,8 +84,8 @@ class EffectMotion(base.CWBinaryBase):
                     self.data.set(key, str(value))
             if self.beasts:
                 e = cw.data.make_element("Beasts")
-                for beast in self.beasts:
-                    e.append(beast.get_data())
+                for beastcard in self.beasts:
+                    e.append(beastcard.get_data())
                 self.data.append(e)
         return self.data
 
@@ -131,13 +131,13 @@ class EffectMotion(base.CWBinaryBase):
             pass
         # 召喚(BeastCardインスタンスを生成)
         elif tabtype == 8:
-            beasts = []
-            for e in data:
-                if e.tag == "Beasts":
-                    beasts = e
-            f.write_dword(len(beasts))
-            for card in beasts:
-                beast.BeastCard.unconv(f, card, False)
+            beasts = data.find("Beasts")
+            if beasts is None:
+                f.write_dword(0)
+            else:
+                f.write_dword(len(beasts))
+                for card in beasts:
+                    beast.BeastCard.unconv(f, card, False)
         else:
             raise ValueError(tabtype)
 

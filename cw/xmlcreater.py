@@ -5,7 +5,8 @@ import os
 
 import cw
 
-from typing import Dict, List, Optional, Sequence, Tuple
+import typing
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 
 def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
@@ -20,7 +21,7 @@ def _create_xml(name: str, path: str, d: Dict[str, str]) -> None:
     cw.fsync.sync()
 
 
-def create_party(headers: Sequence[cw.header.PartyHeader], moneyamount: int = 0, pname: Optional[str] = None,
+def create_party(headers: Sequence[cw.header.AdventurerHeader], moneyamount: int = 0, pname: Optional[str] = None,
                  is_suspendlevelup: bool = False) -> str:
     """
     新しくパーティを作る。
@@ -50,7 +51,7 @@ def create_party(headers: Sequence[cw.header.PartyHeader], moneyamount: int = 0,
     return path
 
 
-def create_partyrecord(party: cw.data.Party) -> str:
+def create_partyrecord(party: cw.thread.StoredParty) -> str:
     d = {"name": cw.binary.util.repl_escapechar(party.name),
          "money": str(party.money),
          "suspend_levelup": str(party.is_suspendlevelup),
@@ -116,11 +117,11 @@ def create_environment(name: str, dpath: str, skindirname: str, is_autoloadparty
          "is_autoloadparty": str(is_autoloadparty)}
 
     copy_yadoimgpaths(dpath, imgpaths)
-    imgpaths = [cw.binary.xmltemplate.get_xmltext("ImagePath",
-                                                  {"path": cw.binary.util.repl_escapechar(info.path),
-                                                   "postype": info.postype,
-                                                   "indent": "   "}) for info in imgpaths]
-    d["imgpaths"] = "\n" + "\n".join(imgpaths)
+    imgpaths_s = [cw.binary.xmltemplate.get_xmltext("ImagePath",
+                                                    {"path": cw.binary.util.repl_escapechar(info.path),
+                                                     "postype": info.postype,
+                                                     "indent": "   "}) for info in imgpaths]
+    d["imgpaths"] = "\n" + "\n".join(imgpaths_s)
 
     path = cw.util.join_paths(dpath, "Environment.xml")
     _create_xml("Environment", path, d)
@@ -388,7 +389,7 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
         element.append(e)
     # メッセージログに貼紙を表示する
     if setting.display_bill_in_messagelog != setting.display_bill_in_messagelog_init:
-        e = cw.data.make_element("DisplayBillInMessageLog", bool(setting.display_bill_in_messagelog))
+        e = cw.data.make_element("DisplayBillInMessageLog", str(setting.display_bill_in_messagelog))
         element.append(e)
 
     # スキンによってシナリオの選択開始位置を変更する
@@ -668,12 +669,12 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
 
     # 圧縮されたシナリオの展開データ保存数
     if setting.recenthistory_limit != setting.recenthistory_limit_init:
-        e = cw.data.make_element("RecentHistoryLimit", setting.recenthistory_limit)
+        e = cw.data.make_element("RecentHistoryLimit", str(setting.recenthistory_limit))
         element.append(e)
 
     # マウスホイールによる全体音量の増減量
     if setting.volume_increment != setting.volume_increment_init:
-        e = cw.data.make_element("VolumeIncrement", setting.volume_increment)
+        e = cw.data.make_element("VolumeIncrement", str(setting.volume_increment))
         element.append(e)
 
     # キーコード等の効果が無くても常にカードを消費するか
@@ -780,7 +781,7 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
     # ファイル書き込み
     path = fpath
     etree = cw.data.xml2etree(element=element)
-    etree.write(path)
+    etree.write_file(path)
     return path
 
 
@@ -980,7 +981,7 @@ def create_albumpage(path: str, lost: bool = False, nocoupon: bool = False) -> s
     # ファイル書き込み
     path = cw.util.join_paths(cw.cwpy.tempdir, "Album", fname + ".xml")
     path = cw.util.dupcheck_plus(path)
-    etree.write(path)
+    etree.write_file(path)
     return path
 
 
@@ -1008,7 +1009,7 @@ def create_adventurer(data: "cw.dialog.create.AdventurerData") -> str:
 
     # クーポン
     def get_coupon(name: str, value: int) -> str:
-        d = {"name": cw.binary.util.repl_escapechar(name), "value": value, "indent": "   "}
+        d = {"name": cw.binary.util.repl_escapechar(name), "value": str(value), "indent": "   "}
         s = cw.binary.xmltemplate.get_xmltext("Coupon", d)
         return s
     coupons = [get_coupon(name, value) for name, value in data.coupons]
@@ -1053,6 +1054,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
     """
     シナリオのプレイデータを記録したXMLファイルを作成する。
     """
+    assert cw.cwpy.ydata
+    assert cw.cwpy.ydata.party
     element = cw.data.make_element("ScenarioLog")
     # Property
     e_prop = cw.data.make_element("Property")
@@ -1108,18 +1111,27 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
-    def make_colorelement(name: str, color: Tuple[int, int, int]) -> cw.data.CWPyElement:
+    def make_colorelement(name: str,
+                          color: Union[Tuple[int, int, int, int], Tuple[int, int, int]]) -> cw.data.CWPyElement:
         e = cw.data.make_element(name, attrs={"r": str(color[0]),
                                               "g": str(color[1]),
                                               "b": str(color[2])})
         if 4 <= len(color):
-            e.set("a", str(color[3]))
+            # BUG: error: Tuple index out of range (mypy 0.782)
+            # e.set("a", str(color[3]))
+            e.set("a", str(typing.cast(Tuple[int, int, int, int], color)[3]))
         else:
             e.set("a", "255")
         return e
 
     for bgtype, d in cw.cwpy.background.bgs:
         if bgtype == cw.sprite.background.BG_IMAGE:
+            assert d
+            assert len(d) == 11
+            # BUG: error: Argument 4 to "_add_imagecell" of "BackGround" has incompatible type <union: 4 items>;
+            #      expected "Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]"
+            #      (mypy 0.790)
+            d = typing.cast(cw.sprite.background.ImageCellData, d)
             fpath, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
             attrs = {"mask": str(mask), "visible": str(visible)}
             if cellname:
@@ -1136,6 +1148,13 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_TEXT:
+            assert d
+            assert len(d) == 22
+            # BUG: error: Argument 4 to "_add_textcell" of "BackGround" has incompatible type <union: 5 items>; expected
+            #      "Tuple[str, Optional[List[NameListItem]], str, int, Tuple[int, int, int], bool, bool, bool, bool,
+            #      bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Tuple[int, int], Tuple[int, int],
+            #      str, bool, int, str]" (mypy 0.790)
+            d = typing.cast(cw.sprite.background.TextCellData, d)
             text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
                 btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
@@ -1162,6 +1181,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             e_bgimg.append(e)
 
             if btype != "None":
+                assert bcolor
                 e = cw.data.make_element("Bordering", attrs={"type": btype,
                                                              "width": str(bwidth)})
                 e.append(make_colorelement("Color", bcolor))
@@ -1176,6 +1196,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                     elif isinstance(item.data, cw.data.Party):
                         e_name.set("type", "Party")
                     elif isinstance(item.data, cw.character.Player) and item.data in cw.cwpy.get_pcards():
+                        assert isinstance(item.data, cw.sprite.card.PlayerCard)
                         e_name.set("type", "Player")
                         e_name.set("number", str(cw.cwpy.get_pcards().index(item.data)+1))
                     elif isinstance(item.data, cw.data.Flag):
@@ -1194,6 +1215,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_COLOR:
+            assert d
+            assert len(d) == 10
+            # BUG: error: Argument 4 to "_add_colorcell" of "BackGround" has incompatible type <union: 5 items>;
+            #      expected "Tuple[str, Tuple[int, int, int, int], str, Tuple[int, int, int, int], Tuple[int, int],
+            #      Tuple[int, int], str, bool, int, str]" (mypy 0.790)
+            d = typing.cast(cw.sprite.background.ColorCellData, d)
             blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible)}
             if cellname:
@@ -1211,6 +1238,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_PC:
+            # PCイメージセル
+            assert d
+            assert len(d) == 9
+            # BUG: error: Argument 4 to "_add_pccell" of "BackGround" has incompatible type <union: 5 items>; expected
+            #      "Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
+            d = typing.cast(cw.sprite.background.PCCellData, d)
             pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "expand": str(expand)}
@@ -1263,8 +1296,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
     e_flag = cw.data.make_element("Flags")
     element.append(e_flag)
 
-    for name, flag in sdata.flags.items():
-        e = cw.data.make_element("Flag", name, {"value": str(flag.value)})
+    for name, flag_o in sdata.flags.items():
+        e = cw.data.make_element("Flag", name, {"value": str(flag_o.value)})
         e_flag.append(e)
 
     # step
@@ -1336,7 +1369,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
 
     # ファイル書き込み
     etree = cw.data.xml2etree(element=element)
-    etree.write(path)
+    etree.write_file(path)
     return path
 
 

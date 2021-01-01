@@ -5,6 +5,8 @@ from . import convert
 from . import util
 from . import win32res
 
+__all__ = ["convert", "util", "win32res"]
+
 
 def main() -> None:
     pass

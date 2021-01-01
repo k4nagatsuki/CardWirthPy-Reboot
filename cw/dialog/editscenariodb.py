@@ -76,7 +76,7 @@ class ConstructScenarioDB(wx.Dialog):
         while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
 
-        d = {}
+        d: Dict[str, Set[str]] = {}
         count = 0
         for i, (skintype, dpaths) in enumerate(self.dpaths.items()):
             if self._cancel:
@@ -96,6 +96,8 @@ class ConstructScenarioDB(wx.Dialog):
             self._curnum += 1
 
         db = cw.cwpy.frame.open_scenariodb()
+        if not db:
+            return
         if self._clear and not self._cancel:
             db.delete_all(commit=False)
 

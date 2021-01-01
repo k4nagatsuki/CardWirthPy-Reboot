@@ -11,17 +11,17 @@ from typing import Dict, List, Optional
 class Deck(object):
     def __init__(self, ccard: "cw.character.Character") -> None:
         # 手札
-        self.hand = []
+        self.hand: List[cw.header.CardHeader] = []
         # 山札
-        self.talon = []
+        self.talon: List[cw.header.CardHeader] = []
         # 定められた次のドローカード
-        self.nextcards = []
+        self.nextcards: List[int] = []
         # 手札が破棄されたか
         self._throwaway = False
         # BUG: CardWirth 1.50では使用済みの手札はカード消去効果を受けたり
         #      行動不能になっても手札に残る事が分かっているので、
         #      挙動を合わせるためここに保存しておく。
-        self._used = None
+        self._used: Optional[cw.header.CardHeader] = None
 
     def get_hand(self, ccard: "cw.character.Character") -> List[cw.header.CardHeader]:
         """ccardの手札に存在すると仮定されるカードのlistを返す。"""
@@ -33,7 +33,7 @@ class Deck(object):
             seq.append(self._used)
         return seq
 
-    def get_used(self) -> cw.header.CardHeader:
+    def get_used(self) -> Optional[cw.header.CardHeader]:
         """使用後の残存カードを返す。"""
         return self._used
 
@@ -41,7 +41,7 @@ class Deck(object):
         """使用後の残存カードをクリアする。"""
         self._used = None
 
-    def get_actioncards(self, ccard: "cw.sprite.card.CWPyCard") -> List[cw.header.CardHeader]:
+    def get_actioncards(self, ccard: "cw.character.Character") -> List[cw.header.CardHeader]:
         seq = []
 
         for resid, header in cw.cwpy.rsrc.actioncards.items():
@@ -71,7 +71,7 @@ class Deck(object):
         """
         self.nextcards.insert(0, resid)
 
-    def _set_nextcard(self, ccard: "cw.sprite.card.CWPyCard", resid: int) -> bool:
+    def _set_nextcard(self, ccard: "cw.character.Character", resid: int) -> bool:
         # アクションカード
         if resid:
             if resid in cw.cwpy.rsrc.actioncards and ccard.actions.get(resid, True):
@@ -129,8 +129,9 @@ class Deck(object):
 
         for header in hand[index:]:
             if header.type == "SkillCard":
-                header = header.ref_original()
-                self.talon.insert(0, header)
+                orig = header.ref_original()
+                assert orig
+                self.talon.insert(0, orig)
                 flag = True
             elif header.type == "ActionCard" and header.id > 0:
                 header = cw.cwpy.rsrc.actioncards[header.id]
@@ -177,12 +178,13 @@ class Deck(object):
         self.talon = talon
 
         # 現在手札にある分と配付予約にある分をカウントする
-        handcounts = {}
+        handcounts: Dict[cw.header.CardHeader, int] = {}
         for header in self.hand:
-            header = header.ref_original()
-            count = handcounts.get(header, 0)
+            orig = header.ref_original()
+            assert orig
+            count = handcounts.get(orig, 0)
             count += 1
-            handcounts[header] = count
+            handcounts[orig] = count
 
         # 山札に改めて追加
         self.talon.extend(self.get_skillcards(ccard, handcounts))
@@ -192,12 +194,13 @@ class Deck(object):
 
     def lose_skillpower(self, ccard: "cw.character.Character", losevalue: int) -> None:
         # 現在handにある分は除去しなくてよい
-        talon = []
-        skilltable = {}
+        talon: List[cw.header.CardHeader] = []
+        skilltable: Dict[cw.header.CardHeader, int] = {}
 
         def remove_skill(header: cw.header.CardHeader, seq: List[cw.header.CardHeader]) -> None:
             if header.type == "SkillCard":
                 orig = header.ref_original()
+                assert orig
                 removecount = skilltable.get(orig, 0)
                 if removecount < losevalue:
                     skilltable[orig] = removecount + 1
@@ -210,7 +213,7 @@ class Deck(object):
         self.shuffle()
         if self._throwaway:
             # 手札喪失が予約されている場合に限りhandからも除去
-            hand = []
+            hand: List[cw.header.CardHeader] = []
             for header in self.hand:
                 remove_skill(header, hand)
             self.hand = hand
@@ -219,13 +222,14 @@ class Deck(object):
 
     def _update_skillpower(self, ccard: "cw.character.Character") -> None:
         # 手札と山札にある数によってスキルカードの使用回数を更新する
-        handcounts = {}
+        handcounts: Dict[cw.header.CardHeader, int] = {}
         for header in itertools.chain(self.hand, self.talon):
             if header.type == "SkillCard":
-                header = header.ref_original()
-                count = handcounts.get(header, 0)
+                orig = header.ref_original()
+                assert orig
+                count = handcounts.get(orig, 0)
                 count += 1
-                handcounts[header] = count
+                handcounts[orig] = count
 
         for header in ccard.get_pocketcards(cw.POCKET_SKILL):
             count = handcounts.get(header, 0)
@@ -233,8 +237,10 @@ class Deck(object):
 
         for header in itertools.chain(self.hand, self.talon):
             if header.type == "SkillCard":
-                count = handcounts.get(header.ref_original(), 0)
-                header.uselimit = count
+                orig = header.ref_original()
+                assert orig
+                count = handcounts.get(orig, 0)
+                orig.uselimit = count
 
     def update_skillcardimage(self, header: cw.header.CardHeader) -> None:
         for header2 in self.hand:
@@ -264,8 +270,9 @@ class Deck(object):
     def _remove(self, header: cw.header.CardHeader) -> None:
         self.hand.remove(header)
         if header.type == "SkillCard":
-            header = header.ref_original()
-            self.talon.append(header)
+            orig = header.ref_original()
+            assert orig
+            self.talon.append(orig)
         elif header.type == "ActionCard" and header.id > 0:
             header = cw.cwpy.rsrc.actioncards[header.id]
             self.talon.append(header)
@@ -318,11 +325,10 @@ class Deck(object):
         while maxn < len(self.hand):
             self._remove(self.hand[-1])
 
-    def check_mind(self, ccard: "cw.sprite.card.CWPyCard") -> None:
+    def check_mind(self, ccard: "cw.character.Character") -> None:
         """
         特殊な精神状態の場合、次にドローするカードを変更。
         """
-        assert isinstance(ccard, cw.character.Character)
         if ccard.is_panic():
             acts = [5, 6, 7]
         elif ccard.is_brave():
@@ -340,7 +346,7 @@ class Deck(object):
         assert isinstance(ccard, cw.sprite.card.CWPyCard)
         acts = list(filter(lambda cid: cid == 0 or ccard.actions.get(cid, True), acts))
         if acts:
-            self._set_nextcard(ccard, cw.cwpy.dice.choice(acts))
+            self._set_nextcard(ccard, cw.cwpy.dice.choice_exists(acts))
 
     def set_used(self, header: cw.header.CardHeader) -> None:
         """使用したカードをそのラウンド中記憶する。"""
@@ -361,9 +367,10 @@ class Deck(object):
             # アイテムカード配付等で手札から押し出され、
             # 使用前に山札に戻されている場合がある
             # アクションカードはそのままでよいが特殊技能は必ず消費させる
-            header = header.ref_original()
-            if header in self.talon:
-                self.talon.remove(header)
+            orig = header.ref_original()
+            assert orig
+            if orig in self.talon:
+                self.talon.remove(orig)
                 self.shuffle()
 
 

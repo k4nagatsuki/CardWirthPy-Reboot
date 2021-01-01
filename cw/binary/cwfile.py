@@ -3,10 +3,11 @@
 
 import io
 import struct
+import types
 
 import cw.util
 
-from typing import Callable, Optional
+from typing import BinaryIO, Callable, List, Literal, Optional, Type, Union
 
 
 class UnsupportedError(Exception):
@@ -19,7 +20,7 @@ class UnsupportedError(Exception):
         self.funcname = funcname
 
 
-class CWFile(io.BufferedReader):
+class CWFile(object):
     """CardWirthの生成したバイナリファイルを
     読み込むためのメソッドを追加したBufferedReader。
     import cwfile
@@ -27,15 +28,29 @@ class CWFile(io.BufferedReader):
     とやるとインスタンスオブジェクトが生成できる。
     """
     def __init__(self, path: str, mode: str, decodewrap: bool = False,
-                 f: Optional[io.RawIOBase] = None) -> None:
+                 f: Optional[BinaryIO] = None) -> None:
         if f:
-            io.BufferedReader.__init__(self, f)
+            self._f: Union[BinaryIO, io.BufferedReader] = f
         else:
-            f = io.FileIO(path, mode)
-            io.BufferedReader.__init__(self, f)
-        f.name = path
-        self.filedata = []
+            self._f = io.BufferedReader(io.FileIO(path, mode))
+        self.filename = path
+        self.filedata: List[bytes] = []
         self.decodewrap = decodewrap
+
+    def __enter__(self) -> "CWFile":
+        self._f.__enter__()
+        return self
+
+    def __exit__(self, t: Optional[Type[BaseException]], value: Optional[BaseException],
+                 traceback: Optional[types.TracebackType]) -> Literal[False]:
+        self.close()
+        return False
+
+    def close(self) -> None:
+        self._f.close()
+
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+        return self._f.seek(offset, whence)
 
     def boolean(self) -> bool:
         """byteの値を真偽値にして返す。"""
@@ -69,28 +84,29 @@ class CWFile(io.BufferedReader):
     def byte(self) -> int:
         """byteの値を符号付きで返す。"""
         raw_data = self.read(1)
-        data = struct.unpack("b", raw_data)
-        return data[0]
+        value: int = struct.unpack("b", raw_data)[0]
+        return value
 
     def ubyte(self) -> int:
         """符号無しbyteの値を符号付きで返す。"""
         raw_data = self.read(1)
-        data = struct.unpack("B", raw_data)
-        return data[0]
+        value: int = struct.unpack("B", raw_data)[0]
+        return value
 
     def dword(self) -> int:
         """dwordの値(4byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(4)
-        data = struct.unpack("<l", raw_data)
-        return data[0]
+        assert len(raw_data) == 4, len(raw_data)
+        value: int = struct.unpack("<l", raw_data)[0]
+        return value
 
     def word(self) -> int:
         """wordの値(2byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(2)
-        data = struct.unpack("<h", raw_data)
-        return data[0]
+        value: int = struct.unpack("<h", raw_data)[0]
+        return value
 
-    def image(self) -> bytes:
+    def image(self) -> Optional[bytes]:
         """dwordの値で読み込んだ画像のバイナリデータを返す。
         dwordの値が"0"だったらNoneを返す。
         """
@@ -102,23 +118,53 @@ class CWFile(io.BufferedReader):
             return None
 
     def read(self, n: Optional[int] = None) -> bytes:
-        raw_data = io.BufferedReader.read(self, n)
+        if n is None:
+            assert self._f.seekable()
+            pos = self._f.tell()
+            self._f.seek(0, io.SEEK_END)
+            endpos = self._f.tell()
+            self._f.seek(pos, io.SEEK_SET)
+            n = endpos - pos
+        raw_data = self._f.read(n)
         self.filedata.append(raw_data)
         return raw_data
 
 
-class CWFileWriter(io.BufferedWriter):
+class CWFileWriter(object):
     """CardWirth用のバイナリファイルを読み込むための
     メソッドを追加したBufferedWriter。
     """
     def __init__(self, path: str, mode: str, decodewrap: bool = False, targetengine: Optional[float] = None,
                  write_errorlog: Optional[Callable[[str], None]] = None) -> None:
-        f = io.FileIO(path, mode)
-        io.BufferedWriter.__init__(self, f)
-        f.name = path
+        self._f = io.FileIO(path, mode)
+        self.filename = path
         self.decodewrap = decodewrap
         self.targetengine = targetengine
         self.write_errorlog = write_errorlog
+
+    def __enter__(self) -> "CWFileWriter":
+        self._f.__enter__()
+        return self
+
+    def __exit__(self, t: Optional[Type[BaseException]], value: Optional[BaseException],
+                 traceback: Optional[types.TracebackType]) -> Literal[False]:
+        self.close()
+        return False
+
+    def close(self) -> None:
+        self._f.close()
+
+    def tell(self) -> int:
+        return self._f.tell()
+
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+        return self._f.seek(offset, whence)
+
+    def truncate(self, size: Optional[int] = None) -> int:
+        return self._f.truncate(size)
+
+    def flush(self) -> None:
+        self._f.flush()
 
     def check_version(self, engineversion: float, funcname: str = "") -> None:
         """指定されたエンジンバージョンよりもengineversionが
@@ -172,7 +218,7 @@ class CWFileWriter(io.BufferedWriter):
         if s:
             try:
                 s += "\x00"
-                s = s.encode(cw.MBCS)
+                b = s.encode(cw.MBCS)
             except UnicodeEncodeError:
                 seq = []
                 for c in s:
@@ -180,29 +226,29 @@ class CWFileWriter(io.BufferedWriter):
                         seq.append(c.encode(cw.MBCS))
                     except UnicodeEncodeError:
                         seq.append(b"?")
-                s = b"".join(seq)
-            self.write_dword(len(s))
-            self.write(s)
+                b = b"".join(seq)
+            self.write_dword(len(b))
+            self._f.write(b)
         else:
             self.write_dword(1)
             self.write_byte(0)
 
     def write_byte(self, b: int) -> None:
-        self.write(struct.pack("b", b))
+        self._f.write(struct.pack("b", b))
 
     def write_ubyte(self, b: int) -> None:
-        self.write(struct.pack("B", b))
+        self._f.write(struct.pack("B", b))
 
     def write_dword(self, dw: int) -> None:
-        self.write(struct.pack("<l", dw))
+        self._f.write(struct.pack("<l", dw))
 
     def write_word(self, w: int) -> None:
-        self.write(struct.pack("<h", w))
+        self._f.write(struct.pack("<h", w))
 
-    def write_image(self, image: bytes) -> None:
+    def write_image(self, image: Optional[bytes]) -> None:
         if image:
             self.write_dword(len(image))
-            self.write(image)
+            self._f.write(image)
         else:
             self.write_dword(0)
 

@@ -6,7 +6,7 @@ import pygame
 import cw
 from . import base
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 
 class Transition(base.CWPySprite):
@@ -58,7 +58,7 @@ class Fade(Transition):
 
         if alpha <= 0:
             self.frame = 0
-            self.start_animation = 0
+            self.start_animation = 0.0
             self.status = "hidden"
 
 
@@ -98,7 +98,7 @@ class PixelDissolve(Transition):
 
         if not self.poslist:
             self.frame = 0
-            self.start_animation = 0
+            self.start_animation = 0.0
             self.status = "hidden"
 
 
@@ -135,7 +135,7 @@ class Blinds(Transition):
                 self.status = "hidden"
 
 
-def get_transition(name_and_speed: Tuple[str, str]) -> Optional[Transition]:
+def get_transition(name_and_speed: Tuple[str, Union[str, int]]) -> Optional[Transition]:
     """現在表示中の背景を元にしたトランジションスプライトを返す。
     transitiontype: トランジション効果の種類名と速度のタプル。
     """
@@ -154,7 +154,8 @@ def get_transition(name_and_speed: Tuple[str, str]) -> Optional[Transition]:
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, image)
             for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
                 image.blit(sprite.image, sprite.rect.topleft)
-            return cls(image, speed)
+            result: Transition = cls(image, speed)
+            return result
 
     return None
 

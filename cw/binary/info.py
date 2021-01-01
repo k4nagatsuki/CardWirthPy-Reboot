@@ -5,6 +5,8 @@ from . import base
 
 import cw
 
+from typing import Optional
+
 
 class InfoCard(base.CWBinaryBase):
     """widファイルの情報カードのデータ。"""
@@ -17,13 +19,13 @@ class InfoCard(base.CWBinaryBase):
         idl = f.dword()
 
         if idl <= 19999:
-            _dataversion = 0
+            # dataversion = 0
             self.id = idl
         elif idl <= 39999:
-            _dataversion = 2
+            # dataversion = 2
             self.id = idl - 20000
         else:
-            _dataversion = 4
+            # dataversion = 4
             self.id = idl - 40000
 
         if nameonly:
@@ -31,7 +33,7 @@ class InfoCard(base.CWBinaryBase):
 
         self.description = f.string(True)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> cw.data.CWPyElement:
         if self.data is None:

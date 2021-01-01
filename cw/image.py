@@ -11,10 +11,14 @@ import pygame.locals
 
 import cw
 
+import typing
 from typing import Dict, Callable, Optional, List, Tuple, Union
 
 
 class ImageInfo(object):
+    base: Optional["ImageInfo"]
+    postype: str
+
     def __init__(self, path: str = "", pcnumber: int = 0, base: Optional["ImageInfo"] = None, postype: str = "Default",
                  basecardtype: Optional[str] = None) -> None:
         """
@@ -72,24 +76,8 @@ class ImageInfo(object):
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.wins,
                                                 getsize)
 
-    def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: str,
-                                    cardpostype: str,
-                                    ss: Callable[[Union[wx.Bitmap,
-                                                        wx.Image,
-                                                        pygame.Surface,
-                                                        Tuple[int, int],
-                                                        int,
-                                                        wx.Rect,
-                                                        pygame.Rect,
-                                                        Tuple[int, int, int, int]]],
-                                                 Union[wx.Bitmap,
-                                                       wx.Image,
-                                                       pygame.Surface,
-                                                       Tuple[int, int],
-                                                       int,
-                                                       wx.Rect,
-                                                       pygame.Rect,
-                                                       Tuple[int, int, int, int]]],
+    def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: Optional[str],
+                                    cardpostype: Optional[str], ss: Callable[["cw.Scalable"], "cw.Scalable"],
                                     getsize: Callable[[str], Tuple[int, int]]) -> pygame.Rect:
         if self.basecardtype:
             basecardtype = self.basecardtype
@@ -120,9 +108,14 @@ class ImageInfo(object):
             return pygame.Rect(0, 0, imgwidth, imgheight)
 
         if not noscale:
-            x, y = ss((x, y))
-            w, h = ss((w, h))
-            bx, by = ss((bx, by))
+            # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同されてエラーになる(mypy 0.782)
+            # x, y = ss((x, y))
+            # w, h = ss((w, h))
+            # bx, by = ss((bx, by))
+            ss2: Callable[..., typing.Any] = ss
+            x, y = ss2((x, y))
+            w, h = ss2((w, h))
+            bx, by = ss2((bx, by))
 
         postype = self.postype
         if postype not in ("TopLeft", "Center"):
@@ -143,11 +136,13 @@ class ImageInfo(object):
 
         return pygame.Rect(x, y, w, h)
 
-    def __eq__(self, other: "ImageInfo") -> bool:
+    def __eq__(self, other: object) -> bool:
+        assert isinstance(other, ImageInfo)
         return isinstance(other, ImageInfo) and self.path == other.path and self.pcnumber == other.pcnumber and\
-               self.postype == other.postype
+            self.postype == other.postype
 
-    def __ne__(self, other: "ImageInfo") -> bool:
+    def __ne__(self, other: object) -> bool:
+        assert isinstance(other, ImageInfo)
         return not self.__eq__(other)
 
     def __str__(self) -> str:
@@ -245,8 +240,10 @@ class Image(object):
 # ------------------------------------------------------------------------------
 
 class CardImage(Image):
+    rect: pygame.Rect
+
     def __init__(self, paths: List[ImageInfo], bgtype: str, name: str = "", premium: str = "",
-                 can_loaded_scaledimage: bool = False,
+                 can_loaded_scaledimage: Union[bool, List[bool]] = False,
                  is_scenariocard: bool = False, scedir: str = "", anotherscenariocard: bool = False) -> None:
         """
         カード画像と背景画像とカード名を合成・加工し、
@@ -255,7 +252,7 @@ class CardImage(Image):
         self.name = name
         self.paths = paths
         self.bgtype = bgtype
-        self.image_mtime = {}
+        self.image_mtime: Dict[str, float] = {}
         self.premium = premium
         self.can_loaded_scaledimage = can_loaded_scaledimage
         self.anotherscenariocard = anotherscenariocard
@@ -263,8 +260,8 @@ class CardImage(Image):
         self.scedir = scedir
 
         self.use_excache = False
-        self.paths_upd = None
-        self.can_loaded_scaledimage_upd = None
+        self.paths_upd: Optional[List[cw.image.ImageInfo]] = None
+        self.can_loaded_scaledimage_upd: Optional[List[bool]] = None
 
         self.update_scale()
 
@@ -284,6 +281,7 @@ class CardImage(Image):
     def fix_pcimage_updated(self) -> None:
         if self.paths_upd is not None:
             self.paths = self.paths_upd
+            assert self.can_loaded_scaledimage_upd is not None
             self.can_loaded_scaledimage = self.can_loaded_scaledimage_upd
             self.paths_upd = None
             self.can_loaded_scaledimage_upd = None
@@ -325,7 +323,7 @@ class CardImage(Image):
             if not os.path.isfile(path):
                 continue
 
-            if self.image_mtime.get(path, 0) != os.path.getmtime(path):
+            if self.image_mtime.get(path, 0.0) != os.path.getmtime(path):
                 return True
         return False
 
@@ -441,7 +439,9 @@ class CardImage(Image):
                 icony -= cw.s(15)
 
             # ホールド
-            if header.ref_original() and header.ref_original().is_hold():
+            orig = header.ref_original()
+            assert orig
+            if orig and orig.is_hold():
                 subimg = cw.cwpy.rsrc.cardbgs["HOLD"]
                 image.blit(subimg, cw.s((0, 0)))
 
@@ -615,14 +615,14 @@ class CardImage(Image):
         self._wxbmp = bmp
         return cw.util.copy_wxbmp(self._wxbmp)
 
-    def get_cardwxbmp(self, header: Union["cw.header.CardHeader", "cw.sprite.card.MenuCard"],
-                      test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
+    def get_cardwxbmp(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader, "cw.sprite.card.MenuCard"],
+                      test_aptitude: Optional["cw.character.Character"] = None) -> wx.Bitmap:
         if header.negaflag:
             image = self.get_wxnegabmp()
         else:
             image = self.get_wxbmp()
 
-        if not hasattr(header, "type"):
+        if not isinstance(header, cw.header.CardHeader):
             return image
 
         dc = wx.MemoryDC()
@@ -636,6 +636,7 @@ class CardImage(Image):
             if test_aptitude:
                 tester = test_aptitude
             else:
+                assert isinstance(owner_aptitude, cw.character.Character)
                 tester = owner_aptitude
             key = "HAND" + str(header.get_showed_vocation_level(tester))
             subimg = cw.cwpy.rsrc.wxstones[key]
@@ -651,7 +652,9 @@ class CardImage(Image):
                 icony -= cw.wins(15)
 
             # ホールド
-            if header.ref_original() and header.ref_original().is_hold():
+            orig = header.ref_original()
+            assert orig
+            if orig and orig.is_hold():
                 subimg = cw.cwpy.rsrc.wxcardbgs["HOLD"]
                 dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
 
@@ -673,7 +676,7 @@ class CardImage(Image):
             # 使用回数(数字)
             if maxn or header.recycle or (header.type == "BeastCard" and maxn):
                 pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
-                bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
+                bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1.0 else 4] else wx.NORMAL
                 italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
                 font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold,
                                                adjustsizewx3=False)
@@ -735,19 +738,22 @@ class CardImage(Image):
         image = self.get_wxbmp()
         return cw.imageretouch.to_negative_for_wxcard(image)
 
-    def get_wxclickedbmp(self, header: "cw.header.CardHeader", wxbmp: wx.Bitmap,
+    def get_wxclickedbmp(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader], wxbmp: wx.Bitmap,
                          test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
-        size = (self.wxrect.width * 9 // 10, self.wxrect.height * 9 // 10)
         if wxbmp:
             negaimg = wxbmp
         else:
             negaimg = self.get_cardwxbmp(header, test_aptitude=test_aptitude)
+        return CardImage.get_wxclickedbmp_static(negaimg)
 
-        image = cw.util.convert_to_image(negaimg)
+    @staticmethod
+    def get_wxclickedbmp_static(wxbmp: wx.Bitmap) -> wx.Bitmap:
+        size = (wxbmp.GetWidth() * 9 // 10, wxbmp.GetHeight() * 9 // 10)
+        image = cw.util.convert_to_image(wxbmp)
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 
-    def get_wxdealingbmp(self, header: cw.header.CardHeader, wxbmp: wx.Bitmap, n: int,
+    def get_wxdealingbmp(self, header: Union[cw.header.CardHeader, cw.header.InfoCardHeader], wxbmp: wx.Bitmap, n: int,
                          test_aptitude: Optional["cw.character.Character"] = None) -> wx.Bitmap:
         size = (self.wxrect.width * n // 100, self.wxrect.height)
         if wxbmp:
@@ -765,7 +771,7 @@ class CardImage(Image):
 
 class LargeCardImage(CardImage):
     def __init__(self, paths: List[ImageInfo], bgtype: str, name: str = "", premium: str = "",
-                 can_loaded_scaledimage: bool = False,
+                 can_loaded_scaledimage: Union[bool, List[bool]] = False,
                  is_scenariocard: bool = False, scedir: str = "", anotherscenariocard: bool = False) -> None:
         CardImage.__init__(self, paths, "LARGE", name, premium, can_loaded_scaledimage, is_scenariocard,
                            scedir=scedir, anotherscenariocard=anotherscenariocard)
@@ -916,9 +922,9 @@ class CharacterCardImage(CardImage):
                  pos_noscale: Tuple[int, int] = (0, 0), can_loaded_scaledimage: bool = False,
                  is_scenariocard: bool = False, scedir: str = "", is_override_name: bool = False,
                  override_name: str = "", is_override_image: bool = False,
-                 override_images: Optional[List[List[ImageInfo]]] = None) -> None:
+                 override_images: Optional[Tuple[List[ImageInfo], List[bool]]] = None) -> None:
         if override_images is None:
-            override_images = []
+            override_images = ([], [])
         self.ccard = ccard
         self.is_override_name = is_override_name
         self.override_name = override_name
@@ -928,9 +934,9 @@ class CharacterCardImage(CardImage):
         self.can_loaded_scaledimage = can_loaded_scaledimage
         self.anotherscenariocard = False
         self.is_scenariocard = is_scenariocard
-        self.image_mtime = {}
+        self.image_mtime: Dict[str, float] = {}
         self.use_excache = False
-        self.override_images_upd = None
+        self.override_images_upd: Optional[Tuple[List[ImageInfo], List[bool]]] = None
         self.paths_upd = None
         self.can_loaded_scaledimage_upd = None
         self.scedir = scedir
@@ -957,18 +963,23 @@ class CharacterCardImage(CardImage):
             self.override_images_upd = None
             self.clear_cache()
 
-    def set_faceimgs(self, paths: List[ImageInfo], can_loaded_scaledimage: bool) -> None:
+    def set_faceimgs(self, paths: List[ImageInfo], can_loaded_scaledimage: Union[bool, List[bool]]) -> None:
         self.paths = paths
         self.can_loaded_scaledimage = can_loaded_scaledimage
         self.cardimgs = []
         if not self.is_override_image:
-            for info in self.paths:
+            for i, info in enumerate(self.paths):
                 path = info.path
                 if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard) and\
                         not self.is_scenariocard:
                     path = cw.util.get_yadofilepath(path)
+                if isinstance(self.can_loaded_scaledimage, (list, tuple)):
+                    can_loaded_scaledimage = self.can_loaded_scaledimage[i]
+                else:
+                    assert isinstance(self.can_loaded_scaledimage, bool)
+                    can_loaded_scaledimage = self.can_loaded_scaledimage
                 self.cardimgs.append(cw.s(cw.util.load_image(path, True,
-                                                             can_loaded_scaledimage=self.can_loaded_scaledimage,
+                                                             can_loaded_scaledimage=can_loaded_scaledimage,
                                                              use_excache=self.use_excache)))
 
     def set_nameimg(self, name: str) -> None:
@@ -1037,7 +1048,10 @@ class CharacterCardImage(CardImage):
 
         self.levelimg_pos = (x, y)
 
-    def update(self, ccard: "cw.character.Character", header: Optional[cw.header.CardHeader] = None) -> None:
+    def update(self, ccard: Union["cw.sprite.card.PlayerCard",
+                                  "cw.sprite.card.EnemyCard",
+                                  "cw.sprite.card.FriendCard"],
+               header: Optional[cw.header.CardHeader] = None) -> None:
         # 画像合成
         bgname = self.get_cardbgname(ccard)
         self.image = cw.cwpy.rsrc.cardbgs[bgname].convert()
@@ -1047,7 +1061,6 @@ class CharacterCardImage(CardImage):
 
         # レベル
         if ccard.is_analyzable():
-            font = cw.cwpy.rsrc.fonts["pcard_level"]
             self.image.blit(self.levelimg, self.levelimg_pos)
 
         # カード画像
@@ -1140,7 +1153,7 @@ class CharacterCardImage(CardImage):
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
 
-            self.lifeimg = lifeimg
+            self.lifeimg: pygame.Surface = lifeimg
             self.image.blit(lifeimg, cw.s((8, 110)))
 
         if header:
@@ -1157,7 +1170,7 @@ class CharacterCardImage(CardImage):
     def update_statusimg(self, ccard: Union["cw.sprite.card.PlayerCard",
                                             "cw.sprite.card.EnemyCard",
                                             "cw.sprite.card.FriendCard"],
-                         is_runningevent: Optional[bool] = None) -> None:
+                         is_runningevent: Optional[bool] = None) -> Optional[pygame.Rect]:
         """
         イメージのステータスアイコンを更新する。
         """
@@ -1253,7 +1266,7 @@ class CharacterCardImage(CardImage):
 
         return clip
 
-    def _put_number(self, image: pygame.Surface, num: bool, always: bool = False,
+    def _put_number(self, image: pygame.Surface, num: int, always: bool = False,
                     is_runningevent: Optional[bool] = None) -> pygame.Surface:
         if is_runningevent is None:
             is_runningevent = cw.cwpy.is_runningevent()
@@ -1269,7 +1282,7 @@ class CharacterCardImage(CardImage):
         return image
 
     def _put_enhanceimg(self, seq: List[Tuple[Tuple[int, int, int], Tuple[int, int]]], bmp: pygame.Surface,
-                        value: int, duration: int, is_runningevent: bool) -> None:
+                        value: int, duration: int, is_runningevent: Optional[bool]) -> None:
         size = (bmp.get_width(), bmp.get_height())
         if value >= 10:
             seq.append(((255, 0, 0), size))
@@ -1311,11 +1324,7 @@ class CharacterCardImage(CardImage):
     def get_image(self) -> pygame.Surface:
         return self.image
 
-    def get_cardwxbmp(self, header: cw.header.CardHeader,
-                      test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
-        return self.get_wxbmp()
-
-    def get_cardimg(self, header) -> pygame.Surface:
+    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.Surface:
         return self.get_image()
 
 
@@ -1364,8 +1373,8 @@ def create_type2textcell(text: str, face: str, size: int, color: Tuple[int, int,
         # 取消線
         if sline:
             subimg2 = font.render("―", False, color)
-            size = (subimg.get_width() + cw.s(10), subimg.get_height())
-            subimg2 = pygame.transform.scale(subimg2, size)
+            area = (subimg.get_width() + cw.s(10), subimg.get_height())
+            subimg2 = pygame.transform.scale(subimg2, area)
             subimg.blit(subimg2, cw.s((-5, 0)))
 
         if vertical:
@@ -1408,8 +1417,8 @@ def draw_textcell(image: pygame.Surface, rect: pygame.Rect, text: str, face: str
             subimg = font.render(line, antialias, bcolor)
             if sline:
                 subimg2 = font.render("―", antialias, bcolor)
-                size = (subimg.get_width() + cw.s(10), lineheight)
-                subimg2 = pygame.transform.scale(subimg2, size)
+                area = (subimg.get_width() + cw.s(10), lineheight)
+                subimg2 = pygame.transform.scale(subimg2, area)
                 subimg.blit(subimg2, cw.s((-5, 0)))
             if vertical:
                 subimg = pygame.transform.rotate(subimg, -90)
@@ -1420,8 +1429,8 @@ def draw_textcell(image: pygame.Surface, rect: pygame.Rect, text: str, face: str
         subimg = font.render(line, antialias, color)
         if sline:
             subimg2 = font.render("―", antialias, color)
-            size = (subimg.get_width() + cw.s(10), lineheight)
-            subimg2 = pygame.transform.scale(subimg2, size)
+            area = (subimg.get_width() + cw.s(10), lineheight)
+            subimg2 = pygame.transform.scale(subimg2, area)
             subimg.blit(subimg2, cw.s((-5, 0)))
         if vertical:
             subimg = pygame.transform.rotate(subimg, -90)
@@ -1448,8 +1457,8 @@ def get_textcellfont(size: int, face: str, color: Tuple[int, int, int], bold: bo
     return font, font.get_linesize()
 
 
-def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int], gradient: str,
-                     color2: Tuple[int, int, int]) -> pygame.Surface:
+def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], gradient: str,
+                     color2: Tuple[int, int, int, int]) -> pygame.Surface:
     """ブレンド前のカラーセルを生成し、
     pygame.Surfaceのインスタンスを返す。
     size: セルのサイズ
@@ -1527,7 +1536,7 @@ def smoothscale(surface: pygame.Surface, size: Tuple[int, int], smoothing: bool 
     """
     if size == surface.get_size():
         return surface
-    size = [max(1, a) for a in size]
+    size = (max(1, size[0]), max(1, size[1]))
 
     if surface.get_width() == 0 or surface.get_height() == 0:
         return pygame.Surface(size).convert()
@@ -1568,7 +1577,7 @@ def smoothscale(surface: pygame.Surface, size: Tuple[int, int], smoothing: bool 
         return pygame.transform.scale(surface, size)
 
 
-def fix_cwnext16bitbitmap(data: bytes) -> Union[Tuple[bytes, bool], Tuple[Image, bool]]:
+def fix_cwnext16bitbitmap(data: bytes) -> Tuple[Union[bytes, wx.Image], bool]:
     """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は
     bfOffBitsが壊れているので予め訂正する。
     FIXME: 末尾に余計なデータがついている画像は却って上手くいかない可能性があるが、
@@ -1581,9 +1590,9 @@ def fix_cwnext16bitbitmap(data: bytes) -> Union[Tuple[bytes, bool], Tuple[Image,
         return data, True
     if s[1] != ord('M'):
         return data, True
-    _bfSize = s[2]
-    _bfReserved1 = s[3]
-    _bfReserved2 = s[4]
+    # bfSize = s[2]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
     bfOffBits = s[5]
     if bfOffBits == 0:
         return data, True
@@ -1592,14 +1601,14 @@ def fix_cwnext16bitbitmap(data: bytes) -> Union[Tuple[bytes, bool], Tuple[Image,
         return data, True
     biWidth = s[7]
     biHeight = s[8]
-    _biPlanes = s[9]
+    # biPlanes = s[9]
     biBitCount = s[10]
     biCompression = s[11]
-    _biSizeImage = s[12]
-    _biXPixPerMeter = s[13]
-    _biYPixPerMeter = s[14]
+    # biSizeImage = s[12]
+    # biXPixPerMeter = s[13]
+    # biYPixPerMeter = s[14]
     biClrUsed = s[15]
-    _biClrImporant = s[16]
+    # biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) // 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
     if len(data) - bfOffBits != lineSize * height:
@@ -1643,24 +1652,24 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     if s[1] != ord('M'):
         return data, True
     bfSize = s[2]
-    _bfReserved1 = s[3]
-    _bfReserved2 = s[4]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
     bfOffBits = s[5]
     biSize = s[6]
     if biSize != 40:
         return data, True
-    _biWidth = s[7]
-    _biHeight = s[8]
-    _biPlanes = s[9]
+    # biWidth = s[7]
+    # biHeight = s[8]
+    # biPlanes = s[9]
     biBitCount = s[10]
     if biBitCount != 32:
         return data, True
-    biCompression = s[11]
+    # biCompression = s[11]
     biSizeImage = s[12]
-    _biXPixPerMeter = s[13]
-    _biYPixPerMeter = s[14]
+    # biXPixPerMeter = s[13]
+    # biYPixPerMeter = s[14]
     biClrUsed = s[15]
-    _biClrImporant = s[16]
+    # biClrImporant = s[16]
     # おそらくCWNext 1.60付属のWirthBuilderが格納したイメージで
     # 32-bitビットマップに余計なパレットデータが含まれている事がある
     # その場合、以下のように壊れているので修復する
@@ -1683,7 +1692,7 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     return data, True
 
 
-def conv2wximage(image: pygame.Surface, biBitCount: int) -> Image:
+def conv2wximage(image: pygame.Surface, biBitCount: int) -> wx.Image:
     """pygame.Surfaceをwx.Bitmapに変換する。
     image: pygame.Surface
     """
@@ -1703,9 +1712,9 @@ def patch_rle4bitmap(data: bytes) -> bytes:
         return data
     if s[1] != ord('M'):
         return data
-    _bfSize = s[2]
-    _bfReserved1 = s[3]
-    _bfReserved2 = s[4]
+    # bfSize = s[2]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
     bfOffBits = s[5]
     if bfOffBits == 0:
         return data
@@ -1714,7 +1723,7 @@ def patch_rle4bitmap(data: bytes) -> bytes:
         return data
     biWidth = s[7]
     biHeight = s[8]
-    _biPlanes = s[9]
+    # biPlanes = s[9]
     biBitCount = s[10]
     biCompression = s[11]
     if biCompression == 2:  # RLE4
@@ -1752,14 +1761,14 @@ def get_bmpdepth(data: bytes) -> int:
     if s[1] != ord('M'):
         return 0
     if 40 <= s[6]:
-        biBitCount = s[10]
+        biBitCount: int = s[10]
     else:
         s = struct.unpack("<BBIhhIIHhHH", data[0:14+12])
         biBitCount = s[10]
     return biBitCount
 
 
-def get_bicompression(data: bytes) -> int:
+def get_bicompression(data: bytes) -> Optional[int]:
     """
     Bitmapデータの圧縮方式値を返す。
     正常なBitmapデータでない場合はNoneを返す。
@@ -1772,7 +1781,7 @@ def get_bicompression(data: bytes) -> int:
     if s[1] != ord('M'):
         return 0
     if 40 <= s[6]:
-        biCompression = s[11]
+        biCompression: Optional[int] = s[11]
     else:
         biCompression = None
 
@@ -1785,15 +1794,15 @@ def has_pngalpha(data: bytes) -> bool:
     正常なPNGデータでない場合はFalseを返す。
     """
     if len(data) < 8 + 25:
-        return 0
+        return False
     s = struct.unpack(">BBBBBBBBIBBBBIIBBBBBI", data[0:8+25])
     if s[0] != 0x89 or s[1] != 0x50 or s[2] != 0x4E or s[3] != 0x47 or\
             s[4] != 0x0D or s[5] != 0x0A or s[6] != 0x1A or s[7] != 0x0A:
-        return 0
+        return False
     if s[8] != 13:
-        return 0
+        return False
     if s[9] != ord('I') or s[10] != ord('H') or s[11] != ord('D') or s[12] != ord('R'):
-        return 0
+        return False
     colortype = s[16]
     return colortype in (4, 6)
 

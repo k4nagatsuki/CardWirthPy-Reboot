@@ -6,7 +6,8 @@ import struct
 
 import cw
 
-from typing import Dict, List, Optional, Union
+import typing
+from typing import Dict, List, Optional, Sequence, TypeVar, Union
 
 if sys.platform == "win32" and sys.maxsize == 0x7fffffff:
     _winapi = True
@@ -46,7 +47,7 @@ class Win32Res(object):
     def __init__(self, fpath: str) -> None:
         object.__init__(self)
 
-        self._table = {}
+        self._table: Dict[Union[str, int], Dict[Union[str, int], bytes]] = {}
         self._winhandle = None
 
         if fpath:
@@ -178,18 +179,19 @@ class Win32Res(object):
             ctypes.windll.kernel32.FreeLibrary(self._winhandle)
             self._winhandle = None
 
-    def get_rcdata(self, valtype: Union[str, bytes], name: Union[str, bytes]) -> Optional[bytes]:
+    def get_rcdata(self, valtype: int, name: Union[int, bytes]) -> Optional[bytes]:
         if self._winhandle:
             k = ctypes.windll.kernel32
             if isinstance(valtype, bytes):
                 valtype = ctypes.create_string_buffer(valtype)
             else:
                 valtype = ctypes.c_char_p(valtype)
+            name_key: Union[bytes, ctypes.c_char_p]
             if isinstance(name, bytes):
-                name = ctypes.create_string_buffer(name)
+                name_key = ctypes.create_string_buffer(name)
             else:
-                name = ctypes.c_char_p(name)
-            hsrc = k.FindResourceA(self._winhandle, name, valtype)
+                name_key = ctypes.c_char_p(name)
+            hsrc = k.FindResourceA(self._winhandle, name_key, valtype)
             if hsrc:
                 size = k.SizeofResource(self._winhandle, hsrc)
                 hglobal = k.LoadResource(self._winhandle, hsrc)
@@ -201,12 +203,14 @@ class Win32Res(object):
             if valtype in self._table:
                 table = self._table[valtype]
                 if isinstance(name, bytes):
-                    name = str(name, "utf-8")
-                if name in table:
-                    return table[name]
+                    name_si: Union[str, int] = str(name, "utf-8")
+                else:
+                    name_si = name
+                if name_si in table:
+                    return table[name_si]
         return None
 
-    def get_cursor(self, number: Union[int, str]) -> Optional[str]:
+    def get_cursor(self, number: Union[int, str]) -> Optional[bytes]:
         ICONDIR_SIZE = 6
         ICONDIRENTRY_SIZE = 16
 
@@ -219,9 +223,11 @@ class Win32Res(object):
             data = self.get_rcdata(RT_GROUP_CURSOR, number.encode("utf-8"))
             if not data:
                 return None
-            number = uint16.unpack(data[18:20])[0]
+            number_b: Union[int, bytes] = uint16.unpack(data[18:20])[0]
+        else:
+            number_b = number
 
-        data = self.get_rcdata(RT_CURSOR, number)
+        data = self.get_rcdata(RT_CURSOR, number_b)
 
         if not data:
             return None
@@ -262,7 +268,7 @@ class Win32Res(object):
 
         return iconfileheader + icondirentry + data
 
-    def get_bitmap(self, name: str) -> Optional[str]:
+    def get_bitmap(self, name: str) -> Optional[bytes]:
         BITMAPFILEHEADER_SIZE = 14
         RGBQUAD_SIZE = 4
 
@@ -301,7 +307,7 @@ class Win32Res(object):
 
         return header + data
 
-    def get_tpf0form(self, name: str) -> Optional[Dict[str, Union[List[str], int, str, bool, bytes, List[bytes]]]]:
+    def get_tpf0form(self, name: bytes) -> Optional["ResTable"]:
         data = self.get_rcdata(RT_RCDATA, name)
         if not data:
             return None
@@ -309,8 +315,8 @@ class Win32Res(object):
             return None
         data = data[4:]
 
-        table = {}
-        stack = [table]
+        table = ResTable()
+        stack: List[ResTable] = [table]
         int8 = struct.Struct("b")  # int8
         uint8 = struct.Struct("B")  # uint8
         uint16 = struct.Struct("<H")  # uint16(little endian)
@@ -322,13 +328,13 @@ class Win32Res(object):
                 data = data[1:]
                 stack.pop()
                 continue
-            _classname = data[1:1+length]
+            # classname = data[1:1+length]
             data = data[1+length:]
             length = data[0]
             name = data[1:1+length]
             data = data[1+length:]
-            c = {}
-            stack[-1][str(name, cw.MBCS)] = c
+            c = ResTable()
+            stack[-1].table[name] = c
             stack.append(c)
             while True:
                 length = data[0]
@@ -339,21 +345,23 @@ class Win32Res(object):
                 data = data[1+length:]
                 valtype = data[0]
                 data = data[1:]
+                value: Union[List[str], int, str, bool, bytes, List[bytes]]
                 if valtype == 0x01:  # strings
-                    value = []
+                    seq = []
                     while data[0] in (2, 3, 6):
                         dt = data[0]
                         if dt == 2:
-                            value.append(uint8.unpack(data[1:2])[0])
+                            seq.append(uint8.unpack(data[1:2])[0])
                             data = data[2:]
                         elif dt == 3:
-                            value.append(uint16.unpack(data[1:3])[0])
+                            seq.append(uint16.unpack(data[1:3])[0])
                             data = data[3:]
                         elif dt == 6:
                             length = data[1]
-                            value.append(str(data[2:2+length], cw.MBCS))
+                            seq.append(str(data[2:2+length], cw.MBCS))
                             data = data[2+length:]
                     data = data[1:]
+                    value = seq
                 elif valtype == 0x02:  # signed byte
                     value = int8.unpack(data[:1])[0]
                     data = data[1:]
@@ -377,12 +385,13 @@ class Win32Res(object):
                     value = data[4:4+length]
                     data = data[4+length:]
                 elif valtype == 0x0b:  # array
-                    value = []
+                    seq = []
                     while 0 < data[0]:
                         length = data[0]
-                        value.append(data[1:1+length])
+                        seq.append(data[1:1+length])
                         data = data[1+length:]
                     data = data[1:]
+                    value = seq
                 elif valtype == 0x12:  # unknown (utf-16 string?)
                     length = uint32.unpack(data[:4])[0]
                     length *= 2
@@ -390,12 +399,66 @@ class Win32Res(object):
                     data = data[4+length:]
                 else:
                     raise Exception("value type: %s (%s, %s)" % (str(name, cw.MBCS), str(key, cw.MBCS), valtype))
-                stack[-1][str(key, cw.MBCS)] = value
+                stack[-1].table[key] = value
 
         return table
 
 
-def main():
+class ResTable(object):
+    def __init__(self) -> None:
+        self.table: Dict[bytes, Union[List[str], int, str, bool, bytes, List[bytes], ResTable]] = {}
+
+
+ResType = TypeVar("ResType", List[str], int, str, bool, bytes, List[bytes], ResTable)
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: List[str]) -> List[str]: ...
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: bool) -> bool: ...
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: int) -> int: ...
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: str) -> str: ...
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: bytes) -> bytes: ...
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: List[bytes]) -> List[bytes]: ...
+
+
+@typing.overload
+def find_res(table: ResTable, path_l: Sequence[bytes], defvalue: ResTable) -> ResTable: ...
+
+
+def find_res(table: ResTable, path_l: Sequence[bytes],
+             defvalue: Union[List[str], bool, int, str, bytes, List[bytes], ResTable])\
+        -> Union[List[str], bool, int, str, bytes, List[bytes], ResTable]:
+    assert 0 < len(path_l)
+    if path_l[0] not in table.table:
+        return defvalue
+    table2 = table.table[path_l[0]]
+    if len(path_l) == 1:
+        if type(table2) is type(defvalue):
+            return table2
+        else:
+            return defvalue
+    elif isinstance(table2, ResTable):
+        return find_res(table2, path_l[1:], defvalue)
+    else:
+        return defvalue
+
+
+def main() -> None:
     pass
 
 

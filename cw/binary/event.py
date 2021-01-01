@@ -5,7 +5,7 @@ from . import base
 
 import cw
 
-from typing import Union
+from typing import List, Optional, Union
 
 
 class Event(base.CWBinaryBase):
@@ -25,7 +25,7 @@ class Event(base.CWBinaryBase):
         self.ignitions = [f.dword() for _cnt in range(ignitions_num)]
         self.keycodes = f.string(True)
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -51,8 +51,10 @@ class Event(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
-        contents = []
-        ignitions = []
+        from . import content
+
+        contents: Optional[cw.data.CWPyElement] = None
+        ignitions: List[int] = []
         keycodes = ""
 
         for e in data:
@@ -80,9 +82,12 @@ class Event(base.CWBinaryBase):
             elif e.tag == "Contents":
                 contents = e
 
-        f.write_dword(len(contents))
-        for content in contents:
-            content.Content.unconv(f, content)
+        if contents is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(contents))
+            for e_content in contents:
+                content.Content.unconv(f, e_content)
         f.write_dword(len(ignitions))
         for ignition in ignitions:
             f.write_dword(ignition)
@@ -98,7 +103,7 @@ class SimpleEvent(base.CWBinaryBase):
     from . import item
     from . import beast
 
-    def __init__(self, parent: Union[package.Package, skill.SkillCard, item.ItemCard, beast.BeastCard],
+    def __init__(self, parent: Union["package.Package", "skill.SkillCard", "item.ItemCard", "beast.BeastCard"],
                  f: "cw.binary.cwfile.CWFile", yadodata: bool = False) -> None:
         from . import content
 
@@ -107,7 +112,7 @@ class SimpleEvent(base.CWBinaryBase):
         self.contents = [content.Content(self, f, 0)
                          for _cnt in range(contents_num)]
 
-        self.data = None
+        self.data: Optional[cw.data.CWPyElement] = None
 
     def get_data(self) -> "cw.data.CWPyElement":
         if self.data is None:
@@ -122,15 +127,18 @@ class SimpleEvent(base.CWBinaryBase):
     def unconv(f: "cw.binary.cwfile.CWFileWriter", data: "cw.data.CWPyElement") -> None:
         from . import content
 
-        contents = []
+        contents: Optional[cw.data.CWPyElement] = None
 
         for e in data:
             if e.tag == "Contents":
                 contents = e
 
-        f.write_dword(len(contents))
-        for ct in contents:
-            content.Content.unconv(f, ct)
+        if contents is None:
+            f.write_dword(0)
+        else:
+            f.write_dword(len(contents))
+            for ct in contents:
+                content.Content.unconv(f, ct)
 
 
 def main() -> None:
