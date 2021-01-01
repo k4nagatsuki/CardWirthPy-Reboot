@@ -1277,7 +1277,7 @@ class CWPy(threading.Thread):
             self.mousepos = (-1, -1)
         return True
 
-    def update(self) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if not self.statusbar:
             return
 
@@ -1356,7 +1356,7 @@ class CWPy(threading.Thread):
         pointed_tile = self.pointed_tile
 
         for group in groups:
-            group.update(self.scr_draw)
+            group.update()
 
         if pointed_tile and self.pointed_tile is None:
             self.index = -1

@@ -7,6 +7,7 @@ import pygame
 import cw
 from . import base
 
+import typing
 from typing import Dict, List, Generator, Optional, Tuple, Union
 
 
@@ -86,7 +87,7 @@ class AnimationCell(base.SelectableSprite):
         self.rect = pygame.Rect(0, 0, 0, 0)
         self.frame = 0
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if cw.cwpy.selection != self:
             # 他の選択がなされていない場合は常にAnimationCellを選択状態にする
             self.update_selection()

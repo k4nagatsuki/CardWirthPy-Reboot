@@ -47,7 +47,7 @@ def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent
 
         clip = pygame.Rect(sprite.rect)
         sprite.skipped |= skip
-        sprite.update(cw.cwpy.scr_draw)
+        sprite.update()
         clip.union_ip(sprite.rect)
         if sprite.status != anitype:
             cw.cwpy.add_lazydraw(clip=clip)
@@ -146,7 +146,7 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
             else:
                 clip = pygame.Rect(sprite.rect)
             sprite.skipped |= skip
-            sprite.update(cw.cwpy.scr_draw)
+            sprite.update()
             if sprite.status == anitype:
                 upd = True
             clip.union_ip(sprite.rect)

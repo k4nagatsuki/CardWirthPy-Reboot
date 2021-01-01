@@ -6,6 +6,7 @@ import pygame
 import cw
 from . import base
 
+import typing
 from typing import Callable, Optional
 
 
@@ -129,10 +130,10 @@ class TouchButton(base.SelectableSprite):
             tw = max(tw, fw + spx*2)
         return tw+cw.s(2)
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "shiftup":
             self._shift_start_top = None
-        base.SelectableSprite.update(self, scr)
+        base.SelectableSprite.update(self, *args, **kwargs)
 
     def update_selection(self) -> None:
         base.SelectableSprite.update_selection(self)

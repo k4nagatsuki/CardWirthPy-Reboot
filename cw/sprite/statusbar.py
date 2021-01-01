@@ -9,6 +9,7 @@ import pygame
 import cw
 from . import base
 
+import typing
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 LAYER_TOUCH_BUTTON = -1
@@ -442,12 +443,12 @@ class ProgressView(base.CWPySprite):
         self.rect = pygame.Rect(pos, size)
         self.rect.top = parent.rect.top + pos[1]
         self.rect.left = parent.rect.left + pos[0]
-        self.update(None)
+        self.update()
 
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_PROGRESS)
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         params = (self.text, self.max, self.min, self.current)
         if self._last_params != params:
             self.update_image()
@@ -494,12 +495,12 @@ class ExpandView(ProgressView):
         current = cw.cwpy.expanding_cur
         ProgressView.__init__(self, parent, pos, text=text, nmax=nmax, nmin=nmin, current=current)
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.text = cw.cwpy.expanding
         self.max = cw.cwpy.expanding_max
         self.min = cw.cwpy.expanding_min
         self.current = cw.cwpy.expanding_cur
-        ProgressView.update(self, scr)
+        ProgressView.update(self, *args, **kwargs)
 
 
 class StatusBarPanel(base.MouseHandlerSprite):
@@ -642,7 +643,7 @@ class YadoMoneyPanel(StatusBarPanel):
         self.text: Optional[str] = self.get_money()
         self.currency = "%s"
         self.up_scr = 0.0
-        self.update(None)
+        self.update()
 
     def reset(self, parent: StatusBar, pos: Tuple[int, int], size: Tuple[int, int]) -> None:
         self.text = self.get_money()
@@ -661,8 +662,8 @@ class YadoMoneyPanel(StatusBarPanel):
         self.currency = currency
         self.up_scr = cw.UP_SCR
 
-    def update(self, scr: pygame.surface.Surface) -> None:
-        StatusBarPanel.update(self, scr)
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        StatusBarPanel.update(self, *args, **kwargs)
 
         if self.status == "blink":
             return
@@ -722,7 +723,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
         self.text = self.get_money()
         self.currency = "%s"
         self.up_scr = 0
-        self.update(None)
+        self.update()
 
     def reset(self, parent: StatusBar, pos: Tuple[int, int], size: Tuple[int, int]) -> None:
         self.text = self.get_money()
@@ -745,9 +746,9 @@ class PartyMoneyPanel(YadoMoneyPanel):
         else:
             self.set_backcolor((0, 0, 128))
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         assert cw.cwpy.ydata
-        StatusBarPanel.update(self, scr)
+        StatusBarPanel.update(self, *args, **kwargs)
 
         if self.status == "blink":
             self.update_color()
@@ -767,9 +768,9 @@ class EncounterPanel(StatusBarPanel):
     def __init__(self, parent: StatusBar, pos: Tuple[int, int]) -> None:
         StatusBarPanel.__init__(self, parent, (0, 0, 128), pos)
         self.text: Optional[str] = None
-        self.update(None)
+        self.update()
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if not self.text == cw.cwpy.msgs["encounter"]:
             self.text = cw.cwpy.msgs["encounter"]
             self.update_image()
@@ -792,9 +793,9 @@ class RoundCounterPanel(YadoMoneyPanel):
     def __init__(self, parent: StatusBar, pos: Tuple[int, int]) -> None:
         StatusBarPanel.__init__(self, parent, (0, 0, 128), pos)
         self.text = None
-        self.update(None)
+        self.update()
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if cw.cwpy.battle:
             if not self.text == str(cw.cwpy.battle.round):
                 self.text = str(cw.cwpy.battle.round)
@@ -882,7 +883,7 @@ class StatusBarButton(base.SelectableSprite):
             cw.cwpy.add_lazydraw(clip=self._desc.rect)
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
-        self.update(None)
+        self.update()
 
     def _is_notice(self) -> bool:
         if self.status == "blink":
@@ -957,7 +958,7 @@ class StatusBarButton(base.SelectableSprite):
 
         return self.get_btnimg(flags)
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
@@ -1188,7 +1189,7 @@ class CampButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
         if cw.cwpy.selection == self and cw.cwpy.mousein[0]:
@@ -1216,7 +1217,7 @@ class TableButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
         if cw.cwpy.selection == self and cw.cwpy.mousein[0]:
@@ -1247,11 +1248,11 @@ class ActionButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
             self.image = self.noimg
         else:
-            StatusBarButton.update(self, scr)
+            StatusBarButton.update(self, *args, **kwargs)
 
     def lclick_event(self) -> None:
         StatusBarButton.lclick_event(self)
@@ -1266,11 +1267,11 @@ class RunAwayButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
             self.image = self.noimg
         else:
-            StatusBarButton.update(self, scr)
+            StatusBarButton.update(self, *args, **kwargs)
 
     def lclick_event(self) -> None:
         StatusBarButton.lclick_event(self)
@@ -1307,7 +1308,7 @@ class ShowFriendCardsButton(StatusBarButton):
     def get_icon(self) -> pygame.surface.Surface:
         return cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST_noscale"])
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
         self.is_pushed = cw.cwpy.setting.show_fcardsinbattle
@@ -1351,7 +1352,7 @@ class AutoStartButton(StatusBarButton):
     def get_icon(self) -> pygame.surface.Surface:
         return cw.cwpy.rsrc.pygamedialogs["AUTO_START"]
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
         if cw.cwpy.is_playingscenario():
@@ -1418,9 +1419,9 @@ class SettingsButton(StatusBarButton):
     def get_icon(self) -> pygame.surface.Surface:
         return cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "normal":
-            StatusBarButton.update(self, scr)
+            StatusBarButton.update(self, *args, **kwargs)
             return
         self.update_selection()
         self.set_desc(self.desc)
@@ -1448,9 +1449,9 @@ class HelpButton(StatusBarButton):
     def get_icon(self) -> pygame.surface.Surface:
         return cw.cwpy.rsrc.pygamedialogs["HELP"]
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "normal":
-            StatusBarButton.update(self, scr)
+            StatusBarButton.update(self, *args, **kwargs)
             return
         self.update_selection()
         self.set_desc(self.desc)
@@ -1472,7 +1473,7 @@ class DebuggerButton(StatusBarButton):
         self.selectable_on_event = True
         self.is_showing = cw.cwpy.is_debugmode
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
         self.is_pushed = bool(cw.cwpy.is_showingdebugger())
@@ -1506,9 +1507,9 @@ class BacklogButton(StatusBarButton):
         if enabled and self.is_selection():
             self.update_image()
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "normal":
-            StatusBarButton.update(self, scr)
+            StatusBarButton.update(self, *args, **kwargs)
             return
         self.update_selection()
 
@@ -1588,7 +1589,7 @@ class TouchMenuButton(StatusBarButton):
     def get_icon(self) -> pygame.surface.Surface:
         return cw.cwpy.rsrc.pygamedialogs["SHOW_CONTROLS"]
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
         self.is_pushed = bool(cw.cwpy.sbargrp.get_sprites_from_layer(LAYER_TOUCH_BUTTON))

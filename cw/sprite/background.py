@@ -1738,7 +1738,7 @@ class ClickableSprite(base.SelectableSprite):
             cw.animation.animate_sprite(self, "click")
             self._rclickevent()
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:

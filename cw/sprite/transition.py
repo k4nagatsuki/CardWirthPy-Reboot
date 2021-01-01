@@ -6,6 +6,7 @@ import pygame
 import cw
 from . import base
 
+import typing
 from typing import Optional, Tuple, Union
 
 
@@ -31,13 +32,13 @@ class Transition(base.CWPySprite):
         self.rect = self.image.get_rect(center=self.rect.center)
         self.status = "hidden"
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
-            method(scr)
+            method()
 
-    def update_transition(self, scr: pygame.surface.Surface) -> None:
+    def update_transition(self) -> None:
         self.clear()
 
 
@@ -48,7 +49,7 @@ class Fade(Transition):
         self.m_frame = 255 // self.variation
         self.image.set_alpha(255)
 
-    def update_transition(self, scr: pygame.surface.Surface) -> None:
+    def update_transition(self) -> None:
         p_frame = self.get_frame()
 
         alpha = max(0, 255 - int(float(self.frame) / self.m_frame * 255))
@@ -82,7 +83,7 @@ class PixelDissolve(Transition):
         self.image = self.image.convert_alpha()
         self.changecolor = (255, 255, 255, 0)
 
-    def update_transition(self, scr: pygame.surface.Surface) -> None:
+    def update_transition(self) -> None:
         p_frame = self.get_frame()
 
         for _cnt in range(self.variation * (p_frame - self.frame)):
@@ -117,7 +118,7 @@ class Blinds(Transition):
         self.image = self.image.convert_alpha()
         self.changecolor = (255, 255, 255, 0)
 
-    def update_transition(self, scr: pygame.surface.Surface) -> None:
+    def update_transition(self) -> None:
         p_frame = self.get_frame()
         self.frame = p_frame
 

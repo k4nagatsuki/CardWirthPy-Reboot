@@ -249,7 +249,7 @@ class MessageWindow(base.CWPySprite):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.is_drawing:
             self.draw_char()    # テキスト描画
 
@@ -923,7 +923,7 @@ class SelectWindow(MessageWindow):
         self.frame = 0
         self.draw_all()
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         pass
 
 
@@ -1004,12 +1004,12 @@ class SelectionBar(base.SelectableSprite):
     def update_scale(self) -> None:
         pass  # MessageWindowのupdate_scaleでremoveされる
 
-    def update(self, scr: Optional[pygame.surface.Surface] = None) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.backlog:
             return
 
         if self.status == "normal":       # 通常表示
-            base.SelectableSprite.update(self, scr)
+            base.SelectableSprite.update(self, *args, **kwargs)
 
         elif self.status == "click":     # 左クリック時
             cw.cwpy.index = cw.cwpy.list.index(self)

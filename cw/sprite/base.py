@@ -6,6 +6,7 @@ import pygame
 
 import cw
 
+import typing
 from typing import Tuple
 
 
@@ -85,7 +86,7 @@ class MouseHandlerSprite(CWPySprite):
         self.handling_rect = None
         self.handling = False
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.update_selection()
 
     def update_selection(self) -> None:
@@ -138,7 +139,7 @@ class SelectableSprite(CWPySprite):
     def get_unselectedimage(self) -> pygame.surface.Surface:
         return self.image
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if not cw.cwpy.is_lockmenucards(self):
             self.update_selection()
 

@@ -7,6 +7,7 @@ import cw
 from . import base
 from .. import character
 
+import typing
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 
@@ -160,7 +161,7 @@ class CWPyCard(base.SelectableSprite):
     def _get_dealspeed(self) -> int:
         return self.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
@@ -1226,11 +1227,11 @@ class EnemyCard(CWPyCard, character.Enemy):
             finally:
                 cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
-    def update(self, scr: pygame.rect.Rect) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "hidden" and not self._init:
             if not self.initialize():
                 return
-        CWPyCard.update(self, scr)
+        CWPyCard.update(self, *args, **kwargs)
 
     def update_delete(self) -> None:
         if self.old_status == "hidden":
@@ -1534,10 +1535,10 @@ class MenuCard(CWPyCard):
     def is_storehouse(self) -> bool:
         return self._is_storehouse
 
-    def update(self, scr: pygame.surface.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "hidden" and not self._init:
             self.initialize()
-        CWPyCard.update(self, scr)
+        CWPyCard.update(self, *args, **kwargs)
 
     def lclick_event(self) -> None:
         """左クリックイベント。"""
