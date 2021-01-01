@@ -7,10 +7,10 @@ import sys
 import time
 
 import pygame
-from pygame.locals import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
-                          K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9,\
-                          K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
-                          MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
+from pygame import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
+                   K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9,\
+                   K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
+                   MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
 
 import cw
 
@@ -221,7 +221,7 @@ class EventHandler(object):
         return index
 
     def can_input(self) -> bool:
-        return cw.cwpy.is_decompressing or not (cw.cwpy.is_showingdlg() or pygame.event.peek(pygame.locals.USEREVENT))
+        return cw.cwpy.is_decompressing or not (cw.cwpy.is_showingdlg() or pygame.event.peek(pygame.USEREVENT))
 
     def can_input_sys(self) -> bool:
         return not cw.cwpy.is_showingdlg()
@@ -734,7 +734,7 @@ class EventHandler(object):
         sdata = cw.cwpy.ydata.losted_sdata if cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata else cw.cwpy.sdata
         is_playingscenario = cw.cwpy.is_playingscenario() or (cw.cwpy.ydata and cw.cwpy.ydata.losted_sdata)
         if is_playingscenario and not sdata.in_endprocess and not sdata.in_f9 and\
-                not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
+                not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.USEREVENT):
             assert cw.cwpy.ydata.party
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", fname)
@@ -1388,12 +1388,12 @@ class EventHandlerForBacklog(EventHandler):
             self.dirkey_event(y=1)
             cw.cwpy.tick_clock()
         # ページアップ押しっぱなし
-        elif cw.cwpy.keyevent.is_keyin(pygame.locals.K_PAGEUP):
-            self.keydown_event(pygame.locals.K_PAGEUP)
+        elif cw.cwpy.keyevent.is_keyin(pygame.K_PAGEUP):
+            self.keydown_event(pygame.K_PAGEUP)
             cw.cwpy.tick_clock()
         # ページダウン押しっぱなし
-        elif cw.cwpy.keyevent.is_keyin(pygame.locals.K_PAGEDOWN):
-            self.keydown_event(pygame.locals.K_PAGEDOWN)
+        elif cw.cwpy.keyevent.is_keyin(pygame.K_PAGEDOWN):
+            self.keydown_event(pygame.K_PAGEDOWN)
             cw.cwpy.tick_clock()
         # 左クリック押しっぱなし
         elif cw.cwpy.keyevent.is_mousein():
@@ -1700,13 +1700,13 @@ class EventHandlerForBacklog(EventHandler):
         if not cw.cwpy.setting.is_logscrollable():
             return True
 
-        if key == pygame.locals.K_PAGEUP:
+        if key == pygame.K_PAGEUP:
             self._scrollbar.set_pos(self._scrollbar.get_pos()-cw.SIZE_AREA[1]*80//100, lazy=True)
-        elif key == pygame.locals.K_PAGEDOWN:
+        elif key == pygame.K_PAGEDOWN:
             self._scrollbar.set_pos(self._scrollbar.get_pos()+cw.SIZE_AREA[1]*80//100, lazy=True)
-        elif key == pygame.locals.K_HOME:
+        elif key == pygame.K_HOME:
             self._scrollbar.set_pos(0, lazy=True)
-        elif key == pygame.locals.K_END:
+        elif key == pygame.K_END:
             self._scrollbar.set_pos(self._scrollbar.scrsize_noscale-cw.SIZE_AREA[1], lazy=True)
 
         return False

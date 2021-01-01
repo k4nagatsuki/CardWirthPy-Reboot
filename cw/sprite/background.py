@@ -5,7 +5,7 @@ import itertools
 import os
 
 import pygame
-from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
+from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
 
 import cw
 from . import base
@@ -34,7 +34,7 @@ PCCellData = Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, 
 
 CellData = Union[ImageCellData, TextCellData, ColorCellData, PCCellData]
 
-_BlitData = Union[Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int],
+_BlitData = Union[Tuple[pygame.surface.Surface, Tuple[int, int], Tuple[int, int], int],
                   Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool, bool, bool,
                         Optional[Tuple[int, int, int]], Tuple[int, int], Tuple[int, int]]]
 
@@ -150,12 +150,12 @@ class BackGround(base.CWPySprite):
                         assert len(d) == 4
                         sflag = d[-1]
                         assert isinstance(sflag, int)
-                        if sprite.bgtype == BG_COLOR and sflag in (pygame.locals.BLEND_RGB_ADD,
-                                                                   pygame.locals.BLEND_RGB_SUB,
-                                                                   pygame.locals.BLEND_RGB_MULT,
-                                                                   pygame.locals.BLEND_RGBA_ADD,
-                                                                   pygame.locals.BLEND_RGBA_SUB,
-                                                                   pygame.locals.BLEND_RGBA_MULT):
+                        if sprite.bgtype == BG_COLOR and sflag in (pygame.BLEND_RGB_ADD,
+                                                                   pygame.BLEND_RGB_SUB,
+                                                                   pygame.BLEND_RGB_MULT,
+                                                                   pygame.BLEND_RGBA_ADD,
+                                                                   pygame.BLEND_RGBA_SUB,
+                                                                   pygame.BLEND_RGBA_MULT):
                             continue
                         bgcell = sprite
                         rect = bgcell.rect
@@ -172,8 +172,8 @@ class BackGround(base.CWPySprite):
                         mask = curtain.create_mask()
                         if mask:
                             # 透明部分だけカットする
-                            mask.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
-                            cutter.blit(mask, rect.topleft, special_flags=pygame.locals.BLEND_RGBA_MAX)
+                            mask.fill((0, 0, 0, 255), special_flags=pygame.BLEND_RGBA_MIN)
+                            cutter.blit(mask, rect.topleft, special_flags=pygame.BLEND_RGBA_MAX)
                         else:
                             cutter.fill((0, 0, 0, 255), subrect)
 
@@ -239,7 +239,7 @@ class BackGround(base.CWPySprite):
 
     def load_surface(self, path: str, mask: bool, smoothing: str, size: Tuple[int, int], flag: str,
                      doanime: cw.effectbooster.AnimationCounter, visible: bool = True, nocheckvisible: bool = False,
-                     can_loaded_scaledimage: bool = True) -> Tuple[pygame.Surface, bool, bool]:
+                     can_loaded_scaledimage: bool = True) -> Tuple[pygame.surface.Surface, bool, bool]:
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
@@ -309,7 +309,7 @@ class BackGround(base.CWPySprite):
             if smoothing != "Default":
                 smoothscale_bg = cw.util.str2bool(smoothing)
             if smoothscale_bg and not (float(size[0]) % isize[0] == 0 and float(size[1]) % isize[1] == 0):
-                if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
+                if not (image.get_flags() & pygame.SRCALPHA) and image.get_colorkey():
                     image = image.convert_alpha()
                 image = cw.image.smoothscale(image, size)
             else:
@@ -985,7 +985,7 @@ class BackGround(base.CWPySprite):
         ext = cw.util.splitext(path)[1].lower()
         if not anime and ext != ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and\
                 visible and not mask and not flag:
-            if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
+            if image and not image.get_colorkey() and not (image.get_flags() & pygame.SRCALPHA):
                 # 背景を覆ったので非継承の背景を実際に削除する
                 if 0 < self._inhrt_index:
                     del bgs[:self._inhrt_index]
@@ -1291,8 +1291,8 @@ def _equals_bgs(bgs1: Iterable[Tuple[int, Optional[CellData]]], bgs2: Iterable[T
     return True
 
 
-def _draw_bgcell(surface: pygame.Surface, bgdata: Tuple[int, _BlitData],
-                 allclip: Optional[pygame.Rect] = None) -> pygame.Rect:
+def _draw_bgcell(surface: pygame.surface.Surface, bgdata: Tuple[int, _BlitData],
+                 allclip: Optional[pygame.rect.Rect] = None) -> pygame.rect.Rect:
     bgtype, d = bgdata
     srect = surface.get_rect()
     clip = surface.get_clip()
@@ -1304,7 +1304,7 @@ def _draw_bgcell(surface: pygame.Surface, bgdata: Tuple[int, _BlitData],
         assert len(d) == 4
         # BUG: error: Too many values to unpack (4 expected, 13 provided) (mypy 0.790)
         # image, _size, pos, sflag = d
-        image, _size, pos, sflag = typing.cast(Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int], d)
+        image, _size, pos, sflag = typing.cast(Tuple[pygame.surface.Surface, Tuple[int, int], Tuple[int, int], int], d)
         rect = image.get_rect()
         rect.topleft = cw.s(pos)
         if srect.colliderect(rect):
@@ -1352,7 +1352,8 @@ class BgCell(base.CWPySprite):
             assert len(d) == 4
             # BUG: error: Too many values to unpack (4 expected, 13 provided) (mypy 0.790)
             # image, size, pos, _sflag = d
-            image, size, pos, _sflag = typing.cast(Tuple[pygame.Surface, Tuple[int, int], Tuple[int, int], int], d)
+            image, size, pos, _sflag = typing.cast(Tuple[pygame.surface.Surface, Tuple[int, int], Tuple[int, int], int],
+                                                   d)
             self.rect_noscale = pygame.Rect(pos, size)
 
         elif bgtype == BG_TEXT:
@@ -1370,7 +1371,8 @@ class BgCell(base.CWPySprite):
         self.rect = cw.s(self.rect_noscale)
 
 
-def layered_draw_ex(layered_updates: pygame.sprite.LayeredDirty, surface: pygame.Surface) -> List[pygame.Rect]:
+def layered_draw_ex(layered_updates: pygame.sprite.LayeredDirty,
+                    surface: pygame.surface.Surface) -> List[pygame.rect.Rect]:
     rects = []
     srect = surface.get_rect()
     clip = surface.get_clip()
@@ -1428,15 +1430,15 @@ class Curtain(base.SelectableSprite):
         self.rect = pygame.Rect(self.target.rect)
 
         if self.cutter:
-            self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.BLEND_RGBA_SUB)
 
         mask = self.create_mask()
         if mask:
-            mask.fill((0, 0, 0, 255), special_flags=pygame.locals.BLEND_RGBA_MIN)
-            mask.fill(self.color[:3] + (0,), special_flags=pygame.locals.BLEND_RGBA_ADD)
-            self.image.blit(mask, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MIN)
+            mask.fill((0, 0, 0, 255), special_flags=pygame.BLEND_RGBA_MIN)
+            mask.fill(self.color[:3] + (0,), special_flags=pygame.BLEND_RGBA_ADD)
+            self.image.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
 
-    def create_mask(self) -> pygame.Surface:
+    def create_mask(self) -> pygame.surface.Surface:
         if isinstance(self.target, BgCell):
             if self.target.bgtype == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
@@ -1467,13 +1469,13 @@ class Curtain(base.SelectableSprite):
                                        cw.s(tsize), color, bold, italic, underline, strike, vertical, antialias, bcolor)
             else:
                 subimg = self.target.d[0]
-                if (subimg.get_flags() & pygame.locals.SRCALPHA):
+                if (subimg.get_flags() & pygame.SRCALPHA):
                     subimg = subimg.copy()
                 else:
                     subimg = subimg.convert_alpha()
         else:
             subimg = self.target.image
-            if not (subimg.get_flags() & pygame.locals.SRCALPHA):
+            if not (subimg.get_flags() & pygame.SRCALPHA):
                 return None
             subimg = subimg.copy()
 
@@ -1654,7 +1656,7 @@ class TargetArrow(base.CWPySprite):
 
 
 class Jpy1TemporalSprite(base.CWPySprite):
-    def __init__(self, background: pygame.Surface) -> None:
+    def __init__(self, background: pygame.surface.Surface) -> None:
         """エフェクトブースターJpy1の一時描画用スプライト。
         Jpy1の読み込みがすべて終了したら、削除される。
         """
@@ -1668,7 +1670,8 @@ class Jpy1TemporalSprite(base.CWPySprite):
 
 
 class ClickableSprite(base.SelectableSprite):
-    def __init__(self, getimage: Callable[[], pygame.Surface], getselimage: Callable[[], pygame.Surface],
+    def __init__(self, getimage: Callable[[], pygame.surface.Surface],
+                 getselimage: Callable[[], pygame.surface.Surface],
                  pos_noscale: Tuple[int, int], spritegrp: pygame.sprite.LayeredDirty,
                  lclickevent: Optional[Callable[[], None]] = None,
                  rclickevent: Optional[Callable[[], None]] = None) -> None:
@@ -1709,13 +1712,13 @@ class ClickableSprite(base.SelectableSprite):
         self._clickedrect.center = self._rect.center
         self.rect = self._rect
 
-    def get_unselectedimage(self) -> pygame.Surface:
+    def get_unselectedimage(self) -> pygame.surface.Surface:
         if self.status == "click":
             return self._clickedimage
         else:
             return self._image
 
-    def get_selectedimage(self) -> pygame.Surface:
+    def get_selectedimage(self) -> pygame.surface.Surface:
         if self.status == "click":
             return self._selclickedimage
         else:
@@ -1735,7 +1738,7 @@ class ClickableSprite(base.SelectableSprite):
             cw.animation.animate_sprite(self, "click")
             self._rclickevent()
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, scr: pygame.surface.Surface) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
@@ -1848,7 +1851,7 @@ class NumberOfCards(base.CWPySprite):
             for y in range(3):
                 if x != 1 or y != 1:
                     self.image.blit(image, (x, y))
-        image.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+        image.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_ADD)
         self.image.blit(image, (1, 1))
 
         self.rect = self.image.get_rect()

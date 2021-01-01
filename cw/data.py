@@ -14,7 +14,6 @@ import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 
 import pygame
-import pygame.locals
 
 import cw
 from cw.util import synclock
@@ -39,7 +38,7 @@ class SystemData(object):
                                      Tuple[int, int, int, int]],
                                Tuple[str, float, Tuple[int, int], bool, str],
                                Tuple[Type["cw.effectbooster._JpySubImage"], float, bool, str]],
-                         Union[pygame.Surface, Tuple[pygame.Surface, float]]]
+                         Union[pygame.surface.Surface, Tuple[pygame.surface.Surface, float]]]
     ex_cache: Dict[str, List[Optional[Union[str, bytes]]]]
 
     def __init__(self, init: bool = True) -> None:
@@ -109,7 +108,7 @@ class SystemData(object):
         self.background_image_mtime: Dict[str, Tuple[str, float]] = {}
         self.moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}
         self.instructions: List[str] = []
-        self.specialchars = cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]("Resource/Image/Font")
+        self.specialchars = cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]]("Resource/Image/Font")
 
         # イベント終了時まで保持されるJPDC撮影などで上書きされたイメージのキャッシュ
         # [path] = (x1 binary, x2 binary, ..., x16 binary)
@@ -910,7 +909,7 @@ class SystemData(object):
         self.events.start(keynum=keynum, keycodes=keycodes)
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
             cw.cwpy.statusbar.change()
-            if not (pygame.event.peek(pygame.locals.USEREVENT)):
+            if not (pygame.event.peek(pygame.USEREVENT)):
                 cw.cwpy.show_party()
                 if redraw:
                     cw.cwpy.disposition_pcards()
@@ -1865,7 +1864,7 @@ class ScenarioData(SystemData):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         m = self._r_specialchar.match(fname.lower())
         if m:
-            def load(dpath: str, fname: str) -> Tuple[pygame.Surface, bool]:
+            def load(dpath: str, fname: str) -> Tuple[pygame.surface.Surface, bool]:
                 path = cw.util.get_materialpath(fname, cw.M_IMG, scedir=dpath, findskin=False)
                 image = cw.util.load_image(path, True, can_loaded_scaledimage=can_loaded_scaledimage)
                 return image, True

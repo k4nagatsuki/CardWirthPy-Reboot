@@ -6,7 +6,6 @@ import sys
 
 import wx
 import pygame
-import pygame.locals
 
 from . import util
 from . import battle
@@ -258,7 +257,7 @@ for arg in OPTIONS.leftovers:
         sys.argv.remove(arg)
 
 
-Scalable = TypeVar("Scalable", wx.Bitmap, wx.Image, pygame.Surface, pygame.Rect, Tuple[int, int],
+Scalable = TypeVar("Scalable", wx.Bitmap, wx.Image, pygame.surface.Surface, pygame.rect.Rect, Tuple[int, int],
                    Tuple[int, int, int, int], int, float)
 
 
@@ -323,7 +322,7 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
 
     elif isinstance(num, pygame.Rect):
         # pygameの矩形情報
-        rect: pygame.Rect = num
+        rect: pygame.rect.Rect = num
         x = int(rect.x * up_scr)
         y = int(rect.y * up_scr)
         w = int(rect.width * up_scr)
@@ -370,7 +369,7 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         up_scr /= scr_scale
         if up_scr == 1:
             return num
-        bmp: pygame.Surface = num
+        bmp: pygame.surface.Surface = num
         w = int(bmp.get_width() * up_scr)
         h = int(bmp.get_height() * up_scr)
         if w <= 0 or h <= 0:
@@ -379,7 +378,7 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         if up_scr % 1 == 0:
             result = pygame.transform.scale(bmp, size)
         else:
-            if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
+            if not (bmp.get_flags() & pygame.SRCALPHA) and bmp.get_colorkey():
                 bmp = bmp.convert_alpha()
             result = image.smoothscale(bmp, size)
         if isinstance(bmp0, util.Depth1Surface):

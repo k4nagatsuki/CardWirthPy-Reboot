@@ -37,7 +37,7 @@ import wx.richtext
 import wx.grid
 import pygame
 import pygame.image
-from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
+from pygame import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
 
 import cw
 
@@ -73,7 +73,7 @@ class MusicInterface(object):
         self.fpath = ""
         self.subvolume = 100
         self.loopcount = 0
-        self.movie_scr: Optional[pygame.Surface] = None
+        self.movie_scr: Optional[pygame.surface.Surface] = None
         self.mastervolume = mastervolume
         self._winmm = False
         self._bass = False
@@ -532,8 +532,8 @@ class SoundInterface(object):
 
 def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullscreen: bool = False,
          soundfonts: Optional[List[Tuple[str, bool, int]]] = None, fullscreensize: Tuple[int, int] = (0, 0),
-         sdlmixer_enabled: bool = False) -> Tuple[pygame.Surface, pygame.Surface, Optional[pygame.Surface],
-                                                  pygame.time.Clock]:
+         sdlmixer_enabled: bool = False) -> Tuple[pygame.surface.Surface, pygame.surface.Surface,
+                                                  Optional[pygame.surface.Surface], pygame.time.Clock]:
     """pygame初期化。"""
     if sys.platform == "win32":
         # FIXME: SDLがWindowsの言語設定に勝手にUSキーボード設定を追加してしまうので
@@ -700,7 +700,7 @@ def find_noscalepath(path: str) -> str:
 def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0), f: Optional[BinaryIO] = None,
                retry: bool = True, isback: bool = False, can_loaded_scaledimage: bool = True,
                noscale: bool = False, up_scr: Optional[Union[int, float]] = None,
-               use_excache: bool = False) -> pygame.Surface:
+               use_excache: bool = False) -> pygame.surface.Surface:
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -816,7 +816,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
 
     # アルファチャンネルを持った透過画像を読み込んだ場合は
     # SRCALPHA(0x00010000)のフラグがONになっている
-    if (bmpdepth in (0, 32)) and (image.get_flags() & pygame.locals.SRCALPHA):
+    if (bmpdepth in (0, 32)) and (image.get_flags() & pygame.SRCALPHA):
         image = image.convert_alpha()
     else:
         imageb = image
@@ -841,10 +841,10 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
             # 256GIFでは強制的に左上マスク色が有効になる
             if imageb.get_bitsize() <= 8:
                 maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
-                image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
+                image.set_colorkey(image.get_at(maskpos), pygame.RLEACCEL)
         elif mask and not image.get_colorkey():  # PNGなどですでにマスクカラーが指定されている場合は除外
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
-            image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
+            image.set_colorkey(image.get_at(maskpos), pygame.RLEACCEL)
 
     if not ispng and bmpdepth == 1 and mask and not isback or up_scr != 1:
         image = Depth1Surface(image, up_scr, bmpdepth)
@@ -852,16 +852,16 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
 
 
 class Depth1Surface(pygame.Surface):
-    def __init__(self, surface: pygame.Surface, scr_scale: float, bmpdepth: int = 24) -> None:
+    def __init__(self, surface: pygame.surface.Surface, scr_scale: float, bmpdepth: int = 24) -> None:
         pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(),
                                 surface.get_masks())
-        self.blit(surface, (0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+        self.blit(surface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
         colorkey = surface.get_colorkey()
-        self.set_colorkey(colorkey, pygame.locals.RLEACCEL)
+        self.set_colorkey(colorkey, pygame.RLEACCEL)
         self.bmpdepthis1 = surface.bmpdepthis1 if hasattr(surface, "bmpdepthis1") else (bmpdepth == 1)
         self.scr_scale = scr_scale
 
-    def copy(self) -> pygame.Surface:
+    def copy(self) -> pygame.surface.Surface:
         if hasattr(self, "scr_scale"):
             bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
             bmp.bmpdepthis1 = self.bmpdepthis1
@@ -869,7 +869,7 @@ class Depth1Surface(pygame.Surface):
             bmp = pygame.Surface.copy(self)
         return bmp
 
-    def convert_alpha(self) -> pygame.Surface:
+    def convert_alpha(self) -> pygame.surface.Surface:
         if hasattr(self, "scr_scale"):
             bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
             bmp.bmpdepthis1 = False
@@ -878,7 +878,7 @@ class Depth1Surface(pygame.Surface):
         return bmp
 
 
-def calc_imagesize(image: pygame.Surface) -> int:
+def calc_imagesize(image: pygame.surface.Surface) -> int:
     """imageのデータサイズを概算する。
     結果は正確ではない。
     """
@@ -894,7 +894,7 @@ def calc_wxbmpsize(wxbmp: wx.Bitmap) -> int:
     return result
 
 
-def put_number(image: pygame.Surface, num: int) -> pygame.Surface:
+def put_number(image: pygame.surface.Surface, num: int) -> pygame.surface.Surface:
     """アイコンサイズの画像imageの上に
     numの値を表示する。
     """
@@ -1676,7 +1676,7 @@ def screenshot_title(titledic: Dict[str, str]) -> str:
     return title
 
 
-def screenshot_header(title: str, w: int) -> Tuple[pygame.Surface, pygame.Surface, int, int]:
+def screenshot_header(title: str, w: int) -> Tuple[pygame.surface.Surface, pygame.surface.Surface, int, int]:
     """スクリーンショット情報の書き出し。
     """
     fore = cw.cwpy.setting.ssinfofontcolor
@@ -1692,7 +1692,7 @@ def screenshot_header(title: str, w: int) -> Tuple[pygame.Surface, pygame.Surfac
             size = (swmax, subimg.get_height())
             subimg = cw.image.smoothscale(subimg, size)
         imgs.append(subimg)
-    imgs[1].fill((255, 255, 255, 80), special_flags=pygame.locals.BLEND_RGBA_MULT)
+    imgs[1].fill((255, 255, 255, 80), special_flags=pygame.BLEND_RGBA_MULT)
     return imgs[0], imgs[1], fh, lh
 
 
@@ -1727,7 +1727,7 @@ def create_screenshotfilename(titledic: Dict[str, str]) -> str:
     return fpath
 
 
-def create_screenshot(titledic: Dict[str, str]) -> Tuple[pygame.Surface, int]:
+def create_screenshot(titledic: Dict[str, str]) -> Tuple[pygame.surface.Surface, int]:
     """スクリーンショットを作成する。
     """
     title = screenshot_title(titledic)
@@ -1805,7 +1805,7 @@ def create_cardscreenshotfilename(titledic: Dict[str, str]) -> str:
     return fpath
 
 
-def create_cardscreenshot(titledic: Dict[str, str]) -> pygame.Surface:
+def create_cardscreenshot(titledic: Dict[str, str]) -> pygame.surface.Surface:
     """パーティー所持カードスクリーンショットを作成する。
     """
 
@@ -3938,8 +3938,8 @@ def wxbmp_to_buffer(bmp: wx.Bitmap) -> Sequence[int]:
     return buf
 
 
-def fill_image(img: pygame.Surface, surface: pygame.Surface, csize: Tuple[int, int], ctrlpos: Tuple[int, int] = (0, 0),
-               cpos: Tuple[int, int] = (0, 0)) -> None:
+def fill_image(img: pygame.surface.Surface, surface: pygame.surface.Surface, csize: Tuple[int, int],
+               ctrlpos: Tuple[int, int] = (0, 0), cpos: Tuple[int, int] = (0, 0)) -> None:
     """引数のsurfaceをimg上に敷き詰める。"""
     imgsize = surface.get_size()
     w, h = imgsize

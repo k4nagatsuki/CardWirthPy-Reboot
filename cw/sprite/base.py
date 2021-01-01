@@ -12,8 +12,8 @@ from typing import Tuple
 class CWPySprite(pygame.sprite.DirtySprite):
     status: str
     frame: int
-    rect: pygame.Rect
-    image: pygame.Surface
+    rect: pygame.rect.Rect
+    image: pygame.surface.Surface
     layer: Tuple[int, int, int, int]
 
     def __init__(self, *groups: pygame.sprite.Sprite) -> None:
@@ -85,7 +85,7 @@ class MouseHandlerSprite(CWPySprite):
         self.handling_rect = None
         self.handling = False
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, scr: pygame.surface.Surface) -> None:
         self.update_selection()
 
     def update_selection(self) -> None:
@@ -132,13 +132,13 @@ class SelectableSprite(CWPySprite):
         """マウス左ボタン押下イベント。"""
         pass
 
-    def get_selectedimage(self) -> pygame.Surface:
+    def get_selectedimage(self) -> pygame.surface.Surface:
         return self.image
 
-    def get_unselectedimage(self) -> pygame.Surface:
+    def get_unselectedimage(self) -> pygame.surface.Surface:
         return self.image
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, scr: pygame.surface.Surface) -> None:
         if not cw.cwpy.is_lockmenucards(self):
             self.update_selection()
 

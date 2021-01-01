@@ -9,7 +9,6 @@ import threading
 import wx
 import wx.richtext
 import pygame
-import pygame.locals
 
 import cw
 import cw.debug.debugger
@@ -561,10 +560,10 @@ class Frame(wx.Frame):
 
     def update_keystate(self) -> None:
         if wx.GetKeyState(wx.WXK_CONTROL):
-            if not cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
+            if not cw.cwpy.keyevent.is_keyin(pygame.K_LCTRL):
                 cw.cwpy.keyevent.keydown(wx.WXK_CONTROL)
         else:
-            if cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
+            if cw.cwpy.keyevent.is_keyin(pygame.K_LCTRL):
                 cw.cwpy.keyevent.keyup(wx.WXK_CONTROL)
 
     def _update_mousepressed(self) -> None:
@@ -633,32 +632,32 @@ class Frame(wx.Frame):
 
     def OnLeftUp(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
-        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
+        evt = pygame.event.Event(pygame.MOUSEBUTTONUP, button=1)
         cw.thread.post_pygameevent(evt)
 
     def OnLeftDown(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
-        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=1)
+        evt = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1)
         cw.thread.post_pygameevent(evt)
 
     def OnMiddleUp(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
-        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=2)
+        evt = pygame.event.Event(pygame.MOUSEBUTTONUP, button=2)
         cw.thread.post_pygameevent(evt)
 
     def OnMiddleDown(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
-        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=2)
+        evt = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=2)
         cw.thread.post_pygameevent(evt)
 
     def OnRightUp(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
-        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
+        evt = pygame.event.Event(pygame.MOUSEBUTTONUP, button=3)
         cw.thread.post_pygameevent(evt)
 
     def OnRightDown(self, event: wx.MouseEvent) -> None:
         self._update_mousepressed()
-        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=3)
+        evt = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=3)
         cw.thread.post_pygameevent(evt)
 
     def OnMouseWheel(self, event: wx.MouseEvent) -> None:
@@ -667,9 +666,9 @@ class Frame(wx.Frame):
 
         self._update_mousepressed()
         if cw.util.get_wheelrotation(event) > 0:
-            evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=4)
+            evt = pygame.event.Event(pygame.MOUSEBUTTONUP, button=4)
         else:
-            evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=5)
+            evt = pygame.event.Event(pygame.MOUSEBUTTONUP, button=5)
 
         cw.thread.post_pygameevent(evt)
 
@@ -1473,7 +1472,7 @@ class Frame(wx.Frame):
                 w: int
                 h: int
                 w, h = image.get_size()
-                if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey() or sys.platform != "win32":
+                if (image.get_flags() & pygame.SRCALPHA) or image.get_colorkey() or sys.platform != "win32":
                     # linuxでは画像が壊れるので常にこちら
                     buf: bytes = pygame.image.tostring(image, "RGBA")
                     alpha = True

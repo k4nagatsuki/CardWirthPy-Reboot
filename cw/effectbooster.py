@@ -6,7 +6,6 @@ import re
 import math
 
 import pygame
-import pygame.locals
 
 import cw
 
@@ -94,7 +93,7 @@ class CutAnimation(AnimationCounter):
 
 
 class _JpySubImage(cw.image.Image):
-    image: pygame.Surface
+    image: pygame.surface.Surface
     savecache: int
     visible: bool
     position: Tuple[int, int]
@@ -151,10 +150,10 @@ class _JpySubImage(cw.image.Image):
 
             if self.paintmode == 1:
                 self.is_cacheable = False
-                back.image.blit(image, self.position, None, pygame.locals.BLEND_MIN)
+                back.image.blit(image, self.position, None, pygame.BLEND_MIN)
             elif self.paintmode == 2:
                 self.is_cacheable = False
-                back.image.blit(image, self.position, None, pygame.locals.BLEND_ADD)
+                back.image.blit(image, self.position, None, pygame.BLEND_ADD)
             elif self.paintmode != 4:
                 back.image.blit(image, self.position)
                 # CardWirthでは透過ライン部分は強制的に透明となる
@@ -264,7 +263,7 @@ class _JpySubImage(cw.image.Image):
 
             self.cache.save_position_noscale(pos_noscale)
 
-    def _drawtemp_impl(self, doanime: AnimationCounter, background: pygame.Surface,
+    def _drawtemp_impl(self, doanime: AnimationCounter, background: pygame.surface.Surface,
                        pos: Tuple[int, int], redraw: bool = True, anime: bool = False, waittime: Optional[int] = None,
                        nowait: bool = False) -> None:
         """backgroundのposの位置に一時描画。"""
@@ -279,9 +278,9 @@ class _JpySubImage(cw.image.Image):
         rect = rect.clip(background.get_rect())
 
         if self.paintmode == 1:
-            blendmode = pygame.locals.BLEND_MIN
+            blendmode = pygame.BLEND_MIN
         elif self.paintmode == 2:
-            blendmode = pygame.locals.BLEND_ADD
+            blendmode = pygame.BLEND_ADD
         else:
             blendmode = 0
 
@@ -304,7 +303,7 @@ class _JpySubImage(cw.image.Image):
         if not nowait:
             self.wait(doanime, anime=anime, waittime=waittime)
 
-    def clip_tempimg(self, image: pygame.Surface, pos: Tuple[int, int]) -> pygame.Surface:
+    def clip_tempimg(self, image: pygame.surface.Surface, pos: Tuple[int, int]) -> pygame.surface.Surface:
         if self.animeclip:
             size = image.get_size()
             x, y, w, h = self.animeclip
@@ -496,7 +495,7 @@ class _JpySubImage(cw.image.Image):
                 colorkey = image.get_at(self.clip[:2])
             else:
                 colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey, pygame.locals.RLEACCEL)
+            image.set_colorkey(colorkey, pygame.RLEACCEL)
         else:
             colorkey = None
             image.set_colorkey(None)
@@ -545,8 +544,8 @@ class _JpySubImage(cw.image.Image):
 
         # 透明度
         if self.paintmode == 3:
-            if 32 <= image.get_bitsize() and (image.get_flags() & pygame.locals.SRCALPHA):
-                image.fill((255, 255, 255, self.alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
+            if 32 <= image.get_bitsize() and (image.get_flags() & pygame.SRCALPHA):
+                image.fill((255, 255, 255, self.alpha), special_flags=pygame.BLEND_RGBA_MULT)
             else:
                 image.set_alpha(self.alpha)
 
@@ -954,7 +953,7 @@ class JpyCache(object):
     """
     def __init__(self) -> None:
         self.pos_noscale: Optional[Tuple[int, int]] = None
-        self.img: Dict[int, pygame.Surface] = {}
+        self.img: Dict[int, pygame.surface.Surface] = {}
         # 一時描画を削除するために描画前背景を保存する
         self.before = None
         self.beforeback = None
@@ -976,10 +975,10 @@ class JpyCache(object):
         else:
             return (0, 0)
 
-    def save_image(self, n: int, image: pygame.Surface) -> None:
+    def save_image(self, n: int, image: pygame.surface.Surface) -> None:
         self.img[n] = image
 
-    def load_image(self, n: int) -> pygame.Surface:
+    def load_image(self, n: int) -> pygame.surface.Surface:
         image = self.img.get(n, None)
 
         if image:
@@ -1186,7 +1185,7 @@ class JpdcImage(cw.image.Image):
 
         if mask:
             self.image = self.image.convert()
-            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
+            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.RLEACCEL)
 
     def wait(self, doanime: AnimationCounter) -> None:
         # 右クリックするまで待機
@@ -1229,7 +1228,7 @@ class JptxImage(cw.image.Image):
         self.image.fill(backcolor)
 
         if mask:
-            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
+            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.RLEACCEL)
 
         if fonttransparent:
             self.image.fill(fontcolor, (0, 0, width, 1))

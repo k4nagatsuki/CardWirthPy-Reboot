@@ -31,7 +31,7 @@ class CWPyCard(base.SelectableSprite):
         # アニメ用フレーム数
         self.frame = 0
         # ズーム画像のリスト。(イメージ本体, 位置とサイズ)のタプル。
-        self.zoomimgs: List[Tuple[pygame.Surface, pygame.Rect]] = []
+        self.zoomimgs: List[Tuple[pygame.surface.Surface, pygame.rect.Rect]] = []
         self.zoomsize_noscale = (0, 0)
         # 裏返し状態か否か
         self.reversed = False
@@ -103,13 +103,13 @@ class CWPyCard(base.SelectableSprite):
                              not cw.cwpy.selectedheader or cw.cwpy.selectedheader.premium != "Premium"
         return mcardflag
 
-    def get_unselectedimage(self) -> pygame.Surface:
+    def get_unselectedimage(self) -> pygame.surface.Surface:
         if self.status == "click":
             return self.image
         else:
             return self.get_animeimage()
 
-    def get_selectedimage(self) -> pygame.Surface:
+    def get_selectedimage(self) -> pygame.surface.Surface:
         return cw.imageretouch.to_negative_for_card(self.get_animeimage())
 
     def set_alpha(self, alpha: Optional[int]) -> None:
@@ -119,19 +119,19 @@ class CWPyCard(base.SelectableSprite):
         self.image.set_alpha(alpha)
         self._image.set_alpha(alpha)
 
-    def get_animeimage(self) -> pygame.Surface:
+    def get_animeimage(self) -> pygame.surface.Surface:
         if self.zoomimgs:
             return self.zoomimgs[-1][0]
         else:
             return self._image
 
-    def get_animerect(self) -> pygame.Rect:
+    def get_animerect(self) -> pygame.rect.Rect:
         if self.zoomimgs:
             return self.zoomimgs[-1][1]
         else:
             return self._rect
 
-    def get_baserect(self) -> pygame.Rect:
+    def get_baserect(self) -> pygame.rect.Rect:
         return self._rect
 
     def _get_dealingscales(self) -> List[int]:
@@ -160,7 +160,7 @@ class CWPyCard(base.SelectableSprite):
     def _get_dealspeed(self) -> int:
         return self.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, scr: pygame.surface.Surface) -> None:
         method = getattr(self, "update_" + self.status, None)
 
         if method:
@@ -229,7 +229,7 @@ class CWPyCard(base.SelectableSprite):
                 image = image.copy()
 
             image.set_alpha(self.alpha)
-            self._image: pygame.Surface = image
+            self._image: pygame.surface.Surface = image
             if self.zoomimgs:
                 self.rect = pygame.Rect(self.zoomimgs[-1][1])
 
@@ -620,7 +620,7 @@ class CWPyCard(base.SelectableSprite):
             self.clear_image(True)
 
     def update_image(self, update_statusimg: bool = False,
-                     is_runningevent: Optional[bool] = None) -> Optional[pygame.Rect]:
+                     is_runningevent: Optional[bool] = None) -> Optional[pygame.rect.Rect]:
         """
         画像を再構成する。
         """
@@ -661,7 +661,7 @@ class CWPyCard(base.SelectableSprite):
                 self.image = self._image
 
         self.rect.size = rect.size
-        self._rect: pygame.Rect = pygame.Rect(self.rect)
+        self._rect: pygame.rect.Rect = pygame.Rect(self.rect)
         self._rect.topleft = rect.topleft
 
         if self.reversed:
@@ -996,7 +996,7 @@ class PlayerCard(CWPyCard, character.Player):
             text = cw.cwpy.msgs["level_up"]
             names = [(0, cw.cwpy.msgs["ok"])]
             infos: List[Tuple[cw.image.ImageInfo, bool, Optional[Union[cw.character.Character, cw.header.CardHeader]],
-                              Dict[int, pygame.Surface]]] = []
+                              Dict[int, pygame.surface.Surface]]] = []
             can_loaded_scaledimage = self.data.getbool(".", "scaledimage", False)
             for info in self.imgpaths:
                 infos.append((cw.image.ImageInfo(path=info.path, pcnumber=info.pcnumber, base=info,
@@ -1226,7 +1226,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             finally:
                 cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
-    def update(self, scr: pygame.Rect) -> None:
+    def update(self, scr: pygame.rect.Rect) -> None:
         if self.status != "hidden" and not self._init:
             if not self.initialize():
                 return
@@ -1534,7 +1534,7 @@ class MenuCard(CWPyCard):
     def is_storehouse(self) -> bool:
         return self._is_storehouse
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, scr: pygame.surface.Surface) -> None:
         if self.status != "hidden" and not self._init:
             self.initialize()
         CWPyCard.update(self, scr)

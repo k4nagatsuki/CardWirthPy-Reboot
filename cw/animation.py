@@ -3,7 +3,6 @@
 
 import threading
 import pygame
-import pygame.locals
 
 import cw
 
@@ -194,7 +193,7 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
     return skip
 
 
-def _inputevent(clip: pygame.Rect, clearevent: bool, statusbutton: bool) -> pygame.Rect:
+def _inputevent(clip: pygame.rect.Rect, clearevent: bool, statusbutton: bool) -> pygame.rect.Rect:
     if statusbutton:
         cw.cwpy.clear_inputevents()
     else:
@@ -231,7 +230,7 @@ def start_animation(sprite: "cw.sprite.base.CWPySprite", anitype: str) -> None:
 
 
 def _get_skipstatus(clearevent: bool) -> bool:
-    if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein()):
+    if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.K_RETURN) or cw.cwpy.keyevent.is_mousein()):
         cw.cwpy.cut_animation = True
         return True
 
@@ -239,14 +238,10 @@ def _get_skipstatus(clearevent: bool) -> bool:
         return False
 
     breakflag = False
-    events = pygame.event.get((pygame.locals.MOUSEBUTTONDOWN,
-                               pygame.locals.MOUSEBUTTONUP,
-                               pygame.locals.KEYDOWN,
-                               pygame.locals.KEYUP))
+    events = pygame.event.get((pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.KEYDOWN, pygame.KEYUP))
     for e in events:
-        if e.type in (pygame.locals.MOUSEBUTTONDOWN, pygame.locals.MOUSEBUTTONUP,
-                      pygame.locals.KEYDOWN, pygame.locals.KEYUP):
-            if e.type in (pygame.locals.MOUSEBUTTONUP, pygame.locals.MOUSEBUTTONDOWN) and hasattr(e, "button"):
+        if e.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.KEYDOWN, pygame.KEYUP):
+            if e.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEBUTTONDOWN) and hasattr(e, "button"):
                 if not cw.cwpy.setting.can_skipwait_with_wheel and e.button in (4, 5):
                     # ホイールによる空白時間スキップ無効の設定
                     cw.thread.post_pygameevent(e)
@@ -257,7 +252,7 @@ def _get_skipstatus(clearevent: bool) -> bool:
     if not breakflag:
         breakflag = bool(cw.cwpy.event.get_event() and cw.cwpy.event.is_stoped())
 
-    if breakflag or cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein():
+    if breakflag or cw.cwpy.keyevent.is_keyin(pygame.K_RETURN) or cw.cwpy.keyevent.is_mousein():
         return True
 
     return False

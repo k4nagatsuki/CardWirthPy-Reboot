@@ -3,7 +3,6 @@
 
 import os
 import pygame
-import pygame.locals
 
 import cw
 from . import base
@@ -16,7 +15,7 @@ class Bill(object):
     def __init__(self, header: cw.header.ScenarioHeader) -> None:
         self.header = header
         self.selections: List[cw.sprite.message.SelectionBar] = []
-        self.specialchars: Dict[str, Tuple[pygame.Surface, bool]] = {}
+        self.specialchars: Dict[str, Tuple[pygame.surface.Surface, bool]] = {}
 
         self._bgs = {}
         self._bmps = {}
@@ -43,10 +42,10 @@ class Bill(object):
         h = size[1] + self._yp_noscale*2
         self.rect_noscale = pygame.Rect((cw.SIZE_AREA[0]-w) // 2, (cw.SIZE_AREA[1]-h) // 2, w, h)
 
-    def create_image(self) -> Tuple[pygame.Surface, Tuple[int, int]]:
+    def create_image(self) -> Tuple[pygame.surface.Surface, pygame.rect.Rect]:
         up_scr = cw.UP_SCR
-        subimg: Optional[pygame.Surface] = None
-        bmps: Optional[Tuple[List[pygame.Surface], List[cw.image.ImageInfo]]] = None
+        subimg: Optional[pygame.surface.Surface] = None
+        bmps: Optional[Tuple[List[pygame.surface.Surface], List[cw.image.ImageInfo]]] = None
         while 1 <= up_scr:
             if not subimg:
                 subimg = self._bgs.get(up_scr, None)
@@ -82,7 +81,7 @@ class Bill(object):
         s = self.header.name
         subimg1 = font.render(s, True, (0, 0, 0))
         subimg2 = font.render(s, True, (255, 255, 255))
-        subimg2.fill((255, 255, 255, 128), special_flags=pygame.locals.BLEND_RGBA_MULT)
+        subimg2.fill((255, 255, 255, 128), special_flags=pygame.BLEND_RGBA_MULT)
         w, h = subimg1.get_size()
         maxwidth = bmpw - cw.s(5)*2
         if maxwidth < w:

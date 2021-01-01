@@ -17,7 +17,6 @@ import configparser
 import time
 import wx
 import pygame
-import pygame.locals
 
 import cw
 
@@ -1778,19 +1777,19 @@ class Resource(object):
     facenames_lower: Set[str]
     fontnames_init: Dict[str, str]
     facenames_init: Dict[str, str]
-    cardbgs: "ResourceTable[str, pygame.Surface]"
+    cardbgs: "ResourceTable[str, pygame.surface.Surface]"
     wxcardbgs: "ResourceTable[str, wx.Bitmap]"
-    statuses: "ResourceTable[str, pygame.Surface]"
-    stones: "ResourceTable[str, pygame.Surface]"
+    statuses: "ResourceTable[str, pygame.surface.Surface]"
+    stones: "ResourceTable[str, pygame.surface.Surface]"
     wxstones: "ResourceTable[str, wx.Bitmap]"
     cardnamecolorhints: "ResourceTable[str, int]"
     dialogs: "ResourceTable[str, wx.Bitmap]"
-    pygamedialogs: "ResourceTable[str, pygame.Surface]"
+    pygamedialogs: "ResourceTable[str, pygame.surface.Surface]"
     buttons: "ResourceTable[str, wx.Bitmap]"
     debugs: "ResourceTable[str, wx.Bitmap]"
-    pygamedebugs: "ResourceTable[str, pygame.Surface]"
+    pygamedebugs: "ResourceTable[str, pygame.surface.Surface]"
     cursors: "ResourceTable[str, wx.Cursor]"
-    specialchars: "ResourceTable[str, Tuple[pygame.Surface, bool]]"
+    specialchars: "ResourceTable[str, Tuple[pygame.surface.Surface, bool]]"
     specialchars_is_changed: bool
 
     def __init__(self, setting: Optional[Setting]) -> None:
@@ -1848,9 +1847,9 @@ class Resource(object):
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts, self.msg_exfonts = self.create_fonts()
         # StatusBarで使用するボタンイメージ
-        self._statusbtnbmp0: Dict[int, pygame.Surface] = {}
-        self._statusbtnbmp1: Dict[int, pygame.Surface] = {}
-        self._statusbtnbmp2: Dict[int, pygame.Surface] = {}
+        self._statusbtnbmp0: Dict[int, pygame.surface.Surface] = {}
+        self._statusbtnbmp1: Dict[int, pygame.surface.Surface] = {}
+        self._statusbtnbmp2: Dict[int, pygame.surface.Surface] = {}
 
         self.actioncards: Dict[int, cw.header.CardHeader] = {}
         self.backpackcards: Dict[str, cw.header.CardHeader] = {}
@@ -2310,7 +2309,7 @@ class Resource(object):
 
     @staticmethod
     def create_cornerimg(rgb: Tuple[int, int, int])\
-            -> Tuple[pygame.Surface, pygame.Surface, pygame.Surface, pygame.Surface]:
+            -> Tuple[pygame.surface.Surface, pygame.surface.Surface, pygame.surface.Surface, pygame.surface.Surface]:
         r, g, b = rgb
         linedata = struct.pack(
             "BBBB BBBB BBBB BBBB BBBB BBBB"
@@ -2334,7 +2333,7 @@ class Resource(object):
         return topleft, topright, bottomleft, bottomright
 
     @staticmethod
-    def draw_frame(bmp: pygame.Surface, rect: pygame.Rect, color: Tuple[int, int, int]) -> None:
+    def draw_frame(bmp: pygame.surface.Surface, rect: pygame.rect.Rect, color: Tuple[int, int, int]) -> None:
         topleft, topright, bottomleft, bottomright = Resource.create_cornerimg(color)
         pygame.draw.rect(bmp, color, rect, 1)
         x, y, w, h = rect
@@ -2345,7 +2344,8 @@ class Resource(object):
         Resource.draw_corneroutimg(bmp, rect)
 
     @staticmethod
-    def draw_corneroutimg(bmp: pygame.Surface, rect: Optional[pygame.Rect] = None, outframe: int = 0) -> None:
+    def draw_corneroutimg(bmp: pygame.surface.Surface, rect: Optional[pygame.rect.Rect] = None,
+                          outframe: int = 0) -> None:
         outdata = struct.pack(
             "BBBB BBBB BBBB BBBB BBBB BBBB"
             "BBBB BBBB BBBB BBBB BBBB BBBB"
@@ -2369,22 +2369,22 @@ class Resource(object):
             rect = bmp.get_rect()
         x, y, w, h = rect
         o = outframe
-        bmp.blit(topleft, (x + o, y + o), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(topright, (x + w - 6 - o, y + o), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(bottomleft, (x + o, y + h - 6 - o), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(bottomright, (x + w - 6 - o, y + h - 6 - o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(topleft, (x + o, y + o), special_flags=pygame.BLEND_RGBA_SUB)
+        bmp.blit(topright, (x + w - 6 - o, y + o), special_flags=pygame.BLEND_RGBA_SUB)
+        bmp.blit(bottomleft, (x + o, y + h - 6 - o), special_flags=pygame.BLEND_RGBA_SUB)
+        bmp.blit(bottomright, (x + w - 6 - o, y + h - 6 - o), special_flags=pygame.BLEND_RGBA_SUB)
 
-    def _create_statusbtnbmp(self, w: int, h: int, flags: int = 0) -> pygame.Surface:
+    def _create_statusbtnbmp(self, w: int, h: int, flags: int = 0) -> pygame.surface.Surface:
         """ボタン風の画像を生成する。"""
         topleft, topright, bottomleft, bottomright = Resource.create_cornerimg((208, 208, 208))
 
         def subtract_corner(value: int) -> None:
             # 角部分の線の色を濃くする
             color = (value, value, value, 0)
-            topleft.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            topright.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            bottomleft.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            bottomright.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            topleft.fill(color, special_flags=pygame.BLEND_RGBA_SUB)
+            topright.fill(color, special_flags=pygame.BLEND_RGBA_SUB)
+            bottomleft.fill(color, special_flags=pygame.BLEND_RGBA_SUB)
+            bottomright.fill(color, special_flags=pygame.BLEND_RGBA_SUB)
 
         bmp = pygame.Surface((w, h)).convert_alpha()
 
@@ -2444,26 +2444,26 @@ class Resource(object):
         if flags & SB_EMPHASIZE:
             # 線の色を赤くする
             emcolor = (0, 128, 128, 0)
-            topleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            topright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            bottomleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            topleft.fill(emcolor, special_flags=pygame.BLEND_RGBA_SUB)
+            topright.fill(emcolor, special_flags=pygame.BLEND_RGBA_SUB)
+            bottomleft.fill(emcolor, special_flags=pygame.BLEND_RGBA_SUB)
+            bottomright.fill(emcolor, special_flags=pygame.BLEND_RGBA_SUB)
             color = (color[0], max(0, color[1] - 128), max(0, color[2] - 128))
 
             emcolor = (96, 0, 0, 0)
-            topleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
-            topright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
-            bottomleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
-            bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
+            topleft.fill(emcolor, special_flags=pygame.BLEND_RGBA_ADD)
+            topright.fill(emcolor, special_flags=pygame.BLEND_RGBA_ADD)
+            bottomleft.fill(emcolor, special_flags=pygame.BLEND_RGBA_ADD)
+            bottomright.fill(emcolor, special_flags=pygame.BLEND_RGBA_ADD)
             color = (min(255, color[0] + 96), color[1], color[2])
 
         if not (flags & SB_CURRENT) and not (flags & SB_DISABLE):
             opacity = 92
             lightcolor = (0, 0, 0, opacity)
-            topleft.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            topright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            bottomleft.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            bottomright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            topleft.fill(lightcolor, special_flags=pygame.BLEND_RGBA_SUB)
+            topright.fill(lightcolor, special_flags=pygame.BLEND_RGBA_SUB)
+            bottomleft.fill(lightcolor, special_flags=pygame.BLEND_RGBA_SUB)
+            bottomright.fill(lightcolor, special_flags=pygame.BLEND_RGBA_SUB)
             linecolor: Union[Tuple[int, int, int, int],
                              Tuple[int, int, int]] = (color[0], color[1], color[2], 255 - opacity)
         else:
@@ -2507,10 +2507,10 @@ class Resource(object):
 
         if flags & SB_NOTICE:
             if flags & SB_PRESSED:
-                bmp.fill((64, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                bmp.fill((64, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
             else:
-                bmp.fill((128, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
-            bmp.fill((0, 96, 96, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
+                bmp.fill((128, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+            bmp.fill((0, 96, 96, 0), special_flags=pygame.BLEND_RGBA_SUB)
 
         # 枠の外の部分を透明にする
         Resource.draw_corneroutimg(bmp, outframe=1)
@@ -2519,7 +2519,7 @@ class Resource(object):
 
         return bmp
 
-    def get_statusbtnbmp(self, sizetype: int, flags: int = 0) -> Optional[pygame.Surface]:
+    def get_statusbtnbmp(self, sizetype: int, flags: int = 0) -> Optional[pygame.surface.Surface]:
         """StatusBarで使用するボタン画像を取得する。
         sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
         flags: 0:通常, SB_PRESSED:押下時, SB_CURRENT:カーソル下,
@@ -2559,7 +2559,7 @@ class Resource(object):
         ファイル名から拡張子を除いたのがkey。
         """
 
-        def nokeyfunc(key: str) -> Union[pygame.Surface, wx.Bitmap]:
+        def nokeyfunc(key: str) -> Union[pygame.surface.Surface, wx.Bitmap]:
             dbg = not nodbg and key.endswith("_dbg")
             noscale = key.endswith("_noscale")
             up_scr = None
@@ -2608,12 +2608,12 @@ class Resource(object):
 
             if not noscale:
                 if not dbg and ss and key not in noresize:
-                    assert isinstance(res, (pygame.Surface, wx.Bitmap))
+                    assert isinstance(res, (pygame.surface.Surface, wx.Bitmap))
                     img = ss(res)
                     assert isinstance(img, type(res))
                     res = img
                 elif dbg and ss:
-                    assert isinstance(res, (pygame.Surface, wx.Bitmap))
+                    assert isinstance(res, (pygame.surface.Surface, wx.Bitmap))
                     img = cw.ppis(res)
                     assert isinstance(img, type(res))
                     res = img
@@ -2662,7 +2662,7 @@ class Resource(object):
         """
         return setting.msgs
 
-    def get_buttons(self) -> "ResourceTable[str, pygame.Surface]":
+    def get_buttons(self) -> "ResourceTable[str, pygame.surface.Surface]":
         """
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2700,7 +2700,7 @@ class Resource(object):
                                           nokeyfunc=get_cursor)
         return d
 
-    def get_stones(self) -> "ResourceTable[str, pygame.Surface]":
+    def get_stones(self) -> "ResourceTable[str, pygame.surface.Surface]":
         """
         適性・カード残り回数の画像を読み込んで、
         pygameのサーフェスの辞書で返す。
@@ -2732,7 +2732,7 @@ class Resource(object):
             emptyfunc = empty_image
 
         def load_image2(fpath: str, mask: bool = False, can_loaded_scaledimage: bool = True,
-                        up_scr: Optional[int] = None) -> pygame.Surface:
+                        up_scr: Optional[int] = None) -> pygame.surface.Surface:
             fname = os.path.basename(fpath)
             key = cw.util.splitext(fname)[0]
             if key in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
@@ -2757,7 +2757,7 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_dialogs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.Surface]":
+    def get_dialogs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.surface.Surface]":
         """
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
@@ -2770,7 +2770,7 @@ class Resource(object):
             emptyfunc = empty_image
 
         def load_image2(fpath: str, mask: bool = False, can_loaded_scaledimage: bool = True,
-                        up_scr: Optional[int] = None) -> pygame.Surface:
+                        up_scr: Optional[int] = None) -> pygame.surface.Surface:
             fname = os.path.basename(fpath)
             key = cw.util.splitext(fname)[0]
             if key in ("LINK", "MONEYY"):
@@ -2812,7 +2812,7 @@ class Resource(object):
         return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res,
                                   can_loaded_scaledimage=can_loaded_scaledimage)
 
-    def get_cardbgs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.Surface]":
+    def get_cardbgs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.surface.Surface]":
         """
         カードの背景画像を読み込んで、pygameのサーフェス
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
@@ -2826,7 +2826,7 @@ class Resource(object):
             emptyfunc = empty_image
 
         def load_image2(fpath: str, mask: bool = False, can_loaded_scaledimage: bool = True,
-                        up_scr: Optional[int] = None) -> pygame.Surface:
+                        up_scr: Optional[int] = None) -> pygame.surface.Surface:
             fname = os.path.basename(fpath)
             key = cw.util.splitext(fname)[0]
             if key in ("HOLD", "PENALTY"):
@@ -2855,7 +2855,7 @@ class Resource(object):
             func(key)
         return d
 
-    def calc_cardnamecolorhint(self, bmp: pygame.Surface) -> int:
+    def calc_cardnamecolorhint(self, bmp: pygame.surface.Surface) -> int:
         """文字描画領域の色を平均化した値を返す。
         """
         if bmp.get_width() <= cw.s(10) or bmp.get_height() <= cw.s(20):
@@ -2913,7 +2913,7 @@ class Resource(object):
             d[cardtype] = cw.header.CardHeader(carddata=carddata, bgtype=cardtype.upper().replace("CARD", ""))
         return d
 
-    def get_specialchars(self) -> "ResourceTable[str, Tuple[pygame.Surface, bool]]":
+    def get_specialchars(self) -> "ResourceTable[str, Tuple[pygame.surface.Surface, bool]]":
         """
         特殊文字の画像を読み込んで、
         pygameのサーフェスの辞書で返す(特殊文字がkey)
@@ -2941,9 +2941,9 @@ class Resource(object):
                  "ZAP": "#z",
                  }
 
-        d = ResourceTable[str, Tuple[pygame.Surface, bool]]("Resource/Image/Font", {}, empty_image)
+        d = ResourceTable[str, Tuple[pygame.surface.Surface, bool]]("Resource/Image/Font", {}, empty_image)
 
-        def load(key: str, name: str) -> Tuple[pygame.Surface, bool]:
+        def load(key: str, name: str) -> Tuple[pygame.surface.Surface, bool]:
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
             image = cw.util.load_image(fpath, mask=True, can_loaded_scaledimage=True)
             return image, False
@@ -3230,10 +3230,10 @@ def empty_wxbmp() -> wx.Bitmap:
     return image.ConvertToBitmap()
 
 
-def empty_image() -> pygame.Surface:
+def empty_image() -> pygame.surface.Surface:
     """空のpygame.Surfaceを返す。"""
     image = pygame.Surface((1, 1)).convert()
-    image.set_colorkey(image.get_at((0, 0)), pygame.locals.RLEACCEL)
+    image.set_colorkey(image.get_at((0, 0)), pygame.RLEACCEL)
     return image
 
 
