@@ -1,5 +1,5 @@
 lhafile
-pygame
+pygame==1.9.6
 #pypiwin32
 #pywin32
 #wxPython
