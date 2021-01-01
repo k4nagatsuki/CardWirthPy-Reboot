@@ -57,11 +57,11 @@ class CardHeader(object):
 
     star: int
     deal_per: int
-    wxrect: pygame.Rect
+    wxrect: pygame.rect.Rect
     negaflag: bool
     clickedflag: bool
     textpos: Tuple[int, int]
-    subrect: pygame.Rect
+    subrect: pygame.rect.Rect
 
     def __init__(self, data: Optional[cw.data.CWPyElement] = None, owner: Optional["cw.character.Character"] = None,
                  carddata: Optional[cw.data.CWPyElement] = None, from_scenario: bool = False, scedir: str = "",
@@ -366,7 +366,7 @@ class CardHeader(object):
     def get_cardwxbmp(self, test_aptitude: Optional["cw.sprite.card.PlayerCard"] = None) -> wx.Bitmap:
         return self.cardimg.get_cardwxbmp(self, test_aptitude=test_aptitude)
 
-    def get_cardimg(self) -> pygame.Surface:
+    def get_cardimg(self) -> pygame.surface.Surface:
         return self.cardimg.get_cardimg(self)
 
     def set_resetvariables(self, resetvariables: bool) -> None:
@@ -1089,7 +1089,7 @@ class InfoCardHeader(object):
     author: str
 
     deal_per: int
-    wxrect: pygame.Rect
+    wxrect: pygame.rect.Rect
     negaflag: bool
     clickedflag: bool
 
@@ -1141,7 +1141,7 @@ class InfoCardHeader(object):
         else:
             return self.cardimg.get_wxbmp()
 
-    def get_cardimg(self) -> pygame.Surface:
+    def get_cardimg(self) -> pygame.surface.Surface:
         if self.negaflag:
             return self.cardimg.get_negaimg()
         else:
@@ -1602,7 +1602,8 @@ class ScenarioHeader(object):
         return self._wxbmps, self._wxbmps_noscale, self._imginfos
 
     def get_bmps(self, mask: bool = True,
-                 up_scr: Optional[float] = None) -> Optional[Tuple[List[pygame.Surface], List["cw.image.ImageInfo"]]]:
+                 up_scr: Optional[float] = None) -> Optional[Tuple[List[pygame.surface.Surface],
+                                                                   List["cw.image.ImageInfo"]]]:
         """
         スケールありの見出しイメージ(pygame.Surface)、スケール情報を返す。
         指定スケールのイメージが存在しない場合はNoneを返す。

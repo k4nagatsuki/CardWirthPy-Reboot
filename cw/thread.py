@@ -13,7 +13,7 @@ import re
 import math
 import wx
 import pygame
-from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
+from pygame import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
 from cw.util import synclock
@@ -307,7 +307,7 @@ class CWPy(threading.Thread):
         # 遅延再描画を行う場合はTrue
         self._lazy_draw = False
         # 次の描画処理で再描画するべき領域
-        self._lazy_clip: Optional[pygame.Rect] = None
+        self._lazy_clip: Optional[pygame.rect.Rect] = None
 
         # 時間経過処理中か
         self._elapse_time = False
@@ -1091,7 +1091,7 @@ class CWPy(threading.Thread):
         while i < count:
             if canskip:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if self.keyevent.is_keyin(pygame.locals.K_RETURN) or self.keyevent.is_mousein():
+                if self.keyevent.is_keyin(pygame.K_RETURN) or self.keyevent.is_mousein():
                     skip = True
                     break
 
@@ -1118,18 +1118,16 @@ class CWPy(threading.Thread):
             return True
         breakflag = False
         self.keyevent.peek_mousestate()
-        events = pygame.event.get((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
+        events = pygame.event.get((pygame.MOUSEBUTTONUP, pygame.KEYUP))
         for e in events:
-            if e.type in (pygame.locals.MOUSEBUTTONUP, pygame.locals.MOUSEBUTTONDOWN) and hasattr(e, "button"):
+            if e.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEBUTTONDOWN) and hasattr(e, "button"):
                 if not handle_wheel and e.button in (4, 5):
                     # ホイールによる空白時間スキップ無効の設定
                     continue
                 breakflag = True
-            elif e.type == pygame.locals.KEYUP:
-                if e.key in (pygame.locals.K_RETURN, pygame.locals.K_SPACE, pygame.locals.K_UP,
-                             pygame.locals.K_DOWN, pygame.locals.K_LEFT, pygame.locals.K_RIGHT,
-                             pygame.locals.K_PAGEUP, pygame.locals.K_PAGEDOWN,
-                             pygame.locals.K_HOME, pygame.locals.K_END):
+            elif e.type == pygame.KEYUP:
+                if e.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT,
+                             pygame.K_PAGEUP, pygame.K_PAGEDOWN, pygame.K_HOME, pygame.K_END):
                     breakflag = True
             cw.thread.post_pygameevent(e)
         return breakflag
@@ -1279,7 +1277,7 @@ class CWPy(threading.Thread):
             self.mousepos = (-1, -1)
         return True
 
-    def update(self) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if not self.statusbar:
             return
 
@@ -1333,7 +1331,7 @@ class CWPy(threading.Thread):
 
         self.update_groups((self.cardgrp, self.topgrp, self.sbargrp))
 
-    def update_statusimgs(self, is_runningevent: bool, clip: Optional[pygame.Rect] = None) -> pygame.Rect:
+    def update_statusimgs(self, is_runningevent: bool, clip: Optional[pygame.rect.Rect] = None) -> pygame.rect.Rect:
         """
         キャラクターのステータス時間の表示の更新が必要であれば更新する。
         """
@@ -1358,7 +1356,7 @@ class CWPy(threading.Thread):
         pointed_tile = self.pointed_tile
 
         for group in groups:
-            group.update(self.scr_draw)
+            group.update()
 
         if pointed_tile and self.pointed_tile is None:
             self.index = -1
@@ -1488,7 +1486,7 @@ class CWPy(threading.Thread):
             sprite.frame = 0
             self.animations.remove(sprite)
 
-    def draw_to(self, scr: pygame.Surface, draw_desc: bool) -> List[pygame.Rect]:
+    def draw_to(self, scr: pygame.surface.Surface, draw_desc: bool) -> List[pygame.rect.Rect]:
         dirty_rects = cw.sprite.background.layered_draw_ex(self.cardgrp, scr)
 
         dirty_rects.extend(self.topgrp.draw(scr))
@@ -1507,11 +1505,11 @@ class CWPy(threading.Thread):
         if self._lazy_draw:
             self.draw()
 
-    def add_lazydraw(self, clip: pygame.Rect) -> None:
+    def add_lazydraw(self, clip: pygame.rect.Rect) -> None:
         if self._lazy_clip:
             self._lazy_clip.union_ip(clip)
         else:
-            self._lazy_clip = pygame.Rect(clip)
+            self._lazy_clip = pygame.rect.Rect(clip)
         self._lazy_draw = True
 
     def stop_the_world_with_iconized(self) -> None:
@@ -1521,7 +1519,7 @@ class CWPy(threading.Thread):
             self.get_eventhandler().run()
             self.clock.tick(1000)
 
-    def draw(self, mainloop: bool = False, clip: Optional[pygame.Rect] = None) -> None:
+    def draw(self, mainloop: bool = False, clip: Optional[pygame.rect.Rect] = None) -> None:
         self.stop_the_world_with_iconized()
         if not (clip or self._lazy_draw):
             return
@@ -1556,7 +1554,7 @@ class CWPy(threading.Thread):
             else:
                 scale = cw.image.smoothscale
 
-            def update_clip(scale: float) -> pygame.Rect:
+            def update_clip(scale: float) -> pygame.rect.Rect:
                 assert clip
                 clx = int(clip.left * scale) - 2
                 cly = int(clip.top * scale) - 2
@@ -1667,7 +1665,7 @@ class CWPy(threading.Thread):
             self.scr_fullscreen.blit(sur, (x, y))
             self.add_lazydraw(clip=self._get_fullclip())
 
-    def _get_fullclip(self) -> pygame.Rect:
+    def _get_fullclip(self) -> pygame.rect.Rect:
         assert self.scr_fullscreen
         return cw.win2scr_s(pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), (self.scr_fullscreen.get_size())))
 
@@ -2494,7 +2492,7 @@ class CWPy(threading.Thread):
         タイトル画面へ遷移する。"""
         seq = []
         for event in self.events:
-            if event.type in (pygame.locals.USEREVENT, cw.FORCE_USEREVENT):
+            if event.type in (pygame.USEREVENT, cw.FORCE_USEREVENT):
                 seq.append(event)
         self.events = seq
         self.cut_animation = False
@@ -4003,7 +4001,7 @@ class CWPy(threading.Thread):
         elif not self.sdata.in_f9:
             self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
             self.force_dealspeed = force_dealspeed
-            if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
+            if not startbattle and not pygame.event.peek(pygame.USEREVENT):
                 self.show_party()
 
             if self._need_disposition and not silent:
@@ -4464,10 +4462,10 @@ class CWPy(threading.Thread):
 
         self.topgrp.empty()
 
-        def get_image() -> pygame.Surface:
+        def get_image() -> pygame.surface.Surface:
             return self.rsrc.pygamedialogs["REPLACE_POSITION"]
 
-        def get_selimage() -> pygame.Surface:
+        def get_selimage() -> pygame.surface.Surface:
             bmp = self.rsrc.pygamedialogs["REPLACE_POSITION"].convert_alpha()
             return cw.imageretouch.add_lightness(bmp, 64)
 
@@ -4530,10 +4528,10 @@ class CWPy(threading.Thread):
             cw.sprite.background.NumberOfCards(pcard, cardtype, self.topgrp)
 
         # カード交換用スプライト
-        def get_image() -> pygame.Surface:
+        def get_image() -> pygame.surface.Surface:
             return self.rsrc.pygamedialogs["REPLACE_CARDS"]
 
-        def get_selimage() -> pygame.Surface:
+        def get_selimage() -> pygame.surface.Surface:
             bmp = self.rsrc.pygamedialogs["REPLACE_CARDS"].convert_alpha()
             return cw.imageretouch.add_lightness(bmp, 64)
         bmp = self.rsrc.pygamedialogs["REPLACE_CARDS_noscale"]
@@ -4575,10 +4573,10 @@ class CWPy(threading.Thread):
 
         if cw.cwpy.setting.show_personal_cards:
             # 荷物袋カード私有スプライト
-            def get_image_personal() -> pygame.Surface:
+            def get_image_personal() -> pygame.surface.Surface:
                 return self.rsrc.pygamedialogs["TO_PERSONAL_POCKET"]
 
-            def get_selimage_personal() -> pygame.Surface:
+            def get_selimage_personal() -> pygame.surface.Surface:
                 bmp = self.rsrc.pygamedialogs["TO_PERSONAL_POCKET"].convert_alpha()
                 return cw.imageretouch.add_lightness(bmp, 64)
             bmp = self.rsrc.pygamedialogs["TO_PERSONAL_POCKET_noscale"]
@@ -4926,7 +4924,7 @@ class CWPy(threading.Thread):
             return False
         return bool(
             self.lock_menucards or self.is_showingdlg() or
-            pygame.event.peek(pygame.locals.USEREVENT) or
+            pygame.event.peek(pygame.USEREVENT) or
             self.is_showingbacklog()
         )
 

@@ -4,7 +4,6 @@
 import itertools
 
 import pygame
-import pygame.locals
 
 import cw
 
@@ -477,8 +476,8 @@ class EventInterface(object):
             return
 
         # 一部のイベント実行
-        if pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) or (self.eventtimer % 1000 == 0 and
-                                                                                pygame.event.peek()):
+        if pygame.event.peek((pygame.USEREVENT, cw.FORCE_USEREVENT)) or (self.eventtimer % 1000 == 0 and
+                                                                         pygame.event.peek()):
             cw.cwpy.update_groups((cw.cwpy.sbargrp,))
             cw.cwpy.input()
             cw.cwpy.get_eventhandler().run()
@@ -783,7 +782,7 @@ class Event(object):
         # 実行後に互換性情報を書き戻す必要があれば設定
         self._versionhint_base: Optional[Tuple[int, Optional[Tuple[str, str, bool, bool, bool]]]] = None
 
-        self._stored_specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]] = None
+        self._stored_specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]]] = None
 
         # ローカル変数(Wsn.4)
         self.flags: Dict[str, cw.data.Flag] = {}

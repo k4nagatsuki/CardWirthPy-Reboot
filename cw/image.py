@@ -7,7 +7,6 @@ import threading
 import io
 import wx
 import pygame
-import pygame.locals
 
 import cw
 
@@ -46,7 +45,7 @@ class ImageInfo(object):
             e.set("positiontype", self.postype)
 
     def calc_basecardposition(self, params: Tuple[int, int], noscale: bool = False, basecardtype: Optional[str] = None,
-                              cardpostype: Optional[str] = None) -> pygame.Rect:
+                              cardpostype: Optional[str] = None) -> pygame.rect.Rect:
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
@@ -61,7 +60,7 @@ class ImageInfo(object):
         return self._calc_basecardposition_impl(imgwidth, imgheight, noscale, basecardtype, cardpostype, cw.s, getsize)
 
     def calc_basecardposition_wx(self, imgsize: wx.Size, noscale: bool = False, basecardtype: Optional[str] = None,
-                                 cardpostype: Optional[str] = None) -> pygame.Rect:
+                                 cardpostype: Optional[str] = None) -> pygame.rect.Rect:
         """カードに配置した時の描画位置を返す。
         ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
         """
@@ -78,7 +77,7 @@ class ImageInfo(object):
 
     def _calc_basecardposition_impl(self, imgwidth: int, imgheight: int, noscale: bool, basecardtype: Optional[str],
                                     cardpostype: Optional[str], ss: Callable[["cw.Scalable"], "cw.Scalable"],
-                                    getsize: Callable[[str], Tuple[int, int]]) -> pygame.Rect:
+                                    getsize: Callable[[str], Tuple[int, int]]) -> pygame.rect.Rect:
         if self.basecardtype:
             basecardtype = self.basecardtype
 
@@ -224,13 +223,13 @@ def get_imageinfos_p(prop: "cw.header.GetProperty", pcnumber: bool = False) -> L
 
 
 class Image(object):
-    def __init__(self, image: pygame.Surface) -> None:
+    def __init__(self, image: pygame.surface.Surface) -> None:
         self.image = image
 
-    def get_image(self) -> pygame.Surface:
+    def get_image(self) -> pygame.surface.Surface:
         return self.image
 
-    def get_negaimg(self) -> pygame.Surface:
+    def get_negaimg(self) -> pygame.surface.Surface:
         image = self.get_image()
         return cw.imageretouch.to_negative(image)
 
@@ -240,7 +239,7 @@ class Image(object):
 # ------------------------------------------------------------------------------
 
 class CardImage(Image):
-    rect: pygame.Rect
+    rect: pygame.rect.Rect
 
     def __init__(self, paths: List[ImageInfo], bgtype: str, name: str = "", premium: str = "",
                  can_loaded_scaledimage: Union[bool, List[bool]] = False,
@@ -304,7 +303,7 @@ class CardImage(Image):
         return cw.cwpy.rsrc.wxcardbgs[self.bgtype]
 
     @property
-    def wxrect(self) -> pygame.Rect:
+    def wxrect(self) -> pygame.rect.Rect:
         wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
         return pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
@@ -327,7 +326,7 @@ class CardImage(Image):
                 return True
         return False
 
-    def get_image(self) -> pygame.Surface:
+    def get_image(self) -> pygame.surface.Surface:
         if self._bmp and not self.is_modifiedfile():
             return self._bmp.copy()
 
@@ -398,9 +397,9 @@ class CardImage(Image):
             if cw.cwpy.setting.bordering_cardname:
                 subimg2 = subimg.convert_alpha()
                 if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
-                    subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
+                    subimg2.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_SUB)
                 else:
-                    subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                    subimg2.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_ADD)
                 subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
                 for x in range(cw.s(5)-1, cw.s(5)+2):
                     for y in range(cw.s(5)-1, cw.s(5)+2):
@@ -411,7 +410,7 @@ class CardImage(Image):
         self._bmp = image.copy()
         return image
 
-    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.Surface:
+    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.surface.Surface:
         if header.negaflag:
             image = self.get_negaimg()
         else:
@@ -513,13 +512,13 @@ class CardImage(Image):
 
         return image
 
-    def get_negaimg(self) -> pygame.Surface:
+    def get_negaimg(self) -> pygame.surface.Surface:
         # カード画像の外枠は色反転しない
         image = self.get_image()
         return cw.imageretouch.to_negative_for_card(image)
 
-    def get_clickedimg(self, rect: Optional[pygame.Rect] = None,
-                       image: Optional[pygame.Surface] = None) -> pygame.Surface:
+    def get_clickedimg(self, rect: Optional[pygame.rect.Rect] = None,
+                       image: Optional[pygame.surface.Surface] = None) -> pygame.surface.Surface:
         if not rect:
             rect = self.rect
 
@@ -776,7 +775,7 @@ class LargeCardImage(CardImage):
         CardImage.__init__(self, paths, "LARGE", name, premium, can_loaded_scaledimage, is_scenariocard,
                            scedir=scedir, anotherscenariocard=anotherscenariocard)
 
-    def get_image(self) -> pygame.Surface:
+    def get_image(self) -> pygame.surface.Surface:
         image = self.cardbg.copy()
         if image.get_bitsize() == 32 and image.get_alpha() == 0:
             # BUG: なぜか32-bitイメージのα値が0になっているケースがある
@@ -837,7 +836,7 @@ class LargeCardImage(CardImage):
 
             if cw.cwpy.setting.bordering_cardname:
                 subimg2 = subimg.convert_alpha()
-                subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                subimg2.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_ADD)
                 subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
                 for x in range(cw.s(5)-1, cw.s(5)+2):
                     for y in range(cw.s(5)-1, cw.s(5)+2):
@@ -1010,7 +1009,7 @@ class CharacterCardImage(CardImage):
             if font.get_italic():
                 overhang = max(overhang, size[0] - font.size_withoutoverhang(c)[0])
         size = (w, h)
-        self.levelimg = pygame.Surface(size, pygame.locals.SRCALPHA).convert_alpha()
+        self.levelimg = pygame.Surface(size, pygame.SRCALPHA).convert_alpha()
 
         w -= overhang
         s = str(level)
@@ -1104,7 +1103,7 @@ class CharacterCardImage(CardImage):
             if cw.cwpy.setting.bordering_cardname:
                 nameimg1 = self.nameimg
                 nameimg2 = self.nameimg.convert_alpha()
-                nameimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                nameimg2.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_ADD)
                 if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
                     nameimg1, nameimg2 = nameimg2, nameimg1
                     nameimg2 = nameimg2.convert_alpha()
@@ -1117,14 +1116,14 @@ class CharacterCardImage(CardImage):
             else:
                 if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
                     nameimg = self.nameimg.copy()
-                    nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                    nameimg.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_ADD)
                 else:
                     nameimg = self.nameimg
                 self.image.blit(nameimg, cw.s((5, 5)))
 
         # ライフバー
         if ccard.is_analyzable() and not ccard.is_unconscious():
-            def calc_barpos(guage: pygame.Surface) -> Tuple[int, int]:
+            def calc_barpos(guage: pygame.surface.Surface) -> Tuple[int, int]:
                 w, h = guage.get_size()
                 lifeper = float(ccard.life) / ccard.maxlife
                 barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
@@ -1143,17 +1142,17 @@ class CharacterCardImage(CardImage):
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
                 lifemask = lifemask.convert_alpha()
-                lifemask.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_MAX)
-                lifeimg.blit(lifemask, (0, 0), special_flags=pygame.locals.BLEND_RGBA_MULT)
+                lifemask.fill((255, 255, 255, 0), special_flags=pygame.BLEND_RGBA_MAX)
+                lifeimg.blit(lifemask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
             else:
                 # LIFEGUAGEは(5, 5)の位置をマスク色とする。CardWirthのライフバーイメージと互換性がある
                 guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
                 lifeimg = pygame.Surface(guage.get_size()).convert()
-                lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
+                lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.RLEACCEL)
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
 
-            self.lifeimg: pygame.Surface = lifeimg
+            self.lifeimg: pygame.surface.Surface = lifeimg
             self.image.blit(lifeimg, cw.s((8, 110)))
 
         if header:
@@ -1170,12 +1169,12 @@ class CharacterCardImage(CardImage):
     def update_statusimg(self, ccard: Union["cw.sprite.card.PlayerCard",
                                             "cw.sprite.card.EnemyCard",
                                             "cw.sprite.card.FriendCard"],
-                         is_runningevent: Optional[bool] = None) -> Optional[pygame.Rect]:
+                         is_runningevent: Optional[bool] = None) -> Optional[pygame.rect.Rect]:
         """
         イメージのステータスアイコンを更新する。
         """
         self.image = self._no_statusimg.copy()
-        seq: List[Union[pygame.Surface, Tuple[Tuple[int, int, int], Tuple[int, int]]]] = []
+        seq: List[Union[pygame.surface.Surface, Tuple[Tuple[int, int, int], Tuple[int, int]]]] = []
         az = ccard.is_analyzable()
 
         beastnum = ccard.has_beast()
@@ -1250,7 +1249,7 @@ class CharacterCardImage(CardImage):
         index = 0
         for subimg in seq:
             pos = (x + index // 5 * cw.s(17), y - index * cw.s(17) + index // 5 * cw.s(85))
-            if isinstance(subimg, pygame.Surface):
+            if isinstance(subimg, pygame.surface.Surface):
                 self.image.blit(subimg, pos)
                 index += 1
                 size = subimg.get_size()
@@ -1266,8 +1265,8 @@ class CharacterCardImage(CardImage):
 
         return clip
 
-    def _put_number(self, image: pygame.Surface, num: int, always: bool = False,
-                    is_runningevent: Optional[bool] = None) -> pygame.Surface:
+    def _put_number(self, image: pygame.surface.Surface, num: int, always: bool = False,
+                    is_runningevent: Optional[bool] = None) -> pygame.surface.Surface:
         if is_runningevent is None:
             is_runningevent = cw.cwpy.is_runningevent()
         is_runningevent = bool(is_runningevent)
@@ -1281,7 +1280,7 @@ class CharacterCardImage(CardImage):
             image = cw.util.put_number(image, num)
         return image
 
-    def _put_enhanceimg(self, seq: List[Tuple[Tuple[int, int, int], Tuple[int, int]]], bmp: pygame.Surface,
+    def _put_enhanceimg(self, seq: List[Tuple[Tuple[int, int, int], Tuple[int, int]]], bmp: pygame.surface.Surface,
                         value: int, duration: int, is_runningevent: Optional[bool]) -> None:
         size = (bmp.get_width(), bmp.get_height())
         if value >= 10:
@@ -1321,10 +1320,10 @@ class CharacterCardImage(CardImage):
         else:
             return "LARGE"   # 正常
 
-    def get_image(self) -> pygame.Surface:
+    def get_image(self) -> pygame.surface.Surface:
         return self.image
 
-    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.Surface:
+    def get_cardimg(self, header: cw.header.CardHeader) -> pygame.surface.Surface:
         return self.get_image()
 
 
@@ -1334,7 +1333,8 @@ class CharacterCardImage(CardImage):
 
 def create_type2textcell(text: str, face: str, size: int, color: Tuple[int, int, int],
                          bold: bool, italic: bool, uline: bool, sline: bool, vertical: bool, antialias: bool,
-                         cellsize: Tuple[int, int], bcolor: Tuple[int, int, int], bwidth: int) -> pygame.Surface:
+                         cellsize: Tuple[int, int], bcolor: Tuple[int, int, int],
+                         bwidth: int) -> pygame.surface.Surface:
     """縁取りType2のテキストセルを作成する。
     """
     if antialias:
@@ -1395,7 +1395,7 @@ def create_type2textcell(text: str, face: str, size: int, color: Tuple[int, int,
     return img
 
 
-def draw_textcell(image: pygame.Surface, rect: pygame.Rect, text: str, face: str, size: int,
+def draw_textcell(image: pygame.surface.Surface, rect: pygame.rect.Rect, text: str, face: str, size: int,
                   color: Tuple[int, int, int], bold: bool, italic: bool, uline: bool, sline: bool, vertical: bool,
                   antialias: bool, bcolor: Optional[Tuple[int, int, int]] = None) -> None:
     """縁取りType2以外のテキストセルを描画する。
@@ -1458,7 +1458,7 @@ def get_textcellfont(size: int, face: str, color: Tuple[int, int, int], bold: bo
 
 
 def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], gradient: str,
-                     color2: Tuple[int, int, int, int]) -> pygame.Surface:
+                     color2: Tuple[int, int, int, int]) -> pygame.surface.Surface:
     """ブレンド前のカラーセルを生成し、
     pygame.Surfaceのインスタンスを返す。
     size: セルのサイズ
@@ -1510,7 +1510,7 @@ def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], g
 # ユーティリティ
 # ------------------------------------------------------------------------------
 
-def zoomcard(image: pygame.Surface, scale: float) -> pygame.Surface:
+def zoomcard(image: pygame.surface.Surface, scale: float) -> pygame.surface.Surface:
     """カードをリサイズする。"""
     if scale == 1.0:
         return image
@@ -1525,12 +1525,13 @@ def zoomcard(image: pygame.Surface, scale: float) -> pygame.Surface:
     return smoothscale(image, (w, h), smoothing=smoothing, iscard=True)
 
 
-def smoothscale_card(surface: pygame.Surface, size: Tuple[int, int], smoothing: bool = True) -> pygame.Surface:
+def smoothscale_card(surface: pygame.surface.Surface, size: Tuple[int, int],
+                     smoothing: bool = True) -> pygame.surface.Surface:
     return smoothscale(surface, size, smoothing=smoothing, iscard=True)
 
 
-def smoothscale(surface: pygame.Surface, size: Tuple[int, int], smoothing: bool = True,
-                iscard: bool = False) -> pygame.Surface:
+def smoothscale(surface: pygame.surface.Surface, size: Tuple[int, int], smoothing: bool = True,
+                iscard: bool = False) -> pygame.surface.Surface:
     """surfaceをリサイズする。
     可能であればスムージングする。
     """
@@ -1692,9 +1693,8 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
     return data, True
 
 
-def conv2wximage(image: pygame.Surface, biBitCount: int) -> wx.Image:
+def conv2wximage(image: pygame.surface.Surface, biBitCount: int) -> wx.Image:
     """pygame.Surfaceをwx.Bitmapに変換する。
-    image: pygame.Surface
     """
     w, h = image.get_size()
 

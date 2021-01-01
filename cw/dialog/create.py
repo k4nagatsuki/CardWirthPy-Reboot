@@ -752,9 +752,9 @@ class AdventurerCreaterPage(wx.Panel, Generic[_KeyType]):
         self.last_ctrls: List[wx.Control] = []
         # ツールチップヒント(wx.Rect, テキスト)
         self.tooltips: List[Tuple[wx.Rect, str]] = []
-        # key: name, value: (pygame.Rect, 実行するメソッド)の辞書
+        # key: name, value: (pygame.rect.Rect, 実行するメソッド)の辞書
         self.clickables: Dict[_KeyType,
-                              Tuple[pygame.Rect,
+                              Tuple[pygame.rect.Rect,
                                     Optional[Callable[[_KeyType], None]],
                                     Optional[Callable[[_KeyType, int], None]]]] = {}
         # キー操作で選択しているアイテム(name)

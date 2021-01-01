@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import pygame
-import pygame.locals
 
 import cw
 from . import base
 
+import typing
 from typing import Callable, Optional
 
 
@@ -16,7 +16,7 @@ class TouchButton(base.SelectableSprite):
     アイコン、ボタン名、簡単な解説を表示する。
     """
 
-    def __init__(self, icon: pygame.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
+    def __init__(self, icon: pygame.surface.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
                  is_enabled: Callable[[], bool], width: int = 0) -> None:
         assert func
         assert is_enabled
@@ -89,16 +89,16 @@ class TouchButton(base.SelectableSprite):
 
         self._unselectedimage = self.image
         self._selectedimage = self.image.copy()
-        self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+        self._selectedimage.fill((128, 128, 128), special_flags=pygame.BLEND_RGB_ADD)
         self._disabledimage = self.image.copy()
-        self._disabledimage.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+        self._disabledimage.fill((64, 64, 64), special_flags=pygame.BLEND_RGB_SUB)
         if not self.is_enabled():
             self.image = self._disabledimage
 
-    def get_selectedimage(self) -> pygame.Surface:
+    def get_selectedimage(self) -> pygame.surface.Surface:
         return self._selectedimage
 
-    def get_unselectedimage(self) -> pygame.Surface:
+    def get_unselectedimage(self) -> pygame.surface.Surface:
         return self._unselectedimage
 
     def update_image(self) -> None:
@@ -111,7 +111,7 @@ class TouchButton(base.SelectableSprite):
             self.image = self._disabledimage
 
     @staticmethod
-    def calc_width(icon: pygame.Surface, name: str, desc: str, hotkey: str) -> int:
+    def calc_width(icon: pygame.surface.Surface, name: str, desc: str, hotkey: str) -> int:
         """表示に必要な幅を計算する。"""
         font = cw.cwpy.rsrc.fonts["sbardesc"]
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
@@ -130,10 +130,10 @@ class TouchButton(base.SelectableSprite):
             tw = max(tw, fw + spx*2)
         return tw+cw.s(2)
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.status != "shiftup":
             self._shift_start_top = None
-        base.SelectableSprite.update(self, scr)
+        base.SelectableSprite.update(self, *args, **kwargs)
 
     def update_selection(self) -> None:
         base.SelectableSprite.update_selection(self)
@@ -182,7 +182,7 @@ class PointableTile(TouchButton):
     通常の選択は発生せず、マウスポインタが合った時に
     self.is_pointedがTrueになるタイル。
     """
-    def __init__(self, icon: pygame.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
+    def __init__(self, icon: pygame.surface.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
                  is_enabled: Callable[[], bool], width: int = 0) -> None:
         TouchButton.__init__(self, icon, name, desc, hotkey, func, is_enabled, width)
 
@@ -234,7 +234,7 @@ class SwitchSpriteTile(PointableTile):
     """
     画面上のスプライトを順番に選択するタイル。
     """
-    def __init__(self, icon: pygame.Surface, move_count: int, width: int = 0) -> None:
+    def __init__(self, icon: pygame.surface.Surface, move_count: int, width: int = 0) -> None:
         PointableTile.__init__(self, icon, "", "", "", lambda: None, can_selectsprite, width=width)
         self.move_count = move_count
 
@@ -253,9 +253,9 @@ class SwitchSpriteTile(PointableTile):
 
         self._unselectedimage = self.image
         self._selectedimage = self.image.copy()
-        self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+        self._selectedimage.fill((128, 128, 128), special_flags=pygame.BLEND_RGB_ADD)
         self._disabledimage = self.image.copy()
-        self._disabledimage.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+        self._disabledimage.fill((64, 64, 64), special_flags=pygame.BLEND_RGB_SUB)
         if not self.is_enabled():
             self.image = self._disabledimage
 
@@ -276,7 +276,8 @@ class SimplePointableTile(PointableTile):
     """
     選択されたスプライトのクリックイベントを発生させるタイル。
     """
-    def __init__(self, icon: pygame.Surface, name: str, func: Callable[[], None], is_enabled: Callable[[], bool],
+    def __init__(self,
+                 icon: pygame.surface.Surface, name: str, func: Callable[[], None], is_enabled: Callable[[], bool],
                  width: int = 0) -> None:
         PointableTile.__init__(self, icon, name, "", "", func, is_enabled, width=width)
 
@@ -303,9 +304,9 @@ class SimplePointableTile(PointableTile):
 
         self._unselectedimage = self.image
         self._selectedimage = self.image.copy()
-        self._selectedimage.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+        self._selectedimage.fill((128, 128, 128), special_flags=pygame.BLEND_RGB_ADD)
         self._disabledimage = self.image.copy()
-        self._disabledimage.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+        self._disabledimage.fill((64, 64, 64), special_flags=pygame.BLEND_RGB_SUB)
         if not self.is_enabled():
             self.image = self._disabledimage
 
@@ -378,7 +379,7 @@ class VolumeTile(TouchButton):
             tx = self.padrect.x + (self.padrect.width-tw)//2
             ty = self.padrect.y + (self.padrect.height-th)//2
             subimg = font.render(s, True, (0, 0, 0))
-            subimg.fill((0, 0, 0, 96), special_flags=pygame.locals.BLEND_RGBA_SUB)
+            subimg.fill((0, 0, 0, 96), special_flags=pygame.BLEND_RGBA_SUB)
             for tx2 in (-1, 0, 1):
                 for ty2 in (-1, 0, 1):
                     if tx2 != 0 or ty2 != 0:

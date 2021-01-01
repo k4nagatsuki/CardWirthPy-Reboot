@@ -6,7 +6,6 @@ import os
 import re
 import itertools
 import pygame
-import pygame.locals
 
 import cw
 from . import base
@@ -28,7 +27,7 @@ class MessageWindow(base.CWPySprite):
                  imgpaths: Optional[List[Tuple[cw.image.ImageInfo,
                                                bool,
                                                Optional[Union[cw.character.Character, cw.header.CardHeader]],
-                                               Dict[int, pygame.Surface]]]] = None,
+                                               Dict[int, pygame.surface.Surface]]]] = None,
                  talker: Optional[Union[cw.character.Character, cw.header.CardHeader]] = None,
                  pos_noscale: Optional[Tuple[int, int]] = None, size_noscale: Optional[Tuple[int, int]] = None,
                  nametable: Optional[Dict[str, _NameData]] = None,
@@ -38,7 +37,7 @@ class MessageWindow(base.CWPySprite):
                  varianttable: Optional[Dict[str, cw.data.Variant]] = None,
                  backlog: bool = False, result: Optional[Union[int, cw.event.EffectBreakError]] = None,
                  showing_result: int = -1, versionhint: Optional[Tuple[str, str, bool, bool, bool]] = None,
-                 specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.Surface, bool]]] = None,
+                 specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]]] = None,
                  trim_top_noscale: int = 0, columns: int = 1, spcharinfo: Optional[Set[int]] = None,
                  centering_x: bool = False, centering_y: bool = False,
                  boundarycheck: bool = False) -> None:
@@ -250,7 +249,7 @@ class MessageWindow(base.CWPySprite):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.is_drawing:
             self.draw_char()    # テキスト描画
 
@@ -388,8 +387,9 @@ class MessageWindow(base.CWPySprite):
                 x_noscale += size_noscale[0]
 
     def create_charimgs(self, pos_noscale: Optional[Tuple[int, int]] = None,
-                        init: bool = True) -> List[Tuple[Tuple[int, int], pygame.Surface, pygame.Surface,
-                                                         pygame.Surface, pygame.Rect, int]]:
+                        init: bool = True) -> List[Tuple[Tuple[int, int], pygame.surface.Surface,
+                                                         pygame.surface.Surface, pygame.surface.Surface,
+                                                         pygame.rect.Rect, int]]:
         if pos_noscale is None:
             if self.centering_x:
                 pos_noscale = (-1, 9)
@@ -406,7 +406,7 @@ class MessageWindow(base.CWPySprite):
                     self.text = cw.util.txtwrap(self.text, 2, encodedtext=False, spcharinfo=self.spcharinfo)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if cw.cwpy.sct.lessthan("1.28", self.versionhint):
-                def calc_w(bmp_and_info: Tuple[pygame.Surface, cw.image.ImageInfo]) -> int:
+                def calc_w(bmp_and_info: Tuple[pygame.surface.Surface, cw.image.ImageInfo]) -> int:
                     (bmp, info) = bmp_and_info
                     result: int = bmp.get_width()
                     return result
@@ -539,7 +539,7 @@ class MessageWindow(base.CWPySprite):
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
                         image2 = cw.s(charimg)
                         image2 = image2.convert_alpha()
-                        image2.fill(colour, special_flags=pygame.locals.BLEND_RGBA_MULT)
+                        image2.fill(colour, special_flags=pygame.BLEND_RGBA_MULT)
                         frame_base += speed
                         frame = round(frame_base)
                         images.append((pos, None, decorate(image2, basecolour=colour), None, self._linerect, frame))
@@ -923,7 +923,7 @@ class SelectWindow(MessageWindow):
         self.frame = 0
         self.draw_all()
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         pass
 
 
@@ -995,21 +995,21 @@ class SelectionBar(base.SelectableSprite):
             self.rect_noscale.height = 0
         cw.cwpy.add_lazydraw(clip=self.rect)
 
-    def get_unselectedimage(self) -> pygame.Surface:
+    def get_unselectedimage(self) -> pygame.surface.Surface:
         return self._image
 
-    def get_selectedimage(self) -> pygame.Surface:
+    def get_selectedimage(self) -> pygame.surface.Surface:
         return cw.imageretouch.to_negative(self._image)
 
     def update_scale(self) -> None:
         pass  # MessageWindowのupdate_scaleでremoveされる
 
-    def update(self, scr: Optional[pygame.Surface] = None) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if self.backlog:
             return
 
         if self.status == "normal":       # 通常表示
-            base.SelectableSprite.update(self, scr)
+            base.SelectableSprite.update(self, *args, **kwargs)
 
         elif self.status == "click":     # 左クリック時
             cw.cwpy.index = cw.cwpy.list.index(self)
@@ -1041,7 +1041,7 @@ class SelectionBar(base.SelectableSprite):
 
         self.frame += 1
 
-    def get_image(self, size: Tuple[int, int]) -> pygame.Surface:
+    def get_image(self, size: Tuple[int, int]) -> pygame.surface.Surface:
         image = pygame.Surface(size).convert_alpha()
         if self.backlog:
             colour = cw.cwpy.setting.blwincolour
@@ -1294,12 +1294,12 @@ class BacklogPage(base.CWPySprite):
         self.rect.topleft = pos
 
 
-_decorate_cache: Dict[Tuple[int, int, Tuple[int, int, int]], pygame.Surface] = {}
+_decorate_cache: Dict[Tuple[int, int, Tuple[int, int, int]], pygame.surface.Surface] = {}
 _decorate_cache_upscr = 0.0
 
 
-def decorate(image: pygame.Surface, angle: int = 8,
-             basecolour: Tuple[int, int, int] = (255, 255, 255)) -> pygame.Surface:
+def decorate(image: pygame.surface.Surface, angle: int = 8,
+             basecolour: Tuple[int, int, int] = (255, 255, 255)) -> pygame.surface.Surface:
     """
     imageに装飾フォント処理を適用する。
     """
@@ -1323,7 +1323,7 @@ def decorate(image: pygame.Surface, angle: int = 8,
 
             if sum(basecolour) < 128*3:
                 # 暗くなりすぎると見えなくなるので明るくしておく
-                decoimg.fill((16, 16, 16, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                decoimg.fill((16, 16, 16, 0), special_flags=pygame.BLEND_RGBA_ADD)
 
             for y in range(1, mid, 1):
                 # グラデーション
@@ -1333,21 +1333,21 @@ def decorate(image: pygame.Surface, angle: int = 8,
                     c = int(float(c) / cw.UP_SCR)
                 c = min(c, 255)
                 color = (c, c, c, 0)
-                decoimg.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+                decoimg.fill(color, rect, special_flags=pygame.BLEND_RGBA_SUB)
                 rect = (0, mid+y, w, 1)
-                decoimg.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+                decoimg.fill(color, rect, special_flags=pygame.BLEND_RGBA_SUB)
 
             _decorate_cache[key] = decoimg
 
-        if not (image.get_flags() & pygame.locals.SRCALPHA):
+        if not (image.get_flags() & pygame.SRCALPHA):
             image = image.convert_alpha()
 
-        image.blit(decoimg, image.get_rect(), decoimg.get_rect(), special_flags=pygame.locals.BLEND_RGBA_MIN)
+        image.blit(decoimg, image.get_rect(), decoimg.get_rect(), special_flags=pygame.BLEND_RGBA_MIN)
 
     return image
 
 
-def draw_frame(image: pygame.Surface, size: Tuple[int, int], pos: Optional[Tuple[int, int]] = None,
+def draw_frame(image: pygame.surface.Surface, size: Tuple[int, int], pos: Optional[Tuple[int, int]] = None,
                backlog: bool = False) -> None:
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。
@@ -1890,7 +1890,7 @@ def update_scenariopath_for_log(normpath: str, dst: str) -> None:
         update_scenariopath_for_spchars(log.specialchars, normpath, dst)
 
 
-def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable[str, Tuple[str, pygame.Surface]],
+def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable[str, Tuple[str, pygame.surface.Surface]],
                                     normpath: str, dst: str) -> None:
     if not restbl:
         return
@@ -1921,8 +1921,9 @@ def store_messagelogimage(path: str, can_loaded_scaledimage: bool) -> None:
             # Billは最初から全てのイメージデータをロード済みなので再読込不要
             continue
         for i, (info, can_loaded_scaledimage2, basetalker, scaledimagedict) in enumerate(log.imgpaths):
-            def load_with_scaled(d: Optional[Dict[int, pygame.Surface]],
-                                 scaledimagedict: Dict[int, pygame.Surface]) -> Dict[int, pygame.Surface]:
+            def load_with_scaled(d: Optional[Dict[int, pygame.surface.Surface]],
+                                 scaledimagedict: Dict[int, pygame.surface.Surface]) -> Dict[int,
+                                                                                             pygame.surface.Surface]:
                 scaledimagedict.clear()
                 if d:
                     for key, value in d.items():
@@ -1957,10 +1958,10 @@ def store_messagelogimage(path: str, can_loaded_scaledimage: bool) -> None:
                     # リソースの読込メソッドの差し替えを行い、予めメモリ上に読み込んだ実体を返すようにする
                     # 以前に差し替えが行われているかどうかをLazyResource#argsの長さで見分ける
                     if os.path.normcase(path) == os.path.normcase(fpath) and len(log.specialchars.dic[name].args):
-                        fdict2: Dict[int, pygame.Surface] = {}
+                        fdict2: Dict[int, pygame.surface.Surface] = {}
                         fdict = load_with_scaled(fdict, fdict2)
 
-                        def load() -> Tuple[pygame.Surface, bool]:
+                        def load() -> Tuple[pygame.surface.Surface, bool]:
                             image_noscale = fdict2.get(1, None)
                             scale = int(math.pow(2, int(math.log(cw.UP_SCR, 2))))
                             while 2 <= scale:

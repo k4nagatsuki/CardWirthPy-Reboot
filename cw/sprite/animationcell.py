@@ -3,11 +3,11 @@
 
 import math
 import pygame
-import pygame.locals
 
 import cw
 from . import base
 
+import typing
 from typing import Dict, List, Generator, Optional, Tuple, Union
 
 
@@ -24,7 +24,7 @@ class AnimationCell(base.SelectableSprite):
 
         self.animation_table: Dict[str, _AnimationPart] = {}
         self.refs: List[_AnimationPart] = []
-        self.cache: Dict[Tuple[str, float], pygame.Surface] = {}
+        self.cache: Dict[Tuple[str, float], pygame.surface.Surface] = {}
 
         self.size_noscale = size_noscale
         self.pos_noscale = pos_noscale
@@ -87,7 +87,7 @@ class AnimationCell(base.SelectableSprite):
         self.rect = pygame.Rect(0, 0, 0, 0)
         self.frame = 0
 
-    def update(self, scr: pygame.Surface) -> None:
+    def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         if cw.cwpy.selection != self:
             # 他の選択がなされていない場合は常にAnimationCellを選択状態にする
             self.update_selection()
@@ -186,8 +186,8 @@ class _AnimationPart(object):
                 self.dealing_scales = [int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100)
                                        for i in range(self.animation_frame)]
 
-            self.image: pygame.Surface = pygame.Surface((0, 0)).convert()
-            self.rect: pygame.Rect = pygame.Rect(0, 0, 0, 0)
+            self.image: pygame.surface.Surface = pygame.Surface((0, 0)).convert()
+            self.rect: pygame.rect.Rect = pygame.Rect(0, 0, 0, 0)
 
         else:
             raise Exception("Invalid animation: %s" % (data.tag))
@@ -217,7 +217,7 @@ class _AnimationPart(object):
                     if self.image_noscale.get_height() else self.parent.size_noscale[1]
                 height //= scr_scale
 
-            self._has_alpha = (self.image_noscale.get_flags() & pygame.locals.SRCALPHA) != 0
+            self._has_alpha = (self.image_noscale.get_flags() & pygame.SRCALPHA) != 0
         else:
             # 塗り潰し
             self.image_noscale = pygame.Surface((4, 4)).convert()
@@ -342,7 +342,7 @@ class _AnimationPart(object):
             if self._has_alpha:
                 assert isinstance(alpha_v, int)
                 self.image = self._image.copy()
-                self.image.fill((255, 255, 255, alpha_v), special_flags=pygame.locals.BLEND_RGBA_MULT)
+                self.image.fill((255, 255, 255, alpha_v), special_flags=pygame.BLEND_RGBA_MULT)
             else:
                 self.image = self._image
                 if self.image.get_alpha() != alpha_v:

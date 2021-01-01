@@ -8,7 +8,6 @@ import itertools
 
 import wx
 import pygame
-import pygame.locals
 
 import cw
 
@@ -166,8 +165,7 @@ class EventContentBase(object):
         if not cw.cwpy.event.is_stoped():
             cw.cwpy.input()
             cw.cwpy.get_eventhandler().run()
-            while pygame.event.peek((pygame.locals.USEREVENT, cw.FORCE_USEREVENT)) and\
-                    not not cw.cwpy.event.is_stoped():
+            while pygame.event.peek((pygame.USEREVENT, cw.FORCE_USEREVENT)) and cw.cwpy.event.is_stoped():
                 cw.cwpy.input()
                 cw.cwpy.get_eventhandler().run()
 
@@ -4324,7 +4322,7 @@ class TalkMessageContent(TalkContent):
         talkers: List[Tuple[cw.image.ImageInfo,
                             bool,
                             Optional[Union[cw.character.Character, cw.header.CardHeader]],
-                            Dict[int, pygame.Surface]]] = []
+                            Dict[int, pygame.surface.Surface]]] = []
         firsttalker: Optional[Union[cw.character.Character, cw.header.CardHeader]] = None
         firstchartalker = None
         talk = bool(not len(imgpaths))
@@ -4557,7 +4555,7 @@ class TalkDialogContent(TalkContent):
         imgpaths: List[Tuple[cw.image.ImageInfo,
                              bool,
                              Optional[Union[cw.character.Character, cw.header.CardHeader]],
-                             Dict[int, pygame.Surface]]] = []
+                             Dict[int, pygame.surface.Surface]]] = []
         assert isinstance(talker, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         can_loaded_scaledimage = talker.data.getbool(".", "scaledimage", False)
         for base in talker.imgpaths:
@@ -4698,7 +4696,7 @@ class WaitContent(EventContentBase):
         while cw.cwpy.is_running() and stw.is_waiting() and not cw.cwpy.event.is_stoped():
             if cw.cwpy.setting.can_skipwait:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein() or\
+                if cw.cwpy.keyevent.is_keyin(pygame.K_RETURN) or cw.cwpy.keyevent.is_mousein() or\
                         cw.cwpy.event.breakwait:
                     break
 
