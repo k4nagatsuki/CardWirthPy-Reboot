@@ -1273,7 +1273,8 @@ def wxblit_2bitbmp_to_card(dc: wx.MemoryDC, dest: wx.Bitmap, wxbmp: wx.Bitmap, x
     dc.DrawBitmap(wxbmp, x, y, useMask)
 
 
-def _create_mfont(name: str, pixels: int, bold: bool, italic: bool, sys: bool) -> Tuple["Font", "Font", "Font"]:
+def _create_mfont(name: str, pixels: int, bold: bool, italic: bool,
+                  sys: bool) -> Tuple[pygame.font.FontType, pygame.font.FontType, pygame.font.FontType]:
     if sys:
         if pixels < 0:
             # FIXME: CreateFont()で高さにマイナス値を指定した場合には
@@ -1317,9 +1318,11 @@ def _create_mfont(name: str, pixels: int, bold: bool, italic: bool, sys: bool) -
 
 
 class Font(object):
-    font: Optional["cw.imageretouch.Font"]
-    font2x: Optional["cw.imageretouch.Font"]
-    font_notitalic: Optional["cw.imageretouch.Font"]
+    font: Optional[pygame.font.FontType]
+    font2x: Optional[pygame.font.FontType]
+    font_notitalic: Optional[pygame.font.FontType]
+    fontinfo: Optional[ctypes.c_void_p]
+    fontinfo2x: Optional[ctypes.c_void_p]
     _cache: Dict[Tuple[str, bool, Tuple[int, int, int]], pygame.Surface]
 
     def __init__(self, face: str, pixels: int, bold: bool = False, italic: bool = False) -> None:

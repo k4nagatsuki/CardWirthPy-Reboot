@@ -939,7 +939,10 @@ else:
             self._buttons = []
             s = "%s(PrtScn)\n%s" % (cw.cwpy.msgs["screenshot"], cw.cwpy.msgs["desc_screenshot"])
             bmp = cw.cwpy.rsrc.dialogs["SCREENSHOT"]
-            self._buttons.append((s, bmp, cw.cwpy.frame.save_screenshot))
+
+            def save_screenshot() -> None:
+                cw.cwpy.frame.save_screenshot()
+            self._buttons.append((s, bmp, save_screenshot))
             if cw.cwpy.ydata and cw.cwpy.ydata.party:
                 s = "%s(Shift+PrtScn)\n%s" % (cw.cwpy.msgs["screenshot_hands"],
                                               cw.cwpy.msgs["desc_screenshot_hands"])

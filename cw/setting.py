@@ -40,6 +40,7 @@ class NoFontError(ValueError):
 if sys.platform != "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
     DATA_PATH = "Data"
+    fontconfig: Optional[ctypes.CDLL]
     if sys.platform == "darwin":
         try:
             fontconfig = ctypes.CDLL("/opt/X11/lib/libfontconfig.dylib")
