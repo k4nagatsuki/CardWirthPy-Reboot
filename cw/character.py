@@ -1153,7 +1153,8 @@ class Character(object):
                     finally:
                         self.deck.use(header)
 
-    def set_action(self, target: Optional[List["cw.sprite.card.CWPyCard"]], header: Optional[cw.header.CardHeader],
+    def set_action(self, target: Optional[Union["cw.sprite.card.CWPyCard", List["cw.sprite.card.CWPyCard"]]],
+                   header: Optional[cw.header.CardHeader],
                    beasts: Optional[List[Tuple[List["cw.sprite.card.CWPyCard"], cw.header.CardHeader]]] = None,
                    auto: bool = False) -> None:
         """

@@ -239,10 +239,9 @@ class CWPyCard(base.SelectableSprite):
                 # 最大の一枚のみは長時間表示される
                 # 可能性があるためスムージングする
                 if i + 1 == len(self.zoomimgs) and cw.cwpy.setting.smoothing_card_up:
-                    scaling = cw.image.smoothscale_card
+                    img = cw.image.smoothscale_card(image, rect.size)
                 else:
-                    scaling = pygame.transform.scale
-                img = scaling(image, rect.size)
+                    img = pygame.transform.scale(image, rect.size)
                 self.zoomimgs[i] = (img, rect)
 
         else:
@@ -254,10 +253,12 @@ class CWPyCard(base.SelectableSprite):
         """
         assert self._cardimg
         lifebars = cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_FRONT_LIFEBAR)
-        if lifebars and lifebars[0].ccard is self:
-            lifebar = lifebars[0]
-        else:
-            lifebar = None
+        lifebar: Optional[cw.sprite.background.LifeBar] = None
+        if lifebars:
+            sprite = lifebars[0]
+            assert isinstance(sprite, cw.sprite.background.LifeBar)
+            if sprite.ccard is self:
+                lifebar = sprite
         if self.frame < 3 and not self._clicking:
             if lifebar:
                 lifebar.click()
@@ -511,10 +512,9 @@ class CWPyCard(base.SelectableSprite):
         if ds <= self.frame and cw.cwpy.setting.smoothing_card_up:
             # 最大の一枚のみは長時間表示される
             # 可能性があるためスムージングする
-            scale = cw.image.smoothscale_card
+            self.image = cw.image.smoothscale_card(self.zoomimgs[0][0], (w, h))
         else:
-            scale = pygame.transform.scale
-        self.image = scale(self.zoomimgs[0][0], (w, h))
+            self.image = pygame.transform.scale(self.zoomimgs[0][0], (w, h))
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.get_animerect().center
 
@@ -631,13 +631,14 @@ class CWPyCard(base.SelectableSprite):
         # 画像参照
         if update_statusimg:
             assert isinstance(self._cardimg, cw.image.CharacterCardImage)
+            assert isinstance(self, (PlayerCard, EnemyCard, FriendCard))
             clip = self._cardimg.update_statusimg(self, is_runningevent=is_runningevent)
             if not clip:
                 return None
         else:
             if hasattr(self, "test_aptitude"):
                 assert isinstance(self._cardimg, cw.image.CharacterCardImage)
-                assert isinstance(self, (cw.character.Character, CWPyCard))
+                assert isinstance(self, (PlayerCard, EnemyCard, FriendCard))
                 self._cardimg.update(self, self.test_aptitude)
             else:
                 self.cardimg.update(self)
@@ -680,10 +681,9 @@ class CWPyCard(base.SelectableSprite):
                 # 最大の一枚のみは長時間表示される
                 # 可能性があるためスムージングする
                 if i + 1 == len(self.zoomimgs)-1 and cw.cwpy.setting.smoothing_card_up:
-                    scaling = cw.image.smoothscale_card
+                    image = cw.image.smoothscale_card(self._image, (w, h))
                 else:
-                    scaling = pygame.transform.scale
-                image = scaling(self._image, (w, h))
+                    image = pygame.transform.scale(self._image, (w, h))
                 self.zoomimgs[i+1] = image, rect
             self.image = self.zoomimgs[-1][0]
             self.rect = pygame.Rect(self.zoomimgs[-1][1])
@@ -734,8 +734,8 @@ class CWPyCard(base.SelectableSprite):
         if scale == self.scale:
             return
         for image, zrect in self.zoomimgs:
-            zrect.width *= float(scale) / self.scale
-            zrect.height *= float(scale) / self.scale
+            zrect.width = int(zrect.width * (float(scale) / self.scale))
+            zrect.height = int(zrect.height * (float(scale) / self.scale))
         self.scale = scale
         self.update_image()
 

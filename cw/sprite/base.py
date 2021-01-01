@@ -7,7 +7,7 @@ import pygame
 import cw
 
 import typing
-from typing import Tuple
+from typing import Optional, Tuple
 
 
 class CWPySprite(pygame.sprite.DirtySprite):
@@ -17,7 +17,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
     image: pygame.surface.Surface
     layer: Tuple[int, int, int, int]
 
-    def __init__(self, *groups: pygame.sprite.Sprite) -> None:
+    def __init__(self, *groups: pygame.sprite.AbstractGroup) -> None:
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
 
@@ -45,7 +45,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
         if tick < self.start_animation:
             p_frame = self.frame + 1
         else:
-            p_frame = (tick - self.start_animation) * cw.cwpy.setting.fps // 1000
+            p_frame = int((tick - self.start_animation) * cw.cwpy.setting.fps // 1000)
             p_frame = max(self.frame+1, p_frame)
         return p_frame
 
@@ -55,7 +55,7 @@ class StopTheWorld(object):
     def __init__(self, start_ticks: float, waittime: int) -> None:
         self.start_ticks = start_ticks
         self.waittime = waittime
-        self._stop_tick = None
+        self._stop_tick: Optional[int] = None
 
     def is_waiting(self) -> bool:
         return not self.is_done()
@@ -81,7 +81,7 @@ class StopTheWorld(object):
 
 
 class MouseHandlerSprite(CWPySprite):
-    def __init__(self, *groups: pygame.sprite.Sprite) -> None:
+    def __init__(self, *groups: pygame.sprite.AbstractGroup) -> None:
         CWPySprite.__init__(self, *groups)
         self.handling_rect = None
         self.handling = False
@@ -111,7 +111,7 @@ class MouseHandlerSprite(CWPySprite):
 class SelectableSprite(CWPySprite):
     is_pointed: bool
 
-    def __init__(self, *groups: pygame.sprite.Sprite) -> None:
+    def __init__(self, *groups: pygame.sprite.AbstractGroup) -> None:
         self.selectable_on_event = False
         self.is_statusctrl = False
         CWPySprite.__init__(self, *groups)

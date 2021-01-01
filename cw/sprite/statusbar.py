@@ -123,6 +123,7 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(28)
             self._create_debugger((left, cw.s(3)))
 
+        panel: StatusBarPanel
         if encounter:
             panel = EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
             left -= panel.size[0] + cw.s(14)
@@ -226,6 +227,7 @@ class StatusBar(base.CWPySprite):
         for sprite in itertools.chain(cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM),
                                       cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_PROGRESS),
                                       cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)):
+            assert sprite.rect
             cw.cwpy.add_lazydraw(clip=sprite.rect)
 
     def _create_autostart(self, pos: Tuple[int, int]) -> None:
@@ -336,7 +338,8 @@ class StatusBar(base.CWPySprite):
         h = cw.SIZE_GAME[1]-cw.SIZE_AREA[1]
         sbarclip = cw.s(pygame.Rect(0, cw.SIZE_AREA[1], cw.SIZE_GAME[0], h))
         for sprite in sprites:
-            if srect.colliderect(sprite.rect):
+            assert sprite.image, sprite
+            if sprite.rect and srect.colliderect(sprite.rect):
                 if isinstance(sprite, (VolumeBar, Desc, touchbutton.TouchButton)):
                     if not draw_desc:
                         continue
@@ -355,6 +358,8 @@ class StatusBar(base.CWPySprite):
             cw.cwpy.pointed_tile = None
             rect: Optional[pygame.rect.Rect] = None
             for btn in btns:
+                assert isinstance(btn, cw.sprite.base.CWPySprite)
+                assert btn.rect
                 cw.cwpy.stop_animation(btn)
                 cw.cwpy.add_lazydraw(clip=btn.rect)
                 if rect:
@@ -374,12 +379,13 @@ class StatusBar(base.CWPySprite):
 
     def update_tiles(self) -> None:
         for btn in cw.cwpy.sbargrp.get_sprites_from_layer(cw.sprite.statusbar.LAYER_TOUCH_BUTTON):
+            assert isinstance(btn, (cw.sprite.touchbutton.TouchButton, cw.sprite.touchbutton.VolumeTile,
+                                    cw.sprite.touchbutton.PointableTile))
             btn.update_image()
             cw.cwpy.add_lazydraw(btn.rect)
 
 
 class VolumeBar(base.CWPySprite):
-
     def __init__(self) -> None:
         base.CWPySprite.__init__(self)
         self.image = pygame.Surface(cw.s((0, 0))).convert()
@@ -474,11 +480,11 @@ class ProgressView(base.CWPySprite):
 
         g = w / float(self.max - self.min)
         curw = int(self.current * g) + cw.s(1)
-        rect = (cw.s(1), cw.s(1), curw, self.rect.height-cw.s(2))
+        rect = pygame.Rect(cw.s(1), cw.s(1), curw, self.rect.height-cw.s(2))
         image.fill((0, 0, 128), rect)
 
         curw = curw - (x-cw.s(1))
-        rect = (cw.s(0), cw.s(0), min(curw, subimg.get_width()), subimg.get_height())
+        rect = pygame.Rect(cw.s(0), cw.s(0), min(curw, subimg.get_width()), subimg.get_height())
         subimg.fill((255, 255, 255, 0), rect, special_flags=pygame.BLEND_RGBA_ADD)
 
         image.blit(subimg, (x, y))
@@ -1096,8 +1102,8 @@ class StatusBarButton(base.SelectableSprite):
 
 
 class Desc(base.CWPySprite):
-    def __init__(self, parent: StatusBar, name: str, desc: str, hotkey: str,
-                 arrowpos: Optional[Tuple[int, int]] = None) -> None:
+    def __init__(self, parent: Union[StatusBarPanel, StatusBarButton], name: str, desc: str, hotkey: str,
+                 arrowpos: Optional[int] = None) -> None:
         base.CWPySprite.__init__(self)
         self.parent = parent
         self.name = name
@@ -1618,6 +1624,7 @@ class TouchMenuButton(StatusBarButton):
         if self.is_pushed:
             self.set_desc(cw.cwpy.msgs["desc_touch_menu"])
             for sprite in cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_TOUCH_BUTTON):
+                assert sprite.rect
                 cw.cwpy.add_lazydraw(clip=sprite.rect)
             return
 

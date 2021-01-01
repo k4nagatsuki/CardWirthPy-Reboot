@@ -1137,7 +1137,6 @@ class LevelEditDialog(wx.Dialog):
                 ccard.set_level(clevel, regulate=True, backpack_party=party)
                 if not isinstance(ccard, cw.sprite.card.PlayerCard):
                     continue
-                ccard.is_edited = True
                 if ccard.has_cardimg():
                     update = True
                     cw.cwpy.play_sound("harvest")

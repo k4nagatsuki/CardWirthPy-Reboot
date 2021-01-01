@@ -270,14 +270,16 @@ class _AnimationPart(object):
         self.size_noscale: Tuple[int, int] = (width, height)
 
     def update_scale(self) -> None:
+        if not self.image_noscale:
+            return
         if self.image_noscale.get_width():
             w, h = self.image_noscale.get_size()
             if isinstance(self.image_noscale, cw.util.Depth1Surface):
                 scr_scale = self.image_noscale.scr_scale
             else:
                 scr_scale = 1.0
-            w //= scr_scale
-            h //= scr_scale
+            w = int(w // scr_scale)
+            h = int(h // scr_scale)
             size = (w, h)
             if size != self.size_noscale:
                 size = cw.s(self.size_noscale)
