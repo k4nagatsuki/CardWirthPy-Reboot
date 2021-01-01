@@ -16,8 +16,8 @@ class TouchButton(base.SelectableSprite):
     アイコン、ボタン名、簡単な解説を表示する。
     """
 
-    def __init__(self, icon: pygame.surface.Surface, name: str, desc: str, hotkey: str, func: Callable[[], None],
-                 is_enabled: Callable[[], bool], width: int = 0) -> None:
+    def __init__(self, icon: Optional[pygame.surface.Surface], name: str, desc: str, hotkey: str,
+                 func: Callable[[], None], is_enabled: Callable[[], bool], width: int = 0) -> None:
         assert func
         assert is_enabled
 
@@ -111,7 +111,7 @@ class TouchButton(base.SelectableSprite):
             self.image = self._disabledimage
 
     @staticmethod
-    def calc_width(icon: pygame.surface.Surface, name: str, desc: str, hotkey: str) -> int:
+    def calc_width(icon: Optional[pygame.surface.Surface], name: str, desc: str, hotkey: str) -> int:
         """表示に必要な幅を計算する。"""
         font = cw.cwpy.rsrc.fonts["sbardesc"]
         tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
@@ -239,6 +239,7 @@ class SwitchSpriteTile(PointableTile):
         self.move_count = move_count
 
     def update_scale(self) -> None:
+        assert self.icon
         th = _calc_singlelinetileheight()
 
         # 画像を作成
@@ -333,6 +334,7 @@ class VolumeTile(TouchButton):
         TouchButton.__init__(self, icon, "", "", "", lambda: None, lambda: True, width=width)
 
     def update_scale(self) -> None:
+        assert self.icon
         font = cw.cwpy.rsrc.fonts["sbarprogress"]
         spx = cw.s(10)
         spx2 = cw.s(5)

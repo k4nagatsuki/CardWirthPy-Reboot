@@ -185,7 +185,7 @@ class AdventurerLogger(object):
         if self._enable and self._last_logtype == ELAPSE_TIME:
             self._put(ELAPSE_TIME, "")
 
-    def click_menucard(self, mcard: cw.character.Character) -> None:
+    def click_menucard(self, mcard: "cw.sprite.card.MenuCard") -> None:
         def click_menucard(name: str) -> str:
             if name:
                 s = "==< %s >==" % (name)

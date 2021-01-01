@@ -201,7 +201,7 @@ class BackGround(base.CWPySprite):
                 pcard.layer = (layer-cw.LAYER_SP_LAYER, ltype, index, subtype)
                 cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
             self.curtain_all = False
-        cw.cwpy.cardgrp.remove(self._curtains)
+        cw.cwpy.cardgrp.remove(*self._curtains)
         self._curtains = []
         cw.cwpy.add_lazydraw(clip=self.rect)
 
@@ -239,7 +239,7 @@ class BackGround(base.CWPySprite):
 
     def load_surface(self, path: str, mask: bool, smoothing: str, size: Tuple[int, int], flag: str,
                      doanime: cw.effectbooster.AnimationCounter, visible: bool = True, nocheckvisible: bool = False,
-                     can_loaded_scaledimage: bool = True) -> Tuple[pygame.surface.Surface, bool, bool]:
+                     can_loaded_scaledimage: bool = True) -> Tuple[Optional[pygame.surface.Surface], bool, bool]:
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
@@ -520,7 +520,7 @@ class BackGround(base.CWPySprite):
             visible = visible_s == "True"
         else:
             flag_value = cw.cwpy.sdata.get_flagvalue(flag)
-            visible = flag_value and size != (0, 0) and self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+            visible = flag_value and size != (0, 0) and bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
         cellname = e.getattr(".", "cellname", "")
         return (size, pos, flag, visible, layer, cellname), hasvisible
 
@@ -1020,7 +1020,7 @@ class BackGround(base.CWPySprite):
             namelist = None
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
-                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+                bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
         flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
@@ -1070,7 +1070,7 @@ class BackGround(base.CWPySprite):
         blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
-                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+                bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
         if nocheckvisible:
             flagvalue = visible
         else:
@@ -1107,7 +1107,7 @@ class BackGround(base.CWPySprite):
         pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
-                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+                bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:
@@ -1129,9 +1129,12 @@ class BackGround(base.CWPySprite):
                     bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage,
                                              use_excache=self.use_excache)
                     iw, ih = bmp.get_size()
-                    scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-                    iw //= scr_scale
-                    ih //= scr_scale
+                    if isinstance(bmp, cw.util.Depth1Surface):
+                        scr_scale = bmp.scr_scale
+                    else:
+                        scr_scale = 1.0
+                    iw = int(iw // scr_scale)
+                    ih = int(ih // scr_scale)
                     baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
@@ -1152,9 +1155,12 @@ class BackGround(base.CWPySprite):
                     bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage,
                                              use_excache=self.use_excache)
                     iw, ih = bmp.get_size()
-                    scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-                    iw //= scr_scale
-                    ih //= scr_scale
+                    if isinstance(bmp, cw.util.Depth1Surface):
+                        scr_scale = bmp.scr_scale
+                    else:
+                        scr_scale = 1.0
+                    iw = int(iw // scr_scale)
+                    ih = int(ih // scr_scale)
                     baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
@@ -1385,7 +1391,8 @@ def layered_draw_ex(layered_updates: pygame.sprite.LayeredDirty,
             rect = _draw_bgcell(surface, (sprite.bgtype, sprite.d), clip)
             rects.append(rect)
         else:
-            if srect.colliderect(sprite.rect):
+            assert sprite.image
+            if sprite.rect and srect.colliderect(sprite.rect):
                 surface.set_clip(srect.clip(sprite.rect))
                 rect = surface.blit(sprite.image, sprite.rect)
                 rects.append(rect)
@@ -1438,7 +1445,7 @@ class Curtain(base.SelectableSprite):
             mask.fill(self.color[:3] + (0,), special_flags=pygame.BLEND_RGBA_ADD)
             self.image.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
 
-    def create_mask(self) -> pygame.surface.Surface:
+    def create_mask(self) -> Optional[pygame.surface.Surface]:
         if isinstance(self.target, BgCell):
             if self.target.bgtype == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
@@ -1468,7 +1475,11 @@ class Curtain(base.SelectableSprite):
                 cw.image.draw_textcell(subimg, rect, text, face,
                                        cw.s(tsize), color, bold, italic, underline, strike, vertical, antialias, bcolor)
             else:
-                subimg = self.target.d[0]
+                # BUG: Incompatible types in assignment (expression has type "Union[Surface, str]", variable has type
+                #      "Surface") (mypy 0.790)
+                # subimg = self.target.d[0]
+                subimg = typing.cast(Tuple[pygame.surface.Surface, Tuple[int, int], Tuple[int, int], int],
+                                     self.target.d)[0]
                 if (subimg.get_flags() & pygame.SRCALPHA):
                     subimg = subimg.copy()
                 else:
@@ -1558,7 +1569,7 @@ class InuseCardImage(card.CWPyCard):
         # spritegroupに追加
         self.group = cw.cwpy.cardgrp
         if user and not center and not fore:
-            if hasattr(user, "layer_t"):
+            if isinstance(user, cw.sprite.card.FriendCard):
                 layer = user.layer_t[0]
                 ltype = user.layer_t[1]
             else:
@@ -1901,7 +1912,7 @@ class PriceOfCard(base.CWPySprite):
         margw = cw.s(5)
         margh = cw.s(5)
 
-        x, y, w, h = self.mcard.rect
+        x, y, w, h = self.mcard.rect.x, self.mcard.rect.y, self.mcard.rect.width, self.mcard.rect.height
         font = cw.cwpy.rsrc.fonts["price"]
         s = "%s" % (self.header.sellingprice if self.header.can_selling() else "---")
 

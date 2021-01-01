@@ -193,10 +193,10 @@ class _AnimationPart(object):
             raise Exception("Invalid animation: %s" % (data.tag))
 
     def load_cell(self) -> None:
-        left: Union[int, str]
-        top: Union[int, str]
-        width: Union[int, str]
-        height: Union[int, str]
+        left: Union[int, float, str]
+        top: Union[int, float, str]
+        width: Union[int, float, str]
+        height: Union[int, float, str]
         left, top, width, height = self._rect_str
 
         if self.imgpath:
@@ -207,7 +207,10 @@ class _AnimationPart(object):
                 self.image_noscale = cw.util.load_image(self.imgpath, self.mask, can_loaded_scaledimage=True)
                 self.parent.cache[key] = self.image_noscale
             self.fill_color = None
-            scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
+            if isinstance(self.image_noscale, cw.util.Depth1Surface):
+                scr_scale = self.image_noscale.scr_scale
+            else:
+                scr_scale = 1.0
             if width == "Original":
                 width = self.image_noscale.get_width()\
                     if self.image_noscale.get_width() else self.parent.size_noscale[0]
@@ -232,10 +235,10 @@ class _AnimationPart(object):
 
         if width == "Max":
             width = self.parent.size_noscale[0]
-        assert isinstance(width, int)
+        assert isinstance(width, (int, float))
         if height == "Max":
             height = self.parent.size_noscale[1]
-        assert isinstance(height, int)
+        assert isinstance(height, (int, float))
 
         if left == "Center":
             left = (self.parent.size_noscale[0] - width) // 2
@@ -243,19 +246,19 @@ class _AnimationPart(object):
             top = (self.parent.size_noscale[1] - height) // 2
 
         ref = False
-        if not isinstance(left, int) and left.startswith("Ref:"):
+        if not isinstance(left, (int, float)) and left.startswith("Ref:"):
             ref = True
         else:
             left = int(left)
-        if not isinstance(top, int) and top.startswith("Ref:"):
+        if not isinstance(top, (int, float)) and top.startswith("Ref:"):
             ref = True
         else:
             top = int(top)
-        if not isinstance(width, int) and width.startswith("Ref:"):
+        if not isinstance(width, (int, float)) and width.startswith("Ref:"):
             ref = True
         else:
             width = int(width)
-        if not isinstance(height, int) and height.startswith("Ref:"):
+        if not isinstance(height, (int, float)) and height.startswith("Ref:"):
             ref = True
         else:
             height = int(height)
@@ -267,11 +270,16 @@ class _AnimationPart(object):
         self.size_noscale: Tuple[int, int] = (width, height)
 
     def update_scale(self) -> None:
+        if not self.image_noscale:
+            return
         if self.image_noscale.get_width():
             w, h = self.image_noscale.get_size()
-            scr_scale = self.image_noscale.scr_scale if hasattr(self.image_noscale, "scr_scale") else 1
-            w //= scr_scale
-            h //= scr_scale
+            if isinstance(self.image_noscale, cw.util.Depth1Surface):
+                scr_scale = self.image_noscale.scr_scale
+            else:
+                scr_scale = 1.0
+            w = int(w // scr_scale)
+            h = int(h // scr_scale)
             size = (w, h)
             if size != self.size_noscale:
                 size = cw.s(self.size_noscale)

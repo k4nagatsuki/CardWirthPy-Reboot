@@ -175,9 +175,12 @@ class MessageWindow(base.CWPySprite):
                 if talker_image_noscale and talker_image_noscale.get_width():
                     self.talker_image.append((cw.s(talker_image_noscale), info))
                     w, h = talker_image_noscale.get_size()
-                    scr_scale = talker_image_noscale.scr_scale if hasattr(talker_image_noscale, "scr_scale") else 1
-                    w //= scr_scale
-                    h //= scr_scale
+                    if isinstance(talker_image_noscale, cw.util.Depth1Surface):
+                        scr_scale = talker_image_noscale.scr_scale
+                    else:
+                        scr_scale = 1.0
+                    w = int(w // scr_scale)
+                    h = int(h // scr_scale)
                     talkersize_noscale.append(((w, h), info))
 
         self.talker_top_noscale = 0x7fffffff
@@ -218,8 +221,8 @@ class MessageWindow(base.CWPySprite):
             y += baserect.y
             cw.imageretouch.blit_2bitbmp_to_message(self.image, talker_image, (x, y), wincolour)
 
-        self._back = None
-        self._fore = None
+        self._back: Optional[pygame.surface.Surface] = None
+        self._fore: Optional[pygame.surface.Surface] = None
 
     def update_scale(self) -> None:
         self.speed = cw.cwpy.setting.messagespeed
@@ -294,6 +297,7 @@ class MessageWindow(base.CWPySprite):
             size = None
 
             if self.centering_x:
+                assert linerect
                 shiftx = (self.rect.width - linerect.width) // 2
             else:
                 shiftx = 0
@@ -334,6 +338,8 @@ class MessageWindow(base.CWPySprite):
                 size = txtimg.get_size()
 
             if size:
+                assert self._fore
+                assert self._back
                 area1 = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
                 area2 = pygame.Rect(area1)
                 if self.centering_y:
@@ -361,7 +367,8 @@ class MessageWindow(base.CWPySprite):
     def create_selectionbar(self) -> None:
         # SelectionBarを描画
         if not self.backlog:
-            cw.cwpy.list = self.selections
+            cw.cwpy.list = []
+            cw.cwpy.list.extend(self.selections)
         x_noscale, y_noscale = self.rect_noscale.left, self.rect_noscale.bottom
 
         self.names_log = []
@@ -387,9 +394,9 @@ class MessageWindow(base.CWPySprite):
                 x_noscale += size_noscale[0]
 
     def create_charimgs(self, pos_noscale: Optional[Tuple[int, int]] = None,
-                        init: bool = True) -> List[Tuple[Tuple[int, int], pygame.surface.Surface,
-                                                         pygame.surface.Surface, pygame.surface.Surface,
-                                                         pygame.rect.Rect, int]]:
+                        init: bool = True) -> List[Tuple[Tuple[int, int], Optional[pygame.surface.Surface],
+                                                         Optional[pygame.surface.Surface],
+                                                         Optional[pygame.surface.Surface], pygame.rect.Rect, int]]:
         if pos_noscale is None:
             if self.centering_x:
                 pos_noscale = (-1, 9)
@@ -438,7 +445,8 @@ class MessageWindow(base.CWPySprite):
         # 各種変数
         cnt = 0
         skip = False
-        images = []
+        images: List[Tuple[Tuple[int, int], Optional[pygame.surface.Surface], Optional[pygame.surface.Surface],
+                           Optional[pygame.surface.Surface], pygame.rect.Rect, int]] = []
         self._linerect = None
 
         # 表示タイミング
@@ -517,14 +525,18 @@ class MessageWindow(base.CWPySprite):
                         self.specialchars_used.add(chars)
                         charimg, userfont = specialchars[chars]
                         w, h = charimg.get_size()
-                        scr_scale = charimg.scr_scale if hasattr(charimg, "scr_scale") else 1
-                        w //= scr_scale
-                        h //= scr_scale
+                        if isinstance(charimg, cw.util.Depth1Surface):
+                            scr_scale = charimg.scr_scale
+                        else:
+                            scr_scale = 1.0
+                        w = int(w // scr_scale)
+                        h = int(h // scr_scale)
 
                         if userfont:
                             frame_base, additional_wait, additional_wait_after_space = add_wait(False, False)
                             cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
                             put_xinfo(pos[0], cw.s(charimg.get_width()))
+                            assert self._linerect
                             put_topbottom(y_noscale+1, h)
                             frame_base += speed
                             frame = round(frame_base)
@@ -536,6 +548,7 @@ class MessageWindow(base.CWPySprite):
 
                         frame_base, additional_wait, additional_wait_after_space = add_wait(False, True)
                         put_xinfo(pos[0], cw.s(charimg.get_width()))
+                        assert self._linerect
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
                         image2 = cw.s(charimg)
                         image2 = image2.convert_alpha()
@@ -565,12 +578,14 @@ class MessageWindow(base.CWPySprite):
 
             if char:
                 put_xinfo(pos[0], cwidth)
+                assert self._linerect
 
             if char:
                 frame_base, additional_wait, additional_wait_after_space =\
                     add_wait(char.isspace(), char in _WAIT_CHARS or char in _WAIT_CHARS_BEFORE_SPACE)
 
             if char and not char.isspace():
+                assert self._linerect
                 ctype = cw.nctype.nctype(char)
                 if ctype == cw.nctype.NC_SYMBOL:
                     font = cw.cwpy.rsrc.msg_exfonts["fw_symbol"]
@@ -1890,7 +1905,7 @@ def update_scenariopath_for_log(normpath: str, dst: str) -> None:
         update_scenariopath_for_spchars(log.specialchars, normpath, dst)
 
 
-def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable[str, Tuple[str, pygame.surface.Surface]],
+def update_scenariopath_for_spchars(restbl: cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]],
                                     normpath: str, dst: str) -> None:
     if not restbl:
         return
@@ -1969,6 +1984,7 @@ def store_messagelogimage(path: str, can_loaded_scaledimage: bool) -> None:
                                     image_noscale = fdict2[scale]
                                     break
                                 scale //= 2
+                            assert image_noscale
                             return image_noscale, True
                         log.specialchars.set(name, load)
                         break
