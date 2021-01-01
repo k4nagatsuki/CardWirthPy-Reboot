@@ -59,7 +59,7 @@ class Win32Res(object):
     def laod_resmodule(self, fpath: str) -> None:
         self._table = {}
 
-        if _winapi:
+        if sys.platform == "win32" and _winapi:
             fpath2 = ctypes.create_unicode_buffer(fpath)
             LOAD_LIBRARY_AS_DATAFILE = 0x00000002
             LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
@@ -175,12 +175,12 @@ class Win32Res(object):
     def dispose(self) -> None:
         self._table = {}
 
-        if self._winhandle:
+        if sys.platform == "win32" and self._winhandle:
             ctypes.windll.kernel32.FreeLibrary(self._winhandle)
             self._winhandle = None
 
     def get_rcdata(self, valtype: int, name: Union[int, bytes]) -> Optional[bytes]:
-        if self._winhandle:
+        if sys.platform == "win32" and self._winhandle:
             k = ctypes.windll.kernel32
             if isinstance(valtype, bytes):
                 valtype = ctypes.create_string_buffer(valtype)

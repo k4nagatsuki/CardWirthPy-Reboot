@@ -234,7 +234,7 @@ class MusicInterface(object):
             cw.bassplayer.stop_bgm(channel=self.channel, fade=fade, stopfadeout=stopfadeout)
             self._bass = False
 
-        if self._winmm:
+        if sys.platform == "win32" and self._winmm:
             name = "cwbgm_" + str(self.channel)
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
             mciSendStringW("stop %s" % (name), 0, 0, 0)
@@ -447,19 +447,20 @@ class SoundInterface(object):
                 except Exception:
                     cw.util.print_ex()
             elif self._type == 1:
-                if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self.stop_impl, from_scenario, fade, stopfadeout)
-                    return
-                assert threading.currentThread() != cw.cwpy
-                if from_scenario:
-                    name = "cwsnd1_" + str(self.channel)
-                else:
-                    name = "cwsnd2"
+                if sys.platform == "win32":
+                    if threading.currentThread() == cw.cwpy:
+                        cw.cwpy.frame.exec_func(self.stop_impl, from_scenario, fade, stopfadeout)
+                        return
+                    assert threading.currentThread() != cw.cwpy
+                    if from_scenario:
+                        name = "cwsnd1_" + str(self.channel)
+                    else:
+                        name = "cwsnd2"
 
-                mciSendStringW = ctypes.windll.winmm.mciSendStringW
-                mciSendStringW("stop %s" % (name), 0, 0, 0)
-                mciSendStringW("close %s" % (name), 0, 0, 0)
-                remove_soundtempfile(tempbasedir)
+                    mciSendStringW = ctypes.windll.winmm.mciSendStringW
+                    mciSendStringW("stop %s" % (name), 0, 0, 0)
+                    mciSendStringW("close %s" % (name), 0, 0, 0)
+                    remove_soundtempfile(tempbasedir)
             else:
                 if threading.currentThread() != cw.cwpy:
                     cw.cwpy.exec_func(self.stop_impl, from_scenario, fade, stopfadeout)
@@ -512,13 +513,14 @@ class SoundInterface(object):
         if self._type == 0:
             cw.bassplayer.set_soundvolume(fvolume, from_scenario, channel=self.channel, fade=0)
         elif self._type == 1:
-            volume = int(fvolume * 1000)
-            mciSendStringW = ctypes.windll.winmm.mciSendStringW
-            if from_scenario:
-                name = "cwsnd1_" + str(self.channel)
-            else:
-                name = "cwsnd2"
-            mciSendStringW("setaudio %s volume to %s" % (name, fvolume), 0, 0, 0)
+            if sys.platform == "win32":
+                volume = int(fvolume * 1000)
+                mciSendStringW = ctypes.windll.winmm.mciSendStringW
+                if from_scenario:
+                    name = "cwsnd1_" + str(self.channel)
+                else:
+                    name = "cwsnd2"
+                mciSendStringW("setaudio %s volume to %s" % (name, fvolume), 0, 0, 0)
         elif self._type == 2:
             assert isinstance(self._sound, pygame.mixer.Sound)
             self._sound.set_volume(fvolume)
@@ -4147,14 +4149,16 @@ def render_antialiasedtext(basedc: wx.DC, text: str, white: bool, maxwidth: int,
 
     # BUG: wxGTK 4.0.1でランダムに背景が真っ白になる問題への対策
     if sys.platform != "win32":
-        if sys.platform == "darwin":
-            from . import _imageretouch_mac as _imageretouch
-        elif sys.maxsize == 0x7fffffff:
-            from . import _imageretouch32 as _imageretouch
-        elif sys.maxsize == 0x7fffffffffffffff:
-            from . import _imageretouch64 as _imageretouch
         redbuf = bytearray(redbuf)
-        _imageretouch.mul_alphaonly(redbuf, alpha)
+        if sys.platform == "darwin":
+            from . import _imageretouch_mac
+            _imageretouch_mac.mul_alphaonly(redbuf, alpha)
+        elif sys.maxsize == 0x7fffffff:
+            from . import _imageretouch32
+            _imageretouch32.mul_alphaonly(redbuf, alpha)
+        elif sys.maxsize == 0x7fffffffffffffff:
+            from . import _imageretouch64
+            _imageretouch64.mul_alphaonly(redbuf, alpha)
     subimg.SetAlphaBuffer(redbuf)
 
     if scaledown:
@@ -5003,81 +5007,83 @@ _cominit_table: Set[threading.Thread] = set()
 def _co_initialize() -> None:
     """スレッドごとにCoInitialize()を呼び出す。"""
     global _cominit_table
-    if sys.platform != "win32":
-        return
-    thr = threading.currentThread()
-    if thr in _cominit_table:
-        return  # 呼び出し済み
-    pythoncom.CoInitialize()
-    _cominit_table.add(thr)
-    # 終了したスレッドがあれば除去
-    for thr2 in _cominit_table.copy():
-        if not thr2.is_alive():
-            _cominit_table.remove(thr2)
+    if sys.platform == "win32":
+        thr = threading.currentThread()
+        if thr in _cominit_table:
+            return  # 呼び出し済み
+        pythoncom.CoInitialize()
+        _cominit_table.add(thr)
+        # 終了したスレッドがあれば除去
+        for thr2 in _cominit_table.copy():
+            if not thr2.is_alive():
+                _cominit_table.remove(thr2)
 
 
 def get_linktarget(fpath: str) -> str:
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
-    if sys.platform != "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
-        return fpath
+    if sys.platform == "win32":
+        if not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
+            return fpath
 
-    _co_initialize()
-    shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
-                                          pythoncom.CLSCTX_INPROC_SERVER,
-                                          win32shell.IID_IShellLink)
-    try:
-        STGM_READ = 0x00000000
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
-        fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0]
-    except Exception:
-        print_ex(file=sys.stderr)
+        _co_initialize()
+        shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
+                                              pythoncom.CLSCTX_INPROC_SERVER,
+                                              win32shell.IID_IShellLink)
+        try:
+            STGM_READ = 0x00000000
+            shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
+            fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0]
+        except Exception:
+            print_ex(file=sys.stderr)
+            return fpath
+        return get_linktarget(join_paths(fpath))
+    else:
         return fpath
-    return get_linktarget(join_paths(fpath))
 
 
 def set_linktarget(fpath: str, targetpath: str) -> None:
     """fpathがショートカットだった場合は
     リンク先をtargetpathに変更する。
     """
-    if sys.platform != "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
-        return
+    if sys.platform == "win32":
+        if not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
+            return
 
-    _co_initialize()
-    shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
-                                          pythoncom.CLSCTX_INPROC_SERVER,
-                                          win32shell.IID_IShellLink)
-    try:
-        STGM_READ = 0x00000000
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
-        shortcut.SetPath(targetpath)
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(fpath, 0)
-    except Exception:
-        print_ex(file=sys.stderr)
+        _co_initialize()
+        shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
+                                              pythoncom.CLSCTX_INPROC_SERVER,
+                                              win32shell.IID_IShellLink)
+        try:
+            STGM_READ = 0x00000000
+            shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath, STGM_READ)
+            shortcut.SetPath(targetpath)
+            shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(fpath, 0)
+        except Exception:
+            print_ex(file=sys.stderr)
 
 
 def create_link(shortcutpath: str, targetpath: str) -> None:
     """targetpathへのショートカットを
     shortcutpathに作成する。
     """
-    if sys.platform != "win32":
-        return
-    shortcutpath = os.path.abspath(shortcutpath)
-    dpath = os.path.dirname(shortcutpath)
-    if not os.path.exists(dpath):
-        os.makedirs(dpath)
+    if sys.platform == "win32":
+        shortcutpath = os.path.abspath(shortcutpath)
+        dpath = os.path.dirname(shortcutpath)
+        if not os.path.exists(dpath):
+            os.makedirs(dpath)
 
-    shortcutpath = os.path.normpath(shortcutpath)
-    targetpath = os.path.normpath(targetpath)
+        shortcutpath = os.path.normpath(shortcutpath)
+        targetpath = os.path.normpath(targetpath)
 
-    _co_initialize()
-    targetpath = os.path.abspath(targetpath)
-    shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
-                                          pythoncom.CLSCTX_INPROC_SERVER,
-                                          win32shell.IID_IShellLink)
-    shortcut.SetPath(targetpath)
-    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
+        _co_initialize()
+        targetpath = os.path.abspath(targetpath)
+        shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
+                                              pythoncom.CLSCTX_INPROC_SERVER,
+                                              win32shell.IID_IShellLink)
+        shortcut.SetPath(targetpath)
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
 
 
 def get_symlinktarget(path: str) -> str:
@@ -5190,7 +5196,7 @@ if sys.platform == "win32":
 else:
     import fcntl
 
-    _mutex: List[Tuple[io.FileIO, str]] = []
+    _mutex: List[Tuple[BinaryIO, str]] = []
 
 _lock_mutex = threading.Lock()
 
