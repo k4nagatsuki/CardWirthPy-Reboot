@@ -199,6 +199,7 @@ class _JpySubImage(cw.image.Image):
             sprs = cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL)
             if sprs:
                 background = sprs[0].image
+                assert background
                 self.cache.restore()
             else:
                 background = cw.cwpy.background.image.copy()
@@ -274,7 +275,7 @@ class _JpySubImage(cw.image.Image):
         image = self.get_image()
         image = self.clip_tempimg(image, pos)
 
-        rect = pygame.Rect(pos, image.get_size())
+        rect = pygame.rect.Rect(pos, image.get_size())
         rect = rect.clip(background.get_rect())
 
         if self.paintmode == 1:
@@ -492,10 +493,11 @@ class _JpySubImage(cw.image.Image):
         # マスク
         if self.transparent and self.can_mask and 0 < self.image.get_width():
             if self.clip:
-                colorkey = image.get_at(self.clip[:2])
+                colorkey: Optional[Tuple[int, int, int, int]] = image.get_at(self.clip[:2])
             else:
                 colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey, pygame.RLEACCEL)
+            assert colorkey
+            image.set_colorkey(colorkey[:3], pygame.RLEACCEL)
         else:
             colorkey = None
             image.set_colorkey(None)
@@ -510,8 +512,8 @@ class _JpySubImage(cw.image.Image):
         # 切り取り
         if self.clip:
             x, y, w, h = self.clip
-            rect = pygame.Rect((x, y), (w, h))
-            clip = pygame.Rect((0, 0), image.get_size())
+            rect = pygame.rect.Rect((x, y), (w, h))
+            clip = pygame.rect.Rect((0, 0), image.get_size())
             clip = clip.clip(rect)
 
             if 0 < clip.width and 0 < clip.height:
@@ -571,7 +573,9 @@ class _JpySubImage(cw.image.Image):
             cachekey = (_JpySubImage, cw.UP_SCR, False, path)
 
             if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.resource_cache:
-                image, cachemtime = cw.cwpy.sdata.resource_cache[cachekey]
+                cache = cw.cwpy.sdata.resource_cache[cachekey]
+                assert isinstance(cache, tuple)
+                image, cachemtime = cache
                 image = image.copy()
                 if cachemtime < mtime:
                     image = None
@@ -955,12 +959,14 @@ class JpyCache(object):
         self.pos_noscale: Optional[Tuple[int, int]] = None
         self.img: Dict[int, pygame.surface.Surface] = {}
         # 一時描画を削除するために描画前背景を保存する
-        self.before = None
-        self.beforeback = None
-        self.beforerect = None  # 一時描画された領域
+        self.before: Optional[pygame.surface.Surface] = None
+        self.beforeback: Optional[pygame.surface.Surface] = None
+        self.beforerect: Optional[pygame.rect.Rect] = None  # 一時描画された領域
 
     def restore(self) -> None:
         if self.before:
+            assert self.beforeback
+            assert self.beforerect
             self.beforeback.blit(self.before, self.beforerect.topleft)
             self.before = None
             self.beforeback = None
@@ -1028,6 +1034,8 @@ class JpdcImage(cw.image.Image):
             cw.cwpy.change_selection(selection)
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
+                    assert sprite.image
+                    assert sprite.rect
                     self.image.blit(sprite.image, sprite.rect.topleft)
             cw.cwpy.background.reload_jpdcimage = False
 
@@ -1309,7 +1317,7 @@ class JptxImage(cw.image.Image):
                     width = size[0] // 2
                     height = size[1] // 2
                     yp = 0
-                    rect = pygame.Rect(int(info.x), int(info.y)+yp, width, height)
+                    rect = pygame.rect.Rect(int(info.x), int(info.y)+yp, width, height)
                     rect = rect.clip(self.outer.image.get_rect())
                     if 0 < rect.width and 0 < rect.height:
                         if cw.UP_SCR != 1.0 and subimg.get_size() != size:

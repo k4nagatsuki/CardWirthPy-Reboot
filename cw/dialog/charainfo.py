@@ -551,7 +551,9 @@ class StandbyPartyCharaInfo(StandbyCharaInfo[cw.character.Player]):
                                   party=party)
 
 
-class ActiveCharaInfo(CharaInfo[Union[cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]]):
+class ActiveCharaInfo(CharaInfo[Union["cw.sprite.card.PlayerCard",
+                                      "cw.sprite.card.EnemyCard",
+                                      "cw.sprite.card.FriendCard"]]):
     def __init__(self, parent: "cw.frame.Frame") -> None:
         self.is_playingscenario = cw.cwpy.is_playingscenario()
         assert isinstance(cw.cwpy.selection, (cw.sprite.card.PlayerCard,
