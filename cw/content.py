@@ -2496,10 +2496,11 @@ class EffectContent(EventContentBase):
     def action(self) -> int:
         """効果コンテント。"""
         target: Optional[Union[cw.character.Character, List[Union[cw.character.Character, cw.sprite.card.CWPyCard]],
-                               cw.header.CardHeader]]
+                               List[cw.character.Character], List[cw.sprite.card.CWPyCard], cw.header.CardHeader]]
         if self.targetm == "CardTarget":
             # カードの使用対象(Wsn.2)
-            target = []
+            target2: List[Union[cw.character.Character, cw.sprite.card.CWPyCard]] = []
+            target = target2
             if cw.cwpy.event.get_inusecard():
                 e_effectevent = cw.cwpy.event.get_effectevent()
                 assert e_effectevent
@@ -2535,8 +2536,8 @@ class EffectContent(EventContentBase):
             def remove_target(target: cw.sprite.card.CWPyCard) -> None:
                 if isinstance(target, cw.character.Character):
                     target.remove_coupon("＠効果対象")
-                if tevent:
-                    tevent.remove_target(target)
+                    if tevent:
+                        tevent.remove_target(target)
             return cw.event.initial_effect(self.eff, targets, False,
                                            self.initialsoundpath, self.initialvolume, self.initialloopcount,
                                            self.initialchannel, self.initialfadein, remove_target)
@@ -2647,7 +2648,7 @@ class EffectContent(EventContentBase):
                     e_targets = e_effectevent.targets
                     e_mcards: Optional[Set[cw.sprite.card.CWPyCard]] = e_effectevent.mcards
                     e_outoftargets = []
-                    e_eventtarget = None
+                    e_eventtarget: Optional[cw.sprite.card.CWPyCard] = None
                     for t in e_effectevent.coupon_owners:
                         if isinstance(t, cw.character.Character):
                             if t.has_coupon("＠効果対象外"):

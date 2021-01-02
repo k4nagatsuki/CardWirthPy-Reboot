@@ -12,12 +12,9 @@ import wx.lib.agw.aui as aui
 
 from typing import Callable, Generic, Optional, List, Sequence, Tuple, TypeVar, Union
 
-_T = TypeVar("_T", "cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard",
+_T = TypeVar("_T", Union["cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"],
              cw.character.Player, cw.character.AlbumPage)
 _N = TypeVar("_N", cw.character.Player, cw.character.AlbumPage)
-_L = TypeVar("_L", "cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard")
-_A = TypeVar("_A", "cw.sprite.card.PlayerCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard",
-             cw.character.Player)
 
 
 # ------------------------------------------------------------------------------
@@ -87,7 +84,12 @@ class CharaInfo(wx.Dialog, Generic[_T]):
         # 編集または状態
         assert isinstance(self, (StandbyCharaInfo, ActiveCharaInfo))
         if self.is_playingscenario:
-            self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
+            status_seq: List[cw.character.Character] = []
+            for ccard in self.list:
+                assert isinstance(ccard, cw.character.Character)
+                status_seq.append(ccard)
+            assert isinstance(self.ccard, cw.character.Character)
+            self.editpanel = StatusPanel(self.notebook, status_seq, self.ccard, editable)
             self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
@@ -549,7 +551,9 @@ class StandbyPartyCharaInfo(StandbyCharaInfo[cw.character.Player]):
                                   party=party)
 
 
-class ActiveCharaInfo(CharaInfo[_L], Generic[_L]):
+class ActiveCharaInfo(CharaInfo[Union["cw.sprite.card.PlayerCard",
+                                      "cw.sprite.card.EnemyCard",
+                                      "cw.sprite.card.FriendCard"]]):
     def __init__(self, parent: "cw.frame.Frame") -> None:
         self.is_playingscenario = cw.cwpy.is_playingscenario()
         assert isinstance(cw.cwpy.selection, (cw.sprite.card.PlayerCard,
@@ -569,27 +573,27 @@ class ActiveCharaInfo(CharaInfo[_L], Generic[_L]):
             self.Close()
 
     def _update_list(self) -> bool:
+        seq: List[Union[cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]] = []
+        self.list = seq
         if isinstance(self.ccard, cw.character.Player):
             if cw.cwpy.is_debugmode():
-                self.list = cw.cwpy.get_pcards()
+                self.list.extend(cw.cwpy.get_pcards())
             else:
-                self.list = cw.cwpy.get_pcards("unreversed")
+                self.list.extend(cw.cwpy.get_pcards("unreversed"))
         elif isinstance(self.ccard, cw.character.Enemy):
             if cw.cwpy.is_debugmode():
-                self.list = cw.cwpy.get_ecards()
+                self.list.extend(cw.cwpy.get_ecards())
             else:
-                self.list = []
                 for card in cw.cwpy.get_ecards("unreversed"):
                     if card.is_analyzable():
                         self.list.append(card)
         else:
-            self.list = cw.cwpy.get_fcards("selectable")[:]
+            self.list.extend(cw.cwpy.get_fcards("selectable"))
             if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
                 self.list.reverse()
 
         index = 0
-        seq: Union[List[_L], List[cw.header.AdventurerHeader]] = self.list
-        for ccard in seq:
+        for ccard in self.list:
             if ccard is self.ccard:
                 self.index = index
                 return True
@@ -1475,17 +1479,18 @@ class EditPanel(wx.Panel, Generic[_N]):
         return ""
 
 
-class StatusPanel(wx.ScrolledWindow, Generic[_L]):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, mlist: List[_L], ccard: _L, editable: bool) -> None:
+class StatusPanel(wx.ScrolledWindow):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, mlist: List[cw.character.Character],
+                 ccard: cw.character.Character, editable: bool) -> None:
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)),
                                    style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         apply_bgcolor(self, ccard)
         self.csize = self.GetClientSize()
-        self.list: List[_L] = mlist
+        self.list = mlist
         self._editable: bool = editable
         # エレメントオブジェクト
-        self.ccard: _L = ccard
+        self.ccard = ccard
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
@@ -1790,14 +1795,14 @@ class StatusPanel(wx.ScrolledWindow, Generic[_L]):
         return height + cw.wins(17)
 
 
-class CardPanel(wx.Panel, Generic[_A]):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A, pocket: int) -> None:
+class CardPanel(wx.Panel):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: cw.character.Character, pocket: int) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         apply_bgcolor(self, ccard)
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
-        self.ccard: _A = ccard
+        self.ccard = ccard
         # 所持カードの種別
         self.pocket: int = pocket
         # headers
@@ -1913,7 +1918,7 @@ class CardPanel(wx.Panel, Generic[_A]):
     def _update_mousepos(self, mousepos: wx.Point) -> None:
         dc = wx.ClientDC(self)
         if self.hold_all:
-            self.hold_all.negaflag = self.hold_all.subrect.collidepoint(mousepos)
+            self.hold_all.negaflag = bool(self.hold_all.subrect.collidepoint(mousepos))
 
         for header in self.headers:
             if header.subrect.collidepoint(*mousepos):
@@ -2160,18 +2165,18 @@ class HoldAll(object):
         self.subrect = pygame.Rect(0, 0, 0, 0)
 
 
-class SkillPanel(CardPanel[_A], Generic[_A]):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A) -> None:
+class SkillPanel(CardPanel):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: cw.character.Character) -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_SKILL)
 
 
-class ItemPanel(CardPanel[_A], Generic[_A]):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A) -> None:
+class ItemPanel(CardPanel):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: cw.character.Character) -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_ITEM)
 
 
-class BeastPanel(SkillPanel[_A], Generic[_A]):
-    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: _A) -> None:
+class BeastPanel(SkillPanel):
+    def __init__(self, parent: wx.lib.agw.aui.auibook.AuiNotebook, ccard: cw.character.Character) -> None:
         CardPanel.__init__(self, parent, ccard, cw.POCKET_BEAST)
 
     def OnLeftUp(self, event: wx.MouseEvent) -> None:

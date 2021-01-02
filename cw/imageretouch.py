@@ -14,7 +14,7 @@ from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SU
 import cw
 
 import typing
-from typing import Callable, Dict, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 
 try:
@@ -34,22 +34,22 @@ _RetouchArg3 = TypeVar("_RetouchArg3")
 
 
 @typing.overload
-def _retouch(func: Callable[[bytes, Tuple[int, int]], bytes],
+def _retouch(func: Callable[[str, Tuple[int, int]], bytes],
              image: pygame.surface.Surface) -> pygame.surface.Surface: ...
 
 
 @typing.overload
-def _retouch(func: Callable[[bytes, Tuple[int, int], _RetouchArg1], bytes], image: pygame.surface.Surface,
+def _retouch(func: Callable[[str, Tuple[int, int], _RetouchArg1], bytes], image: pygame.surface.Surface,
              __arg1: _RetouchArg1) -> pygame.surface.Surface: ...
 
 
 @typing.overload
-def _retouch(func: Callable[[bytes, Tuple[int, int], _RetouchArg1, _RetouchArg2], bytes], image: pygame.surface.Surface,
+def _retouch(func: Callable[[str, Tuple[int, int], _RetouchArg1, _RetouchArg2], bytes], image: pygame.surface.Surface,
              __arg1: _RetouchArg1, __arg2: _RetouchArg2) -> pygame.surface.Surface: ...
 
 
 @typing.overload
-def _retouch(func: Callable[[bytes, Tuple[int, int], _RetouchArg1, _RetouchArg2, _RetouchArg3], bytes],
+def _retouch(func: Callable[[str, Tuple[int, int], _RetouchArg1, _RetouchArg2, _RetouchArg3], bytes],
              image: pygame.surface.Surface, __arg1: _RetouchArg1, __arg2: _RetouchArg2,
              __arg3: _RetouchArg3) -> pygame.surface.Surface: ...
 
@@ -65,14 +65,16 @@ def _retouch(func: Callable[..., bytes], image: pygame.surface.Surface, *args: t
     if not w or not h:
         return image.copy()
 
-    buf = pygame.image.tostring(image, "RGBA")
-    buf = func(buf, (w, h), *args)
+    s = pygame.image.tostring(image, "RGBA")
+    buf = func(s, (w, h), *args)
 
     if image.get_flags() & SRCALPHA:
         outimage = pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
     elif image.get_alpha():
         outimage = pygame.image.frombuffer(buf, (w, h), "RGBX").convert_alpha()
-        outimage.set_alpha(image.get_alpha(), RLEACCEL)
+        alpha = image.get_alpha()
+        assert alpha is not None
+        outimage.set_alpha(alpha, RLEACCEL)
     else:
         outimage = pygame.image.frombuffer(buf, (w, h), "RGBX").convert()
 
@@ -187,33 +189,9 @@ def add_mosaic(image: pygame.surface.Surface, value: int) -> pygame.surface.Surf
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.add_mosaic
     else:
-        return _add_mosaic(image, value)
-
-    return _retouch(func, image, value)
-
-
-def _add_mosaic(image: pygame.surface.Surface, value: int) -> pygame.surface.Surface:
-    value = cw.util.numwrap(value, 0, 255)
-    image = image.copy()
-
-    if not value:
         return image
 
-    pxarray = pygame.PixelArray(image)
-
-    for x, pxs in enumerate(pxarray):
-        n = (x // value) * value
-        seq = []
-
-        for y, _px in enumerate(pxs):
-            n2 = (y // value) * value
-            seq.append(pxarray[n][n2])
-
-        pxarray[x] = seq
-
-    del pxarray
-
-    return image
+    return _retouch(func, image, value)
 
 
 def to_binaryformat(image: pygame.surface.Surface, value: int,
@@ -230,43 +208,9 @@ def to_binaryformat(image: pygame.surface.Surface, value: int,
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.to_binaryformat
     else:
-        return _to_binaryformat(image, value, basecolor)
-
-    return _retouch(func, image, value, basecolor)
-
-
-def _to_binaryformat(image: pygame.surface.Surface, value: int,
-                     basecolor: Tuple[int, int, int]) -> pygame.surface.Surface:
-    value = cw.util.numwrap(value, -1, 255)
-    image = image.copy()
-
-    if not value:
         return image
 
-    pxarray = pygame.PixelArray(image)
-
-    for x, pxs in enumerate(pxarray):
-        seq = []
-
-        for px in pxs:
-            r, g, b = hex2color(px)
-
-            if value == -1:
-                if (r, g, b) == basecolor:
-                    seq.append(0xFFFFFF)
-                else:
-                    seq.append(0x0)
-            else:
-                if r <= value and g <= value and b <= value:
-                    seq.append(0x0)
-                else:
-                    seq.append(0xFFFFFF)
-
-        pxarray[x] = seq
-
-    del pxarray
-
-    return image
+    return _retouch(func, image, value, basecolor)
 
 
 def add_noise(image: pygame.surface.Surface, value: int, colornoise: bool = False) -> pygame.surface.Surface:
@@ -282,61 +226,9 @@ def add_noise(image: pygame.surface.Surface, value: int, colornoise: bool = Fals
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.add_noise
     else:
-        return _add_noise(image, value, colornoise)
-
-    return _retouch(func, image, value, colornoise)
-
-
-def _add_noise(image: pygame.surface.Surface, value: int, colornoise: bool = False) -> pygame.surface.Surface:
-    value = cw.util.numwrap(value, -1, 255)
-    image = image.copy()
-
-    if not value:
         return image
 
-    if value < 0:
-        randmax = 2
-    else:
-        randmax = value * 2 + 1
-    pxarray = pygame.PixelArray(image)
-
-    for x, pxs in enumerate(pxarray):
-        seq = []
-
-        for px in pxs:
-            r, g, b = hex2color(px)
-
-            if colornoise:
-                if value < 0:
-                    r = 0 if random.randint(0, randmax) == 0 else 255
-                    g = 0 if random.randint(0, randmax) == 0 else 255
-                    b = 0 if random.randint(0, randmax) == 0 else 255
-                else:
-                    r += random.randint(0, randmax) - value
-                    g += random.randint(0, randmax) - value
-                    b += random.randint(0, randmax) - value
-            else:
-                if value < 0:
-                    n = 0 if random.randint(0, randmax) == 0 else 255
-                    r = n
-                    g = n
-                    b = n
-                else:
-                    n = random.randint(0, randmax) - value
-                    r += n
-                    g += n
-                    b += n
-
-            r = cw.util.numwrap(r, 0, 255)
-            g = cw.util.numwrap(g, 0, 255)
-            b = cw.util.numwrap(b, 0, 255)
-            seq.append((r, g, b))
-
-        pxarray[x] = seq
-
-    del pxarray
-
-    return image
+    return _retouch(func, image, value, colornoise)
 
 
 def exchange_rgbcolor(image: pygame.surface.Surface, colormodel: str) -> pygame.surface.Surface:
@@ -353,52 +245,9 @@ def exchange_rgbcolor(image: pygame.surface.Surface, colormodel: str) -> pygame.
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.exchange_rgbcolor
     else:
-        return _exchange_rgbcolor(image, colormodel)
-
-    return _retouch(func, image, colormodel)
-
-
-def _exchange_rgbcolor(image: pygame.surface.Surface, colormodel: str) -> pygame.surface.Surface:
-    colormodel = colormodel.lower()
-    image = image.copy()
-
-    if colormodel == "gbr":
-        def gbr(r: int, g: int, b: int) -> Tuple[int, int, int]:
-            return (g, b, r)
-        func = gbr
-    elif colormodel == "brg":
-        def brg(r: int, g: int, b: int) -> Tuple[int, int, int]:
-            return (b, r, g)
-        func = brg
-    elif colormodel == "grb":
-        def grb(r: int, g: int, b: int) -> Tuple[int, int, int]:
-            return (g, r, b)
-        func = grb
-    elif colormodel == "bgr":
-        def bgr(r: int, g: int, b: int) -> Tuple[int, int, int]:
-            return (b, g, r)
-        func = bgr
-    elif colormodel == "rbg":
-        def rbg(r: int, g: int, b: int) -> Tuple[int, int, int]:
-            return (r, b, g)
-        func = rbg
-    else:
         return image
 
-    pxarray = pygame.PixelArray(image)
-
-    for x, pxs in enumerate(pxarray):
-        seq = []
-
-        for px in pxs:
-            r, g, b = hex2color(px)
-            seq.append(func(r, g, b))
-
-        pxarray[x] = seq
-
-    del pxarray
-
-    return image
+    return _retouch(func, image, colormodel)
 
 
 def to_grayscale(image: pygame.surface.Surface) -> pygame.surface.Surface:
@@ -412,7 +261,7 @@ def to_grayscale(image: pygame.surface.Surface) -> pygame.surface.Surface:
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.to_sepiatone
     else:
-        return to_sepiatone(image, (0, 0, 0))
+        return image
 
     return _retouch(func, image, (0, 0, 0))
 
@@ -429,57 +278,9 @@ def to_sepiatone(image: pygame.surface.Surface, color: Tuple[int, int, int] = (3
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.to_sepiatone
     else:
-        return _to_sepiatone(image, color)
+        return image
 
     return _retouch(func, image, color)
-
-
-def _to_sepiatone(image: pygame.surface.Surface, color: Tuple[int, int, int] = (30, 0, -30)) -> pygame.surface.Surface:
-    if color == (0, 0, 0):
-        return retouch_grayscale(image)
-
-    tone_r, tone_g, tone_b = color
-    image = image.copy()
-    pxarray = pygame.PixelArray(image)
-
-    for x, pxs in enumerate(pxarray):
-        seq = []
-
-        for px in pxs:
-            r, g, b = hex2color(px)
-            y = (r * 306 + g * 601 + b * 117) >> 10
-            r = cw.util.numwrap(y + tone_r, 0, 255)
-            g = cw.util.numwrap(y + tone_g, 0, 255)
-            b = cw.util.numwrap(y + tone_b, 0, 255)
-            seq.append((r, g, b))
-
-        pxarray[x] = seq
-
-    del pxarray
-
-    return image
-
-
-def retouch_grayscale(image: pygame.surface.Surface) -> pygame.surface.Surface:
-    image = image.copy()
-    pxarray = pygame.PixelArray(image)
-
-    for x, pxs in enumerate(pxarray):
-        seq = []
-
-        for px in pxs:
-            r, g, b = hex2color(px)
-            y = (r * 306 + g * 601 + b * 117) >> 10
-            r = cw.util.numwrap(y, 0, 255)
-            g = cw.util.numwrap(y, 0, 255)
-            b = cw.util.numwrap(y, 0, 255)
-            seq.append((r, g, b))
-
-        pxarray[x] = seq
-
-    del pxarray
-
-    return image
 
 
 def spread_pixels(image: pygame.surface.Surface) -> pygame.surface.Surface:
@@ -492,33 +293,9 @@ def spread_pixels(image: pygame.surface.Surface) -> pygame.surface.Surface:
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.spread_pixels
     else:
-        return _spread_pixels(image)
+        return image
 
     return _retouch(func, image)
-
-
-def _spread_pixels(image: pygame.surface.Surface) -> pygame.surface.Surface:
-    out_image = image.copy()
-    out_pxarray = pygame.PixelArray(out_image)
-    pxarray = pygame.PixelArray(image)
-    w, h = image.get_size()
-
-    for x in range(w):
-        n = int(x - random.randint(0, 4) + 2)
-        n = cw.util.numwrap(n, 0, w - 1)
-        seq = []
-
-        for y in range(h):
-            n2 = int(y - random.randint(0, 4) + 2)
-            n2 = cw.util.numwrap(n2, 0, h - 1)
-            seq.append(pxarray[n][n2])
-
-        out_pxarray[x] = seq
-
-    del out_pxarray
-    del pxarray
-
-    return out_image
 
 
 def _filter(image: pygame.surface.Surface,
@@ -536,56 +313,9 @@ def _filter(image: pygame.surface.Surface,
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.filter
     else:
-        return _filter2(image, weight, offset, div)
+        return image
 
     return _retouch(func, image, weight, offset, div)
-
-
-def _filter2(image: pygame.surface.Surface,
-             weight: Tuple[Tuple[int, int, int], Tuple[int, int, int], Tuple[int, int, int]],
-             offset: int = 0, div: int = 1) -> pygame.surface.Surface:
-    out_image = image.copy()
-    out_pxarray = pygame.PixelArray(out_image)
-    pxarray = pygame.PixelArray(image)
-    w, h = image.get_size()
-
-    for x in range(w):
-        seq = []
-
-        for y in range(h):
-            r, g, b = 0, 0, 0
-
-            for n in range(3):
-                for n2 in range(3):
-                    try:
-                        temp_px = pxarray[x + n - 1]
-                    except Exception:
-                        temp_px = pxarray[x]
-
-                    try:
-                        temp_px = temp_px[y + n2 - 1]
-                    except Exception:
-                        temp_px = temp_px[y]
-
-                    temp_r, temp_g, temp_b = hex2color(temp_px)
-                    r += temp_r * weight[n][n2]
-                    g += temp_g * weight[n][n2]
-                    b += temp_b * weight[n][n2]
-
-            r = r // div + offset
-            g = g // div + offset
-            b = b // div + offset
-            r = cw.util.numwrap(r, 0, 255)
-            g = cw.util.numwrap(g, 0, 255)
-            b = cw.util.numwrap(b, 0, 255)
-            seq.append((r, g, b))
-
-        out_pxarray[x] = seq
-
-    del out_pxarray
-    del pxarray
-
-    return out_image
 
 
 def filter_shape(image: pygame.surface.Surface) -> pygame.surface.Surface:
@@ -715,7 +445,7 @@ def add_transparentmesh(image: pygame.surface.Surface, rect: Optional[Tuple[int,
         color = (color[0], color[1], color[2], 0)
 
     clip = image.get_clip()
-    image.set_clip(rect)
+    image.set_clip(pygame.Rect(rect))
     x0, y0, w, h = rect
     for cnt in range(0, w + h, 2):
         pos1 = (x0 + cnt, y0)
@@ -726,8 +456,7 @@ def add_transparentmesh(image: pygame.surface.Surface, rect: Optional[Tuple[int,
     return image
 
 
-def add_border(img: pygame.surface.Surface, bordercolor: Tuple[int, int, int],
-               borderwidth: int) -> pygame.surface.Surface:
+def add_border(img: pygame.surface.Surface, bordercolor: Tuple[int, int, int], borderwidth: int) -> None:
     """textcolorの領域を縁取りする。
     この処理はwxPythonのインスタンスに対して行う。
     img: 描画対象。
@@ -741,7 +470,7 @@ def add_border(img: pygame.surface.Surface, bordercolor: Tuple[int, int, int],
     elif sys.maxsize == 0x7fffffffffffffff:
         func = _imageretouch64.bordering
     else:
-        func = _bordering
+        return
 
     buf = pygame.image.tostring(img, "RGBA")
     points = func(buf, img.get_size())
@@ -757,53 +486,6 @@ def add_border(img: pygame.surface.Surface, bordercolor: Tuple[int, int, int],
             pygame.draw.ellipse(img, bordercolor, pygame.Rect(x - hbw, y - hbw, borderwidth, borderwidth))
 
 
-def _bordering(buf: bytes, size: Tuple[int, int]) -> List[int]:
-    w = size[0]
-    h = size[1]
-
-    color = [0] * (w * h)
-    left = w
-    right = 0
-    top = h
-    bottom = 0
-    for i in range(w * h):
-        iData = i * 4
-        color[i] = buf[iData+3] == 0
-        if color[i]:
-            x = i % w
-            y = i // w
-            left = min(left, max(x - 1, 0))
-            right = max(right, min(x + 2, w))
-            top = min(top, max(y - 1, 0))
-            bottom = max(bottom, min(y + 2, h))
-
-    if left >= right:
-        return []
-
-    seq = []
-    for x in range(left, right):
-        for y in range(top, bottom):
-            yi = y * w
-            i = x + yi
-            if color[i]:
-                continue
-
-            find = False
-            find |= bool(0 < x and 0 < y and color[(x - 1) + (yi - w)])
-            find |= bool(0 < y and color[(x + 0) + (yi - w)])
-            find |= bool(x + 1 < w and 0 < y and color[(x + 1) + (yi - w)])
-            find |= bool(0 < x and color[(x - 1) + (yi)])
-            find |= bool(x + 1 < w and color[(x + 1) + (yi)])
-            find |= bool(0 < x and y + 1 < h and color[(x - 1) + (yi + w)])
-            find |= bool(y + 1 < h and color[(x + 0) + (yi + w)])
-            find |= bool(x + 1 < w and y + 1 < h and color[(x + 1) + (yi + w)])
-
-            if find:
-                seq.append(x)
-                seq.append(y)
-    return seq
-
-
 def blend_1_50(dest: pygame.surface.Surface, pos: Tuple[int, int], source: pygame.surface.Surface, flag: int) -> None:
     """CardWirth 1.50の挙動に合わせて加算または減算合成を行う。
     dest: 合成先のイメージ。
@@ -817,18 +499,18 @@ def blend_1_50(dest: pygame.surface.Surface, pos: Tuple[int, int], source: pygam
     if not clip:
         clip = dest.get_rect()
 
-    rect = pygame.Rect(pos, (w, h))
-    rect = pygame.Rect(clip.topleft, clip.size).clip(rect)
+    rect = pygame.rect.Rect(pos, (w, h))
+    rect = pygame.rect.Rect(clip.topleft, clip.size).clip(rect)
     if rect.w <= 0 or rect.h <= 0:
         return
 
     sub = dest.subsurface(rect)
 
     pos2 = (max(0, -pos[0] + clip.left), max(0, -pos[1] + clip.top))
-    rect2 = pygame.Rect(pos2, rect.size)
+    rect2 = pygame.rect.Rect(pos2, rect.size)
     source2 = source.subsurface(rect2)
 
-    func: Optional[Callable[[bytes, Tuple[int, int], bytes], bytes]]
+    func: Callable[[str, Tuple[int, int], str], bytes]
     if flag in (BLEND_ADD, BLEND_RGBA_ADD):
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_add_1_50
@@ -837,7 +519,7 @@ def blend_1_50(dest: pygame.surface.Surface, pos: Tuple[int, int], source: pygam
         elif sys.maxsize == 0x7fffffffffffffff:
             func = _imageretouch64.blend_add_1_50
         else:
-            func = None
+            return
     elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_sub_1_50
@@ -846,7 +528,7 @@ def blend_1_50(dest: pygame.surface.Surface, pos: Tuple[int, int], source: pygam
         elif sys.maxsize == 0x7fffffffffffffff:
             func = _imageretouch64.blend_sub_1_50
         else:
-            func = None
+            return
     elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_mult_1_50
@@ -855,95 +537,14 @@ def blend_1_50(dest: pygame.surface.Surface, pos: Tuple[int, int], source: pygam
         elif sys.maxsize == 0x7fffffffffffffff:
             func = _imageretouch64.blend_mult_1_50
         else:
-            func = None
+            return
     else:
         assert False
 
-    if func:
-        sbuf = pygame.image.tostring(source2, "RGBA")
-        outimage = _retouch(func, sub, sbuf)
-    else:
-        if flag in (BLEND_ADD, BLEND_RGBA_ADD):
-            func2 = _blend_add_1_50
-        elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
-            func2 = _blend_sub_1_50
-        elif flag in (BLEND_MULT, BLEND_RGBA_MULT):
-            func2 = _blend_mult_1_50
-        else:
-            assert False
-        outimage = func2(sub, source)
+    sbuf = pygame.image.tostring(source2, "RGBA")
+    outimage = _retouch(func, sub, sbuf)
 
     dest.blit(outimage, rect.topleft, None, 0)
-
-
-def _blend_add_1_50(dest: pygame.surface.Surface, source: pygame.surface.Surface) -> pygame.surface.Surface:
-    w, h = dest.get_size()
-    dbuf = pygame.image.tostring(dest, "RGBA")
-    sbuf = pygame.image.tostring(source, "RGBA")
-
-    buf = []
-    for i in range(0, len(dbuf), 4):
-        dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
-        sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
-
-        dr = colorwrap((dr * (255 - sa) >> 8) + (colorwrap(dr + sr) * sa >> 8))
-        dg = colorwrap((dg * (255 - sa) >> 8) + (colorwrap(dg + sg) * sa >> 8))
-        db = colorwrap((db * (255 - sa) >> 8) + (colorwrap(db + sb) * sa >> 8))
-        da = 255
-
-        buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
-
-    assert len(buf) == len(dbuf)
-    s = "".join(buf)
-    return pygame.image.frombuffer(s, (w, h), "RGBA").convert_alpha()
-
-
-def _blend_sub_1_50(dest: pygame.surface.Surface, source: pygame.surface.Surface) -> pygame.surface.Surface:
-    w, h = dest.get_size()
-    dbuf = pygame.image.tostring(dest, "RGBA")
-    sbuf = pygame.image.tostring(source, "RGBA")
-
-    buf = []
-    for i in range(0, len(dbuf), 4):
-        dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
-        sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
-
-        dr = max(colorwrap(dr * (255 - sa) >> 8), colorwrap(dr - (sr * sa >> 8)))
-        dg = max(colorwrap(dg * (255 - sa) >> 8), colorwrap(dg - (sg * sa >> 8)))
-        db = max(colorwrap(db * (255 - sa) >> 8), colorwrap(db - (sb * sa >> 8)))
-        da = 255
-
-        buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
-
-    assert len(buf) == len(dbuf)
-    s = "".join(buf)
-    return pygame.image.frombuffer(s, (w, h), "RGBA").convert_alpha()
-
-
-def _blend_mult_1_50(dest: pygame.surface.Surface, source: pygame.surface.Surface) -> pygame.surface.Surface:
-    w, h = dest.get_size()
-    dbuf = pygame.image.tostring(dest, "RGBA")
-    sbuf = pygame.image.tostring(source, "RGBA")
-
-    buf = []
-    for i in range(0, len(dbuf), 4):
-        dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
-        sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
-
-        if sa != 255:
-            sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8)
-            sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8)
-            sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8)
-        dr = colorwrap(dr * sr >> 8)
-        dg = colorwrap(dg * sg >> 8)
-        db = colorwrap(db * sb >> 8)
-        da = 255
-
-        buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
-
-    assert len(buf) == len(dbuf)
-    s = "".join(buf)
-    return pygame.image.frombuffer(s, (w, h), "RGBA").convert_alpha()
 
 
 def to_disabledimage(wxbmp: wx.Bitmap, maskpos: Tuple[int, int] = (0, 0)) -> wx.Bitmap:
@@ -1135,16 +736,16 @@ def blit_2bitbmp_to_card(dest: pygame.surface.Surface, source: pygame.surface.Su
     """
     if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface) and source.bmpdepthis1:
         w, h = source.get_size()
-        rect = pygame.Rect(pos, (w, h))
-        rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
+        rect = pygame.rect.Rect(pos, (w, h))
+        rect = pygame.rect.Rect((0, 0), dest.get_size()).clip(rect)
         if rect.w <= 0 or rect.h <= 0:
             return
 
         sub = dest.subsurface(rect)
-        rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
+        rect2 = pygame.rect.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
         source2 = source.subsurface(rect2)
 
-        func: Optional[Callable[[bytes, Tuple[int, int], bytes], bytes]]
+        func: Optional[Callable[[str, Tuple[int, int], str], bytes]]
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_and
         elif sys.maxsize == 0x7fffffff:
@@ -1171,16 +772,16 @@ def blit_2bitbmp_to_message(dest: pygame.surface.Surface, source: pygame.surface
                             wincolour: Tuple[int, int, int, int]) -> None:
     if source.get_colorkey() and isinstance(source, cw.util.Depth1Surface) and source.bmpdepthis1:
         w, h = source.get_size()
-        rect = pygame.Rect(pos, (w, h))
-        rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
+        rect = pygame.rect.Rect(pos, (w, h))
+        rect = pygame.rect.Rect((0, 0), dest.get_size()).clip(rect)
         if rect.w <= 0 or rect.h <= 0:
             return
 
         sub = dest.subsurface(rect)
-        rect2 = pygame.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
+        rect2 = pygame.rect.Rect((max(0, -pos[0]), max(0, -pos[1])), rect.size)
         source2 = source.subsurface(rect2)
 
-        func: Optional[Callable[[bytes, Tuple[int, int], bytes, Tuple[int, int, int, int]], bytes]]
+        func: Optional[Callable[[str, Tuple[int, int], str, Tuple[int, int, int, int]], bytes]]
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_and_msg
         elif sys.maxsize == 0x7fffffff:
@@ -1251,7 +852,7 @@ def wxblit_2bitbmp_to_card(dc: wx.MemoryDC, dest: wx.Bitmap, wxbmp: wx.Bitmap, x
         assert len(dbuf) == len(buf)
         assert len(dbuf) == len(alphabuf)*3
 
-        func: Optional[Callable[[bytearray, Tuple[int, int], bytes], None]]
+        func: Optional[Callable[[bytearray, Tuple[int, int], bytearray], None]]
         if sys.platform == "darwin":
             func = _imageretouch_mac.blend_and_rgb
         elif sys.maxsize == 0x7fffffff:

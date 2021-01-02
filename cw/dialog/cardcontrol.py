@@ -1416,10 +1416,15 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
             sendto = self.combo.GetSelection()
             if sendto in self._combo_cast:
-                return self.list2[self._combo_cast[sendto]]
+                pcard = self.list2[self._combo_cast[sendto]]
+                assert isinstance(pcard, cw.sprite.card.PlayerCard)
+                return pcard
             elif sendto in self._combo_personal:
-                return self.list2[self._combo_personal[sendto]]
+                pcard = self.list2[self._combo_personal[sendto]]
+                assert isinstance(pcard, cw.sprite.card.PlayerCard)
+                return pcard
         elif self.callname == "CARDPOCKETB":
+            assert isinstance(self.selection, cw.sprite.card.PlayerCard)
             return self.selection
         return None
 
@@ -1706,6 +1711,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
                                       sort=True)
                     elif index in self._combo_cast:
                         target = self.list2[self._combo_cast[index]]
+                        assert isinstance(target, cw.character.Character)
                         cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self,
                                       sound=False)
                         cw.cwpy.frame.exec_func(self._update_cardpocketinfo, self._cardpocketinfo, True)
@@ -2063,7 +2069,8 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
 
             self._load_index()
             if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
-                self.list2 = cw.cwpy.get_pcards(status)
+                self.list2 = []
+                self.list2.extend(cw.cwpy.get_pcards(status))
                 self.selection = self.index2
             if self.callname == "CARDPOCKETB" and cw.cwpy.setting.sort_cards == "None":
                 # 整列していない場合は使用されたカードが一番上へ行くため
@@ -2095,7 +2102,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
             self.index2 = self.selection
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
-            assert self.selection
+            assert isinstance(self.selection, cw.character.Character)
             name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.bgcolour = wx.Colour(0, 0, 128)
             if self.areaid in cw.AREAS_TRADE:
@@ -2686,7 +2693,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
 
         elif self.callname == "CARDPOCKETB" or (self.callname == "CARDPOCKET" and
                                                 self.personalbtn.GetToggle() and self.get_mode() == CCMODE_USE):
-            assert owner
+            assert isinstance(owner, cw.character.Character)
             if not self.check_using(owner, header):
                 self.draw_cards()
                 return
@@ -3106,14 +3113,16 @@ class SelectCard(CardHolder[cw.header.CardHeader]):
         assert cw.cwpy.ydata
         if self.callname == "BACKPACK":
             assert cw.cwpy.ydata.party
-            self.list2 = cw.cwpy.get_pcards(status)
+            self.list2 = []
+            self.list2.extend(cw.cwpy.get_pcards(status))
             self.bgcolour = wx.Colour(0, 0, 128)
             if self.areaid in cw.AREAS_TRADE:
                 r, g, b = cw.cwpy.setting.trademode_cardholder_color
                 self.bgcolour = wx.Colour(r, g, b)
             self.list = cw.cwpy.ydata.party.backpack
         elif self.callname == "STOREHOUSE":
-            self.list2 = cw.cwpy.get_pcards(status)
+            self.list2 = []
+            self.list2.extend(cw.cwpy.get_pcards(status))
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
 
@@ -3291,6 +3300,7 @@ class HandView(CardControl[cw.header.CardHeader]):
         self.owner = selection
 
         # カードリスト
+        assert isinstance(selection, cw.character.Character)
         self._update_cardlist(selection)
 
         # 前に開いていたときのindex値があったら取得する
@@ -3364,9 +3374,11 @@ class HandView(CardControl[cw.header.CardHeader]):
     def _update_cardlist(self, selection: cw.character.Character) -> None:
         status = "active"
         if isinstance(selection, cw.character.Player):
-            self.list2 = cw.cwpy.get_pcards(status)
+            self.list2 = []
+            self.list2.extend(cw.cwpy.get_pcards(status))
         elif isinstance(selection, cw.character.Friend):
-            self.list2 = list(cw.cwpy.get_fcards(status))
+            self.list2 = []
+            self.list2.extend(cw.cwpy.get_fcards(status))
             if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint()):
                 self.list2.reverse()
         elif isinstance(selection, cw.character.Enemy):
@@ -3382,14 +3394,16 @@ class HandView(CardControl[cw.header.CardHeader]):
         self.list2 = [pcard for pcard in self.list2 if character(pcard).deck.hand]
 
     def _update_enemylist(self, selection: cw.character.Enemy) -> bool:
-        if isinstance(selection, cw.character.Enemy):
+        if isinstance(selection, cw.sprite.card.EnemyCard):
             if cw.cwpy.is_debugmode():
-                self.list2 = cw.cwpy.get_ecards("active")
+                self.list2 = []
+                self.list2.extend(cw.cwpy.get_ecards("active"))
             else:
                 self.list2 = []
                 for card in cw.cwpy.get_ecards("active"):
                     if card.is_analyzable():
                         self.list2.append(card)
+            assert isinstance(selection, cw.sprite.card.CWPyCard)
             if selection not in self.list2:
                 self.Close()
                 return False
@@ -3491,7 +3505,8 @@ class ReplCardHolder(CardControl[cw.header.CardHeader]):
 
         # カードリスト
         status = "" if personal else "unreversed"
-        self.list2 = cw.cwpy.get_pcards(status)
+        self.list2 = []
+        self.list2.extend(cw.cwpy.get_pcards(status))
         if personal:
             self.list2 = [pcard for pcard in self.list2 if isinstance(pcard, cw.character.Player) and
                           pcard.personal_pocket]
@@ -3537,9 +3552,11 @@ class ReplCardHolder(CardControl[cw.header.CardHeader]):
         cw.cwpy.play_sound("page")
 
         if self.index2 == self.list2[0]:
-            self.index2 = self.list2[-1]
+            pcard = self.list2[-1]
         else:
-            self.index2 = self.list2[self.list2.index(self.index2) - 1]
+            pcard = self.list2[self.list2.index(self.index2) - 1]
+        assert isinstance(pcard, cw.sprite.card.PlayerCard)
+        self.index2 = pcard
 
         self.selection = self.index2
         if self.Parent is cw.cwpy.frame:
@@ -3551,9 +3568,11 @@ class ReplCardHolder(CardControl[cw.header.CardHeader]):
         cw.cwpy.play_sound("page")
 
         if self.index2 == self.list2[-1]:
-            self.index2 = self.list2[0]
+            pcard = self.list2[0]
         else:
-            self.index2 = self.list2[self.list2.index(self.index2) + 1]
+            pcard = self.list2[self.list2.index(self.index2) + 1]
+        assert isinstance(pcard, cw.sprite.card.PlayerCard)
+        self.index2 = pcard
 
         self.selection = self.index2
         if self.Parent is cw.cwpy.frame:

@@ -247,7 +247,10 @@ class MenuCardInfo(CardInfo["cw.sprite.card.MenuCard"]):
         # カード情報
         assert isinstance(cw.cwpy.selection, (cw.header.CardHeader, cw.sprite.card.MenuCard))
         self.selection = cw.cwpy.selection
-        self.list = [mcard for mcard in cw.cwpy.get_mcards("visiblemenucards") if mcard.desc]
+        self.list = []
+        for mcard in cw.cwpy.get_mcards("visiblemenucards"):
+            if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.desc:
+                self.list.append(mcard)
         self.index = self.list.index(self.selection)
         # ダイアログ作成
         CardInfo.__init__(self, parent)

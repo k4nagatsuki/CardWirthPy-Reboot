@@ -1828,7 +1828,8 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
     return "".join(buf), spcharinfo, namelist_r, namelistindex
 
 
-def get_messagelogtext(mwins: Sequence[Union[BacklogData, "cw.sprite.bill.Bill"]], lastline: bool = True) -> str:
+def get_messagelogtext(mwins: Sequence[Union[MessageWindow, BacklogData, "cw.sprite.bill.Bill"]],
+                       lastline: bool = True) -> str:
     """メッセージまたはログをプレイヤー向けのテキストデータに変換する。
     """
     lines = []
