@@ -212,6 +212,10 @@ class BattleEngine(object):
         # 時間経過
         cw.cwpy.elapse_time()
 
+        if not cw.cwpy.is_battlestatus() or cw.cwpy.battle is not self:
+            # 中毒からの死亡イベントでバトルが終わったケース
+            return
+
         # 勝利・敗北チェック
         if self.check_defeat():
             raise BattleDefeatError()

@@ -280,7 +280,7 @@ class EventInterface(object):
 
         return target
 
-    def get_randommember(self) -> "cw.character.Character":
+    def get_randommember(self) -> Optional["cw.character.Character"]:
         """ランダムでPlayerCardインスタンスを返す。
         行動可能状態のもの優先。
         """
@@ -289,7 +289,7 @@ class EventInterface(object):
         if not pcards:
             pcards = cw.cwpy.get_pcards("unreversed")
 
-        return cw.cwpy.dice.choice_exists(pcards)
+        return cw.cwpy.dice.choice(pcards)
 
     def has_selectedmember(self) -> bool:
         """選択メンバが存在する場合はTrueを返す。"""
