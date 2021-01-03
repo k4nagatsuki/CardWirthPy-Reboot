@@ -197,6 +197,7 @@ class Effect(object):
 
     def apply(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"], event: bool = False,
               selectedmember: Optional["cw.character.Character"] = None) -> bool:
+        assert isinstance(target, cw.sprite.card.CWPyCard)
         if isinstance(target, cw.character.Character) and self.check_enabledtarget(target, event):
             assert isinstance(target, (cw.sprite.card.PlayerCard,
                                        cw.sprite.card.EnemyCard,
@@ -412,8 +413,7 @@ class Effect(object):
 
         return True
 
-    def _get_cardspeed(self, target: "cw.character.Character") -> int:
-        assert isinstance(target, cw.sprite.card.CWPyCard)
+    def _get_cardspeed(self, target: "cw.sprite.card.CWPyCard") -> int:
         return target.get_dealspeed(self.battlespeed)
 
     def check_noeffect(self, target: "cw.character.Character") -> bool:
@@ -531,7 +531,7 @@ class Effect(object):
                 cw.cwpy.add_lazydraw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
-    def check_enabledtarget(self, target: "cw.character.Character", event: bool = False) -> bool:
+    def check_enabledtarget(self, target: "cw.sprite.card.CWPyCard", event: bool = False) -> bool:
         """
         表示されていないか(敵のみ)、対象消去されている場合、
         反転している場合(イベント除く)は有効なターゲットではない。
@@ -557,7 +557,7 @@ class Effect(object):
         else:
             return True
 
-    def has_addablebeast(self, target: "cw.character.Character") -> bool:
+    def has_addablebeast(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"]) -> bool:
         """意識不明状態でも消滅しない召喚獣を所持しているか。"""
         for motion in self.motions:
             if motion.has_addablebeast(target):
@@ -565,7 +565,7 @@ class Effect(object):
 
         return False
 
-    def has_removablebeast(self, target: "cw.character.Character") -> bool:
+    def has_removablebeast(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"]) -> bool:
         """targetが剥奪可能な召喚獣を所持しているか。"""
         for motion in self.motions:
             if motion.has_removablebeast(target):
@@ -848,7 +848,7 @@ class EffectMotion(object):
 
         return True
 
-    def has_addablebeast(self, target: "cw.character.Character") -> bool:
+    def has_addablebeast(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"]) -> bool:
         """targetに付与可能な召喚獣の召喚があるか。"""
         if self.type == "SummonBeast" and self.beasts is not None:
             for e in self.beasts:
@@ -859,7 +859,7 @@ class EffectMotion(object):
                     return True
         return False
 
-    def has_removablebeast(self, target: "cw.character.Character") -> bool:
+    def has_removablebeast(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"]) -> bool:
         """targetから剥奪可能な召喚獣があるか。"""
         if self.type == "VanishBeast" and isinstance(target, cw.character.Character):
             seq = target.cardpocket[cw.POCKET_BEAST]
@@ -1625,12 +1625,12 @@ def get_effectivetargets(header: "cw.header.CardHeader",
     sets = set()
 
     for t in targets:
+        assert isinstance(t, cw.character.Character)
         if check_noeffect(effecttype, t, ignore_antimagic=ignore_antimagic):
             continue
         # カード効果を上から順に見ていき、対象の存在する効果があれば
         # その効果の対象群を返す
         for motion in motions:
-            assert isinstance(t, cw.character.Character)
             if t.is_effective(header, motion):
                 sets.add(t)
                 break

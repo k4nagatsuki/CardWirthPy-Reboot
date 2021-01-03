@@ -1040,6 +1040,7 @@ class Frame(wx.Frame):
         self._handview.ShowModal()
 
     def OnCARDPOCKET_REPLACE(self, event: wx.PyCommandEvent) -> None:
+        assert isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard)
         selection = cw.cwpy.selection
         target = cw.cwpy.selectedheader
         if selection and target:
@@ -1059,7 +1060,7 @@ class Frame(wx.Frame):
             assert preinfo
             selection = preinfo[1]
         else:
-            assert cw.cwpy.selection
+            assert isinstance(cw.cwpy.selection, cw.sprite.card.CWPyCard)
             selection = cw.cwpy.selection
             preinfo = None
         return selection, preinfo
@@ -1180,18 +1181,19 @@ class Frame(wx.Frame):
         owner = header.get_owner()
         assert isinstance(owner, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
 
+        targets: List[cw.sprite.card.CWPyCard] = []
         if header.allrange and (header.target == "Party" or header.target == "Both") and\
                 isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
             # 味方全員が対象
             cw.cwpy.clear_selection()
-            targets = cw.cwpy.get_pcards("unreversed")
+            targets.extend(cw.cwpy.get_pcards("unreversed"))
         elif header.target == "User":
-            targets = [owner]
+            targets.append(owner)
         elif header.target == "None":
-            targets = []
+            pass
         else:
             assert isinstance(cw.cwpy.selection, cw.sprite.card.CWPyCard)
-            targets = [cw.cwpy.selection]
+            targets.append(cw.cwpy.selection)
 
         cw.cwpy.exec_func(cw.cwpy.clear_curtain)
 
@@ -1474,7 +1476,7 @@ class Frame(wx.Frame):
                 w, h = image.get_size()
                 if (image.get_flags() & pygame.SRCALPHA) or image.get_colorkey() or sys.platform != "win32":
                     # linuxでは画像が壊れるので常にこちら
-                    buf: bytes = pygame.image.tostring(image, "RGBA")
+                    buf: str = pygame.image.tostring(image, "RGBA")
                     alpha = True
                     colorkey: Optional[Tuple[int, int, int, int]] = None
                 else:
@@ -1486,7 +1488,7 @@ class Frame(wx.Frame):
                     else:
                         colorkey = None
 
-                def func(w: int, h: int, alpha: bool, buf: bytes, colorkey: Optional[Tuple[int, int, int, int]],
+                def func(w: int, h: int, alpha: bool, buf: str, colorkey: Optional[Tuple[int, int, int, int]],
                          titledicfn: Dict[str, str], y: int, fore: Tuple[int, int, int],
                          back: Tuple[int, int, int]) -> None:
                     if alpha:

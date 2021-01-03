@@ -38,7 +38,7 @@ class SystemData(object):
                                      Tuple[int, int, int, int]],
                                Tuple[str, float, Tuple[int, int], bool, str],
                                Tuple[Type["cw.effectbooster._JpySubImage"], float, bool, str]],
-                         Union[pygame.surface.Surface, Tuple[pygame.surface.Surface, float]]]
+                         Union[pygame.surface.Surface, Tuple[pygame.surface.Surface, float], cw.util.SoundInterface]]
     ex_cache: Dict[str, List[Optional[Union[str, bytes]]]]
 
     def __init__(self, init: bool = True) -> None:

@@ -50,7 +50,7 @@ __all__ = ["util", "battle", "yadodb", "data", "dice", "effectmotion", "event", 
            "update", "calculator", "dialog", "debug", "sprite", "argparser", "nctype"]
 
 import typing
-from typing import List, Tuple, TypeVar
+from typing import List, Tuple, TypeVar, Union
 
 # 実行ファイルのパス
 exepath = ""
@@ -316,9 +316,21 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         # 拡大率が1倍なのでそのまま返す
         return num
 
-    if isinstance(num, int) or isinstance(num, float):
+    if isinstance(num, int):
         # 単純な数値(座標やサイズ)
-        return int(num * up_scr)
+        # BUG: Incompatible return value type (got "int", expected "Surface") (mypy 0.790)
+        # return int(num * up_scr)
+        # BUG: Redundant cast to "int" (mypy 0.790)
+        # return typing.cast(Scalable, int(num * up_scr))
+        return typing.cast(Scalable, typing.cast(typing.Any, int(num * up_scr)))
+
+    elif isinstance(num, float):
+        # 単純な数値(座標やサイズ)
+        # BUG: Incompatible return value type (got "float", expected "Surface") (mypy 0.790)
+        # return num * up_scr
+        # BUG: Redundant cast to "float" (mypy 0.790)
+        # return typing.cast(Scalable, num * up_scr)
+        return typing.cast(Scalable, typing.cast(typing.Any, num * up_scr))
 
     elif isinstance(num, pygame.Rect):
         # pygameの矩形情報
@@ -365,9 +377,12 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
     elif isinstance(num, pygame.Surface):
         # スケール情報の無いpygame.Surface(単純拡大)
         bmp0 = num
-        scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
+        if isinstance(num, util.Depth1Surface):
+            scr_scale = num.scr_scale
+        else:
+            scr_scale = 1.0
         up_scr /= scr_scale
-        if up_scr == 1:
+        if up_scr == 1.0:
             return num
         bmp: pygame.surface.Surface = num
         w = int(bmp.get_width() * up_scr)
@@ -393,53 +408,65 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
         up_scr /= scr_scale
         if up_scr == 1:
-            return num
+            # BUG: Returning Any from function declared to return "Surface" (mypy 0.790)
+            # return num
+            return typing.cast(Scalable, num)
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
-            return num
+            # BUG: Returning Any from function declared to return "Surface" (mypy 0.790)
+            # return num
+            return typing.cast(Scalable, num)
 
         if up_scr % 1 == 0 or bmpdepthis1:
-            result = num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+            wximg = num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
         else:
             if not num.HasAlpha():
                 num.InitAlpha()
-            result = num.Rescale(w, h, RESCALE_QUALITY)
+            wximg = num.Rescale(w, h, RESCALE_QUALITY)
 
         if bmpdepthis1:
-            result.bmpdepthis1 = bmpdepthis1
+            wximg.bmpdepthis1 = bmpdepthis1
         if maskcolour:
-            result.maskcolour = maskcolour
+            wximg.maskcolour = maskcolour
             r, g, b = maskcolour
-            result.SetMaskColour(r, g, b)
+            wximg.SetMaskColour(r, g, b)
 
-        return result
+        # BUG: Returning Any from function declared to return "Surface" (mypy 0.790)
+        # return wximg
+        return typing.cast(Scalable, wximg)
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)
         bmpdepthis1 = hasattr(num, "bmpdepthis1")
         maskcolour = num.maskcolour if hasattr(num, "maskcolour") else None
-        scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1
+        scr_scale = num.scr_scale if hasattr(num, "scr_scale") else 1.0
         up_scr /= scr_scale
-        if up_scr == 1:
-            return num
+        if up_scr == 1.0:
+            # BUG: Returning Any from function declared to return "Surface" (mypy 0.790)
+            # return num
+            return typing.cast(Scalable, num)
         w = int(num.GetWidth() * up_scr)
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
-            return num
+            # BUG: Returning Any from function declared to return "Surface" (mypy 0.790)
+            # return num
+            return typing.cast(Scalable, num)
         wxbmp = num
         if bmpdepthis1:
             img = util.convert_to_image(wxbmp)
         else:
             img = wxbmp.ConvertToImage()
         img = _s_impl(img, up_scr)
-        result = img.ConvertToBitmap()
+        wxbmp = img.ConvertToBitmap()
 
         if bmpdepthis1:
-            result.bmpdepthis1 = bmpdepthis1
+            wxbmp.bmpdepthis1 = bmpdepthis1
         if maskcolour:
-            result.maskcolour = maskcolour
-        return result
+            wxbmp.maskcolour = maskcolour
+        # BUG: Returning Any from function declared to return "Surface" (mypy 0.790)
+        # return wxbmp
+        return typing.cast(Scalable, wxbmp)
 
     else:
         assert False, str(num)

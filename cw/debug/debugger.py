@@ -1343,7 +1343,8 @@ class Debugger(wx.Frame):
 
     def OnSelectionTool(self, event: wx.CommandEvent) -> None:
         if self.view_tree.enable_eventview() and cw.cwpy.is_runningevent():
-            ccards = cw.cwpy.get_pcards()
+            ccards: List[cw.character.Character] = []
+            ccards.extend(cw.cwpy.get_pcards())
             ccards.extend(cw.cwpy.get_ecards())
             ccards.extend(cw.cwpy.get_fcards())
             choices = []
@@ -1376,6 +1377,7 @@ class Debugger(wx.Frame):
 
             ccards = [("荷物袋", cw.cwpy.ydata.party.backpack[:])]
             for ccard in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
+                assert isinstance(ccard, cw.character.Character)
                 if cw.cwpy.is_battlestatus():
                     hand = ccard.deck.hand[:]
                     hand.extend(ccard.cardpocket[cw.POCKET_BEAST])

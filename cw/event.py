@@ -221,9 +221,12 @@ class EventInterface(object):
         # 称号所有者(Wsn.3)
         elif scope == "CouponHolder":
             if coupon:
-                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+                for ccard in cw.cwpy.get_pcards("unreversed"):
                     if ccard.has_coupon(coupon):
                         seq.append(ccard)
+                for ecard in cw.cwpy.get_ecards("unreversed"):
+                    if ecard.has_coupon(coupon):
+                        seq.append(ecard)
         else:
             raise ValueError(scope + " is invalid value.")
 
@@ -263,11 +266,13 @@ class EventInterface(object):
         # 称号所有者
         elif targetm == "CouponHolder":
             if coupon:
-                seq = []
-                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed")):
+                target = []
+                for ccard in cw.cwpy.get_pcards("unreversed"):
                     if ccard.has_coupon(coupon):
-                        seq.append(ccard)
-                target = seq
+                        target.append(ccard)
+                for ecard in cw.cwpy.get_ecards("unreversed"):
+                    if ecard.has_coupon(coupon):
+                        target.append(ecard)
             else:
                 target = []
         else:
@@ -644,7 +649,8 @@ class EventEngine(object):
 
             # メニューカードの選択を復元
             if not isinsideevent:
-                cw.cwpy.list = cw.cwpy.get_mcards("selectable")
+                cw.cwpy.list = []
+                cw.cwpy.list.extend(cw.cwpy.get_mcards("selectable"))
                 cw.cwpy.index = -1
                 if last_selected and last_selected in cw.cwpy.list:
                     index = cw.cwpy.list.index(last_selected)
@@ -872,7 +878,7 @@ class Event(object):
             cw.cwpy.statusbar.change(showbuttons)
 
             # ステータスアイコンの数値描画を更新
-            clip = pygame.Rect(cw.cwpy.statusbar.rect)
+            clip = pygame.rect.Rect(cw.cwpy.statusbar.rect)
             clip = cw.cwpy.update_statusimgs(is_runningevent=True, clip=clip)
 
             # イベント開始前の情報カード所持状況を記憶しておく
@@ -1393,6 +1399,7 @@ def _get_targetinfo() -> List[str]:
     targets = []
     outoftargets = []
     for ccard in itertools.chain(cw.cwpy.get_pcards(), cw.cwpy.get_ecards(), cw.cwpy.get_fcards()):
+        assert isinstance(ccard, cw.character.Character)
         if ccard.has_coupon("＠使用者"):
             assert cw.cwpy.event.effectevent and ccard in cw.cwpy.event.effectevent.coupon_owners
             user.append(ccard.name)
@@ -1690,6 +1697,7 @@ class CardEvent(Event, Targeting):
             target = self.get_nexttarget()
             if not target:
                 break
+            assert isinstance(target, (cw.character.Character, cw.sprite.card.MenuCard))
 
             is_menucard = isinstance(target, cw.sprite.card.MenuCard)
             cw.cwpy.event.is_changestate |= not is_menucard and not isinstance(target, cw.character.Player)
@@ -1780,7 +1788,8 @@ class CardEvent(Event, Targeting):
         self.check_gameover()
 
 
-def get_effecttargetstatus(target: "cw.character.Character", eff: cw.effectmotion.Effect) -> Tuple[bool, bool]:
+def get_effecttargetstatus(target: Union["cw.character.Character", "cw.sprite.card.MenuCard"],
+                           eff: cw.effectmotion.Effect) -> Tuple[bool, bool]:
     unconscious_flag = (eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) or
                         eff.has_addablebeast(target) or
                         eff.has_removablebeast(target)) and \

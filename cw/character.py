@@ -9,7 +9,7 @@ import threading
 import cw
 from cw.util import synclock
 
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 _couponlock = threading.Lock()
 
@@ -1185,7 +1185,8 @@ class Character(object):
 
         self.actionend = False
 
-    def _add_priorityacts(self, target: List["cw.sprite.card.CWPyCard"], h: cw.header.CardHeader) -> None:
+    def _add_priorityacts(self, target: Union["cw.sprite.card.CWPyCard", List["cw.sprite.card.CWPyCard"]],
+                          h: cw.header.CardHeader) -> None:
         if cw.cwpy.battle and target and h:
             for e in self._get_motions(h):
                 t = e.get("type", "")
@@ -1412,10 +1413,10 @@ class Character(object):
 
         return selected
 
-    def _get_motions(self, header: cw.header.CardHeader) -> Union[cw.data.CWPyElement, Sequence[Dict[str, str]]]:
+    def _get_motions(self, header: cw.header.CardHeader) -> cw.data.CWPyElement:
         if header.type == "ActionCard" and header.id == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
-            return [{"type": "Runaway"}]
+            return cw.data.CWPyElement("Motion", {"type": "Runaway"})
         else:
             assert header.carddata is not None
             data: cw.data.CWPyElement = header.carddata.find_exists("Motions")
@@ -1427,7 +1428,7 @@ class Character(object):
     def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"])\
             -> Tuple[int, List["cw.sprite.card.CWPyCard"]]:
         bonus = -2147483647
-        maxbonustargs = []
+        maxbonustargs: List[cw.sprite.card.CWPyCard] = []
         # 最大ボーナスを取得
         motions = self._get_motions(header)
         for motion in motions:
@@ -1508,8 +1509,11 @@ class Character(object):
                     if isinstance(tarr, cw.character.Character):
                         if tarr == self:
                             targeting += 1
-                    elif self in tarr:
-                        targeting += 1
+                    else:
+                        assert isinstance(tarr, list)
+                        assert isinstance(self, cw.sprite.card.CWPyCard)
+                        if self in tarr:
+                            targeting += 1
             if targeting:
                 bonus = min(0, bonus)
                 if mtype == "Heal":

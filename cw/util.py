@@ -383,6 +383,7 @@ class SoundInterface(object):
                     return
                 assert threading.currentThread() == cw.cwpy
                 tempbasedir = self._play_before(from_scenario, channel, fade)
+                assert isinstance(self._sound, str)
                 try:
                     path = get_soundfilepath(tempbasedir, self._sound)
                     cw.bassplayer.play_sound(path, volume, from_scenario, loopcount=loopcount, channel=channel,
@@ -558,7 +559,7 @@ def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullsc
     flags = 0
     size = cw.s(size_noscale)
     if fullscreen:
-        scr_fullscreen = pygame.display.set_mode(fullscreensize, flags)
+        scr_fullscreen: Optional[pygame.surface.Surface] = pygame.display.set_mode(fullscreensize, flags)
         scr = pygame.Surface(size).convert()
         scr_draw = scr
     else:
@@ -857,25 +858,35 @@ class Depth1Surface(pygame.Surface):
                                 surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
         colorkey = surface.get_colorkey()
-        self.set_colorkey(colorkey, pygame.RLEACCEL)
-        self.bmpdepthis1 = surface.bmpdepthis1 if hasattr(surface, "bmpdepthis1") else (bmpdepth == 1)
-        self.scr_scale = scr_scale
+        if colorkey:
+            self.set_colorkey(colorkey, pygame.RLEACCEL)
+        if isinstance(surface, Depth1Surface) and hasattr(surface, "bmpdepthis1"):
+            self.bmpdepthis1: bool = surface.bmpdepthis1
+        else:
+            self.bmpdepthis1 = bmpdepth == 1
+        self.scr_scale: float = scr_scale
 
     def copy(self) -> pygame.surface.Surface:
         if hasattr(self, "scr_scale"):
             bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
             bmp.bmpdepthis1 = self.bmpdepthis1
+            return bmp
         else:
-            bmp = pygame.Surface.copy(self)
-        return bmp
+            return pygame.Surface.copy(self)
 
-    def convert_alpha(self) -> pygame.surface.Surface:
+    def convert_alpha(self, surface: Optional[pygame.surface.Surface] = None) -> pygame.surface.Surface:
         if hasattr(self, "scr_scale"):
-            bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
+            if surface:
+                bmp = Depth1Surface(pygame.Surface.convert_alpha(self, surface), self.scr_scale, bmpdepth=32)
+            else:
+                bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
             bmp.bmpdepthis1 = False
+            return bmp
         else:
-            bmp = pygame.Surface.convert_alpha(self)
-        return bmp
+            if surface:
+                return pygame.Surface.convert_alpha(self, surface)
+            else:
+                return pygame.Surface.convert_alpha(self)
 
 
 def calc_imagesize(image: pygame.surface.Surface) -> int:
@@ -1090,14 +1101,7 @@ def load_bgm(path: str) -> int:
             return 0
         except Exception:
             cw.util.print_ex()
-            try:
-                # ストリームからの読込を試みる
-                f = io.BufferedReader(io.FileIO(path))
-                pygame.mixer.music.load(f)
-                return 0
-            except Exception:
-                cw.util.print_ex()
-                print("BGMが読み込めません", path)
+            print("BGMが読み込めません", path)
     return -1
 
 
@@ -1162,7 +1166,7 @@ def is_midi(path: str) -> bool:
     return cw.util.splitext(path)[1].lower() in (".mid", ".midi")
 
 
-def get_soundfilepath(basedir: str, path: str) -> str:
+def get_soundfilepath(basedir: str, path: Union[str]) -> str:
     """宿のフォルダにある場合は問題が出るため、
     再生用のコピーを生成する。
     """

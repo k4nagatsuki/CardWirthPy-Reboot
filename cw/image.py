@@ -265,8 +265,8 @@ class CardImage(Image):
         self.update_scale()
 
     def update_scale(self) -> None:
-        self._bmp = None
-        self._wxbmp = None
+        self._bmp: Optional[pygame.surface.Surface] = None
+        self._wxbmp: Optional[wx.Bitmap] = None
         self.image_mtime.clear()
         self._upwin = self._upwinmemo()
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype].convert()
@@ -490,7 +490,7 @@ class CardImage(Image):
                                               (cw.cwpy.selectedheader == header and in_trade)):
             # 種別アイコン(カード置場・荷物袋・移動中)
             if header.type == "SkillCard":
-                icon = cw.cwpy.rsrc.pygamedialogs["STATUS8"]
+                icon: Optional[pygame.surface.Surface] = cw.cwpy.rsrc.pygamedialogs["STATUS8"]
             elif header.type == "ItemCard":
                 icon = cw.cwpy.rsrc.pygamedialogs["STATUS9"]
             elif header.type == "BeastCard":
@@ -764,7 +764,7 @@ class CardImage(Image):
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 
-    def update(self, card: "cw.sprite.card.CWPyCard") -> None:
+    def update(self, card: "cw.sprite.card.CWPyCard", test_aptitude: Optional[cw.header.CardHeader] = None) -> None:
         pass
 
 
@@ -984,7 +984,8 @@ class CharacterCardImage(CardImage):
     def set_nameimg(self, name: str) -> None:
         if name:
             font = cw.cwpy.rsrc.fonts["pcard_name"]
-            self.nameimg = font.render(name, cw.cwpy.setting.fontsmoothing_cardname, (0, 0, 0))
+            self.nameimg: Optional[pygame.surface.Surface] = font.render(name, cw.cwpy.setting.fontsmoothing_cardname,
+                                                                         (0, 0, 0))
             w, h = self.nameimg.get_size()
 
             if w + cw.s(10) > cw.s(95):
@@ -1024,7 +1025,7 @@ class CharacterCardImage(CardImage):
             for y in range(size[1]):
                 color = self.levelimg.get_at((x, y))
                 if color[3] != 0:
-                    color[3] = color[3] // 2
+                    color = (color[0], color[1], color[2], color[3] // 2)
                     self.levelimg.set_at((x, y), color)
                     right = max(x, right)
                     top = min(y, top)
@@ -1047,19 +1048,17 @@ class CharacterCardImage(CardImage):
 
         self.levelimg_pos = (x, y)
 
-    def update(self, ccard: Union["cw.sprite.card.PlayerCard",
-                                  "cw.sprite.card.EnemyCard",
-                                  "cw.sprite.card.FriendCard"],
-               header: Optional[cw.header.CardHeader] = None) -> None:
+    def update(self, card: "cw.sprite.card.CWPyCard", test_aptitude: Optional[cw.header.CardHeader] = None) -> None:
+        assert isinstance(card, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         # 画像合成
-        bgname = self.get_cardbgname(ccard)
+        bgname = self.get_cardbgname(card)
         self.image = cw.cwpy.rsrc.cardbgs[bgname].convert()
         if self.image.get_bitsize() == 32 and self.image.get_alpha() == 0:
             # BUG: なぜか32-bitイメージのα値が0になっているケースがある
             self.image.set_alpha(None)
 
         # レベル
-        if ccard.is_analyzable():
+        if card.is_analyzable():
             self.image.blit(self.levelimg, self.levelimg_pos)
 
         # カード画像
@@ -1122,10 +1121,13 @@ class CharacterCardImage(CardImage):
                 self.image.blit(nameimg, cw.s((5, 5)))
 
         # ライフバー
-        if ccard.is_analyzable() and not ccard.is_unconscious():
+        if card.is_analyzable() and not card.is_unconscious():
             def calc_barpos(guage: pygame.surface.Surface) -> Tuple[int, int]:
+                assert isinstance(card, (cw.sprite.card.PlayerCard,
+                                         cw.sprite.card.EnemyCard,
+                                         cw.sprite.card.FriendCard))
                 w, h = guage.get_size()
-                lifeper = float(ccard.life) / ccard.maxlife
+                lifeper = float(card.life) / card.maxlife
                 barpos = (int(lifeper*(w+cw.s(1)) + 0.5) - (w+cw.s(1)), cw.s(1))
                 return barpos
 
@@ -1155,16 +1157,16 @@ class CharacterCardImage(CardImage):
             self.lifeimg: pygame.surface.Surface = lifeimg
             self.image.blit(lifeimg, cw.s((8, 110)))
 
-        if header:
+        if test_aptitude:
             # 適性表示(カード移動時)
-            key = "HAND" + str(header.get_showed_vocation_level(ccard))
+            key = "HAND" + str(test_aptitude.get_showed_vocation_level(card))
             subimg = cw.cwpy.rsrc.stones[key]
             self.image.blit(subimg, cw.s((73, 95)))
 
         self._no_statusimg = self.image
 
         # ステータス画像追加
-        self.update_statusimg(ccard, None)
+        self.update_statusimg(card, None)
 
     def update_statusimg(self, ccard: Union["cw.sprite.card.PlayerCard",
                                             "cw.sprite.card.EnemyCard",
@@ -1280,8 +1282,10 @@ class CharacterCardImage(CardImage):
             image = cw.util.put_number(image, num)
         return image
 
-    def _put_enhanceimg(self, seq: List[Tuple[Tuple[int, int, int], Tuple[int, int]]], bmp: pygame.surface.Surface,
-                        value: int, duration: int, is_runningevent: Optional[bool]) -> None:
+    def _put_enhanceimg(self,
+                        seq: List[Union[pygame.surface.Surface, Tuple[Tuple[int, int, int], Tuple[int, int]]]],
+                        bmp: pygame.surface.Surface, value: int, duration: int,
+                        is_runningevent: Optional[bool]) -> None:
         size = (bmp.get_width(), bmp.get_height())
         if value >= 10:
             seq.append(((255, 0, 0), size))
@@ -1470,11 +1474,12 @@ def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], g
     key = (size, color1, gradient, color2)
     image = cw.cwpy.sdata.resource_cache.get(key, None)
     if image:
+        assert isinstance(image, pygame.surface.Surface)
         return image
 
     image = pygame.Surface(size).convert_alpha()
 
-    def calc_per(mn: int, mx: int, per: int) -> int:
+    def calc_per(mn: int, mx: int, per: float) -> int:
         if mn == mx:
             return mn
         c = mx - mn

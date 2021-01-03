@@ -366,9 +366,6 @@ class MessageWindow(base.CWPySprite):
 
     def create_selectionbar(self) -> None:
         # SelectionBarを描画
-        if not self.backlog:
-            cw.cwpy.list = []
-            cw.cwpy.list.extend(self.selections)
         x_noscale, y_noscale = self.rect_noscale.left, self.rect_noscale.bottom
 
         self.names_log = []
@@ -392,6 +389,10 @@ class MessageWindow(base.CWPySprite):
                 y_noscale += size_noscale[1]
             else:
                 x_noscale += size_noscale[0]
+
+        if not self.backlog:
+            cw.cwpy.list = []
+            cw.cwpy.list.extend(self.selections)
 
     def create_charimgs(self, pos_noscale: Optional[Tuple[int, int]] = None,
                         init: bool = True) -> List[Tuple[Tuple[int, int], Optional[pygame.surface.Surface],
