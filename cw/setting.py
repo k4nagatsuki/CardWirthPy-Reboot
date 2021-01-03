@@ -21,8 +21,8 @@ import pygame
 import cw
 
 import typing
-from typing import List, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Sequence, Set,\
-    Tuple, TypeVar, Union
+from typing import List, Literal, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Sequence,\
+    Set, Tuple, TypeVar, Union
 
 
 _KeyType = TypeVar("_KeyType")
@@ -1821,14 +1821,14 @@ class Resource(object):
         # wxスレッドから初期化
         self.buttons = ResourceTable[str, wx.Bitmap]("Button", {}, empty_wxbmp)
         # カード背景画像(辞書)
-        self.cardbgs = self.get_cardbgs(cw.util.load_image)
+        self.cardbgs = self.get_cardbgs(cw.util.load_image, empty_image)
         self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
         # wxダイアログで使う画像(辞書)
-        self.pygamedialogs = self.get_dialogs(cw.util.load_image)
+        self.pygamedialogs = self.get_dialogs(cw.util.load_image, empty_image)
         # wx版。wxスレッドから初期化
         self.dialogs = ResourceTable[str, wx.Bitmap]("Dialog", {}, empty_wxbmp)
         # デバッガで使う画像(辞書)
-        self.pygamedebugs = self.get_debugs(cw.util.load_image, cw.s)
+        self.pygamedebugs = self.get_debugs(cw.util.load_image, empty_image, cw.s)
         # wx版。wxスレッドから初期化
         self.debugs = ResourceTable[str, wx.Bitmap]("Debug", {}, empty_wxbmp)
         # ダイアログで使うカーソル(辞書)
@@ -1916,14 +1916,14 @@ class Resource(object):
         # wxダイアログのボタン画像(辞書)
         self.buttons = self.get_buttons()
         # wxダイアログで使う画像(辞書)
-        self.dialogs = self.get_dialogs(cw.util.load_wxbmp)
+        self.dialogs = self.get_dialogs(cw.util.load_wxbmp, empty_wxbmp)
         # デバッガで使う画像(辞書)
-        self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
-        self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
+        self.debugs = self.get_debugs(cw.util.load_wxbmp, empty_wxbmp, cw.ppis)
+        self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, empty_wxbmp, cw.wins)
 
         def ss(num: cw.Scalable) -> cw.Scalable:
             return num
-        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, ss, can_loaded_scaledimage=False)
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, empty_wxbmp, ss, can_loaded_scaledimage=False)
         # ダイアログで使うカーソル(辞書)
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
@@ -1931,21 +1931,21 @@ class Resource(object):
         # プレイヤカードのステータス画像(辞書)
         self.wxstatuses = self.get_statuses(cw.util.load_wxbmp)
         # カード背景画像(辞書)
-        self.wxcardbgs = self.get_cardbgs(cw.util.load_wxbmp)
+        self.wxcardbgs = self.get_cardbgs(cw.util.load_wxbmp, empty_wxbmp)
 
     def init_debugicon(self) -> None:
         """エディタ情報変更によりデバッグアイコンを再読込する"""
 
         def func() -> None:
-            self.pygamedebugs = self.get_debugs(cw.util.load_image, cw.s)
+            self.pygamedebugs = self.get_debugs(cw.util.load_image, empty_image, cw.s)
 
         cw.cwpy.exec_func(func)
-        self.debugs = self.get_debugs(cw.util.load_wxbmp, cw.ppis)
-        self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, cw.wins)
+        self.debugs = self.get_debugs(cw.util.load_wxbmp, empty_wxbmp, cw.ppis)
+        self.debugs_wx = self.get_debugs(cw.util.load_wxbmp, empty_wxbmp, cw.wins)
 
         def ss(num: cw.Scalable) -> cw.Scalable:
             return num
-        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, ss, can_loaded_scaledimage=False)
+        self.debugs_noscale = self.get_debugs(cw.util.load_wxbmp, empty_wxbmp, ss, can_loaded_scaledimage=False)
 
     def get_fontpaths(self) -> Dict[str, str]:
         """
@@ -2326,7 +2326,12 @@ class Resource(object):
             r, g, b, 255, r, g, b, 40, r, g, b, 0, r, g, b, 0, r, g, b, 0, r, g, b, 0
         )
 
-        topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+        # BUG: Argument 1 to "fromstring" has incompatible type "bytes"; expected "str" (pygame 2.0.1)
+        # topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+        fromstring = typing.cast(Callable[[bytes, Union[List[int], Tuple[int, int]],
+                                           Literal['p', 'RGB', 'RGBX', 'RGBA', 'ARGB'],
+                                           Optional[bool]], pygame.surface.Surface], pygame.image.fromstring)
+        topleft = fromstring(linedata, (6, 6), "RGBA", False)
         topright = pygame.transform.flip(topleft, True, False)
         bottomleft = pygame.transform.flip(topleft, False, True)
         bottomright = pygame.transform.flip(topleft, True, True)
@@ -2336,7 +2341,7 @@ class Resource(object):
     def draw_frame(bmp: pygame.surface.Surface, rect: pygame.rect.Rect, color: Tuple[int, int, int]) -> None:
         topleft, topright, bottomleft, bottomright = Resource.create_cornerimg(color)
         pygame.draw.rect(bmp, color, rect, 1)
-        x, y, w, h = rect
+        x, y, w, h = rect.x, rect.y, rect.width, rect.height
         bmp.blit(topleft, (x, y))
         bmp.blit(topright, (x + w - 6, y))
         bmp.blit(bottomleft, (x, y + h - 6))
@@ -2360,14 +2365,19 @@ class Resource(object):
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         )
-        topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
+        # BUG: Argument 1 to "fromstring" has incompatible type "bytes"; expected "str" (pygame 2.0.1)
+        # topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
+        fromstring = typing.cast(Callable[[bytes, Union[List[int], Tuple[int, int]],
+                                           Literal['p', 'RGB', 'RGBX', 'RGBA', 'ARGB'],
+                                           Optional[bool]], pygame.surface.Surface], pygame.image.fromstring)
+        topleft = fromstring(outdata, (6, 6), "RGBA", False)
         topright = pygame.transform.flip(topleft, True, False)
         bottomleft = pygame.transform.flip(topleft, False, True)
         bottomright = pygame.transform.flip(topleft, True, True)
 
         if not rect:
             rect = bmp.get_rect()
-        x, y, w, h = rect
+        x, y, w, h = rect.x, rect.y, rect.width, rect.height
         o = outframe
         bmp.blit(topleft, (x + o, y + o), special_flags=pygame.BLEND_RGBA_SUB)
         bmp.blit(topright, (x + w - 6 - o, y + o), special_flags=pygame.BLEND_RGBA_SUB)
@@ -2491,7 +2501,12 @@ class Resource(object):
                 r1, g1, b1, 255, r1, g1, b1, 68, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0,
                 r1, g1, b1, 255, r1, g1, b1, 40, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0, r1, g1, b1, 0
             )
-            hl_topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+            # BUG: Argument 1 to "fromstring" has incompatible type "bytes"; expected "str" (pygame 2.0.1)
+            # hl_topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+            fromstring = typing.cast(Callable[[bytes, Union[List[int], Tuple[int, int]],
+                                               Literal['p', 'RGB', 'RGBX', 'RGBA', 'ARGB'],
+                                               Optional[bool]], pygame.surface.Surface], pygame.image.fromstring)
+            hl_topleft = fromstring(linedata, (6, 6), "RGBA", False)
             hl_topright = pygame.transform.flip(hl_topleft, True, False)
             hl_bottomleft = pygame.transform.flip(hl_topleft, False, True)
             hl_bottomright = pygame.transform.flip(hl_topleft, True, True)
@@ -2550,7 +2565,7 @@ class Resource(object):
 
     def get_resources(self, func: Callable[..., _ResType], dpath1: str, dpath2: str, ext: int,
                       mask: Optional[bool] = None,
-                      ss: Optional[Callable[["cw.Scalable"], "cw.Scalable"]] = None,
+                      ss: Optional[Callable[[_ResType], _ResType]] = None,
                       noresize: Iterable[str] = (), nodbg: bool = False,
                       emptyfunc: Optional[Callable[[], _ResType]] = None, editor_res: Optional[str] = None,
                       warning: bool = True, can_loaded_scaledimage: bool = True) -> "ResourceTable[str, _ResType]":
@@ -2559,7 +2574,7 @@ class Resource(object):
         ファイル名から拡張子を除いたのがkey。
         """
 
-        def nokeyfunc(key: str) -> Union[pygame.surface.Surface, wx.Bitmap]:
+        def nokeyfunc(key: str) -> _ResType:
             dbg = not nodbg and key.endswith("_dbg")
             noscale = key.endswith("_noscale")
             up_scr = None
@@ -2608,20 +2623,13 @@ class Resource(object):
 
             if not noscale:
                 if not dbg and ss and key not in noresize:
-                    assert isinstance(res, (pygame.surface.Surface, wx.Bitmap))
-                    img = ss(res)
-                    assert isinstance(img, type(res))
-                    res = img
+                    res = ss(res)
                 elif dbg and ss:
-                    assert isinstance(res, (pygame.surface.Surface, wx.Bitmap))
-                    img = cw.ppis(res)
-                    assert isinstance(img, type(res))
-                    res = img
+                    res = cw.ppis(res)
 
             return res
 
-        d = ResourceTable(dpath1, {}, emptyfunc, nokeyfunc=nokeyfunc)
-        return d
+        return ResourceTable(dpath1, None, emptyfunc, nokeyfunc=nokeyfunc)
 
     def get_sounds(self, setting: Setting, skinsounds: "ResourceTable[str, cw.util.SoundInterface]")\
             -> "ResourceTable[str, cw.util.SoundInterface]":
@@ -2732,7 +2740,7 @@ class Resource(object):
             emptyfunc = empty_image
 
         def load_image2(fpath: str, mask: bool = False, can_loaded_scaledimage: bool = True,
-                        up_scr: Optional[int] = None) -> pygame.surface.Surface:
+                        up_scr: Optional[int] = None) -> _ResType:
             fname = os.path.basename(fpath)
             key = cw.util.splitext(fname)[0]
             if key in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
@@ -2757,20 +2765,19 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_dialogs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.surface.Surface]":
+    def get_dialogs(self, load_image: Callable[..., _ResType],
+                    emptyfunc: Callable[[], _ResType]) -> "ResourceTable[str, _ResType]":
         """
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
-            emptyfunc = empty_wxbmp
         else:
             ss = cw.s
-            emptyfunc = empty_image
 
         def load_image2(fpath: str, mask: bool = False, can_loaded_scaledimage: bool = True,
-                        up_scr: Optional[int] = None) -> pygame.surface.Surface:
+                        up_scr: Optional[int] = None) -> _ResType:
             fname = os.path.basename(fpath)
             key = cw.util.splitext(fname)[0]
             if key in ("LINK", "MONEYY"):
@@ -2787,17 +2794,13 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss,
                                   emptyfunc=emptyfunc)
 
-    def get_debugs(self, load_image: Callable[..., _ResType], ss: Callable[["cw.Scalable"], "cw.Scalable"],
+    def get_debugs(self, load_image: Callable[..., _ResType], emptyfunc: Callable[[], _ResType],
+                   ss: Callable[[_ResType], _ResType],
                    can_loaded_scaledimage: bool = True) -> "ResourceTable[str, _ResType]":
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        if load_image == cw.util.load_wxbmp:
-            emptyfunc = empty_wxbmp
-        else:
-            emptyfunc = empty_image
-
         dpath = "Data/Debugger"
 
         # 可能ならcwxeditor/resourceからアイコンを読み込む
@@ -2812,7 +2815,8 @@ class Resource(object):
         return self.get_resources(load_image, dpath, "", cw.M_IMG, True, ss, emptyfunc=emptyfunc, editor_res=editor_res,
                                   can_loaded_scaledimage=can_loaded_scaledimage)
 
-    def get_cardbgs(self, load_image: Callable[..., _ResType]) -> "ResourceTable[str, pygame.surface.Surface]":
+    def get_cardbgs(self, load_image: Callable[..., _ResType],
+                    emptyfunc: Callable[[], _ResType]) -> "ResourceTable[str, _ResType]":
         """
         カードの背景画像を読み込んで、pygameのサーフェス
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
@@ -2820,13 +2824,11 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
-            emptyfunc = empty_wxbmp
         else:
             ss = cw.s
-            emptyfunc = empty_image
 
         def load_image2(fpath: str, mask: bool = False, can_loaded_scaledimage: bool = True,
-                        up_scr: Optional[int] = None) -> pygame.surface.Surface:
+                        up_scr: Optional[int] = None) -> _ResType:
             fname = os.path.basename(fpath)
             key = cw.util.splitext(fname)[0]
             if key in ("HOLD", "PENALTY"):
@@ -2842,7 +2844,8 @@ class Resource(object):
         return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", dpath, self.ext_img, False,
                                   ss, nodbg=True, emptyfunc=emptyfunc)
 
-    def get_cardnamecolorhints(self, cardbgs: "ResourceTable[str, int]") -> "ResourceTable[str, int]":
+    def get_cardnamecolorhints(self,
+                               cardbgs: "ResourceTable[str, pygame.surface.Surface]") -> "ResourceTable[str, int]":
         """
         カードの各台紙について、文字描画領域の色を
         平均化した辞書を作成する。
@@ -2863,8 +2866,8 @@ class Resource(object):
         rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
-        buf = array.array('B', buf)
-        rgb = sum(buf) // len(buf)
+        arr = array.array('B', buf)
+        rgb = sum(arr) // len(arr)
         return rgb
 
     def calc_wxcardnamecolorhint(self, wxbmp: wx.Bitmap) -> int:
@@ -2941,7 +2944,8 @@ class Resource(object):
                  "ZAP": "#z",
                  }
 
-        d = ResourceTable[str, Tuple[pygame.surface.Surface, bool]]("Resource/Image/Font", {}, empty_image)
+        d: ResourceTable[str, Tuple[pygame.surface.Surface, bool]] = ResourceTable("Resource/Image/Font", None,
+                                                                                   lambda: (empty_image(), False))
 
         def load(key: str, name: str) -> Tuple[pygame.surface.Surface, bool]:
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)

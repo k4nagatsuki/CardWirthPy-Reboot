@@ -268,19 +268,19 @@ class EventHandler(object):
 
         elif y:
             def get_mcards() -> List[cw.sprite.base.SelectableSprite]:
-                seq = []
+                seq: List[cw.sprite.base.SelectableSprite] = []
                 if cw.cwpy.is_mcardsselectable:
-                    seq = cw.cwpy.get_mcards("selectable")
+                    seq.extend(cw.cwpy.get_mcards("selectable"))
                 return seq
 
             def get_pcards() -> List[cw.sprite.base.SelectableSprite]:
-                seq = []
+                seq: List[cw.sprite.base.SelectableSprite] = []
                 if cw.cwpy.is_pcardsselectable:
-                    seq = cw.cwpy.get_pcards("selectable")
+                    seq.extend(cw.cwpy.get_pcards("selectable"))
                 return seq
 
             def get_etc() -> List[cw.sprite.base.SelectableSprite]:
-                seq = []
+                seq: List[cw.sprite.base.SelectableSprite] = []
                 for sprite in cw.cwpy.topgrp.sprites():
                     if isinstance(sprite, cw.sprite.background.ClickableSprite):
                         if sprite.clickable_group == 0:
@@ -288,7 +288,7 @@ class EventHandler(object):
                 return seq
 
             def get_etc2() -> List[cw.sprite.base.SelectableSprite]:
-                seq = []
+                seq: List[cw.sprite.base.SelectableSprite] = []
                 for sprite in cw.cwpy.topgrp.sprites():
                     if isinstance(sprite, cw.sprite.background.ClickableSprite):
                         if sprite.clickable_group == 1:
@@ -1289,7 +1289,8 @@ class EventHandlerForBacklog(EventHandler):
 
         self._in_scroll = False
 
-        self._sbarbar = None
+        # ステータスバー上にはみ出して見えているメッセージ選択肢
+        self._sbarbar: Optional[cw.sprite.message.SelectionBar] = None
         self._update_posdata(init=True)
 
         self.stw = cw.sprite.base.StopTheWorld(pygame.time.get_ticks(), 0)
@@ -1336,14 +1337,17 @@ class EventHandlerForBacklog(EventHandler):
             assert len(sbarbar) == 1
             if cw.cwpy.setting.is_logscrollable():
                 # スクロールする時はステータスバー上の選択肢を一時的に非表示化する
-                self._sbarbar = sbarbar[0]
+                sbar = sbarbar[0]
+                assert isinstance(sbar, cw.sprite.message.SelectionBar)
+                self._sbarbar = sbar
                 cw.cwpy.sbargrp.remove(self._sbarbar)
             else:
                 # 1件ずつ表示する時はステータスバー上の選択肢にもカーテンをかける
-                sbarbar = sbarbar[0]
+                sbar = sbarbar[0]
+                assert isinstance(sbar, cw.sprite.message.SelectionBar)
                 self._curtain2: Optional[cw.sprite.message.BacklogCurtain] =\
                     cw.sprite.message.BacklogCurtain(cw.cwpy.sbargrp, cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN,
-                                                     sbarbar.size_noscale, sbarbar.pos_noscale)
+                                                     sbar.size_noscale, sbar.pos_noscale)
                 self._sbarbar = None
         else:
             self._curtain2 = None
@@ -1678,6 +1682,7 @@ class EventHandlerForBacklog(EventHandler):
         # ステータスボタンを除き、ログ表示中はアニメーションを止める
         # (開始時間をずらして調節する)
         for sprite in cw.cwpy.cardgrp.sprites():
+            assert isinstance(sprite, cw.sprite.base.CWPySprite)
             if sprite.start_animation and not (cw.cwpy.selection and cw.cwpy.selection.is_statusctrl):
                 elapse = pygame.time.get_ticks() - self.stw.start_ticks
                 if 0 < elapse:
@@ -1762,6 +1767,7 @@ class EventHandlerForBacklog(EventHandler):
                 m.rect.top = cw.s(m.rect_noscale.top)
                 cw.cwpy.backloggrp.add(m, layer=cw.LAYER_LOG)
                 for j, sbar in enumerate(m.selections):
+                    assert isinstance(m, cw.sprite.message.MessageWindow)
                     sbar.rect_noscale.height = sbar.size_noscale[1]
                     sbar.rect.height = cw.s(sbar.rect_noscale.height)
                     sbar.rect_noscale.top = m.rect_noscale.bottom + (j // m.columns * sbar.rect_noscale.height)

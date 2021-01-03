@@ -5,7 +5,7 @@ import bisect
 
 import cw
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 class BattleError(Exception):
@@ -46,7 +46,8 @@ class BattleEngine(object):
         for fcard in cw.cwpy.get_fcards():
             fcard.deck.set(fcard, draw=False)
 
-        self.priorityacts: List[Tuple[str, List[cw.sprite.card.CWPyCard], cw.character.Character]] = []
+        self.priorityacts: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
+                                      cw.character.Character]] = []
 
         # ラウンド数
         self.round = 0
@@ -370,7 +371,7 @@ class BattleEngine(object):
 
         is_battlestarting = self.is_battlestarting()
         cw.cwpy.hide_cards(True)
-        cw.cwpy.cardgrp.remove(cw.cwpy.mcards)
+        cw.cwpy.cardgrp.remove(*cw.cwpy.mcards)
         cw.cwpy.mcards = []
         cw.cwpy.mcards_expandspchars.clear()
         cw.cwpy.file_updates.clear()
@@ -405,7 +406,7 @@ class BattleEngine(object):
 
         if event:
             cw.cwpy.hide_cards(True)
-            cw.cwpy.cardgrp.remove(cw.cwpy.mcards)
+            cw.cwpy.cardgrp.remove(*cw.cwpy.mcards)
             cw.cwpy.mcards = []
             cw.cwpy.mcards_expandspchars.clear()
             cw.cwpy.file_updates.clear()

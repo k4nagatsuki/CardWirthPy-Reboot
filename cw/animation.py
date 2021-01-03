@@ -6,7 +6,7 @@ import pygame
 
 import cw
 
-from typing import Iterable, Tuple
+from typing import Iterable, Optional, Tuple
 
 
 def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent: bool = True, background: bool = False,
@@ -29,9 +29,8 @@ def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent
     sprite.start_animation = pygame.time.get_ticks()
     stw = cw.sprite.base.StopTheWorld(sprite.start_animation, 0)
 
-    if battlespeed:
-        if hasattr(sprite, "battlespeed"):
-            sprite.battlespeed = True
+    if battlespeed and isinstance(sprite, cw.sprite.card.CWPyCard):
+        sprite.battlespeed = True
 
     skip = _get_skipstatus(clearevent)
     draw = False
@@ -45,7 +44,7 @@ def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent
             continue
         sprite.start_animation = stw.start_ticks
 
-        clip = pygame.Rect(sprite.rect)
+        clip = pygame.rect.Rect(sprite.rect)
         sprite.skipped |= skip
         sprite.update()
         clip.union_ip(sprite.rect)
@@ -58,7 +57,9 @@ def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent
         if skip:
             cw.cwpy.add_lazydraw(clip)
         else:
-            clip = _inputevent(clip, clearevent, statusbutton)
+            clip2 = _inputevent(clip, clearevent, statusbutton)
+            assert clip2
+            clip = clip2
             cw.cwpy.add_lazydraw(clip=clip)
             cw.cwpy.wait_frame(1, canskip=draw)
 
@@ -66,9 +67,8 @@ def animate_sprite(sprite: "cw.sprite.base.CWPySprite", anitype: str, clearevent
 
     sprite.skipped = False
 
-    if battlespeed:
-        if hasattr(sprite, "battlespeed"):
-            sprite.battlespeed = False
+    if battlespeed and isinstance(sprite, cw.sprite.card.CWPyCard):
+        sprite.battlespeed = False
 
     if statusbutton:
         cw.cwpy.clear_inputevents()
@@ -119,9 +119,8 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
         sprite.status = anitype
         sprite.skipped = False
         sprite.start_animation = tick
-        if battlespeed:
-            if hasattr(sprite, "battlespeed"):
-                sprite.battlespeed = True
+        if battlespeed and isinstance(sprite, cw.sprite.card.CWPyCard):
+            sprite.battlespeed = True
 
     animating = True
     skip = _get_skipstatus(clearevent)
@@ -144,7 +143,7 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
             if clip:
                 clip.union_ip(sprite.rect)
             else:
-                clip = pygame.Rect(sprite.rect)
+                clip = pygame.rect.Rect(sprite.rect)
             sprite.skipped |= skip
             sprite.update()
             if sprite.status == anitype:
@@ -176,9 +175,8 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
 
     for sprite, anitype in sprandanimes:
         sprite.skipped = False
-        if battlespeed:
-            if hasattr(sprite, "battlespeed"):
-                sprite.battlespeed = False
+        if battlespeed and isinstance(sprite, cw.sprite.card.CWPyCard):
+            sprite.battlespeed = False
 
     cw.cwpy.update_mousepos()
     cw.cwpy.input(inputonly=clearevent)
@@ -193,7 +191,7 @@ def animate_sprites2(sprandanimes: Iterable[Tuple["cw.sprite.base.CWPySprite", s
     return skip
 
 
-def _inputevent(clip: pygame.rect.Rect, clearevent: bool, statusbutton: bool) -> pygame.rect.Rect:
+def _inputevent(clip: Optional[pygame.rect.Rect], clearevent: bool, statusbutton: bool) -> Optional[pygame.rect.Rect]:
     if statusbutton:
         cw.cwpy.clear_inputevents()
     else:

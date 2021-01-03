@@ -896,22 +896,28 @@ class CardHeader(object):
 
         if self.target == "Both":
             if isinstance(owner, cw.character.Enemy):
-                targets: List[cw.sprite.card.CWPyCard] = cw.cwpy.get_ecards("unreversed")[:]
+                targets: List[cw.sprite.card.CWPyCard] = []
+                targets.extend(cw.cwpy.get_ecards("unreversed"))
                 targets.extend(cw.cwpy.get_pcards("unreversed"))
             else:
-                targets = cw.cwpy.get_pcards("unreversed")[:]
+                targets = []
+                targets.extend(cw.cwpy.get_pcards("unreversed"))
                 targets.extend(cw.cwpy.get_ecards("unreversed"))
         elif self.target == "Party":
             if isinstance(owner, cw.character.Enemy):
-                targets = cw.cwpy.get_ecards("unreversed")[:]
+                targets = []
+                targets.extend(cw.cwpy.get_ecards("unreversed"))
             else:
-                targets = cw.cwpy.get_pcards("unreversed")[:]
+                targets = []
+                targets.extend(cw.cwpy.get_pcards("unreversed"))
 
         elif self.target == "Enemy":
             if isinstance(owner, cw.character.Enemy):
-                targets = cw.cwpy.get_pcards("unreversed")[:]
+                targets = []
+                targets.extend(cw.cwpy.get_pcards("unreversed"))
             else:
-                targets = cw.cwpy.get_ecards("unreversed")[:]
+                targets = []
+                targets.extend(cw.cwpy.get_ecards("unreversed"))
 
         elif self.target == "User":
             assert isinstance(owner, cw.sprite.card.CWPyCard)
@@ -1017,7 +1023,7 @@ class CardHeader(object):
 
         return True
 
-    def is_removewithstatus(self, ccard: "cw.character.Character") -> bool:
+    def is_removewithstatus(self, ccard: Union["cw.character.Character", "cw.sprite.card.MenuCard"]) -> bool:
         """召喚獣カードが消滅する状態か？"""
         assert self.carddata is not None
         return is_removewithstatus(self.carddata, ccard)
@@ -1063,7 +1069,8 @@ class CardHeader(object):
             return result
 
 
-def is_removewithstatus(carddata: cw.data.CWPyElement, target: "cw.character.Character") -> bool:
+def is_removewithstatus(carddata: cw.data.CWPyElement,
+                        target: Union["cw.character.Character", "cw.sprite.card.MenuCard"]) -> bool:
     """targetはcarddataの召喚獣カードが消滅する状態か？"""
     if not isinstance(target, cw.character.Character):
         return False
@@ -1646,6 +1653,7 @@ class ScenarioHeader(object):
                     break
                 scale //= 2
             if image:
+                bmp_noscale: pygame.surface.Surface
                 if imagex1:
                     with io.BytesIO(imagex1) as f:
                         bmp_noscale = cw.util.Depth1Surface(cw.util.load_image("", f=f, mask=mask, noscale=True), 1)

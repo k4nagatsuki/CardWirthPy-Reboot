@@ -485,7 +485,7 @@ class StatusEditDialog(wx.Dialog):
     def _update_status(self) -> None:
         for i, status in enumerate(self._get_statuses()):
             force = (i == 0)
-            self.life._value_int = self._value(self.life.value, status.life, force)
+            self.life.value = self._value(self.life.value, status.life, force)
             self.poison.value = self._value(self.poison.value, status.poison, force)
             self.paralyze.value = self._value(self.paralyze.value, status.paralyze, force)
             self.mentality.value = self._value(self.mentality.value, status.mentality, force, "Normal")
