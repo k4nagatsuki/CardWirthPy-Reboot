@@ -258,7 +258,7 @@ for arg in OPTIONS.leftovers:
 
 
 Scalable = TypeVar("Scalable", wx.Bitmap, wx.Image, pygame.surface.Surface, pygame.rect.Rect, Tuple[int, int],
-                   Tuple[int, int, int, int], int, float)
+                   Tuple[int, int, int, int], int)
 
 
 def wins(num: Scalable) -> Scalable:
@@ -323,14 +323,6 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         # BUG: Redundant cast to "int" (mypy 0.790)
         # return typing.cast(Scalable, int(num * up_scr))
         return typing.cast(Scalable, typing.cast(typing.Any, int(num * up_scr)))
-
-    elif isinstance(num, float):
-        # 単純な数値(座標やサイズ)
-        # BUG: Incompatible return value type (got "float", expected "Surface") (mypy 0.790)
-        # return num * up_scr
-        # BUG: Redundant cast to "float" (mypy 0.790)
-        # return typing.cast(Scalable, num * up_scr)
-        return typing.cast(Scalable, typing.cast(typing.Any, num * up_scr))
 
     elif isinstance(num, pygame.Rect):
         # pygameの矩形情報
