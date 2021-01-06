@@ -15,8 +15,6 @@ from typing import Callable, Dict, Generic, List, Literal, Optional, Sequence, T
 
 if sys.platform == "win32":
     import win32api
-    import ctypes
-    import ctypes.wintypes
 
     def _set_itemheight(combo: cw.util.CWPyBitmapComboBox) -> None:
         CB_SETITEMHEIGHT = 0x153
