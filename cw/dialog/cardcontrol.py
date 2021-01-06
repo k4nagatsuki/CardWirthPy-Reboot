@@ -18,9 +18,9 @@ if sys.platform == "win32":
     import ctypes
     import ctypes.wintypes
 
-    def _send_message(hwnd: ctypes.wintypes.HANDLE, msg: ctypes.c_uint, wparam: ctypes.wintypes.WPARAM,
-                      lparam: ctypes.wintypes.LPARAM):
-        win32api.SendMessage(hwnd, msg, wparam, lparam)
+    def _set_itemheight(combo: cw.util.CWPyBitmapComboBox) -> None:
+        CB_SETITEMHEIGHT = 0x153
+        win32api.SendMessage(combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
 
 
 CardHeaderType = TypeVar("CardHeaderType", cw.header.CardHeader, cw.header.InfoCardHeader)
@@ -476,8 +476,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             x -= cw.wins(100)
             self.combo.SetSize((cw.wins(100), cw.wins(24)))
             if sys.platform == "win32":
-                CB_SETITEMHEIGHT = 0x153
-                _send_message(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
+                _set_itemheight(self.combo)
             yc = y + (cw.wins(24)-self.combo.GetSize()[1]) // 2
             self.combo.SetPosition((x, yc))
 

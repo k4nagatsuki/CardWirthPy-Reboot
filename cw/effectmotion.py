@@ -531,7 +531,8 @@ class Effect(object):
                 cw.cwpy.add_lazydraw(clip=target.rect)
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
-    def check_enabledtarget(self, target: "cw.sprite.card.CWPyCard", event: bool = False) -> bool:
+    def check_enabledtarget(self, target: Union["cw.character.Character", "cw.sprite.card.MenuCard"],
+                            event: bool = False) -> bool:
         """
         表示されていないか(敵のみ)、対象消去されている場合、
         反転している場合(イベント除く)は有効なターゲットではない。
