@@ -4775,7 +4775,7 @@ class CWPy(threading.Thread):
             if selowner:
                 header = self.selectedheader
                 targets: List[cw.sprite.card.CWPyCard] = []
-            elif sprite2.actiondata:
+            elif isinstance(sprite2, cw.character.Character) and sprite2.actiondata:
                 targets_c, header, _beasts = sprite2.actiondata
                 if isinstance(targets_c, cw.character.Character):
                     assert isinstance(targets_c, cw.sprite.card.CWPyCard)
@@ -4787,7 +4787,7 @@ class CWPy(threading.Thread):
                 header = None
 
             if self.selection == sprite2 and not selowner:
-                if cw.cwpy.setting.show_lifebar_on_selection and \
+                if cw.cwpy.setting.show_lifebar_on_selection and isinstance(sprite2, cw.character.Character) and\
                         sprite2.is_analyzable() and not sprite2.is_unconscious():
                     assert isinstance(sprite2, (cw.sprite.card.PlayerCard,
                                                 cw.sprite.card.EnemyCard,
@@ -4796,6 +4796,7 @@ class CWPy(threading.Thread):
 
             if header:
                 if self.selection == sprite2 and not selowner:
+                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     # カーソル下のカード。常に手前に表示
                     self.set_inusecardimg(sprite2, header, fore=True)
                     if header.target == "None":
@@ -4803,6 +4804,7 @@ class CWPy(threading.Thread):
                     elif targets:
                         self.set_targetarrow(targets)
                 elif self.setting.show_allselectedcards or selowner:
+                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if header.personal_owner and self.areaid in cw.AREAS_TRADE and header is self.selectedheader and\
                             self.setting.show_personal_cards:
                         owner = header.personal_owner
