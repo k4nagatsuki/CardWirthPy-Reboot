@@ -5315,10 +5315,11 @@ class SimpleXmlParser(object):
             if data:
                 element = self.node_stack[-1]
 
-                if element.text:
-                    element.text += data
-                else:
-                    element.text = data
+                if not len(element):
+                    if element.text:
+                        element.text += data
+                    else:
+                        element.text = data
 
     def parse(self) -> CWPyElement:
         if self.file and hasattr(self.file, "read"):
