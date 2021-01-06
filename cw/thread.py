@@ -4768,8 +4768,8 @@ class CWPy(threading.Thread):
                 else:
                     continue
 
-            assert isinstance(sprite2, cw.sprite.card.CWPyCard)
-            assert isinstance(sprite2, cw.character.Character)
+            assert isinstance(sprite2, cw.sprite.card.CWPyCard), sprite2
+            assert isinstance(sprite2, (cw.character.Character, cw.sprite.card.MenuCard)), sprite2
             self.clear_inusecardimg(sprite2)
 
             if selowner:
