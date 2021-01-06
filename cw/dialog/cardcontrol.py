@@ -11,7 +11,10 @@ import wx.lib.intctrl
 
 import cw
 
-from typing import Callable, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Callable, Dict, Generic, List, Literal, Optional, Sequence, Tuple, TypeVar, Union
+
+if sys.platform == "win32":
+    import win32api
 
 CardHeaderType = TypeVar("CardHeaderType", cw.header.CardHeader, cw.header.InfoCardHeader)
 
@@ -466,7 +469,6 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             x -= cw.wins(100)
             self.combo.SetSize((cw.wins(100), cw.wins(24)))
             if sys.platform == "win32":
-                import win32api
                 CB_SETITEMHEIGHT = 0x153
                 win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
             yc = y + (cw.wins(24)-self.combo.GetSize()[1]) // 2
@@ -2029,7 +2031,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
 
         if self.areaid in cw.AREAS_TRADE:
             if cw.cwpy.setting.show_personal_cards and isinstance(selection, cw.character.Player):
-                status = ""
+                status: Literal["", "unreversed", "active"] = ""
             else:
                 status = "unreversed"
         else:
@@ -2258,7 +2260,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
         # layout
         self._do_layout()
 
-    def _init_list(self, status: str) -> None:
+    def _init_list(self, status: Literal["", "unreversed", "active"]) -> None:
         raise ValueError()
 
     def _bind(self) -> None:
@@ -3108,7 +3110,7 @@ class SelectCard(CardHolder[cw.header.CardHeader]):
     def __init__(self, parent: wx.TopLevelWindow, callname: str) -> None:
         CardHolder.__init__(self, parent, callname)
 
-    def _init_list(self, status: str) -> None:
+    def _init_list(self, status: Literal["", "unreversed", "active"]) -> None:
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         assert cw.cwpy.ydata
         if self.callname == "BACKPACK":
@@ -3372,7 +3374,7 @@ class HandView(CardControl[cw.header.CardHeader]):
             self.Refresh()
 
     def _update_cardlist(self, selection: cw.character.Character) -> None:
-        status = "active"
+        status: Literal["active"] = "active"
         if isinstance(selection, cw.character.Player):
             self.list2 = []
             self.list2.extend(cw.cwpy.get_pcards(status))
@@ -3504,7 +3506,7 @@ class ReplCardHolder(CardControl[cw.header.CardHeader]):
             self.cardtype = cw.POCKET_BEAST
 
         # カードリスト
-        status = "" if personal else "unreversed"
+        status: Literal["", "unreversed"] = "" if personal else "unreversed"
         self.list2 = []
         self.list2.extend(cw.cwpy.get_pcards(status))
         if personal:
@@ -3684,7 +3686,7 @@ class InfoView(CardHolder[cw.header.InfoCardHeader]):
         # ダイアログ作成
         CardHolder.__init__(self, parent, "INFOVIEW")
 
-    def _init_list(self, status: str) -> None:
+    def _init_list(self, status: Literal["", "unreversed", "active"]) -> None:
         assert self.callname == "INFOVIEW"
         self.list = cw.cwpy.sdata.get_infocardheaders()
 

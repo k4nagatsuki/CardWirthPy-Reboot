@@ -50,7 +50,7 @@ __all__ = ["util", "battle", "yadodb", "data", "dice", "effectmotion", "event", 
            "update", "calculator", "dialog", "debug", "sprite", "argparser", "nctype"]
 
 import typing
-from typing import List, Tuple, TypeVar, Union
+from typing import List, Tuple, TypeVar
 
 # 実行ファイルのパス
 exepath = ""

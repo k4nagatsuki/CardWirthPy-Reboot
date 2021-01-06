@@ -11,7 +11,7 @@ import pygame
 
 import cw
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Dict, Iterable, List, Literal, Optional, Set, Tuple, Union
 
 
 class EventContentBase(object):
@@ -105,7 +105,7 @@ class EventContentBase(object):
         for e in self.data.getfind("Coupons", raiseerror=False):
             self.coupons[e.text] = self.coupons.get(e.text, 0) + e.getint(".", "value", 0)
 
-    def get_valuedmember(self, mode: str = "unreversed",
+    def get_valuedmember(self, mode: Literal["unreversed", "active"] = "unreversed",
                          silenced_member: bool = True) -> Optional["cw.sprite.card.PlayerCard"]:
         """評価値が最大になるメンバを返す(1.50)。
         これを使用するイベントコンテントは
@@ -1278,7 +1278,7 @@ class BranchSelectContent(BranchContent):
     def action(self) -> int:
         """メンバ選択分岐コンテント。"""
         if self.targetall:
-            mode = "unreversed"
+            mode: Literal["unreversed", "active"] = "unreversed"
         else:
             mode = "active"
 

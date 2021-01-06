@@ -19,7 +19,7 @@ import cw
 from cw.util import synclock
 
 import typing
-from typing import Tuple, Callable, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union
+from typing import Tuple, Callable, Dict, Iterable, List, Literal, Optional, Sequence, Set, TypeVar, Union
 
 _Arg1 = TypeVar("_Arg1")
 _Arg2 = TypeVar("_Arg2")
@@ -65,7 +65,7 @@ class CWPy(threading.Thread):
     mousepos: Tuple[int, int]
     wxmousepos: Tuple[int, int]
     wheelmode_cursorpos: Tuple[int, int]
-    mousein: Tuple[int, int, int]
+    mousein: Tuple[bool, bool, bool]
     cursor: str
 
     event: cw.event.EventInterface
@@ -217,8 +217,10 @@ class CWPy(threading.Thread):
         # Spriteグループ
         self.cardgrp = pygame.sprite.LayeredDirty()
         self.pcards: List[cw.sprite.card.PlayerCard] = []
-        self.mcards: List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]] = []
-        self.mcards_expandspchars: Set[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]] = set()
+        self.mcards: List[Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]] = []
+        self.mcards_expandspchars: Set[Union[cw.sprite.card.MenuCard,
+                                             cw.sprite.card.EnemyCard,
+                                             cw.sprite.card.FriendCard]] = set()
         self.pricesprites: List[cw.sprite.background.PriceOfCard] = []
         self.curtains: List[cw.sprite.background.Curtain] = []
         self.topgrp = pygame.sprite.LayeredDirty()
@@ -235,10 +237,10 @@ class CWPy(threading.Thread):
         self.areaid = 1
         # 特殊エリア移動前に保持しておく各種データ
         self.pre_areaids: List[Tuple[int, Optional[cw.data.CWPyElement]]] = []
-        self.pre_mcards: List[List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]]] = []
+        self.pre_mcards: List[List[Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard]]] = []
         self.pre_dialogs: List[Tuple[str, cw.sprite.card.CWPyCard, Tuple[int, int], float]] = []
         # 各種入力イベント
-        self.mousein = (0, 0, 0)
+        self.mousein = (False, False, False)
         self.mousepos = (-1, -1)
         self.wxmousepos = (-1, -1)
         self.mousemotion = False
@@ -495,7 +497,7 @@ class CWPy(threading.Thread):
         self.file_updates.clear()
         if self.status == "Title" and restartop:
             changearea = False
-            self.cardgrp.remove(self.mcards)
+            self.cardgrp.remove(*self.mcards)
             self.mcards = []
             self.mcards_expandspchars.clear()
             self.background.bgs = []
@@ -560,8 +562,8 @@ class CWPy(threading.Thread):
                 for path in sprite.cardimg.paths:
                     if path.path.startswith(oldskindir):
                         path.path = path.path.replace(oldskindir, newskindir)
-        for sprite in self.get_pcards():
-            repl_cardimg(sprite)
+        for pcard in self.get_pcards():
+            repl_cardimg(pcard)
 
         if self.sdata:
             self.sdata.update_skin()
@@ -786,21 +788,25 @@ class CWPy(threading.Thread):
 
             cw.sprite.message.MessageWindow.clear_selections()
             for sprite in self.cardgrp.sprites():
+                assert isinstance(sprite, cw.sprite.card.CWPyCard)
                 if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
                                                                        cw.sprite.background.BgCell))\
-                                           and not isinstance(sprite, cw.sprite.background.Curtain):
+                        and not isinstance(sprite, cw.sprite.background.Curtain):
                     sprite.update_scale()
             for sprite in self.topgrp.sprites():
+                assert isinstance(sprite, cw.sprite.card.CWPyCard)
                 sprite.update_scale()
             for sprite in self.backloggrp.sprites():
+                assert isinstance(sprite, cw.sprite.card.CWPyCard)
                 sprite.update_scale()
             for sprite in self.get_fcards():
                 sprite.update_scale()
 
             for sprite in self.cardgrp.sprites():
+                assert isinstance(sprite, cw.sprite.card.CWPyCard)
                 if sprite.is_initialized() and isinstance(sprite, (cw.sprite.background.BackGround,
                                                                    cw.sprite.background.BgCell))\
-                                           and not isinstance(sprite, cw.sprite.background.Curtain):
+                        and not isinstance(sprite, cw.sprite.background.Curtain):
                     sprite.update_scale()
             for sprite in self.cardgrp.sprites():
                 if isinstance(sprite, cw.sprite.background.Curtain) and\
@@ -855,6 +861,7 @@ class CWPy(threading.Thread):
         cw.sprite.message.MessageWindow.clear_selections()
         for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE),
                                       self.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)):
+            assert isinstance(sprite, cw.sprite.card.CWPyCard)
             sprite.update_scale()
         if isinstance(self._log_handler, cw.eventhandler.EventHandlerForBacklog):
             self._log_handler.update_sprites(clearcache=True)
@@ -915,9 +922,11 @@ class CWPy(threading.Thread):
         if self.is_showingmessage():
             mwin = self.get_messagewindow()
             assert mwin
-            self.list = mwin.selections
+            self.list = []
+            self.list.extend(mwin.selections)
         else:
-            self.list = self.get_mcards("selectable")
+            self.list = []
+            self.list.extend(self.get_mcards("selectable"))
         self.index = -1
         self.change_selection(self.selection)
         self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
@@ -1171,7 +1180,7 @@ class CWPy(threading.Thread):
 
         if not self.is_showingdlg():
             if sys.platform == "win32":
-                self.mousein = pygame.mouse.get_pressed()
+                self.mousein = pygame.mouse.get_pressed(3)[:3]
             mousepos = self.mousepos
             mousemotion2 = False
             if self.update_mousepos():
@@ -1244,15 +1253,15 @@ class CWPy(threading.Thread):
         全員分の戦闘行動表示の有無を切り替えるため、
         マウスカーソルがプレイヤーエリアないし同行キャストエリアにあるかを判定する。
         """
-        for ccard in self.get_pcards("visible"):
-            rect = pygame.Rect(ccard.rect)
+        for pcard in self.get_pcards():
+            rect = pygame.Rect(pcard.rect)
             rect.left -= cw.s(9)
             rect.width += cw.s(18)
             rect.height += cw.s(5)
             if rect.collidepoint(*mousepos):
                 return True
-        for ccard in self.get_fcards("visible"):
-            rect = pygame.Rect(ccard.rect)
+        for fcard in self.get_fcards():
+            rect = pygame.Rect(fcard.rect)
             rect.left -= cw.s(9)
             rect.width += cw.s(18)
             rect.top -= cw.s(5)
@@ -1307,7 +1316,7 @@ class CWPy(threading.Thread):
                 if not self.is_showparty:
                     self.show_party()
 
-                clip = None
+                clip: Optional[pygame.rect.Rect] = None
                 if cw.cwpy.sdata.infocards_beforeevent is not None:
                     # このブロックはイベント終了直後に一回だけ実行される
                     for _i in [i for i in cw.cwpy.sdata.get_infocards(False)
@@ -1315,7 +1324,7 @@ class CWPy(threading.Thread):
                         # イベント開始前には持っていなかった情報カードを入手している
                         cw.cwpy.sdata.notice_infoview = True
                         cw.cwpy.statusbar.change()
-                        clip = pygame.Rect(cw.cwpy.statusbar.rect)
+                        clip = pygame.rect.Rect(cw.cwpy.statusbar.rect)
                         break
 
                     clip = self.update_statusimgs(False, clip=clip)
@@ -1331,7 +1340,8 @@ class CWPy(threading.Thread):
 
         self.update_groups((self.cardgrp, self.topgrp, self.sbargrp))
 
-    def update_statusimgs(self, is_runningevent: bool, clip: Optional[pygame.rect.Rect] = None) -> pygame.rect.Rect:
+    def update_statusimgs(self, is_runningevent: bool,
+                          clip: Optional[pygame.rect.Rect] = None) -> Optional[pygame.rect.Rect]:
         """
         キャラクターのステータス時間の表示の更新が必要であれば更新する。
         """
@@ -1349,7 +1359,9 @@ class CWPy(threading.Thread):
                             clip.union_ip(clip2)
                         else:
                             clip = pygame.Rect(clip2)
-        return clip
+            return clip
+        else:
+            return None
 
     def update_groups(self, groups: Iterable[pygame.sprite.LayeredDirty]) -> None:
         self.lazy_selection = None
@@ -1549,10 +1561,7 @@ class CWPy(threading.Thread):
 
             dirty_rects = self.draw_to(self.scr_draw, True)
 
-            if not self.setting.smoothexpand or cw.UP_SCR % cw.UP_WIN == 0.0 or cw.UP_WIN % cw.UP_SCR == 0.0:
-                scale = pygame.transform.scale
-            else:
-                scale = cw.image.smoothscale
+            simple_scale = not self.setting.smoothexpand or cw.UP_SCR % cw.UP_WIN == 0.0 or cw.UP_WIN % cw.UP_SCR == 0.0
 
             def update_clip(scale: float) -> pygame.rect.Rect:
                 assert clip
@@ -1564,7 +1573,10 @@ class CWPy(threading.Thread):
 
             # 画面更新
             if self.scr_fullscreen:
-                scr = scale(self.scr_draw, self.scr_size)
+                if simple_scale:
+                    scr = pygame.transform.scale(self.scr_draw, self.scr_size)
+                else:
+                    scr = cw.image.smoothscale(self.scr_draw, self.scr_size)
                 if clip:
                     clip2 = update_clip(self.scr_scale)
                     clip3 = pygame.Rect(clip2.left + self.scr_pos[0], clip2.top + self.scr_pos[1],
@@ -1575,7 +1587,10 @@ class CWPy(threading.Thread):
                     self.scr_fullscreen.blit(scr, self.scr_pos)
                     pygame.display.update()
             elif self.scr_draw != self.scr:
-                scr = scale(self.scr_draw, self.scr.get_size())
+                if simple_scale:
+                    scr = pygame.transform.scale(self.scr_draw, self.scr.get_size())
+                else:
+                    scr = cw.image.smoothscale(self.scr_draw, self.scr.get_size())
                 if clip:
                     clip2 = update_clip(float(cw.UP_WIN) / cw.UP_SCR)
                     self.scr.blit(scr, clip2.topleft, clip2)
@@ -1587,7 +1602,7 @@ class CWPy(threading.Thread):
                 if clip:
                     pygame.display.update(clip)
                 else:
-                    pygame.display.update(dirty_rects)
+                    pygame.display.update(*dirty_rects)
 
             pos = cw.s((0, 0))
             size = cw.s(cw.SIZE_AREA)
@@ -2373,7 +2388,8 @@ class CWPy(threading.Thread):
         self.statusbar.change(False)
 
         # cwpylist, index 初期化
-        self.list = self.get_mcards("selectable")
+        self.list = []
+        self.list.extend(self.get_mcards("selectable"))
         self.index = -1
         # スプライト削除
         seq = []
@@ -2391,6 +2407,7 @@ class CWPy(threading.Thread):
 
         # 次のアニメーションの前に再描画を行う
         for sprite in seq:
+            assert sprite.rect
             self.add_lazydraw(sprite.rect)
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
@@ -3466,7 +3483,9 @@ class CWPy(threading.Thread):
         self.input(True)
         self._dealing = False
 
-    def _fix_updateimage(self, mcard: Union["cw.sprite.card.EnemyCard", "cw.sprite.card.MenuCard"]) -> None:
+    def _fix_updateimage(self, mcard: Union["cw.sprite.card.MenuCard",
+                                            "cw.sprite.card.EnemyCard",
+                                            "cw.sprite.card.FriendCard"]) -> None:
         if mcard.is_initialized():
             if mcard.cardimg.use_excache:
                 mcard.cardimg.clear_cache()
@@ -3477,7 +3496,8 @@ class CWPy(threading.Thread):
     def vanished_card(self, mcard: "cw.sprite.card.CWPyCard") -> None:
         """mcardの対象消去を通知する。"""
         if isinstance(mcard, (cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard)) and mcard.flag:
-            seq = self._mcardtable.get(mcard.flag, [])
+            defvalue: List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]] = []
+            seq = self._mcardtable.get(mcard.flag, defvalue)
             if seq and mcard in seq:
                 seq.remove(mcard)
                 if not seq:
@@ -3499,7 +3519,9 @@ class CWPy(threading.Thread):
         mcards = self.get_mcards()
         for mcard in mcards:
             if mcard.flag:
-                seq = self._mcardtable.get(mcard.flag, [])
+                assert not isinstance(mcard, cw.sprite.card.FriendCard)
+                defvalue: List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]] = []
+                seq = self._mcardtable.get(mcard.flag, defvalue)
                 seq.append(mcard)
                 if len(seq) == 1:
                     self._mcardtable[mcard.flag] = seq
@@ -3507,7 +3529,9 @@ class CWPy(threading.Thread):
             self.update_selectablelist()
 
     def update_pcimage(self, pcnumber: int,
-                       deal: bool) -> List[Union["cw.sprite.card.MenuCard", "cw.sprite.card.EnemyCard"]]:
+                       deal: bool) -> List[Union["cw.sprite.card.MenuCard",
+                                                 "cw.sprite.card.EnemyCard",
+                                                 "cw.sprite.card.FriendCard"]]:
         if not self.file_updates_bg or deal:
             for bgtype, d in self.background.bgs:
                 if bgtype == cw.sprite.background.BG_PC:
@@ -3595,11 +3619,12 @@ class CWPy(threading.Thread):
         pcards = [i for i in self.get_pcards() if i.status == "hidden"]
 
         if pcards:
-            seq = []
+            seq: List[cw.sprite.base.CWPySprite] = []
             for pcard in pcards:
+                seq.append(pcard)
                 if pcard.inusecardimg and not pcard.inusecardimg.center:
                     seq.append(pcard.inusecardimg)
-            cw.animation.animate_sprites(pcards + seq, "shiftup")
+            cw.animation.animate_sprites(seq, "shiftup")
 
         self._show_party()
 
@@ -3614,11 +3639,12 @@ class CWPy(threading.Thread):
         pcards = [i for i in self.get_pcards() if not i.status == "hidden"]
 
         if pcards:
-            seq = []
+            seq: List[cw.sprite.base.CWPySprite] = []
             for pcard in pcards:
+                seq.append(pcard)
                 if pcard.inusecardimg and not pcard.inusecardimg.center:
                     seq.append(pcard.inusecardimg)
-            cw.animation.animate_sprites(pcards + seq, "shiftdown")
+            cw.animation.animate_sprites(seq, "shiftdown")
 
         self.is_showparty = False
         self.selection = None
@@ -3650,7 +3676,7 @@ class CWPy(threading.Thread):
         bginhrt: Trueの時は背景継承。
         """
         # メニューカードスプライトグループの中身を削除
-        self.cardgrp.remove(self.mcards)
+        self.cardgrp.remove(*self.mcards)
         self.mcards = []
         self.mcards_expandspchars.clear()
         self.file_updates.clear()
@@ -3658,7 +3684,7 @@ class CWPy(threading.Thread):
         # プレイヤカードスプライトグループの中身を削除
         if self.ydata:
             if not self.ydata.party or self.ydata.party.is_loading():
-                self.cardgrp.remove(self.pcards)
+                self.cardgrp.remove(*self.pcards)
                 self.pcards = []
 
         # 背景スプライト作成
@@ -3711,13 +3737,14 @@ class CWPy(threading.Thread):
                     fcard.update_image()
                 fcard.deal()
             self.add_lazydraw(clip=fcard.rect)
-        self.list = self.get_mcards("selectable")
+        self.list = []
+        self.list.extend(self.get_mcards("selectable"))
         self.index = -1
 
     def clear_fcardsprites(self) -> None:
         """cardgrpから同行NPCのスプライトを取り除く。"""
         self._is_showingfcards = False
-        fcards = []
+        fcards: List[cw.sprite.card.FriendCard] = []
         for fcard in self.mcards[:]:
             if isinstance(fcard, cw.character.Friend):
                 assert isinstance(fcard, cw.sprite.card.FriendCard)
@@ -3729,8 +3756,9 @@ class CWPy(threading.Thread):
                 self.mcards.remove(fcard)
                 self.mcards_expandspchars.discard(fcard)
                 self.file_updates.discard(fcard)
-        self.cardgrp.remove(fcards)
-        self.list = self.get_mcards("selectable")
+        self.cardgrp.remove(*fcards)
+        self.list = []
+        self.list.extend(self.get_mcards("selectable"))
         self.index = -1
 
     def update_mcardnames(self) -> None:
@@ -3816,8 +3844,8 @@ class CWPy(threading.Thread):
 
     def set_mcards(self, stype_and_elements: Tuple[str, Iterable[cw.data.CWPyElement]], dealanime: bool = True,
                    addgroup: bool = True, setautospread: bool = True,
-                   splayer: Optional[bool] = None) -> List[Union["cw.sprite.card.EnemyCard",
-                                                                 "cw.sprite.card.MenuCard"]]:
+                   splayer: Optional[bool] = None) -> List[Union["cw.sprite.card.MenuCard",
+                                                                 "cw.sprite.card.EnemyCard"]]:
         """メニューカードスプライトを構成する。
         生成されたカードのlistを返す。
         (stype, elements): (spreadtype, MenuCardElementのリスト)のタプル
@@ -3834,7 +3862,7 @@ class CWPy(threading.Thread):
         self._autospread = autospread
 
         status = "hidden" if dealanime else "normal"
-        seq = []
+        seq: List[Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard]] = []
 
         grpidx: Dict[str, int] = {}
         moved_mcards: Dict[Tuple[str, int], Tuple[int, int, int, int]] = {}  # 不要な再配置情報を削除するため再構築する
@@ -3858,6 +3886,7 @@ class CWPy(threading.Thread):
             else:
                 moveddata = None
 
+            mcard: Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard]
             if e.tag == "EnemyCard":
                 if self.sdata.get_castname(e.getint("Property/Id", -1)) is None:
                     continue
@@ -3898,7 +3927,7 @@ class CWPy(threading.Thread):
             self.add_lazydraw(clip=pcard.rect)
             x = 9 + 95 * index + 9 * index
             y = pcard.get_pos_noscale()[1]
-            pcard.get_baserect()[0] = cw.s(x)
+            pcard.get_baserect().x = cw.s(x)
             y2 = pcard.rect.top
             size = pcard.rect.size
             baserect = pcard.get_baserect()
@@ -3906,7 +3935,7 @@ class CWPy(threading.Thread):
                 pcard.rect.size = baserect.size
             pcard.rect.center = baserect.center
             pcard.rect.top = y2
-            pcard.cardimg.rect[0] = cw.s(x)
+            pcard.cardimg.rect.x = cw.s(x)
             pcard._pos_noscale = (x, y)
             pcard.rect.size = size
             for i, t in enumerate(pcard.zoomimgs):
@@ -4172,8 +4201,9 @@ class CWPy(threading.Thread):
                     return
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
-                self.pre_mcards.append(self.get_mcards())
-                self.cardgrp.remove(self.mcards)
+                self.pre_mcards.append([mcard for mcard in self.get_mcards()
+                                        if not isinstance(mcard, cw.sprite.card.FriendCard)])
+                self.cardgrp.remove(*self.mcards)
                 self.mcards = []
                 self.mcards_expandspchars.clear()
                 self.file_updates.clear()
@@ -4201,7 +4231,8 @@ class CWPy(threading.Thread):
                     if self.selectedheader:
                         self.set_testaptitude(self.selectedheader)
 
-                self.list = self.get_mcards("selectable")
+                self.list = []
+                self.list.extend(self.get_mcards("selectable"))
                 self.index = -1
                 self.set_curtain(curtain_all=True)
             self.lock_menucards = False
@@ -4226,17 +4257,17 @@ class CWPy(threading.Thread):
                     self.set_curtain(target=cardtarget)
                 elif self.is_battlestatus():
                     if header.allrange:
-                        targets: List[cw.sprite.card.CWPyCard]
+                        targets: List[cw.sprite.card.CWPyCard] = []
                         if cardtarget == "Party":
-                            targets = self.get_pcards("unreversed")
+                            targets.extend(self.get_pcards("unreversed"))
                         elif cardtarget == "Enemy":
-                            targets = self.get_ecards("unreversed")
+                            targets.extend(self.get_ecards("unreversed"))
                         else:
                             if isinstance(owner, cw.character.Enemy):
-                                targets = self.get_ecards("unreversed")[:]
+                                targets.extend(self.get_ecards("unreversed"))
                                 targets.extend(self.get_pcards("unreversed"))
                             else:
-                                targets = self.get_pcards("unreversed")[:]
+                                targets.extend(self.get_pcards("unreversed"))
                                 targets.extend(self.get_ecards("unreversed"))
 
                         owner.set_action(targets, header)
@@ -4308,7 +4339,7 @@ class CWPy(threading.Thread):
         """価格表示のスプライトを削除する。"""
         for poc in self.pricesprites:
             self.add_lazydraw(clip=poc.rect)
-        self.cardgrp.remove(self.pricesprites)
+        self.cardgrp.remove(*self.pricesprites)
         self.pricesprites = []
 
     def clear_specialarea(self, redraw: bool = True, silent: bool = False) -> None:
@@ -4350,7 +4381,7 @@ class CWPy(threading.Thread):
             if oldareaid in cw.AREAS_TRADE:
                 self.areaid = areaid
                 self.sdata.change_data(areaid, data=data)
-                self.cardgrp.remove(self.mcards)
+                self.cardgrp.remove(*self.mcards)
                 self.mcards = []
                 self.mcards_expandspchars.clear()
                 self.remove_pricesprites()
@@ -4358,7 +4389,7 @@ class CWPy(threading.Thread):
                 if clear_curtain:
                     self.clear_curtain(redraw=not silent)
                 for mcard in self.pre_mcards.pop():
-                    if areaid == cw.AREA_CAMP and hasattr(mcard, "layer_t"):
+                    if areaid == cw.AREA_CAMP and isinstance(mcard, cw.sprite.card.FriendCard):
                         self.cardgrp.add(mcard, layer=mcard.layer_t)
                     else:
                         self.cardgrp.add(mcard, layer=mcard.layer)
@@ -4366,7 +4397,8 @@ class CWPy(threading.Thread):
                     if mcard.spchars:
                         self.mcards_expandspchars.add(mcard)
                 self.deal_cards()
-                self.list = self.get_mcards("selectable")
+                self.list = []
+                self.list.extend(self.get_mcards("selectable"))
                 self.index = -1
             else:
                 if cw.cwpy.ydata:
@@ -4471,9 +4503,12 @@ class CWPy(threading.Thread):
 
         bmp = self.rsrc.pygamedialogs["REPLACE_POSITION_noscale"]
         w, h = bmp.get_size()
-        scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-        w //= scr_scale
-        h //= scr_scale
+        if isinstance(bmp, cw.util.Depth1Surface):
+            scr_scale = bmp.scr_scale
+        else:
+            scr_scale = 1.0
+        w = int(w // scr_scale)
+        h = int(h // scr_scale)
         size_noscale = (w, h)
         pcards = self.get_pcards()
 
@@ -4486,7 +4521,7 @@ class CWPy(threading.Thread):
             def replace(self) -> None:
                 self.outer.replace_pcardorder(self.index1, self.index2)
 
-        seq = []
+        seq: List[cw.sprite.base.SelectableSprite] = []
         for i, pcard in enumerate(pcards[0:-1]):
             replace = Replace(self, i)
             pos_noscale = pcard.get_pos_noscale()
@@ -4536,9 +4571,12 @@ class CWPy(threading.Thread):
             return cw.imageretouch.add_lightness(bmp, 64)
         bmp = self.rsrc.pygamedialogs["REPLACE_CARDS_noscale"]
         w, h = bmp.get_size()
-        scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-        w //= scr_scale
-        h //= scr_scale
+        if isinstance(bmp, cw.util.Depth1Surface):
+            scr_scale = bmp.scr_scale
+        else:
+            scr_scale = 1.0
+        w = int(w // scr_scale)
+        h = int(h // scr_scale)
         size_noscale = (w, h)
         pcards = self.get_pcards()
 
@@ -4581,9 +4619,12 @@ class CWPy(threading.Thread):
                 return cw.imageretouch.add_lightness(bmp, 64)
             bmp = self.rsrc.pygamedialogs["TO_PERSONAL_POCKET_noscale"]
             w, h = bmp.get_size()
-            scr_scale = bmp.scr_scale if hasattr(bmp, "scr_scale") else 1
-            w //= scr_scale
-            h //= scr_scale
+            if isinstance(bmp, cw.util.Depth1Surface):
+                scr_scale = bmp.scr_scale
+            else:
+                scr_scale = 1.0
+            w = int(w // scr_scale)
+            h = int(h // scr_scale)
             size_noscale = (w, h)
 
             class AddPersonalPocket(object):
@@ -4624,6 +4665,7 @@ class CWPy(threading.Thread):
         """所持枚数表示を消去する。"""
         sprites = self.topgrp.sprites()
         for sprite in sprites:
+            assert sprite.rect
             self.add_lazydraw(clip=sprite.rect)
         self.topgrp.empty()
 
@@ -4727,6 +4769,7 @@ class CWPy(threading.Thread):
                     continue
 
             assert isinstance(sprite2, cw.sprite.card.CWPyCard)
+            assert isinstance(sprite2, cw.character.Character)
             self.clear_inusecardimg(sprite2)
 
             if selowner:
@@ -4746,6 +4789,9 @@ class CWPy(threading.Thread):
             if self.selection == sprite2 and not selowner:
                 if cw.cwpy.setting.show_lifebar_on_selection and \
                         sprite2.is_analyzable() and not sprite2.is_unconscious():
+                    assert isinstance(sprite2, (cw.sprite.card.PlayerCard,
+                                                cw.sprite.card.EnemyCard,
+                                                cw.sprite.card.FriendCard))
                     cw.sprite.background.LifeBar(sprite2)
 
             if header:
@@ -4793,8 +4839,11 @@ class CWPy(threading.Thread):
         """PlayerCardの前の使用中カードの画像を削除。"""
         self._show_allselectedcards = False
         lifebars = self.cardgrp.get_sprites_from_layer(cw.LAYER_FRONT_LIFEBAR)
-        if lifebars and (user is None or lifebars[0].ccard is user):
-            self.cardgrp.remove_sprites_of_layer(cw.LAYER_FRONT_LIFEBAR)
+        if lifebars:
+            lifebar = lifebars[0]
+            assert isinstance(lifebar, cw.sprite.background.LifeBar)
+            if user is None or lifebar.ccard is user:
+                self.cardgrp.remove_sprites_of_layer(cw.LAYER_FRONT_LIFEBAR)
         if user:
             if user.inusecardimg:
                 user.inusecardimg.group.remove(user.inusecardimg)
@@ -4802,14 +4851,14 @@ class CWPy(threading.Thread):
                 self.add_lazydraw(user.inusecardimg.rect)
                 user.inusecardimg = None
         else:
-            for card in self.get_pcards():
-                card.inusecardimg = None
-            for card in self.get_mcards():
-                card.inusecardimg = None
+            for pcard in self.get_pcards():
+                pcard.inusecardimg = None
+            for mcard in self.get_mcards():
+                mcard.inusecardimg = None
 
-            for card in self.inusecards:
-                card.group.remove(card)
-                self.add_lazydraw(card.rect)
+            for inusecard in self.inusecards:
+                inusecard.group.remove(inusecard)
+                self.add_lazydraw(inusecard.rect)
             self.inusecards = []
 
     def clear_inusecardimgfromheader(self, header: "cw.header.CardHeader") -> None:
@@ -4856,18 +4905,18 @@ class CWPy(threading.Thread):
         """対象選択の指矢印の画像を削除。"""
         arrows = self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW)
         for arrow in arrows:
+            assert arrow.rect
             cw.cwpy.add_lazydraw(clip=arrow.rect)
         self.cardgrp.remove_sprites_of_layer(cw.LAYER_TARGET_ARROW)
 
     def update_selectablelist(self) -> None:
         """状況に応じて矢印キーで選択対象となる
         カードのリストを更新する。"""
+        self.list = []
         if self.is_pcardsselectable:
-            self.list = self.get_pcards("selectable")
+            self.list.extend(self.get_pcards("selectable"))
         elif self.is_mcardsselectable:
-            self.list = self.get_mcards("selectable")
-        else:
-            self.list = []
+            self.list.extend(self.get_mcards("selectable"))
         self.index = -1
 
     def set_curtain(self, target: str = "Both", curtain_all: bool = False, redraw: bool = True) -> None:
@@ -4879,13 +4928,11 @@ class CWPy(threading.Thread):
 
             # カード上のカーテン
             if not self.is_pcardsselectable:
-                cards = self.get_pcards()
-                for card in cards:
-                    cw.sprite.background.Curtain(card, self.cardgrp)
+                for pcard in self.get_pcards():
+                    cw.sprite.background.Curtain(pcard, self.cardgrp)
             if not self.is_mcardsselectable:
-                cards = self.get_mcards("visible")
-                for card in cards:
-                    cw.sprite.background.Curtain(card, self.cardgrp)
+                for mcard in self.get_mcards("visible"):
+                    cw.sprite.background.Curtain(mcard, self.cardgrp)
 
             # 背景上のカーテン
             self.background.set_curtain(curtain_all=curtain_all)
@@ -4896,7 +4943,7 @@ class CWPy(threading.Thread):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
             self.background.clear_curtain()
-            self.cardgrp.remove(self.curtains)
+            self.cardgrp.remove(*self.curtains)
             self.curtains = []
             self._curtained = False
             self.is_pcardsselectable = bool(self.ydata and self.ydata.party)
@@ -4937,7 +4984,8 @@ class CWPy(threading.Thread):
         cw.cwpy.advlog.start_timeelapse()
         self._elapse_time = True
 
-        ccards = self.get_pcards("unreversed")
+        ccards: List[cw.character.Character] = []
+        ccards.extend(self.get_pcards("unreversed"))
         if not playeronly:
             ccards.extend(self.get_ecards("unreversed"))
             ccards.extend(self.get_fcards("unreversed"))
@@ -5014,7 +5062,7 @@ class CWPy(threading.Thread):
                 areaid = 1
             self.change_area(areaid, bginhrt=False, newparty=newparty)
         elif newparty:
-            self.cardgrp.remove(self.pcards)
+            self.cardgrp.remove(*self.pcards)
             self.pcards = []
             if loadsprites:
                 assert self.ydata.party
@@ -5025,7 +5073,7 @@ class CWPy(threading.Thread):
                 self.show_party()
         else:
             # 新規パーティ結成
-            self.cardgrp.remove(self.pcards)
+            self.cardgrp.remove(*self.pcards)
             self.pcards = []
             if loadsprites and self.ydata.party:
                 e = self.ydata.party.members[0]
@@ -5056,11 +5104,15 @@ class CWPy(threading.Thread):
             pcards = self.get_pcards()
             index = pcards.index(pcard)
             arrows = self.topgrp.sprites()
-            sprites = [pcard]
+            sprites: List[cw.sprite.base.CWPySprite] = [pcard]
             if index < len(arrows):
-                sprites.append(arrows[index])
+                arrow = arrows[index]
+                assert isinstance(arrow, cw.sprite.base.CWPySprite)
+                sprites.append(arrow)
             elif 0 < index and index == len(arrows):
-                sprites.append(arrows[-1])
+                arrow = arrows[-1]
+                assert isinstance(arrow, cw.sprite.base.CWPySprite)
+                sprites.append(arrow)
             cw.animation.animate_sprites(sprites, "delete")
             if breakuparea and pcards:
                 self.create_poschangearrow()
@@ -5072,10 +5124,12 @@ class CWPy(threading.Thread):
 
         else:
             pcards = self.get_pcards()
-            seq = list(pcards)
+            sprites = []
+            sprites.extend(pcards)
             if breakuparea:
-                seq.extend(self.topgrp.sprites())
-            cw.animation.animate_sprites(seq, "hide")
+                sprites.extend([sprite for sprite in self.topgrp.sprites()
+                                if isinstance(sprite, cw.sprite.base.CWPySprite)])
+            cw.animation.animate_sprites(sprites, "hide")
             if breakuparea:
                 self.topgrp.empty()
 
@@ -6072,10 +6126,21 @@ class CWPy(threading.Thread):
             return mwin
         return None
 
-    def get_mcards(self, mode: str = "",
-                   flag: str = "") -> List[Union["cw.sprite.card.MenuCard", "cw.sprite.card.EnemyCard"]]:
+    @typing.overload
+    def get_mcards(self, mode: Literal["", "visible", "invisible", "visiblemenucards", "selectable"] = "",
+                   flag: str = "") ->\
+        List[Union["cw.sprite.card.MenuCard", "cw.sprite.card.EnemyCard", "cw.sprite.card.FriendCard"]]: ...
+
+    @typing.overload
+    def get_mcards(self, mode: Literal["flagtrue"], flag: str = "") ->\
+        List[Union["cw.sprite.card.MenuCard", "cw.sprite.card.EnemyCard"]]: ...
+
+    def get_mcards(self, mode: Literal["", "visible", "invisible", "visiblemenucards", "flagtrue", "selectable"] = "",
+                   flag: str = "") -> Union[List[Union["cw.sprite.card.MenuCard", "cw.sprite.card.EnemyCard",
+                                                       "cw.sprite.card.FriendCard"]],
+                                            List[Union["cw.sprite.card.MenuCard", "cw.sprite.card.EnemyCard"]]]:
         """MenuCardインスタンスのリストを返す。
-        mode: "visible" or "invisible" or "visiblemenucards" or "flagtrue"
+        mode: "visible" or "invisible" or "visiblemenucards" or "flagtrue" or "selectable"
         """
         if mode == "visible":
             mcards = [m for m in self.get_mcards(flag=flag) if not m.status == "hidden"]
@@ -6090,7 +6155,8 @@ class CWPy(threading.Thread):
                       and m.is_flagtrue()]
         elif mode == "selectable":
             if self.is_battlestatus():
-                mcards = self.get_ecards("selectable")
+                mcards = []
+                mcards.extend(self.get_ecards("selectable"))
                 mcards.extend(self.get_fcards("selectable"))
             else:
                 mcards = self.get_mcards("visible")
@@ -6098,28 +6164,30 @@ class CWPy(threading.Thread):
                     mcards = [m for m in mcards
                               if not (isinstance(m, cw.character.Friend) and m.is_reversed())]
         elif flag:
-            mcards = self._mcardtable.get(flag, [])
+            defvalue: List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]] = []
+            return self._mcardtable.get(flag, defvalue)
         else:
-            mcards = self.mcards
             if self.is_battlestatus() and self.battle and self.battle.is_running():
                 # 戦闘行動中はNPCを除外(一時的に表示されている可能性があるため)
-                mcards = [m for m in mcards
+                mcards = [m for m in self.mcards
                           if not isinstance(m, (cw.character.Friend, cw.sprite.background.InuseCardImage))]
             else:
-                mcards = [m for m in mcards
+                mcards = [m for m in self.mcards
                           if not isinstance(m, cw.sprite.background.InuseCardImage)]
 
         return mcards
 
-    def get_ecards(self, mode: str = "") -> List["cw.sprite.card.EnemyCard"]:
+    def get_ecards(self,
+                   mode: Literal["", "unreversed", "active", "selectable"] = "") -> List["cw.sprite.card.EnemyCard"]:
         """現在表示中のEnemyCardインスタンスのリストを返す。
         mode: "unreversed" or "active"
         """
         if not self.is_battlestatus():
             return []
 
-        ecards = self.get_mcards("visible")
-
+        ecards: List["cw.sprite.card.EnemyCard"] = [m for m in self.mcards
+                                                    if isinstance(m, cw.sprite.card.EnemyCard) and
+                                                    not m.status == "hidden"]
         if mode == "unreversed":
             ecards = [ecard for ecard in ecards if not ecard.is_reversed()]
         elif mode == "active":
@@ -6134,9 +6202,10 @@ class CWPy(threading.Thread):
 
         return ecards
 
-    def get_pcards(self, mode: str = "") -> List["cw.sprite.card.PlayerCard"]:
+    def get_pcards(self,
+                   mode: Literal["", "unreversed", "active", "selectable"] = "") -> List["cw.sprite.card.PlayerCard"]:
         """PlayerCardインスタンスのリストを返す。
-        mode: "unreversed" or "active"
+        mode: "unreversed" or "active" or "selectable"
         """
         if mode == "unreversed":
             pcards = [pcard for pcard in self.get_pcards() if not pcard.is_reversed()]
@@ -6155,7 +6224,8 @@ class CWPy(threading.Thread):
 
         return pcards
 
-    def get_fcards(self, mode: str = "") -> List["cw.sprite.card.FriendCard"]:
+    def get_fcards(self,
+                   mode: Literal["", "unreversed", "active", "selectable"] = "") -> List["cw.sprite.card.FriendCard"]:
         """FriendCardインスタンスのリストを返す。
         シナリオプレイ中以外は空のリストを返す。
         mode: "unreversed" or "active"

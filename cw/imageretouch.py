@@ -4,7 +4,6 @@
 import os
 import sys
 import ctypes
-import random
 
 import wx
 import pygame
@@ -14,7 +13,7 @@ from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SU
 import cw
 
 import typing
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Optional, Tuple, TypeVar
 
 
 try:

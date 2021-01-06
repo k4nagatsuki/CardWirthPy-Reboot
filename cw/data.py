@@ -71,7 +71,7 @@ class SystemData(object):
         self._items: Dict[int, Tuple[str, str]] = {}
         self._skills: Dict[int, Tuple[str, str]] = {}
         self._beasts: Dict[int, Tuple[str, str]] = {}
-        self.sparea_mcards: Dict[int, List[Union[cw.sprite.card.EnemyCard, cw.sprite.card.MenuCard]]] = {}
+        self.sparea_mcards: Dict[int, List[Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard]]] = {}
 
         cw.cwpy.classicdata = None
 
