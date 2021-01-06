@@ -575,7 +575,7 @@ class Frame(wx.Frame):
                 r = state.RightIsDown()
                 cw.cwpy.mousein = (ld, m, r)
             else:
-                cw.cwpy.mousein = (0, 0, 0)
+                cw.cwpy.mousein = (False, False, False)
 
     def OnKillFocus(self, event: wx.FocusEvent) -> None:
         self._update_mousepressed()

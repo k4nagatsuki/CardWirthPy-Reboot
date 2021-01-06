@@ -1336,6 +1336,9 @@ class FriendCard(CWPyCard, character.Friend):
     def get_showingname(self) -> str:
         return self.name
 
+    def update_name(self) -> None:
+        pass
+
     def update_delete(self) -> None:
         if self in cw.cwpy.sdata.friendcards:
             if cw.cwpy.ydata:

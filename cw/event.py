@@ -7,7 +7,7 @@ import pygame
 
 import cw
 
-from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Literal, Optional, Set, Tuple, Union
 
 
 class EventInterface(object):
@@ -172,7 +172,7 @@ class EventInterface(object):
         コンテントの適用範囲を返す関数。
         すべてリストで返す。
         """
-        mode = "unreversed" if unreversed else ""
+        mode: Literal["", "unreversed"] = "unreversed" if unreversed else ""
 
         seq: List[Union[cw.character.Character, List[cw.header.CardHeader]]] = []
         # 選択中メンバ
@@ -241,7 +241,7 @@ class EventInterface(object):
         targetm: Random or Selected or Unselected or Inusecard or Party
         unreversed: Bool値。
         """
-        mode = "unreversed" if unreversed else ""
+        mode: Literal["", "unreversed"] = "unreversed" if unreversed else ""
         target: Union[Optional[cw.character.Character], List[cw.character.Character], Optional[cw.header.CardHeader]]
 
         # ランダムメンバ
@@ -328,7 +328,7 @@ class EventInterface(object):
 
         return cw.cwpy.dice.choice(pcards)
 
-    def get_firstmember(self, mode: str) -> Optional["cw.character.Character"]:
+    def get_firstmember(self, mode: Literal["", "unreversed"]) -> Optional["cw.character.Character"]:
         """先頭のPlayerCardインスタンスを返す。
         """
         pcards = cw.cwpy.get_pcards(mode)
@@ -879,7 +879,7 @@ class Event(object):
 
             # ステータスアイコンの数値描画を更新
             clip = pygame.rect.Rect(cw.cwpy.statusbar.rect)
-            clip = cw.cwpy.update_statusimgs(is_runningevent=True, clip=clip)
+            cw.cwpy.update_statusimgs(is_runningevent=True, clip=clip)
 
             # イベント開始前の情報カード所持状況を記憶しておく
             if cw.cwpy.sdata.infocards_beforeevent is None:
