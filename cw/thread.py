@@ -788,22 +788,22 @@ class CWPy(threading.Thread):
 
             cw.sprite.message.MessageWindow.clear_selections()
             for sprite in self.cardgrp.sprites():
-                assert isinstance(sprite, cw.sprite.card.CWPyCard)
+                assert isinstance(sprite, cw.sprite.base.CWPySprite)
                 if sprite.is_initialized() and not isinstance(sprite, (cw.sprite.background.BackGround,
                                                                        cw.sprite.background.BgCell))\
                         and not isinstance(sprite, cw.sprite.background.Curtain):
                     sprite.update_scale()
             for sprite in self.topgrp.sprites():
-                assert isinstance(sprite, cw.sprite.card.CWPyCard)
+                assert isinstance(sprite, cw.sprite.base.CWPySprite)
                 sprite.update_scale()
             for sprite in self.backloggrp.sprites():
-                assert isinstance(sprite, cw.sprite.card.CWPyCard)
+                assert isinstance(sprite, cw.sprite.base.CWPySprite)
                 sprite.update_scale()
             for sprite in self.get_fcards():
                 sprite.update_scale()
 
             for sprite in self.cardgrp.sprites():
-                assert isinstance(sprite, cw.sprite.card.CWPyCard)
+                assert isinstance(sprite, cw.sprite.base.CWPySprite)
                 if sprite.is_initialized() and isinstance(sprite, (cw.sprite.background.BackGround,
                                                                    cw.sprite.background.BgCell))\
                         and not isinstance(sprite, cw.sprite.background.Curtain):
