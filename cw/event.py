@@ -1810,6 +1810,7 @@ def initial_effect(eff: cw.effectmotion.Effect, targets: List["cw.sprite.card.CW
     if not allrange and len(targets) == 1:
         assert len(targets) == 1
         target = targets[0]
+        assert isinstance(target, (cw.character.Character, cw.sprite.card.MenuCard))
         target.set_cardtarget()
         if path:
             cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
@@ -1826,6 +1827,7 @@ def initial_effect(eff: cw.effectmotion.Effect, targets: List["cw.sprite.card.CW
     else:
         targets2: List[cw.sprite.card.CWPyCard] = []
         for target in targets:
+            assert isinstance(target, (cw.character.Character, cw.sprite.card.MenuCard))
             if eff.check_enabledtarget(target, False):
                 target.set_cardtarget()
                 if path:

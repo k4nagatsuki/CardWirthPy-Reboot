@@ -1098,12 +1098,13 @@ class Font(object):
     def get_height(self) -> int:
         if self.font:
             return self.font.get_height()
-        else:
-            assert sys.platform == "win32"
+        elif sys.platform == "win32":
             if self.pixels < 0:
                 return -self.pixels
             else:
                 return self.pixels
+        else:
+            assert False
 
     def get_linesize(self) -> int:
         if self.font:
