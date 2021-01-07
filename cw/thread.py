@@ -4804,12 +4804,12 @@ class CWPy(threading.Thread):
                     elif targets:
                         self.set_targetarrow(targets)
                 elif self.setting.show_allselectedcards or selowner:
-                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if header.personal_owner and self.areaid in cw.AREAS_TRADE and header is self.selectedheader and\
                             self.setting.show_personal_cards:
                         owner = header.personal_owner
                     else:
                         owner = sprite2
+                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if self.setting.show_aim and self.selection and not selowner and self.selection in targets:
                         alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
                         fore = True
