@@ -4796,7 +4796,6 @@ class CWPy(threading.Thread):
 
             if header:
                 if self.selection == sprite2 and not selowner:
-                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     # カーソル下のカード。常に手前に表示
                     self.set_inusecardimg(sprite2, header, fore=True)
                     if header.target == "None":
