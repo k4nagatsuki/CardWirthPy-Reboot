@@ -126,13 +126,13 @@ class MessageWindow(base.CWPySprite):
 
         # spritegroupに追加
         if self.backlog:
-            cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
+            cw.add_layer(cw.cwpy.backloggrp, self, layer=cw.layer_val(cw.LAYER_LOG))
         else:
             if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                 layer = cw.LAYER_SPMESSAGE
             else:
                 layer = cw.LAYER_MESSAGE
-            cw.cwpy.cardgrp.add(self, layer=layer)
+            cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(layer))
             cw.cwpy.add_lazydraw(clip=self.rect)
 
     def _init_image(self, size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int]) -> None:
@@ -244,12 +244,12 @@ class MessageWindow(base.CWPySprite):
 
     @staticmethod
     def clear_selections() -> None:
-        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
-        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
-        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_1))
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_1))
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_2))
+        cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_2))
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG_BAR))
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
 
     def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -902,13 +902,13 @@ class SelectWindow(MessageWindow):
         self.draw_all()
         # spritegroupに追加
         if self.backlog:
-            cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
+            cw.add_layer(cw.cwpy.backloggrp, self, layer=cw.layer_val(cw.LAYER_LOG))
         else:
             if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                 layer = cw.LAYER_SPMESSAGE
             else:
                 layer = cw.LAYER_MESSAGE
-            cw.cwpy.cardgrp.add(self, layer=layer)
+            cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(layer))
             cw.cwpy.add_lazydraw(clip=self.rect)
 
     def _init_image(self, size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int]) -> None:
@@ -988,22 +988,22 @@ class SelectionBar(base.SelectableSprite):
         # spritegroupに追加
         if self.backlog:
             self.group = cw.cwpy.backloggrp
-            self.group.add(self, layer=cw.LAYER_LOG_BAR)
+            cw.add_layer(self.group, self, layer=cw.layer_val(cw.LAYER_LOG_BAR))
         else:
             self.group = cw.cwpy.cardgrp
             if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
                 layer = cw.LAYER_SPSELECTIONBAR_1
             else:
                 layer = cw.LAYER_SELECTIONBAR_1
-            self.group.add(self, layer=layer)
+            cw.add_layer(self.group, self, layer=cw.layer_val(layer))
 
         # 半ば画面外へ出る選択肢は特別措置としてステータスバー上にも表示する
         if cw.s(cw.SIZE_AREA[1]) <= self.rect.bottom and self.rect.top <= cw.s(cw.SIZE_AREA[1]):
             if backlog:
                 if cw.cwpy.setting.messagelog_type == cw.setting.LOG_SINGLE:
-                    cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE_LOG)
+                    cw.add_layer(cw.cwpy.sbargrp, self, layer=cw.sprite.statusbar.LAYER_MESSAGE_LOG)
             else:
-                cw.cwpy.sbargrp.add(self, layer=cw.sprite.statusbar.LAYER_MESSAGE)
+                cw.add_layer(cw.cwpy.sbargrp, self, layer=cw.sprite.statusbar.LAYER_MESSAGE)
 
         # 完全に画面外に出る選択肢は表示禁止
         if cw.s(cw.SIZE_AREA[1]) < self.rect.top:
@@ -1046,13 +1046,13 @@ class SelectionBar(base.SelectableSprite):
             self.rect.move_ip(cw.s(0), cw.s(+1))
             self.status = "click"
             self._clicking = True
-            self.group.change_layer(self, layer2)
+            self.group.change_layer(self, cw.layer_val(layer2))
         elif 6 <= self.frame:
             self.status = "normal"
             self._clicking = False
             self.rect.move_ip(cw.s(0), cw.s(-1))
             self.frame = 0
-            self.group.change_layer(self, layer1)
+            self.group.change_layer(self, cw.layer_val(layer1))
             return
 
         self.frame += 1
@@ -1251,7 +1251,11 @@ class BacklogCurtain(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(self.pos_noscale)
         # spritegroupに追加
-        spritegrp.add(self, layer=layer)
+        if isinstance(layer, int):
+            layer_val = layer
+        else:
+            layer_val = cw.layer_val(layer)
+        cw.add_layer(spritegrp, self, layer=layer_val)
 
     def update_scale(self) -> None:
         self.image = pygame.Surface(cw.s(self.size_noscale)).convert()
@@ -1271,7 +1275,7 @@ class BacklogPage(base.CWPySprite):
         base.CWPySprite.__init__(self)
         self.update_page(page, pagemax)
         # spritegroupに追加
-        spritegrp.add(self, layer=cw.LAYER_LOG_PAGE)
+        cw.add_layer(spritegrp, self, layer=cw.layer_val(cw.LAYER_LOG_PAGE))
 
     def update_page(self, page: int, pagemax: int) -> None:
         """バックログの何ページ目を見ているかの情報を更新する。

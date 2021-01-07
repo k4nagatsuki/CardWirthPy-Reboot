@@ -5005,7 +5005,7 @@ class MoveCardContent(EventContentBase):
 
             x, y = mcard.get_pos_noscale()
             scale = mcard.scale
-            layer = mcard.layer[0]
+            layer = mcard.tlayer[0]
             if self.positiontype == "Absolute":
                 x = self.x
                 y = self.y
@@ -5028,8 +5028,8 @@ class MoveCardContent(EventContentBase):
 
             mcard.set_pos_noscale((x, y))
             mcard.set_scale(scale)
-            mcard.layer = (layer,) + mcard.layer[1:]
-            cw.cwpy.cardgrp.change_layer(mcard, mcard.layer)
+            mcard.tlayer = (layer,) + mcard.tlayer[1:]
+            cw.cwpy.cardgrp.change_layer(mcard, cw.layer_val(mcard.tlayer))
 
             if shown:
                 deals.append(mcard)

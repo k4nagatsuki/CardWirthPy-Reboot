@@ -51,10 +51,10 @@ class StatusBar(base.CWPySprite):
         self.maskmode: Optional[bool] = None
         self.loading = False
         self.volumebar = VolumeBar()
-        cw.cwpy.sbargrp.add(self.volumebar, layer=LAYER_VOLUME_BAR)
+        cw.add_layer(cw.cwpy.sbargrp, self.volumebar, layer=LAYER_VOLUME_BAR)
         self._init_image()
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=LAYER_BASE)
+        cw.add_layer(cw.cwpy.sbargrp, self, layer=LAYER_BASE)
 
     def _init_image(self) -> None:
         self.image = pygame.Surface(cw.s((632, 33))).convert()
@@ -452,7 +452,7 @@ class ProgressView(base.CWPySprite):
         self.update()
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_PROGRESS)
+        cw.add_layer(cw.cwpy.sbargrp, self, layer=LAYER_STATUS_PROGRESS)
 
     def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         params = (self.text, self.max, self.min, self.current)
@@ -547,7 +547,7 @@ class StatusBarPanel(base.MouseHandlerSprite):
         self.rect.top = self.parent.rect.top + pos[1]
         self.rect.left = self.parent.rect.left + pos[0]
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
+        cw.add_layer(cw.cwpy.sbargrp, self, layer=LAYER_STATUS_ITEM)
 
     def get_icon(self) -> Optional[pygame.surface.Surface]:
         return None
@@ -571,7 +571,7 @@ class StatusBarPanel(base.MouseHandlerSprite):
             cw.cwpy.sbargrp.remove(self._desc)
             self._desc = None
             self._desc = Desc(self, "", self.desc, "", arrowpos=cw.s(3)+self.icon.get_width()//2)
-            cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+            cw.add_layer(cw.cwpy.sbargrp, self._desc, layer=LAYER_DESC)
             cw.cwpy.add_lazydraw(clip=self._desc.rect)
 
     def update_image(self) -> None:
@@ -579,7 +579,7 @@ class StatusBarPanel(base.MouseHandlerSprite):
             if not self._desc:
                 assert self.icon
                 self._desc = Desc(self, "", self.desc, "", arrowpos=cw.s(3)+self.icon.get_width()//2)
-                cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+                cw.add_layer(cw.cwpy.sbargrp, self._desc, layer=LAYER_DESC)
                 cw.cwpy.add_lazydraw(clip=self._desc.rect)
         else:
             if self._desc:
@@ -877,7 +877,7 @@ class StatusBarButton(base.SelectableSprite):
         self.rect.left = self.parent.rect.left + pos[0]
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer=LAYER_STATUS_ITEM)
+        cw.add_layer(cw.cwpy.sbargrp, self, layer=LAYER_STATUS_ITEM)
 
     def get_icon(self) -> Optional[pygame.surface.Surface]:
         return None
@@ -1032,7 +1032,7 @@ class StatusBarButton(base.SelectableSprite):
         if self._desc:
             self.hide_desc()
             self._desc = Desc(self, self.name, self.desc, self.hotkey)
-            cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+            cw.add_layer(cw.cwpy.sbargrp, self._desc, layer=LAYER_DESC)
             cw.cwpy.add_lazydraw(clip=self._desc.rect)
 
     def hide_desc(self) -> None:
@@ -1064,7 +1064,7 @@ class StatusBarButton(base.SelectableSprite):
         if cw.cwpy.setting.show_btndesc and self.is_selection() and self.desc and not cw.cwpy.is_showingdlg():
             if not self._desc:
                 self._desc = Desc(self, self.name, self.desc, self.hotkey)
-                cw.cwpy.sbargrp.add(self._desc, layer=LAYER_DESC)
+                cw.add_layer(cw.cwpy.sbargrp, self._desc, layer=LAYER_DESC)
                 cw.cwpy.add_lazydraw(clip=self._desc.rect)
         else:
             if self._desc:
@@ -1776,7 +1776,7 @@ class TouchMenuButton(StatusBarButton):
         for btn4 in self._touchbuttons:
             btn4.rect.top = cw.s(cw.SIZE_AREA[1])
             btn4.update_selection()
-            cw.cwpy.sbargrp.add(btn4, layer=LAYER_TOUCH_BUTTON)
+            cw.add_layer(cw.cwpy.sbargrp, btn4, layer=LAYER_TOUCH_BUTTON)
             cw.animation.start_animation(btn4, "shiftup")
 
 

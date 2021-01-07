@@ -978,7 +978,7 @@ class Character(object):
             assert isinstance(self, cw.sprite.card.FriendCard)
             self.set_pos_noscale(center_noscale=(316, 142))
             # NPC表示
-            cw.cwpy.cardgrp.add(self, layer=self.layer)
+            cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(self.tlayer))
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
             # 表示中に効果音を鳴らす
             cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel,
@@ -2847,7 +2847,7 @@ class Character(object):
         assert self.data in cw.cwpy.ydata.party.members
 
         self._vanished = False
-        cw.cwpy.cardgrp.add(self, layer=self.layer)
+        cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(self.tlayer))
         cw.cwpy.pcards.insert(cw.cwpy.ydata.party.members.index(self.data), self)
 
     def commit_vanish(self) -> None:

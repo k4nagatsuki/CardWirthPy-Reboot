@@ -38,7 +38,7 @@ class AnimationCell(base.SelectableSprite):
 
         self.update_scale()
 
-        spritegrp.add(self, layer=layer)
+        cw.add_layer(spritegrp, self, layer=layer)
 
     def _iter_animes(self, anime: "_AnimationPart") -> Generator["_AnimationPart", None, None]:
         """
