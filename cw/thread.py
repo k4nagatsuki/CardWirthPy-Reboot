@@ -4733,9 +4733,9 @@ class CWPy(threading.Thread):
                                 self.get_ecards("unreversed"),
                                 self.get_fcards("unreversed"))
         elif not self.is_runningevent() and self.selectedheader and self.selectedheader.get_owner():
-            owner = self.selectedheader.get_owner()
-            assert isinstance(owner, (cw.sprite.base.SelectableSprite, list))
-            seq = [owner]
+            howner = self.selectedheader.get_owner()
+            assert isinstance(howner, (cw.sprite.base.SelectableSprite, list))
+            seq = [howner]
         elif forceredraw:
             seq = [forceredraw]
         else:
@@ -4806,10 +4806,11 @@ class CWPy(threading.Thread):
                 elif self.setting.show_allselectedcards or selowner:
                     if header.personal_owner and self.areaid in cw.AREAS_TRADE and header is self.selectedheader and\
                             self.setting.show_personal_cards:
-                        owner = header.personal_owner
+                        owner: cw.sprite.card.CWPyCard = header.personal_owner
                     else:
                         assert isinstance(sprite2, cw.sprite.card.CWPyCard)
                         owner = sprite2
+                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if self.setting.show_aim and self.selection and not selowner and self.selection in targets:
                         alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
                         fore = True
