@@ -368,8 +368,7 @@ class Deck(object):
             # 使用前に山札に戻されている場合がある
             # アクションカードはそのままでよいが特殊技能は必ず消費させる
             orig = header.ref_original()
-            assert orig
-            if orig in self.talon:
+            if orig is not None and orig in self.talon:
                 self.talon.remove(orig)
                 self.shuffle()
 
