@@ -4808,8 +4808,8 @@ class CWPy(threading.Thread):
                             self.setting.show_personal_cards:
                         owner = header.personal_owner
                     else:
+                        assert isinstance(sprite2, cw.sprite.card.CWPyCard)
                         owner = sprite2
-                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if self.setting.show_aim and self.selection and not selowner and self.selection in targets:
                         alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
                         fore = True
