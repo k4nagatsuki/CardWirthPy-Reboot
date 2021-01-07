@@ -859,8 +859,8 @@ class CWPy(threading.Thread):
     def update_messagestyle(self) -> None:
         """メッセージの描画形式の変更を反映する。"""
         cw.sprite.message.MessageWindow.clear_selections()
-        for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE),
-                                      self.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)):
+        for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_MESSAGE)),
+                                      self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_SPMESSAGE))):
             assert isinstance(sprite, cw.sprite.card.CWPyCard)
             sprite.update_scale()
         if isinstance(self._log_handler, cw.eventhandler.EventHandlerForBacklog):
@@ -2367,7 +2367,7 @@ class CWPy(threading.Thread):
                 waited = True
         finally:
             if clickable_sprites:
-                self.topgrp.add(clickable_sprites, layer=cw.LAYER_CLICKABLE_SPRITES)
+                cw.add_layer(self.topgrp, *clickable_sprites, layer=cw.LAYER_CLICKABLE_SPRITES)
             self.interrupt_eventhandler = ie
 
         if not waited:
@@ -2393,12 +2393,12 @@ class CWPy(threading.Thread):
         self.index = -1
         # スプライト削除
         seq = []
-        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE))
-        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE))
-        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1))
-        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1))
-        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2))
-        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_MESSAGE)))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPMESSAGE)))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_1)))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_1)))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_2)))
+        seq.extend(self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_2)))
         seq.extend(self.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE))
 
         # 互換性マーク削除
@@ -3728,10 +3728,10 @@ class CWPy(threading.Thread):
             fcard.set_alpha(alpha)
             if fcard.status == "hidden":
                 fcard.clear_image()
-                self.cardgrp.add(fcard, layer=fcard.layer_t)
+                cw.add_layer(self.cardgrp, fcard, layer=cw.layer_val(fcard.tlayer_t))
                 self.mcards.append(fcard)
             else:
-                self.cardgrp.add(fcard, layer=fcard.layer_t)
+                cw.add_layer(self.cardgrp, fcard, layer=cw.layer_val(fcard.tlayer_t))
                 self.mcards.append(fcard)
                 if alpha is not None:
                     fcard.update_image()
@@ -3751,7 +3751,7 @@ class CWPy(threading.Thread):
                 self.add_lazydraw(clip=fcard.rect)
                 fcard.set_alpha(None)
                 fcard.hide()
-                fcard.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, fcard.index, 0)
+                fcard.tlayer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, fcard.index, 0)
                 fcards.append(fcard)
                 self.mcards.remove(fcard)
                 self.mcards_expandspchars.discard(fcard)
@@ -4208,7 +4208,7 @@ class CWPy(threading.Thread):
                 self.mcards_expandspchars.clear()
                 self.file_updates.clear()
                 for mcard in self.sdata.sparea_mcards[areaid]:
-                    self.cardgrp.add(mcard, layer=mcard.layer)
+                    cw.add_layer(self.cardgrp, mcard, layer=cw.layer_val(mcard.tlayer))
                     self.mcards.append(mcard)
                     if mcard.spchars:
                         self.mcards_expandspchars.add(mcard)
@@ -4370,9 +4370,9 @@ class CWPy(threading.Thread):
                 self.topgrp.empty()
                 for i, pcard in enumerate(self.get_pcards()):
                     pcard.index = i
-                    pcard.layer = (pcard.layer[0], pcard.layer[1], i, pcard.layer[3])
+                    pcard.tlayer = (pcard.tlayer[0], pcard.tlayer[1], i, pcard.tlayer[3])
                     pcard.update_personalownerindex()
-                    self.cardgrp.change_layer(pcard, pcard.layer)
+                    self.cardgrp.change_layer(pcard, cw.layer_val(pcard.tlayer))
                     self.add_lazydraw(clip=pcard.rect)
                 if not silent:
                     self.disposition_pcards()
@@ -4390,9 +4390,9 @@ class CWPy(threading.Thread):
                     self.clear_curtain(redraw=not silent)
                 for mcard in self.pre_mcards.pop():
                     if areaid == cw.AREA_CAMP and isinstance(mcard, cw.sprite.card.FriendCard):
-                        self.cardgrp.add(mcard, layer=mcard.layer_t)
+                        cw.add_layer(self.cardgrp, mcard, layer=cw.layer_val(mcard.tlayer_t))
                     else:
-                        self.cardgrp.add(mcard, layer=mcard.layer)
+                        cw.add_layer(self.cardgrp, mcard, layer=cw.layer_val(mcard.tlayer))
                     self.mcards.append(mcard)
                     if mcard.spchars:
                         self.mcards_expandspchars.add(mcard)
@@ -4804,12 +4804,12 @@ class CWPy(threading.Thread):
                     elif targets:
                         self.set_targetarrow(targets)
                 elif self.setting.show_allselectedcards or selowner:
-                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if header.personal_owner and self.areaid in cw.AREAS_TRADE and header is self.selectedheader and\
                             self.setting.show_personal_cards:
                         owner = header.personal_owner
                     else:
                         owner = sprite2
+                    assert isinstance(owner, cw.sprite.card.CWPyCard)
                     if self.setting.show_aim and self.selection and not selowner and self.selection in targets:
                         alpha = 255  # カーソル下のカードを狙っている場合は不透明表示
                         fore = True
@@ -4840,12 +4840,12 @@ class CWPy(threading.Thread):
     def clear_inusecardimg(self, user: Optional["cw.sprite.card.CWPyCard"] = None) -> None:
         """PlayerCardの前の使用中カードの画像を削除。"""
         self._show_allselectedcards = False
-        lifebars = self.cardgrp.get_sprites_from_layer(cw.LAYER_FRONT_LIFEBAR)
+        lifebars = self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_FRONT_LIFEBAR))
         if lifebars:
             lifebar = lifebars[0]
             assert isinstance(lifebar, cw.sprite.background.LifeBar)
             if user is None or lifebar.ccard is user:
-                self.cardgrp.remove_sprites_of_layer(cw.LAYER_FRONT_LIFEBAR)
+                self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_FRONT_LIFEBAR))
         if user:
             if user.inusecardimg:
                 user.inusecardimg.group.remove(user.inusecardimg)
@@ -4897,7 +4897,7 @@ class CWPy(threading.Thread):
         """targets(PlayerCard, MenuCard, CastCard)の前に
         対象選択の指矢印の画像を表示。
         """
-        if not self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW):
+        if not self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_TARGET_ARROW)):
             for target in targets:
                 if target.status != "hidden":
                     arrow = cw.sprite.background.TargetArrow(target)
@@ -4905,11 +4905,11 @@ class CWPy(threading.Thread):
 
     def clear_targetarrow(self) -> None:
         """対象選択の指矢印の画像を削除。"""
-        arrows = self.cardgrp.get_sprites_from_layer(cw.LAYER_TARGET_ARROW)
+        arrows = self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_TARGET_ARROW))
         for arrow in arrows:
             assert arrow.rect
             cw.cwpy.add_lazydraw(clip=arrow.rect)
-        self.cardgrp.remove_sprites_of_layer(cw.LAYER_TARGET_ARROW)
+        self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_TARGET_ARROW))
 
     def update_selectablelist(self) -> None:
         """状況に応じて矢印キーで選択対象となる
@@ -6116,12 +6116,12 @@ class CWPy(threading.Thread):
 
     def get_messagewindow(self) -> Optional["cw.sprite.message.MessageWindow"]:
         """MessageWindow or SelectWindowインスタンスを返す。"""
-        sprites = self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)
+        sprites = self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_MESSAGE))
         if sprites:
             mwin = sprites[0]
             assert isinstance(mwin, cw.sprite.message.MessageWindow)
             return mwin
-        sprites = self.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE)
+        sprites = self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_SPMESSAGE))
         if sprites:
             mwin = sprites[0]
             assert isinstance(mwin, cw.sprite.message.MessageWindow)

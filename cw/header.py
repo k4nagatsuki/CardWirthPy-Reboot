@@ -1577,11 +1577,13 @@ class ScenarioHeader(object):
                         break
                     scale //= 2
                 if image:
-                    assert imagex1
-                    with io.BytesIO(imagex1) as f:
-                        bmp_noscale = cw.util.load_wxbmp(f=f, mask=mask)
-                        bmp_noscale.scr_scale = 1
-                        f.close()
+                    if imagex1 is None:
+                        bmp_noscale = cw.util.empty_bitmap(1, 1)
+                    else:
+                        with io.BytesIO(imagex1) as f:
+                            bmp_noscale = cw.util.load_wxbmp(f=f, mask=mask)
+                            bmp_noscale.scr_scale = 1
+                            f.close()
                     if scale == 1:
                         bmp = cw.wins(bmp_noscale)
                     else:

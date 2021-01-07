@@ -4258,8 +4258,8 @@ class Party(object):
         seq[index1].index, seq[index2].index = seq[index2].index, seq[index1].index
         self.members[index1], self.members[index2] = self.members[index2], self.members[index1]
         for pcard in seq:
-            pcard.layer = (pcard.layer[0], pcard.layer[1], pcard.index, pcard.layer[3])
-            cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
+            pcard.tlayer = (pcard.tlayer[0], pcard.tlayer[1], pcard.index, pcard.tlayer[3])
+            cw.cwpy.cardgrp.change_layer(pcard, cw.layer_val(pcard.tlayer))
             pcard.update_personalownerindex()
         cw.cwpy.pcards = seq
 

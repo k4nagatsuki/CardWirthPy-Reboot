@@ -64,8 +64,8 @@ class BackGround(base.CWPySprite):
         # 次の背景ロードで強制的に背景不継承とする
         self._force_noinhrt = False
         # spritegroupに追加
-        self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
-        cw.cwpy.cardgrp.add(self, layer=self.layer)
+        self.tlayer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
+        cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(self.tlayer))
         # レイヤ0以外に配置した背景セル
         self.foregrounds: Set[BgCell] = set()
         self.foregroundlist: List[Tuple[int, _BlitData, str, int]] = []
@@ -130,9 +130,9 @@ class BackGround(base.CWPySprite):
             maincurtain = cw.sprite.background.Curtain(self, cw.cwpy.cardgrp, layer=layer)
             self._curtains.append(maincurtain)
             for pcard in cw.cwpy.get_pcards():
-                layer_base, ltype, index, subtype = pcard.layer
-                pcard.layer = (layer_base+cw.LAYER_SP_LAYER, ltype, index, subtype)
-                cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
+                layer_base, ltype, index, subtype = pcard.tlayer
+                pcard.tlayer = (layer_base + cw.LAYER_SP_LAYER, ltype, index, subtype)
+                cw.cwpy.cardgrp.change_layer(pcard, cw.layer_val(pcard.tlayer))
         else:
             if self.foregrounds:
                 # 他のスプライトがすでに配置されている箇所に多重にカーテンがかかってしまうのを
@@ -196,10 +196,10 @@ class BackGround(base.CWPySprite):
         self.curtained = False
         if self.curtain_all:
             for pcard in cw.cwpy.get_pcards():
-                layer, ltype, index, subtype = pcard.layer
+                layer, ltype, index, subtype = pcard.tlayer
                 assert cw.LAYER_SP_LAYER < layer
-                pcard.layer = (layer-cw.LAYER_SP_LAYER, ltype, index, subtype)
-                cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
+                pcard.tlayer = (layer - cw.LAYER_SP_LAYER, ltype, index, subtype)
+                cw.cwpy.cardgrp.change_layer(pcard, cw.layer_val(pcard.tlayer))
             self.curtain_all = False
         cw.cwpy.cardgrp.remove(*self._curtains)
         self._curtains = []
@@ -1237,7 +1237,7 @@ class BackGround(base.CWPySprite):
                     sprite = BgCell(bgtype, d2, flag, layer, i)
                     self.foregrounds.add(sprite)
                     self.foregroundlist.append(t)
-                    cw.cwpy.cardgrp.add(sprite, layer=sprite.layer)
+                    cw.add_layer(cw.cwpy.cardgrp, sprite, layer=cw.layer_val(sprite.tlayer))
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_JPY_TEMPORAL)
@@ -1246,7 +1246,7 @@ class BackGround(base.CWPySprite):
         if redraw:
             cw.cwpy.event.refresh_activeitem()
             if (not animated or not doanime) and transitspr and not _equals_bgs(oldbgs, self.bgs, True):
-                cw.cwpy.cardgrp.add(transitspr, layer=cw.LAYER_TRANSITION)
+                cw.add_layer(cw.cwpy.cardgrp, transitspr, layer=cw.layer_val(cw.LAYER_TRANSITION))
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
                 transition = True
@@ -1351,7 +1351,7 @@ class BgCell(base.CWPySprite):
         self.bgtype = bgtype
         self.d = d
         self.flag = flag
-        self.layer = (layer, cw.LTYPE_BACKGROUND, -1, index)
+        self.tlayer = (layer, cw.LTYPE_BACKGROUND, -1, index)
 
         if bgtype in (BG_IMAGE, BG_COLOR):
             # 背景画像、カラーセル、縁取り形式2のテキストセル
@@ -1424,10 +1424,10 @@ class Curtain(base.SelectableSprite):
 
         # spritegroupに追加
         if layer:
-            self.layer = layer
+            self.tlayer = layer
         else:
-            self.layer = (target.layer[0], target.layer[1], target.layer[2], 100)
-        spritegrp.add(self, layer=self.layer)
+            self.tlayer = (target.tlayer[0], target.tlayer[1], target.tlayer[2], 100)
+        cw.add_layer(spritegrp, self, layer=cw.layer_val(self.tlayer))
         cw.cwpy.curtains.append(self)
 
     def update_scale(self) -> None:
@@ -1516,7 +1516,7 @@ class BattleCardImage(card.CWPyCard):
         self.set_pos_noscale(center_noscale=(316, 142))
         self.clear_image()
         # spritegroupに追加
-        cw.cwpy.cardgrp.add(self, layer=cw.LAYER_BATTLE_START)
+        cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(cw.LAYER_BATTLE_START))
 
     def update_battlestart(self) -> None:
         self.highspeed = True
@@ -1570,14 +1570,14 @@ class InuseCardImage(card.CWPyCard):
         self.group = cw.cwpy.cardgrp
         if user and not center and not fore:
             if isinstance(user, cw.sprite.card.FriendCard):
-                layer = user.layer_t[0]
-                ltype = user.layer_t[1]
+                layer = user.tlayer_t[0]
+                ltype = user.tlayer_t[1]
             else:
-                layer = user.layer[0]
-                ltype = user.layer[1]
-            self.group.add(self, layer=(layer, ltype, user.index, 1))
+                layer = user.tlayer[0]
+                ltype = user.tlayer[1]
+            cw.add_layer(self.group, self, layer=cw.layer_val((layer, ltype, user.index, 1)))
         else:
-            self.group.add(self, layer=cw.LAYER_FRONT_INUSECARD)
+            cw.add_layer(self.group, self, layer=cw.layer_val(cw.LAYER_FRONT_INUSECARD))
 
     def update_scale(self) -> None:
         self.header.negaflag = False
@@ -1622,7 +1622,7 @@ class LifeBar(base.CWPySprite):
 
         # spritegroupに追加
         self.group = cw.cwpy.cardgrp
-        self.group.add(self, layer=cw.LAYER_FRONT_LIFEBAR)
+        cw.add_layer(self.group, self, layer=cw.layer_val(cw.LAYER_FRONT_LIFEBAR))
 
     def update_scale(self) -> None:
         bgname = self.ccard.cardimg.get_cardbgname(self.ccard)
@@ -1658,7 +1658,7 @@ class TargetArrow(base.CWPySprite):
         self.target = target
         self.update_scale()
         # spritegroupに追加
-        cw.cwpy.cardgrp.add(self, layer=cw.LAYER_TARGET_ARROW)
+        cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(cw.LAYER_TARGET_ARROW))
 
     def update_scale(self) -> None:
         self.image = cw.cwpy.rsrc.statuses["TARGET"]
@@ -1677,7 +1677,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
         self.rect = cw.s(pygame.Rect((0, 0), cw.SIZE_AREA))
 
         # spritegroupに追加
-        cw.cwpy.topgrp.add(self, layer=cw.LAYER_JPY_TEMPORAL)
+        cw.add_layer(cw.cwpy.topgrp, self, layer=cw.LAYER_JPY_TEMPORAL)
 
 
 class ClickableSprite(base.SelectableSprite):
@@ -1704,7 +1704,7 @@ class ClickableSprite(base.SelectableSprite):
         # 0でメニューカードより後かつPCより前に選択、1でPCより後に選択
         self.clickable_group = 0
 
-        spritegrp.add(self, layer=cw.LAYER_CLICKABLE_SPRITES)
+        cw.add_layer(spritegrp, self, layer=cw.LAYER_CLICKABLE_SPRITES)
         self.spritegrp = spritegrp
 
     def update_scale(self) -> None:
@@ -1826,7 +1826,7 @@ class NumberOfCards(base.CWPySprite):
         self.cardtype = cardtype
         self.update_scale()
         # spritegroupに追加
-        spritegrp.add(self, layer=cw.LAYER_NUMBER_OF_CARDS)
+        cw.add_layer(spritegrp, self, layer=cw.LAYER_NUMBER_OF_CARDS)
 
     def update_scale(self) -> None:
         if self.cardtype == cw.POCKET_PERSONAL:
@@ -1894,8 +1894,8 @@ class PriceOfCard(base.CWPySprite):
         self.header = header
         self.update_scale()
         # spritegroupに追加
-        self.layer = (mcard.layer[0], mcard.layer[1], mcard.layer[2], mcard.layer[3]+1)
-        spritegrp.add(self, layer=self.layer)
+        self.tlayer = (mcard.tlayer[0], mcard.tlayer[1], mcard.tlayer[2], mcard.tlayer[3] + 1)
+        cw.add_layer(spritegrp, self, layer=cw.layer_val(self.tlayer))
 
     def set_header(self, header: Optional[cw.header.CardHeader]) -> None:
         self.header = header

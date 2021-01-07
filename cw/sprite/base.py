@@ -15,7 +15,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
     frame: int
     rect: pygame.rect.Rect
     image: pygame.surface.Surface
-    layer: Tuple[int, int, int, int]
+    tlayer: Tuple[int, int, int, int]
 
     def __init__(self, *groups: pygame.sprite.AbstractGroup) -> None:
         pygame.sprite.DirtySprite.__init__(self, *groups)

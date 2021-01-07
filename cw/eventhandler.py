@@ -1050,8 +1050,8 @@ class EventHandlerForMessageWindow(EventHandler):
                     sbar.lclick_event(skip=True)
 
     def _has_message(self) -> bool:
-        return bool(cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)) or \
-               bool(cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_SPMESSAGE))
+        return bool(cw.cwpy.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_MESSAGE))) or \
+               bool(cw.cwpy.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_SPMESSAGE)))
 
     def mclick_event(self) -> None:
         """
@@ -1239,12 +1239,12 @@ class EventHandlerForMessageWindow(EventHandler):
                 self.mwin.draw_all()
             else:
                 cw.cwpy.clear_selection()
-                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
-                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPMESSAGE)
-                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_1)
-                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
-                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SPSELECTIONBAR_2)
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_MESSAGE))
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPMESSAGE))
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_1))
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_1))
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_2))
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_2))
                 cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
                     cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
@@ -1257,11 +1257,11 @@ class EventHandlerForMessageWindow(EventHandler):
                 else:
                     layer = cw.LAYER_MESSAGE
                     sellayer = cw.LAYER_SELECTIONBAR_1
-                cw.cwpy.cardgrp.add(self.mwin, layer=layer)
+                cw.add_layer(cw.cwpy.cardgrp, self.mwin, layer=cw.layer_val(layer))
                 for sbar in self.mwin.selections:
-                    cw.cwpy.cardgrp.add(sbar, layer=sellayer)
+                    cw.add_layer(cw.cwpy.cardgrp, sbar, layer=cw.layer_val(sellayer))
                     if cw.s(cw.SIZE_AREA[1]) <= sbar.rect.bottom and sbar.rect.top <= cw.s(cw.SIZE_AREA[1]):
-                        cw.cwpy.sbargrp.add(sbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
+                        cw.add_layer(cw.cwpy.sbargrp, sbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
                 if redraw:
                     cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
                     cw.cwpy.add_lazydraw(clip=cw.cwpy.statusbar.rect)
@@ -1364,7 +1364,7 @@ class EventHandlerForBacklog(EventHandler):
                                                             visible=cw.cwpy.setting.is_logscrollable())
             self._scrollbar.lazyscroll_func = lambda: self.update_sprites()
             self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
-        cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
+        cw.add_layer(cw.cwpy.backloggrp, self._scrollbar, layer=cw.layer_val(cw.LAYER_LOG_SCROLLBAR))
 
         self._mwins: List[Optional[Union[cw.sprite.bill.BillSprite,
                                          cw.sprite.message.MessageWindow]]] = [None] * len(self.backlog)
@@ -1658,15 +1658,15 @@ class EventHandlerForBacklog(EventHandler):
             return self.mwin is not None
 
     def _clear_sprites(self) -> None:
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_CURTAIN)
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_PAGE)
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_SCROLLBAR)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG_CURTAIN))
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG))
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG_BAR))
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG_PAGE))
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG_SCROLLBAR))
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG_CURTAIN)
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
         if self._sbarbar:
-            cw.cwpy.sbargrp.add(self._sbarbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
+            cw.add_layer(cw.cwpy.sbargrp, self._sbarbar, layer=cw.sprite.statusbar.LAYER_MESSAGE)
             self._sbarbar = None
 
     def exit_backlog(self, playsound: bool = True) -> None:
@@ -1745,8 +1745,8 @@ class EventHandlerForBacklog(EventHandler):
             self._update_posdata(init=False)
             return
         # スプライト削除
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
-        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG))
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_LOG_BAR))
         cw.cwpy.sbargrp.remove_sprites_of_layer(cw.sprite.statusbar.LAYER_MESSAGE_LOG)
         if cw.cwpy.setting.is_logscrollable():
             self.mwin = None
@@ -1765,14 +1765,14 @@ class EventHandlerForBacklog(EventHandler):
                 assert isinstance(m, (cw.sprite.message.MessageWindow, cw.sprite.bill.BillSprite))
                 m.rect_noscale.top = self._pos_noscale[i]-top
                 m.rect.top = cw.s(m.rect_noscale.top)
-                cw.cwpy.backloggrp.add(m, layer=cw.LAYER_LOG)
+                cw.add_layer(cw.cwpy.backloggrp, m, layer=cw.layer_val(cw.LAYER_LOG))
                 for j, sbar in enumerate(m.selections):
                     assert isinstance(m, cw.sprite.message.MessageWindow)
                     sbar.rect_noscale.height = sbar.size_noscale[1]
                     sbar.rect.height = cw.s(sbar.rect_noscale.height)
                     sbar.rect_noscale.top = m.rect_noscale.bottom + (j // m.columns * sbar.rect_noscale.height)
                     sbar.rect.top = cw.s(sbar.rect_noscale.top)
-                    cw.cwpy.backloggrp.add(sbar, layer=cw.LAYER_LOG_BAR)
+                    cw.add_layer(cw.cwpy.backloggrp, sbar, layer=cw.layer_val(cw.LAYER_LOG_BAR))
             # ページ表示の更新
             f2 = bisect.bisect_left(self._pos_noscale, top)
             if f2 != self.index:

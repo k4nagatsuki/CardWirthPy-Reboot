@@ -137,7 +137,7 @@ class BillSprite(base.CWPySprite):
         self.specialchars = bill.specialchars
         self.rect_noscale = pygame.Rect(bill.rect_noscale)
         self.update_scale()
-        cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
+        cw.add_layer(cw.cwpy.backloggrp, self, layer=cw.layer_val(cw.LAYER_LOG))
 
     def update_scale(self) -> None:
         self.image, _rect = self.bill.create_image()

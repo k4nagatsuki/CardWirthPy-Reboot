@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 
 class CWPyCard(base.SelectableSprite):
-    layer: Tuple[int, int, int, int]
+    tlayer: Tuple[int, int, int, int]
     index: int
     reversed: bool
 
@@ -252,7 +252,7 @@ class CWPyCard(base.SelectableSprite):
         クリック時のアニメーションを呼び出すメソッド。
         """
         assert self._cardimg
-        lifebars = cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_FRONT_LIFEBAR)
+        lifebars = cw.cwpy.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_FRONT_LIFEBAR))
         lifebar: Optional[cw.sprite.background.LifeBar] = None
         if lifebars:
             sprite = lifebars[0]
@@ -796,10 +796,10 @@ class PlayerCard(CWPyCard, character.Player):
         # spritegroupに追加
         self.index = index
         if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
-            self.layer = (cw.LAYER_PCARDS+cw.LAYER_SP_LAYER, cw.LTYPE_PCARDS, self.index, 0)
+            self.tlayer = (cw.LAYER_PCARDS + cw.LAYER_SP_LAYER, cw.LTYPE_PCARDS, self.index, 0)
         else:
-            self.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, self.index, 0)
-        cw.cwpy.cardgrp.add(self, layer=self.layer)
+            self.tlayer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, self.index, 0)
+        cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(self.tlayer))
         cw.cwpy.pcards.insert(index, self)
 
     def set_pos(self, pos: Optional[Tuple[int, int]] = None, center: Optional[Tuple[int, int]] = None) -> None:
@@ -1111,13 +1111,13 @@ class EnemyCard(CWPyCard, character.Enemy):
                 layer = cw.LAYER_MCARDS
 
         if cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP:
-            self.layer = (layer+cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
+            self.tlayer = (layer + cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
         else:
-            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
+            self.tlayer = (layer, cw.LTYPE_MCARDS, self.index, 0)
 
         if addgroup:
             # spritegroupに追加
-            cw.cwpy.cardgrp.add(self, layer=self.layer)
+            cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(self.tlayer))
             cw.cwpy.mcards.append(self)
             if self.spchars:
                 cw.cwpy.mcards_expandspchars.add(self)
@@ -1302,8 +1302,8 @@ class FriendCard(CWPyCard, character.Friend):
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)
         self.index = index
-        self.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, self.index, 0)
-        self.layer_t = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, self.index, 0)
+        self.tlayer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, self.index, 0)
+        self.tlayer_t = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, self.index, 0)
 
         if isinstance(data, cw.data.CWPyElement):
             data = cw.data.xml2etree(element=data)
@@ -1454,13 +1454,13 @@ class MenuCard(CWPyCard):
             splayer = cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP
 
         if splayer:
-            self.layer = (layer+cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
+            self.tlayer = (layer + cw.LAYER_SP_LAYER, cw.LTYPE_MCARDS, self.index, 0)
         else:
-            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
+            self.tlayer = (layer, cw.LTYPE_MCARDS, self.index, 0)
 
         if addgroup:
             # spritegroupに追加
-            cw.cwpy.cardgrp.add(self, layer=self.layer)
+            cw.add_layer(cw.cwpy.cardgrp, self, layer=cw.layer_val(self.tlayer))
             cw.cwpy.mcards.append(self)
             if self.spchars:
                 cw.cwpy.mcards_expandspchars.add(self)
