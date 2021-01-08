@@ -439,20 +439,19 @@ class CardImage(Image):
 
             # ホールド
             orig = header.ref_original()
-            assert orig
             if orig and orig.is_hold():
                 subimg = cw.cwpy.rsrc.cardbgs["HOLD"]
                 image.blit(subimg, cw.s((0, 0)))
 
-            # ペナルティ
-            if header.penalty:
-                subimg = cw.cwpy.rsrc.cardbgs["PENALTY"]
-                image.blit(subimg, cw.s((0, 0)))
+        # ペナルティ
+        if header.penalty:
+            subimg = cw.cwpy.rsrc.cardbgs["PENALTY"]
+            image.blit(subimg, cw.s((0, 0)))
 
-            # ペナルティが自動選択されたため変更不可
-            if owner.is_autoselectedpenalty(header):
-                subimg = cw.cwpy.rsrc.pygamedialogs["FIXED"]
-                image.blit(subimg, cw.s((20, 0)))
+        # ペナルティが自動選択されたため変更不可
+        if owner.is_autoselectedpenalty(header):
+            subimg = cw.cwpy.rsrc.pygamedialogs["FIXED"]
+            image.blit(subimg, cw.s((20, 0)))
 
         uselimith = cw.s(0)
         if header.type in ("ItemCard", "BeastCard"):
@@ -652,7 +651,6 @@ class CardImage(Image):
 
             # ホールド
             orig = header.ref_original()
-            assert orig
             if orig and orig.is_hold():
                 subimg = cw.cwpy.rsrc.wxcardbgs["HOLD"]
                 dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
