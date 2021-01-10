@@ -5,6 +5,7 @@ import sys
 import os
 import itertools
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -33,7 +34,7 @@ class StatusBar(base.CWPySprite):
     def init(self) -> None:
         base.CWPySprite.__init__(self)
         self._init = True
-        self.image = pygame.Surface(cw.s((632, 33))).convert()
+        self.image = pygame.surface.Surface(cw.s((632, 33))).convert()
         self.yadomoney: Optional[YadoMoneyPanel] = None
         self.partymoney: Optional[PartyMoneyPanel] = None
         self.autostart: Optional[AutoStartButton] = None
@@ -57,7 +58,7 @@ class StatusBar(base.CWPySprite):
         cw.add_layer(cw.cwpy.sbargrp, self, layer=LAYER_BASE)
 
     def _init_image(self) -> None:
-        self.image = pygame.Surface(cw.s((632, 33))).convert()
+        self.image = pygame.surface.Surface(cw.s((632, 33))).convert()
         subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
         assert subimg
         self.maskmode = not self.showbuttons and cw.cwpy.is_statusbarmask()
@@ -336,7 +337,7 @@ class StatusBar(base.CWPySprite):
 
         sprites = layered_updates.sprites()
         h = cw.SIZE_GAME[1]-cw.SIZE_AREA[1]
-        sbarclip = cw.s(pygame.Rect(0, cw.SIZE_AREA[1], cw.SIZE_GAME[0], h))
+        sbarclip = cw.s(pygame.rect.Rect(0, cw.SIZE_AREA[1], cw.SIZE_GAME[0], h))
         for sprite in sprites:
             assert sprite.image, sprite
             if sprite.rect and srect.colliderect(sprite.rect):
@@ -388,8 +389,8 @@ class StatusBar(base.CWPySprite):
 class VolumeBar(base.CWPySprite):
     def __init__(self) -> None:
         base.CWPySprite.__init__(self)
-        self.image = pygame.Surface(cw.s((0, 0))).convert()
-        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
+        self.rect = pygame.rect.Rect(0, 0, 0, 0)
         self.volume = cw.cwpy.setting.vol_master
         self.upscr = cw.UP_SCR
 
@@ -408,14 +409,15 @@ class VolumeBar(base.CWPySprite):
         tsize = font.size("100%")
         tsize2 = font.size("音量")
         tw = max(tsize[0], tsize2[0])
-        self.rect = pygame.Rect(cw.s(560), cw.s(60), tw+cw.s(padw2)*2, cw.s(barh)+cw.s(1)*2+cw.s(padh)*4+tsize[1]*2)
-        self.image = pygame.Surface(self.rect.size).convert_alpha()
+        self.rect = pygame.rect.Rect(cw.s(560), cw.s(60), tw+cw.s(padw2)*2,
+                                     cw.s(barh)+cw.s(1)*2+cw.s(padh)*4+tsize[1]*2)
+        self.image = pygame.surface.Surface(self.rect.size).convert_alpha()
         self.image.fill((0, 0, 0, 128))
-        self.image.fill((0, 0, 0, 192), pygame.Rect(cw.s(padw), cw.s(padh)*2+tsize[1], self.rect.width-cw.s(padw)*2,
-                                                    cw.s(barh)+cw.s(2)))
+        self.image.fill((0, 0, 0, 192), pygame.rect.Rect(cw.s(padw), cw.s(padh)*2+tsize[1],
+                                                         self.rect.width - cw.s(padw) * 2, cw.s(barh)+cw.s(2)))
         n = cw.s(barh - int(cw.cwpy.setting.vol_master * barh))
-        self.image.fill((0, 128, 128, 192), pygame.Rect(cw.s(padw)+cw.s(1), cw.s(padh)*2+tsize[1]+cw.s(1)+n,
-                                                        self.rect.width-cw.s(padw)*2-cw.s(2), cw.s(barh)-n))
+        self.image.fill((0, 128, 128, 192), pygame.rect.Rect(cw.s(padw)+cw.s(1), cw.s(padh)*2+tsize[1]+cw.s(1)+n,
+                                                             self.rect.width-cw.s(padw)*2-cw.s(2), cw.s(barh)-n))
 
         subimg = font.render("%s%%" % (int(cw.cwpy.setting.vol_master * 100)), True, (255, 255, 255))
         self.image.blit(subimg, ((self.rect.width-tsize[0])//2+tsize[0]-subimg.get_width(),
@@ -429,8 +431,8 @@ class VolumeBar(base.CWPySprite):
         if not self.rect.width:
             return False
         rect = self.rect
-        self.image = pygame.Surface(cw.s((0, 0))).convert()
-        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
+        self.rect = pygame.rect.Rect(0, 0, 0, 0)
         cw.cwpy.add_lazydraw(clip=rect)
         return True
 
@@ -446,7 +448,7 @@ class ProgressView(base.CWPySprite):
         self.min = nmin
         self.current = current
         self._last_params: Optional[Tuple[str, int, int, int]] = None
-        self.rect = pygame.Rect(pos, size)
+        self.rect = pygame.rect.Rect(pos, size)
         self.rect.top = parent.rect.top + pos[1]
         self.rect.left = parent.rect.left + pos[0]
         self.update()
@@ -463,10 +465,10 @@ class ProgressView(base.CWPySprite):
     def update_image(self) -> None:
         self._last_params = (self.text, self.max, self.min, self.current)
 
-        image = pygame.Surface(self.rect.size).convert_alpha()
+        image = pygame.surface.Surface(self.rect.size).convert_alpha()
         image.fill((0, 0, 0))
         w, h = self.rect.size
-        rect = pygame.Rect(cw.s(1), cw.s(1), w-cw.s(2), h-cw.s(2))
+        rect = pygame.rect.Rect(cw.s(1), cw.s(1), w-cw.s(2), h-cw.s(2))
         image.fill((255, 255, 255), rect)
         w = self.rect.width - cw.s(2)
 
@@ -480,11 +482,11 @@ class ProgressView(base.CWPySprite):
 
         g = w / float(self.max - self.min)
         curw = int(self.current * g) + cw.s(1)
-        rect = pygame.Rect(cw.s(1), cw.s(1), curw, self.rect.height-cw.s(2))
+        rect = pygame.rect.Rect(cw.s(1), cw.s(1), curw, self.rect.height-cw.s(2))
         image.fill((0, 0, 128), rect)
 
         curw = curw - (x-cw.s(1))
-        rect = pygame.Rect(cw.s(0), cw.s(0), min(curw, subimg.get_width()), subimg.get_height())
+        rect = pygame.rect.Rect(cw.s(0), cw.s(0), min(curw, subimg.get_width()), subimg.get_height())
         subimg.fill((255, 255, 255, 0), rect, special_flags=pygame.BLEND_RGBA_ADD)
 
         image.blit(subimg, (x, y))
@@ -527,7 +529,7 @@ class StatusBarPanel(base.MouseHandlerSprite):
     def _create_paneimg(self, pos: Tuple[int, int], size: Tuple[int, int],
                         icon: Optional[pygame.surface.Surface]) -> None:
         self.icon: Optional[pygame.surface.Surface] = icon
-        self.panelimg = pygame.Surface(size).convert_alpha()
+        self.panelimg = pygame.surface.Surface(size).convert_alpha()
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
         rect.topleft = cw.s((1, 1))
@@ -537,11 +539,11 @@ class StatusBarPanel(base.MouseHandlerSprite):
 
         if self.icon:
             self.panelimg.blit(self.icon, cw.s((3, 3)))
-            self.handling_rect = pygame.Rect(cw.s(3), cw.s(3), self.icon.get_width(), self.icon.get_height())
+            self.handling_rect = pygame.rect.Rect(cw.s(3), cw.s(3), self.icon.get_width(), self.icon.get_height())
 
         # image
         self.image = self.panelimg.copy()
-        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
+        self.noimg = pygame.surface.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = self.parent.rect.top + pos[1]
@@ -620,12 +622,12 @@ class StatusBarPanel(base.MouseHandlerSprite):
 
 def _draw_edge(image: pygame.surface.Surface) -> None:
     def put(x: int, y: int) -> None:
-        rect = pygame.Rect((x, y), (1, 1))
+        rect = pygame.rect.Rect((x, y), (1, 1))
         image.fill((0, 0, 0), rect)
         image.fill((0, 0, 0, 192), rect, special_flags=pygame.BLEND_RGBA_SUB)
 
     def put_inside(x: int, y: int) -> None:
-        rect = pygame.Rect((x, y), (1, 1))
+        rect = pygame.rect.Rect((x, y), (1, 1))
         image.fill((192, 192, 192), rect, special_flags=pygame.BLEND_RGB_MULT)
 
     w, h = image.get_size()
@@ -870,7 +872,7 @@ class StatusBarButton(base.SelectableSprite):
 
         # image
         self.image = self.get_unselectedimage()
-        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
+        self.noimg = pygame.surface.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = self.parent.rect.top + pos[1]
@@ -1138,12 +1140,12 @@ class Desc(base.CWPySprite):
         # 解説画像を作成
         arroww = cw.s(8)
         arrowh = cw.s(12)
-        self.image = pygame.Surface((tw, th+arrowh)).convert_alpha()
+        self.image = pygame.surface.Surface((tw, th+arrowh)).convert_alpha()
         color = (255, 255, 200)
         self.image.fill(color)
         self.image.fill((0, 0, 0, 255), (cw.s(0), th, tw, arrowh), special_flags=pygame.BLEND_RGBA_SUB)
         linecolor = (0, 0, 0)
-        cw.setting.Resource.draw_frame(self.image, pygame.Rect(cw.s(0), cw.s(0), tw, th), linecolor)
+        cw.setting.Resource.draw_frame(self.image, pygame.rect.Rect(cw.s(0), cw.s(0), tw, th), linecolor)
         self.rect = self.image.get_rect()
         x, y = spx, spy
         if self.name:

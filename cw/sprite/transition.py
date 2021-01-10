@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -28,7 +29,7 @@ class Transition(base.CWPySprite):
         pass
 
     def clear(self) -> None:
-        self.image = pygame.Surface(cw.s((0, 0))).convert()
+        self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
         self.rect = self.image.get_rect(center=self.rect.center)
         self.status = "hidden"
 
@@ -72,7 +73,7 @@ class PixelDissolve(Transition):
         self.sec_w = cw.s(self.sec_w_noscale)
         self.sec_h = cw.s(self.sec_h_noscale)
 
-        self.rect_sec = pygame.Rect(0, 0, self.sec_w, self.sec_h)
+        self.rect_sec = pygame.rect.Rect(0, 0, self.sec_w, self.sec_h)
         self.poslist = []
 
         for x in range(cw.s(cw.SIZE_GAME[0]) // self.sec_w + 1):
@@ -110,7 +111,7 @@ class Blinds(Transition):
         self.num_split = 30
         self.poslist = []
         self.w_blinds = cw.SIZE_GAME[0] // self.num_split
-        self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.SIZE_GAME[1])
+        self.rect_blinds = pygame.rect.Rect(0, 0, self.w_blinds, cw.SIZE_GAME[1])
 
         for n in range(self.num_split + 2):
             self.poslist.append((n * self.w_blinds, 0))
@@ -151,7 +152,7 @@ def get_transition(name_and_speed: Tuple[str, Union[str, int]]) -> Optional[Tran
         cls = globals().get(name, None)
 
         if cls:
-            image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
+            image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, image)
             for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
                 assert sprite.image

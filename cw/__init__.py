@@ -6,6 +6,7 @@ import sys
 
 import wx
 import pygame
+import pygame.surface
 
 from . import util
 from . import battle
@@ -301,7 +302,7 @@ def wins(num: Scalable) -> Scalable:
 def s(num: Scalable) -> Scalable:
     """numを描画サイズに変換する。
     num: int or 座標(x,y) or 矩形(x,y,width,height)
-         or pygame.Surface or pygame.Bitmap or pygame.Image
+         or pygame.surface.Surface or wx.Bitmap or wx.Image
     """
     return _s_impl(num, UP_SCR)
 
@@ -355,17 +356,14 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         # return typing.cast(Scalable, int(num * up_scr))
         return typing.cast(Scalable, typing.cast(typing.Any, int(num * up_scr)))
 
-    elif isinstance(num, pygame.Rect):
+    elif isinstance(num, pygame.rect.Rect):
         # pygameの矩形情報
         rect: pygame.rect.Rect = num
         x = int(rect.x * up_scr)
         y = int(rect.y * up_scr)
         w = int(rect.width * up_scr)
         h = int(rect.height * up_scr)
-        # BUG: error: Returning Any from function declared to return "Tuple[int, int]"
-        #      error: Returning Any from function declared to return "Tuple[int, int, int, int]"
-        #      (mypy 0.790)
-        return typing.cast(Scalable, pygame.Rect(x, y, w, h))
+        return pygame.rect.Rect(x, y, w, h)
 
     elif isinstance(num, tuple):
         if len(num) == 4:
@@ -397,8 +395,8 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         else:
             assert False
 
-    elif isinstance(num, pygame.Surface):
-        # スケール情報の無いpygame.Surface(単純拡大)
+    elif isinstance(num, pygame.surface.Surface):
+        # スケール情報の無いpygame.surface.Surface(単純拡大)
         bmp0 = num
         if isinstance(num, util.Depth1Surface):
             scr_scale = num.scr_scale

@@ -71,7 +71,8 @@ class CharaInfo(wx.Dialog, Generic[_T]):
 
         self.notebook.SetMinMaxTabWidth(cut, cut)
 
-        self.bottompanel: List[wx.Panel] = []
+        self.bottompanel: List[Union[DescPanel[_T], HistoryPanel[_T], StatusPanel, EditPanel, SkillPanel, ItemPanel,
+                                     BeastPanel]] = []
 
         # 解説
         self.descpanel: DescPanel[_T] = DescPanel[_T](self.notebook, self.ccard, editable)
@@ -93,7 +94,9 @@ class CharaInfo(wx.Dialog, Generic[_T]):
             self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
-            self.editpanel = EditPanel(self.notebook, self.list, self.ccard)
+            plist = [pcard for pcard in self.list if isinstance(pcard, cw.character.Player)]
+            assert isinstance(self.ccard, cw.character.Player)
+            self.editpanel = EditPanel(self.notebook, plist, self.ccard)
             self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
@@ -697,7 +700,7 @@ class TopPanel(wx.Panel, Generic[_T]):
                                                          basecardtype="LargeCard",
                                                          cardpostype="NotCard")
             else:
-                baserect = cw.wins(pygame.Rect(0, 0, 0, 0))
+                baserect = cw.wins(pygame.rect.Rect(0, 0, 0, 0))
 
             cw.imageretouch.wxblit_2bitbmp_to_card(dc, dest, bmp2, x+baserect.x, cw.wins(5)+baserect.y, True,
                                                    bitsizekey=bmp)
@@ -1211,11 +1214,11 @@ class EditButton():
         self.has_separator = has_separator
         self.negaflag = False
         self.textpos: Tuple[int, int] = (0, 0)
-        self.subrect = pygame.Rect(0, 0, 0, 0)
+        self.subrect = pygame.rect.Rect(0, 0, 0, 0)
 
 
-class EditPanel(wx.Panel, Generic[_N]):
-    def __init__(self, parent: aui.AuiNotebook, mlist: List[_N], ccard: _N) -> None:
+class EditPanel(wx.Panel):
+    def __init__(self, parent: aui.AuiNotebook, mlist: List[cw.character.Player], ccard: cw.character.Player) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self._destroy: bool = False
         self.SetDoubleBuffered(True)
@@ -1223,8 +1226,8 @@ class EditPanel(wx.Panel, Generic[_N]):
         apply_bgcolor(self, ccard)
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
-        self.list: List[_N] = mlist
-        self.ccard: _N = ccard
+        self.list = mlist
+        self.ccard = ccard
         self.selected: int = -1
         # ボタン
         self.headers: Sequence[EditButton] = []
@@ -1469,7 +1472,7 @@ class EditPanel(wx.Panel, Generic[_N]):
             dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1), True)
             dc.DrawText(header.name, cw.wins(32), height)
             header.textpos = (cw.wins(32), height)
-            header.subrect = pygame.Rect(cw.wins(12), height - cw.wins(1), cw.wins(20) + size[0], bmp.Height)
+            header.subrect = pygame.rect.Rect(cw.wins(12), height - cw.wins(1), cw.wins(20) + size[0], bmp.Height)
             height += cw.wins(17)
 
         if update:
@@ -2009,7 +2012,8 @@ class CardPanel(wx.Panel):
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
             dc.DrawBitmap(bmp, cw.wins(10), cw.wins(29), True)
             size = dc.GetTextExtent(s)
-            self.hold_all.subrect = pygame.Rect(cw.wins(10), cw.wins(29), size[0] + cw.wins(20), size[1] + cw.wins(2))
+            self.hold_all.subrect = pygame.rect.Rect(cw.wins(10), cw.wins(29), size[0] + cw.wins(20),
+                                                     size[1] + cw.wins(2))
         else:
             yp = 0
 
@@ -2025,8 +2029,8 @@ class CardPanel(wx.Panel):
 
             # rect
             header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1),
-                                         size[0] + cw.wins(20), size[1] + cw.wins(2))
+            header.subrect = pygame.rect.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1),
+                                              size[0] + cw.wins(20), size[1] + cw.wins(2))
 
     def OnPaint(self, event: wx.PaintEvent) -> None:
         self.draw()
@@ -2162,7 +2166,7 @@ class CardPanel(wx.Panel):
 class HoldAll(object):
     def __init__(self) -> None:
         self.negaflag = False
-        self.subrect = pygame.Rect(0, 0, 0, 0)
+        self.subrect = pygame.rect.Rect(0, 0, 0, 0)
 
 
 class SkillPanel(CardPanel):

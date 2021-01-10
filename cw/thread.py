@@ -13,6 +13,7 @@ import re
 import math
 import wx
 import pygame
+import pygame.surface
 from pygame import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
@@ -483,7 +484,7 @@ class CWPy(threading.Thread):
         self.skinsounds = self.rsrc.skinsounds
 
     def _update_clip(self) -> None:
-        clip = pygame.Rect(cw.s((0, 0)), cw.s(cw.SIZE_AREA))
+        clip = pygame.rect.Rect(cw.s((0, 0)), cw.s(cw.SIZE_AREA))
         self.cardgrp.set_clip(clip)
         self.topgrp.set_clip(clip)
         self.backloggrp.set_clip(clip)
@@ -761,7 +762,7 @@ class CWPy(threading.Thread):
                 dsize = displaysize
                 assert dsize
                 self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), flags)
-                self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+                self.scr = pygame.surface.Surface(cw.s(cw.SIZE_GAME)).convert()
                 self.scr_draw = self.scr
             else:
                 self.scr_fullscreen = None
@@ -769,7 +770,7 @@ class CWPy(threading.Thread):
                 if cw.UP_SCR == cw.UP_WIN:
                     self.scr_draw = self.scr
                 else:
-                    self.scr_draw = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+                    self.scr_draw = pygame.surface.Surface(cw.s(cw.SIZE_GAME)).convert()
 
         if udpatedrawsize:
             self._init_resources()
@@ -844,7 +845,7 @@ class CWPy(threading.Thread):
         if afterfunc:
             afterfunc()
 
-        self.add_lazydraw(cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+        self.add_lazydraw(cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
 
         if changearea:
             def func() -> None:
@@ -929,7 +930,7 @@ class CWPy(threading.Thread):
             self.list.extend(self.get_mcards("selectable"))
         self.index = -1
         self.change_selection(self.selection)
-        self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+        self.add_lazydraw(clip=cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
 
         if not debug and self.is_curtained() and 0 <= self.areaid and self.selectedheader:
             owner = self.selectedheader.get_owner()
@@ -986,7 +987,8 @@ class CWPy(threading.Thread):
             sz1 = font.size(s1)
             sz2 = font.size(s2)
             sz3 = font.size(s3)
-            bmp = pygame.Surface((max(sz1[0], sz2[0], sz3[0])+cw.wins(10), sz1[1]+sz2[1]+sz3[1]+cw.wins(10))).convert()
+            bmp = pygame.surface.Surface((max(sz1[0], sz2[0], sz3[0])+cw.wins(10),
+                                          sz1[1]+sz2[1]+sz3[1]+cw.wins(10))).convert()
             bmp.fill((255, 255, 255))
             subimg = font.render(s1, True, (0, 0, 0))
             bmp.blit(subimg, cw.wins((5, 5)))
@@ -1002,8 +1004,8 @@ class CWPy(threading.Thread):
                 scr = self.scr_fullscreen
             else:
                 scr = self.scr
-            rect = pygame.Rect((scr.get_width()-bmp.get_width())//2, (scr.get_height()-bmp.get_height())//2,
-                               bmp.get_width(), bmp.get_height())
+            rect = pygame.rect.Rect((scr.get_width()-bmp.get_width())//2, (scr.get_height()-bmp.get_height())//2,
+                                    bmp.get_width(), bmp.get_height())
             scr.blit(bmp, rect.topleft)
             pygame.display.update(rect)
         finally:
@@ -1254,14 +1256,14 @@ class CWPy(threading.Thread):
         マウスカーソルがプレイヤーエリアないし同行キャストエリアにあるかを判定する。
         """
         for pcard in self.get_pcards():
-            rect = pygame.Rect(pcard.rect)
+            rect = pygame.rect.Rect(pcard.rect)
             rect.left -= cw.s(9)
             rect.width += cw.s(18)
             rect.height += cw.s(5)
             if rect.collidepoint(*mousepos):
                 return True
         for fcard in self.get_fcards():
-            rect = pygame.Rect(fcard.rect)
+            rect = pygame.rect.Rect(fcard.rect)
             rect.left -= cw.s(9)
             rect.width += cw.s(18)
             rect.top -= cw.s(5)
@@ -1346,7 +1348,7 @@ class CWPy(threading.Thread):
         キャラクターのステータス時間の表示の更新が必要であれば更新する。
         """
         if cw.cwpy.setting.show_statustime == "NotEventTime":
-            clip = pygame.Rect(cw.cwpy.statusbar.rect)
+            clip = pygame.rect.Rect(cw.cwpy.statusbar.rect)
             for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"), cw.cwpy.get_ecards("unreversed"),
                                          cw.cwpy.get_fcards("unreversed")):
                 assert isinstance(ccard, (cw.sprite.card.PlayerCard,
@@ -1358,7 +1360,7 @@ class CWPy(threading.Thread):
                         if clip:
                             clip.union_ip(clip2)
                         else:
-                            clip = pygame.Rect(clip2)
+                            clip = pygame.rect.Rect(clip2)
             return clip
         else:
             return None
@@ -1461,7 +1463,7 @@ class CWPy(threading.Thread):
         clip = None
         for sprite in self.animations:
             if not clip:
-                clip = pygame.Rect(sprite.rect)
+                clip = pygame.rect.Rect(sprite.rect)
             clip.union_ip(sprite.rect)
 
             if sprite.status != sprite.anitype:
@@ -1549,7 +1551,7 @@ class CWPy(threading.Thread):
                 if self.scr_fullscreen:
                     clip = clip.clip(self._get_fullclip())
                 else:
-                    clip = clip.clip(cw.s(pygame.Rect(0, 0, cw.SIZE_GAME[0], cw.SIZE_GAME[1])))
+                    clip = clip.clip(cw.s(pygame.rect.Rect(0, 0, cw.SIZE_GAME[0], cw.SIZE_GAME[1])))
             self.scr_draw.set_clip(clip)
             self.cardgrp.set_clip(clip)
             self.topgrp.set_clip(clip)
@@ -1569,7 +1571,7 @@ class CWPy(threading.Thread):
                 cly = int(clip.top * scale) - 2
                 clw = int(clip.width * scale) + 5
                 clh = int(clip.height * scale) + 5
-                return pygame.Rect(clx, cly, clw, clh)
+                return pygame.rect.Rect(clx, cly, clw, clh)
 
             # 画面更新
             if self.scr_fullscreen:
@@ -1579,8 +1581,8 @@ class CWPy(threading.Thread):
                     scr = cw.image.smoothscale(self.scr_draw, self.scr_size)
                 if clip:
                     clip2 = update_clip(self.scr_scale)
-                    clip3 = pygame.Rect(clip2.left + self.scr_pos[0], clip2.top + self.scr_pos[1],
-                                        clip2.width, clip2.height)
+                    clip3 = pygame.rect.Rect(clip2.left + self.scr_pos[0], clip2.top + self.scr_pos[1],
+                                             clip2.width, clip2.height)
                     self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
                     pygame.display.update(clip3)
                 else:
@@ -1606,10 +1608,10 @@ class CWPy(threading.Thread):
 
             pos = cw.s((0, 0))
             size = cw.s(cw.SIZE_AREA)
-            self.scr_draw.set_clip(pygame.Rect(pos, size))
+            self.scr_draw.set_clip(pygame.rect.Rect(pos, size))
             self._update_clip()
             size = cw.s(cw.SIZE_GAME)
-            self.sbargrp.set_clip(pygame.Rect(pos, size))
+            self.sbargrp.set_clip(pygame.rect.Rect(pos, size))
 
             self.event.eventtimer = 0
 
@@ -1675,14 +1677,14 @@ class CWPy(threading.Thread):
             y = self.scr_pos[1] - width//2-1
             w = self.scr_size[0] + width+1
             h = self.scr_size[1] + width+1
-            sur = pygame.Surface((w, h)).convert_alpha()
+            sur = pygame.surface.Surface((w, h)).convert_alpha()
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
             self.add_lazydraw(clip=self._get_fullclip())
 
     def _get_fullclip(self) -> pygame.rect.Rect:
         assert self.scr_fullscreen
-        return cw.win2scr_s(pygame.Rect((-self.scr_pos[0], -self.scr_pos[1]), (self.scr_fullscreen.get_size())))
+        return cw.win2scr_s(pygame.rect.Rect((-self.scr_pos[0], -self.scr_pos[1]), (self.scr_fullscreen.get_size())))
 
     def change_cursor(self, name: str = "arrow", force: bool = False) -> None:
         """マウスカーソルを変更する。
@@ -1993,7 +1995,7 @@ class CWPy(threading.Thread):
         self.input(eventclear=True)
         self.statusbar.hide_touchbuttons()
         self.statusbar.clear_volumebar()
-        self.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+        self.add_lazydraw(clip=cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
         if self.selection and self.selection.is_statusctrl:
             # 表示が乱れる場合があるので
             # ステータスバーのボタンからフォーカスを外しておく
@@ -2282,7 +2284,7 @@ class CWPy(threading.Thread):
                     self.expand_mode = expandmode
                     dsize = displaysize
                     self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), 0)
-                    self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+                    self.scr = pygame.surface.Surface(cw.s(cw.SIZE_GAME)).convert()
                     self.scr_draw = self.scr
                     self.set_fullscreen(True)
                     self.update_scale(self.setting.expanddrawing, True, False, updatedrawsize)

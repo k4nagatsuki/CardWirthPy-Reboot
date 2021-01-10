@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -24,7 +25,7 @@ class CWPyCard(base.SelectableSprite):
         self._clicking = False
         self.debug_only = False
         self.old_status = status
-        self.rect = cw.s(pygame.Rect(0, 0, 0, 0))
+        self.rect = cw.s(pygame.rect.Rect(0, 0, 0, 0))
         self._pos_noscale: Optional[Tuple[int, int]] = None
         self._center_noscale: Optional[Tuple[int, int]] = None
         # 前に表示中のカード
@@ -232,7 +233,7 @@ class CWPyCard(base.SelectableSprite):
             image.set_alpha(self.alpha)
             self._image: pygame.surface.Surface = image
             if self.zoomimgs:
-                self.rect = pygame.Rect(self.zoomimgs[-1][1])
+                self.rect = pygame.rect.Rect(self.zoomimgs[-1][1])
 
             for i, t in enumerate(self.zoomimgs):
                 img, rect = t
@@ -276,7 +277,7 @@ class CWPyCard(base.SelectableSprite):
             self.status = self.old_status
             self._clicking = False
             self.image = self.get_selectedimage()
-            self.rect = pygame.Rect(self.get_animerect())
+            self.rect = pygame.rect.Rect(self.get_animerect())
             self.frame = 0
             return
 
@@ -320,7 +321,7 @@ class CWPyCard(base.SelectableSprite):
         self.image = self.get_animeimage()
         if cw.cwpy.selection == self:
             self.image = cw.imageretouch.to_negative_for_card(self.image)
-        self.rect = pygame.Rect(self.get_animerect())
+        self.rect = pygame.rect.Rect(self.get_animerect())
 
     def update_hide(self) -> None:
         """
@@ -360,7 +361,7 @@ class CWPyCard(base.SelectableSprite):
         """
         n = (self._get_dealspeed()+1) * 3
         if self.frame >= n:
-            self.rect = pygame.Rect(self.get_animerect())
+            self.rect = pygame.rect.Rect(self.get_animerect())
             self.status = self.old_status
             self.frame = 0
             return
@@ -391,7 +392,7 @@ class CWPyCard(base.SelectableSprite):
 
         val = int(round(val))
 
-        self.rect = pygame.Rect(self.get_animerect())
+        self.rect = pygame.rect.Rect(self.get_animerect())
         self.rect.move_ip(cw.s(val), cw.s(0))
         self.frame += 1
 
@@ -402,7 +403,7 @@ class CWPyCard(base.SelectableSprite):
         """
         n = (self._get_dealspeed()+1) * 3
         if self.frame >= n:
-            self.rect = pygame.Rect(self.get_animerect())
+            self.rect = pygame.rect.Rect(self.get_animerect())
             if self.image.get_size() != self.rect.size:
                 self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
             self.status = self.old_status
@@ -465,7 +466,7 @@ class CWPyCard(base.SelectableSprite):
     def _update_zoominout(self, ds: int, inout: bool) -> None:
         if self.frame == 0:
             if inout:
-                self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
+                self.zoomimgs.append((self.get_animeimage(), pygame.rect.Rect(self.get_animerect())))
 
         if inout:
             # 拡大
@@ -515,12 +516,12 @@ class CWPyCard(base.SelectableSprite):
             self.image = cw.image.smoothscale_card(self.zoomimgs[0][0], (w, h))
         else:
             self.image = pygame.transform.scale(self.zoomimgs[0][0], (w, h))
-        self.rect = pygame.Rect(self.image.get_rect())
+        self.rect = pygame.rect.Rect(self.image.get_rect())
         self.rect.center = self.get_animerect().center
 
         if ds <= self.frame:
             if inout:
-                self.zoomimgs.append((self.image, pygame.Rect(self.rect)))
+                self.zoomimgs.append((self.image, pygame.rect.Rect(self.rect)))
             else:
                 del self.zoomimgs[:]
             self.status = self.old_status
@@ -543,7 +544,7 @@ class CWPyCard(base.SelectableSprite):
         y = self._rect[1] + cw.s(150) - shift
         if self.zoomimgs:
             y += self.zoomimgs[-1][1][1] - self.zoomimgs[0][1][1]
-        self.rect = pygame.Rect(self.rect)
+        self.rect = pygame.rect.Rect(self.rect)
         self.rect.topleft = (self.rect[0], y)
         self.rect.size = self.image.get_size()
 
@@ -569,7 +570,7 @@ class CWPyCard(base.SelectableSprite):
 
         shift = int(float(cw.s(150)) / speed * self.frame)
         y = self._rect[1] + shift
-        self.rect = pygame.Rect(self.rect)
+        self.rect = pygame.rect.Rect(self.rect)
         self.rect.size = self.image.get_size()
         if self.zoomimgs:
             _image, zrect = self.zoomimgs[0]
@@ -583,7 +584,7 @@ class CWPyCard(base.SelectableSprite):
             self.rect.topleft = topleft
 
         if self.frame >= speed:
-            self.image = pygame.Surface((0, 0)).convert()
+            self.image = pygame.surface.Surface((0, 0)).convert()
             self.status = "hidden"
             self.frame = 0
 
@@ -642,7 +643,7 @@ class CWPyCard(base.SelectableSprite):
                 self._cardimg.update(self, self.test_aptitude)
             else:
                 self.cardimg.update(self)
-            clip = pygame.Rect(self.rect)
+            clip = pygame.rect.Rect(self.rect)
 
         image = self.cardimg.get_image().copy()
         image.set_alpha(self.alpha)
@@ -663,7 +664,7 @@ class CWPyCard(base.SelectableSprite):
                 self.image = self._image
 
         self.rect.size = rect.size
-        self._rect: pygame.rect.Rect = pygame.Rect(self.rect)
+        self._rect: pygame.rect.Rect = pygame.rect.Rect(self.rect)
         self._rect.topleft = rect.topleft
 
         if self.reversed:
@@ -686,7 +687,7 @@ class CWPyCard(base.SelectableSprite):
                     image = pygame.transform.scale(self._image, (w, h))
                 self.zoomimgs[i+1] = image, rect
             self.image = self.zoomimgs[-1][0]
-            self.rect = pygame.Rect(self.zoomimgs[-1][1])
+            self.rect = pygame.rect.Rect(self.zoomimgs[-1][1])
 
         if self.status == "hidden":
             self.clear_image(False)
@@ -694,7 +695,7 @@ class CWPyCard(base.SelectableSprite):
         return clip
 
     def clear_image(self, move: bool = True) -> None:
-        self.image = pygame.Surface(cw.s((0, 0))).convert()
+        self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
         if move:
             topleft = self.rect.topleft
             self.rect = self.image.get_rect()
@@ -774,12 +775,12 @@ class PlayerCard(CWPyCard, character.Player):
             cw.image.CharacterCardImage(self, pos_noscale=pos_noscale, can_loaded_scaledimage=can_loaded_scaledimage)
         self.update_image()
         # 空のイメージ
-        self.image = pygame.Surface(cw.s((0, 0))).convert()
+        self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
 
         self.set_pos_noscale(pos_noscale)
 
         if self.status == "hidden":
-            self.rect = pygame.Rect(self._rect)
+            self.rect = pygame.rect.Rect(self._rect)
             self.rect.move_ip(cw.s(0), cw.s(+150))
 
         # スキンの種族設定とキャラクター編集ダイアログでの
@@ -805,7 +806,7 @@ class PlayerCard(CWPyCard, character.Player):
     def set_pos(self, pos: Optional[Tuple[int, int]] = None, center: Optional[Tuple[int, int]] = None) -> None:
         CWPyCard.set_pos(self, pos, center)
         if self.status == "hidden":
-            self.rect = pygame.Rect(self._rect)
+            self.rect = pygame.rect.Rect(self._rect)
             self.rect.move_ip(cw.s(0), cw.s(+150))
 
     @property
@@ -842,7 +843,7 @@ class PlayerCard(CWPyCard, character.Player):
         """レベルアップ処理。"""
         assert isinstance(self.cardimg, cw.image.CharacterCardImage)
         if self.frame % 5:
-            self.image = pygame.Surface((0, 0)).convert()
+            self.image = pygame.surface.Surface((0, 0)).convert()
         elif not self.frame % 5:
             self.image = self.get_animeimage()
 
@@ -1092,7 +1093,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
         # 表示するまでデータを作らない
         if status == "hidden":
-            self._rect = cw.s(pygame.Rect(0, 0, 0, 0))
+            self._rect = cw.s(pygame.rect.Rect(0, 0, 0, 0))
             self.clear_image()
         else:
             if not self.initialize():
@@ -1433,7 +1434,7 @@ class MenuCard(CWPyCard):
 
         # 表示するまでデータを作らない
         if status == "hidden":
-            self._rect = cw.s(pygame.Rect(0, 0, 0, 0))
+            self._rect = cw.s(pygame.rect.Rect(0, 0, 0, 0))
             self.clear_image()
         else:
             self.initialize()

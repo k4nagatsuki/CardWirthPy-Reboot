@@ -6,7 +6,7 @@ import wx
 import cw
 
 import typing
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 
 # ------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class Message(wx.Dialog):
     mode=1は「はい」「いいえ」。mode=2は「閉じる」。
     mode=3は、choicesに(テキスト, ID, 幅)のtupleまたはlistを指定する事で任意の選択肢を表示する。
     """
-    buttons: Sequence[Union[wx.BitmapButton, wx.Button]]
+    buttons: List[Union[wx.BitmapButton, wx.Button]]
 
     def __init__(self, parent: wx.TopLevelWindow, name: str, text: str, mode: int = 2,
                  choices: Optional[Iterable[Union[Tuple[str, int, int, str],
@@ -47,11 +47,11 @@ class Message(wx.Dialog):
             # yes and no
             self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.wins((120, 30)), cw.cwpy.msgs["yes"])
             self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["no"])
-            self.buttons = (self.yesbtn, self.nobtn)
+            self.buttons = [self.yesbtn, self.nobtn]
         elif self.mode == 2:
             # close
             self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["close"])
-            self.buttons = (self.closebtn,)
+            self.buttons = [self.closebtn]
         elif self.mode == 3:
             # 任意
             self.buttons = []

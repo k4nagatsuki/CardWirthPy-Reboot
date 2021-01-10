@@ -225,15 +225,15 @@ class CardHeader(object):
             self.scedir = scedir
         # 画像設定
         self._cardimg: Optional[cw.image.CardImage] = None
-        self.rect = cw.s(pygame.Rect(0, 0, 80, 110))
-        self.wxrect = cw.wins(pygame.Rect(0, 0, 80, 110))
+        self.rect = cw.s(pygame.rect.Rect(0, 0, 80, 110))
+        self.wxrect = cw.wins(pygame.rect.Rect(0, 0, 80, 110))
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
         self.deal_per = 100
         # CharaInfoダイアログで使う表示位置情報
         self.textpos = (0, 0)
-        self.subrect = pygame.Rect(0, 0, 0, 0)
+        self.subrect = pygame.rect.Rect(0, 0, 0, 0)
 
         # 特殊なキーコード
         self.penalty = bool(cw.cwpy.msgs["penalty_keycode"] in self.keycodes)
@@ -300,9 +300,9 @@ class CardHeader(object):
                                            can_loaded_scaledimage=can_loaded_scaledimage,
                                            is_scenariocard=self.scenariocard,
                                            anotherscenariocard=anotherscenariocard, scedir=self.scedir)
-        self.rect = pygame.Rect(self.rect)
+        self.rect = pygame.rect.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
-        self.wxrect = pygame.Rect(self._cardimg.wxrect)
+        self.wxrect = pygame.rect.Rect(self._cardimg.wxrect)
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
@@ -1614,7 +1614,7 @@ class ScenarioHeader(object):
                  up_scr: Optional[float] = None) -> Optional[Tuple[List[pygame.surface.Surface],
                                                                    List["cw.image.ImageInfo"]]]:
         """
-        スケールありの見出しイメージ(pygame.Surface)、スケール情報を返す。
+        スケールありの見出しイメージ(pygame.surface.Surface)、スケール情報を返す。
         指定スケールのイメージが存在しない場合はNoneを返す。
         """
         if up_scr is None:
@@ -1661,7 +1661,7 @@ class ScenarioHeader(object):
                         bmp_noscale = cw.util.Depth1Surface(cw.util.load_image("", f=f, mask=mask, noscale=True), 1)
                         f.close()
                 else:
-                    bmp_noscale = pygame.Surface((1, 1)).convert()
+                    bmp_noscale = pygame.surface.Surface((1, 1)).convert()
                     bmp_noscale.set_colorkey(bmp_noscale.get_at((0, 0)))
                 if scale == 1:
                     bmp = bmp_noscale

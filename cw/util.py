@@ -37,6 +37,7 @@ import wx.richtext
 import wx.grid
 import pygame
 import pygame.image
+import pygame.surface
 from pygame import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
 
 import cw
@@ -82,8 +83,8 @@ class MusicInterface(object):
 
     def update_scale(self) -> None:
         if self._movie:
-            self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
-            rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+            self.movie_scr = pygame.surface.Surface(cw.s(self._movie.get_size())).convert()
+            rect = cw.s(pygame.rect.Rect((0, 0), self._movie.get_size()))
             self._movie.set_display(self.movie_scr, rect)
 
     def play(self, path: str, updatepredata: bool = True, restart: bool = False, inusecard: bool = False,
@@ -166,8 +167,8 @@ class MusicInterface(object):
                                 self._movie = pygame.movie.Movie(fpath.encode(encoding))
                                 volume = self._get_volumevalue(fpath) * subvolume / 100.0
                                 self._movie.set_volume(volume)
-                                self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
-                                rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+                                self.movie_scr = pygame.surface.Surface(cw.s(self._movie.get_size())).convert()
+                                rect = cw.s(pygame.rect.Rect((0, 0), self._movie.get_size()))
                                 self._movie.set_display(self.movie_scr, rect)
                                 self._movie.play()
                             except Exception:
@@ -560,7 +561,7 @@ def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullsc
     size = cw.s(size_noscale)
     if fullscreen:
         scr_fullscreen: Optional[pygame.surface.Surface] = pygame.display.set_mode(fullscreensize, flags)
-        scr = pygame.Surface(size).convert()
+        scr = pygame.surface.Surface(size).convert()
         scr_draw = scr
     else:
         scr_fullscreen = None
@@ -568,7 +569,7 @@ def init(size_noscale: Optional[Tuple[int, int]] = None, title: str = "", fullsc
         if cw.UP_WIN == cw.UP_SCR:
             scr_draw = scr
         else:
-            scr_draw = pygame.Surface(size).convert()
+            scr_draw = pygame.surface.Surface(size).convert()
     clock = pygame.time.Clock()
 
     if title:
@@ -702,7 +703,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
                retry: bool = True, isback: bool = False, can_loaded_scaledimage: bool = True,
                noscale: bool = False, up_scr: Optional[Union[int, float]] = None,
                use_excache: bool = False) -> pygame.surface.Surface:
-    """pygame.Surface(読み込めなかった場合はNone)を返す。
+    """pygame.surface.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
     """
@@ -759,7 +760,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
                 image = cw.imageretouch.patch_alphadata(image, ext, data)
         else:
             if not os.path.isfile(path):
-                return pygame.Surface((0, 0)).convert()
+                return pygame.surface.Surface((0, 0)).convert()
             ext = cw.util.splitext(path)[1].lower()
             isbmp = ext == ".bmp"
             ispng = ext == ".png"
@@ -796,7 +797,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
                     data = cw.binary.image.code_to_data(path)
                 else:
                     if not os.path.isfile(path):
-                        return pygame.Surface((0, 0)).convert()
+                        return pygame.surface.Surface((0, 0)).convert()
                     with open(path, "rb") as f2:
                         data = f2.read()
                         f2.close()
@@ -813,7 +814,7 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
             except Exception:
                 print_ex()
                 # print u"画像が読み込めません(リトライ後)", path
-        return pygame.Surface((0, 0)).convert()
+        return pygame.surface.Surface((0, 0)).convert()
 
     # アルファチャンネルを持った透過画像を読み込んだ場合は
     # SRCALPHA(0x00010000)のフラグがONになっている
@@ -852,10 +853,10 @@ def load_image(path: str, mask: bool = False, maskpos: Tuple[int, int] = (0, 0),
     return image
 
 
-class Depth1Surface(pygame.Surface):
+class Depth1Surface(pygame.surface.Surface):
     def __init__(self, surface: pygame.surface.Surface, scr_scale: float, bmpdepth: int = 24) -> None:
-        pygame.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(),
-                                surface.get_masks())
+        pygame.surface.Surface.__init__(self, surface.get_size(), surface.get_flags(), surface.get_bitsize(),
+                                        surface.get_masks())
         self.blit(surface, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
         colorkey = surface.get_colorkey()
         if colorkey:
@@ -868,25 +869,25 @@ class Depth1Surface(pygame.Surface):
 
     def copy(self) -> pygame.surface.Surface:
         if hasattr(self, "scr_scale"):
-            bmp = Depth1Surface(pygame.Surface.copy(self), self.scr_scale)
+            bmp = Depth1Surface(pygame.surface.Surface.copy(self), self.scr_scale)
             bmp.bmpdepthis1 = self.bmpdepthis1
             return bmp
         else:
-            return pygame.Surface.copy(self)
+            return pygame.surface.Surface.copy(self)
 
     def convert_alpha(self, surface: Optional[pygame.surface.Surface] = None) -> pygame.surface.Surface:
         if hasattr(self, "scr_scale"):
             if surface:
-                bmp = Depth1Surface(pygame.Surface.convert_alpha(self, surface), self.scr_scale, bmpdepth=32)
+                bmp = Depth1Surface(pygame.surface.Surface.convert_alpha(self, surface), self.scr_scale, bmpdepth=32)
             else:
-                bmp = Depth1Surface(pygame.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
+                bmp = Depth1Surface(pygame.surface.Surface.convert_alpha(self), self.scr_scale, bmpdepth=32)
             bmp.bmpdepthis1 = False
             return bmp
         else:
             if surface:
-                return pygame.Surface.convert_alpha(self, surface)
+                return pygame.surface.Surface.convert_alpha(self, surface)
             else:
-                return pygame.Surface.convert_alpha(self)
+                return pygame.surface.Surface.convert_alpha(self)
 
 
 def calc_imagesize(image: pygame.surface.Surface) -> int:
@@ -919,7 +920,7 @@ def put_number(image: pygame.surface.Surface, num: int) -> pygame.surface.Surfac
         font = cw.cwpy.rsrc.fonts["statusimg3"]
     h = font.get_height()
     w = (h + 1) // 2
-    subimg = pygame.Surface((len(s) * w, h)).convert_alpha()
+    subimg = pygame.surface.Surface((len(s) * w, h)).convert_alpha()
     subimg.fill((0, 0, 0, 0))
     x = image.get_width() - subimg.get_width() - cw.s(1)
     y = image.get_height() - subimg.get_height()
@@ -1735,7 +1736,7 @@ def create_screenshot(titledic: Dict[str, str]) -> Tuple[pygame.surface.Surface,
     """スクリーンショットを作成する。
     """
     title = screenshot_title(titledic)
-    scr = pygame.Surface(cw.cwpy.scr_draw.get_size()).convert()
+    scr = pygame.surface.Surface(cw.cwpy.scr_draw.get_size()).convert()
     cw.cwpy.draw_to(scr, False)
     if title:
         back = cw.cwpy.setting.ssinfobackcolor
@@ -1745,8 +1746,8 @@ def create_screenshot(titledic: Dict[str, str]) -> Tuple[pygame.surface.Surface,
             h = cw.s(cw.SIZE_GAME[1]) + lh
         else:
             h = cw.s(cw.SIZE_AREA[1]) + lh
-        bmp = pygame.Surface((w, h)).convert()
-        bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, lh))
+        bmp = pygame.surface.Surface((w, h)).convert()
+        bmp.fill(back, rect=pygame.rect.Rect(cw.s(0), cw.s(0), w, lh))
         if cw.cwpy.setting.ssinfobackimage and os.path.isfile(cw.cwpy.setting.ssinfobackimage):
             subimg3 = load_image(cw.cwpy.setting.ssinfobackimage, False)
             fill_image(bmp, cw.s(subimg3), (w, lh))
@@ -1841,8 +1842,8 @@ def create_cardscreenshot(titledic: Dict[str, str]) -> pygame.surface.Surface:
         if title:
             subimg, subimg2, fh, lh = screenshot_header(title, w)
             h += lh
-        bmp = pygame.Surface((w, h)).convert()
-        bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.Rect(cw.s(0), cw.s(0), w, h))
+        bmp = pygame.surface.Surface((w, h)).convert()
+        bmp.fill(cw.cwpy.setting.ssinfobackcolor, rect=pygame.rect.Rect(cw.s(0), cw.s(0), w, h))
 
         # 背景画像
         if title:
@@ -1870,7 +1871,7 @@ def create_cardscreenshot(titledic: Dict[str, str]) -> pygame.surface.Surface:
 
         for i in range(len(pcards)):
             backindex = (1 + i) % 2
-            bmp.fill(back[backindex], rect=pygame.Rect(cw.s(0), sy, cw.s(95 + 2 * margin), cw.s(130 + 2 * margin)))
+            bmp.fill(back[backindex], rect=pygame.rect.Rect(cw.s(0), sy, cw.s(95 + 2 * margin), cw.s(130 + 2 * margin)))
             bmp.blit(pcards[i].cardimg.image, (cw.s(margin), sy + cw.s(margin)))
 
             def blit_card(headers: Iterable[cw.header.CardHeader], x: int, sy: int) -> None:
@@ -1888,7 +1889,8 @@ def create_cardscreenshot(titledic: Dict[str, str]) -> pygame.surface.Surface:
                 current_x += next_x
                 next_x = 80 * max_card[index] + margin * (max_card[index] + 1)
                 backindex = (index + i) % 2
-                bmp.fill(back[backindex], rect=pygame.Rect(cw.s(current_x), sy, cw.s(next_x), cw.s(130 + 2 * margin)))
+                bmp.fill(back[backindex], rect=pygame.rect.Rect(cw.s(current_x), sy, cw.s(next_x),
+                                                                cw.s(130 + 2 * margin)))
                 if index == cw.POCKET_PERSONAL:
                     adjust_x = (max_card[index] - len(pcards[i].personal_pocket))
                 else:

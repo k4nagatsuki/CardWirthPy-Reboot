@@ -3,6 +3,7 @@
 
 import math
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -76,15 +77,15 @@ class AnimationCell(base.SelectableSprite):
 
         del self.refs[:]
 
-        self.rect = pygame.Rect(cw.s(self.pos_noscale), cw.s(self.size_noscale))
-        self.image = pygame.Surface(self.rect.size).convert()
+        self.rect = pygame.rect.Rect(cw.s(self.pos_noscale), cw.s(self.size_noscale))
+        self.image = pygame.surface.Surface(self.rect.size).convert()
         for anime in self._iter_animes(self.animations):
             anime.update_scale()
 
     def quit(self) -> None:
         """アニメーションを終了する。"""
         self.status = "normal"
-        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.rect = pygame.rect.Rect(0, 0, 0, 0)
         self.frame = 0
 
     def update(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -186,8 +187,8 @@ class _AnimationPart(object):
                 self.dealing_scales = [int(math.sin(math.radians(180.0 * i / self.animation_frame)) * 100)
                                        for i in range(self.animation_frame)]
 
-            self.image: pygame.surface.Surface = pygame.Surface((0, 0)).convert()
-            self.rect: pygame.rect.Rect = pygame.Rect(0, 0, 0, 0)
+            self.image: pygame.surface.Surface = pygame.surface.Surface((0, 0)).convert()
+            self.rect: pygame.rect.Rect = pygame.rect.Rect(0, 0, 0, 0)
 
         else:
             raise Exception("Invalid animation: %s" % (data.tag))
@@ -223,7 +224,7 @@ class _AnimationPart(object):
             self._has_alpha = (self.image_noscale.get_flags() & pygame.SRCALPHA) != 0
         else:
             # 塗り潰し
-            self.image_noscale = pygame.Surface((4, 4)).convert()
+            self.image_noscale = pygame.surface.Surface((4, 4)).convert()
             self.image_noscale.fill(self._fill_color)
             self.mask = False
             if width == "Original":
@@ -296,8 +297,8 @@ class _AnimationPart(object):
 
     def clear_image(self) -> None:
         if self.image.get_width():
-            self.image = pygame.Surface((0, 0)).convert()
-        self.rect = pygame.Rect(0, 0, 0, 0)
+            self.image = pygame.surface.Surface((0, 0)).convert()
+        self.rect = pygame.rect.Rect(0, 0, 0, 0)
 
     def update_image(self) -> None:
         """
@@ -333,11 +334,11 @@ class _AnimationPart(object):
         if self.animation_type == "Spawn":
             # アニメーション無しで出現
             self.image = self._image
-            self.rect = pygame.Rect(pos, size)
+            self.rect = pygame.rect.Rect(pos, size)
 
         elif self.animation_type in ("FadeIn", "FadeOut"):
             # フェードインしながら出現・フェードアウトしながら消滅
-            self.rect = pygame.Rect(pos, size)
+            self.rect = pygame.rect.Rect(pos, size)
             alpha = min(255, (frame*255) // self.animation_frame)
             if self.animation_type == "FadeOut":
                 alpha = 255 - alpha
@@ -361,7 +362,7 @@ class _AnimationPart(object):
             width = size[0]
             size = (size[0]*self.dealing_scales[frame] // 100, size[1])
             pos = (pos[0] + (width-size[0])//2, pos[1])
-            self.rect = pygame.Rect(pos, size)
+            self.rect = pygame.rect.Rect(pos, size)
             if self._image.get_size() == size:
                 self.image = self._image
             else:

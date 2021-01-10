@@ -308,8 +308,8 @@ class _JpySubImage(cw.image.Image):
         if self.animeclip:
             size = image.get_size()
             x, y, w, h = self.animeclip
-            rect = pygame.Rect(pos, size)
-            rect2 = pygame.Rect((x, y), (w, h))
+            rect = pygame.rect.Rect(pos, size)
+            rect2 = pygame.rect.Rect((x, y), (w, h))
 
             if rect.colliderect(rect2):
                 left = rect.left if rect.left > rect2.left else rect2.left
@@ -318,13 +318,13 @@ class _JpySubImage(cw.image.Image):
                 bottom = rect.bottom if rect.bottom < rect2.bottom else rect2.bottom
                 pos = (left - pos[0], top - pos[1])
                 size = (right - left, bottom - top)
-                rect = pygame.Rect(pos, size)
+                rect = pygame.rect.Rect(pos, size)
                 subimg = image.subsurface(rect)
-                image = pygame.Surface(image.get_size()).convert_alpha()
+                image = pygame.surface.Surface(image.get_size()).convert_alpha()
                 image.fill((0, 0, 0, 0))
                 image.blit(subimg, rect.topleft)
             else:
-                image = pygame.Surface(image.get_size()).convert_alpha()
+                image = pygame.surface.Surface(image.get_size()).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
         return image
@@ -519,7 +519,7 @@ class _JpySubImage(cw.image.Image):
             if 0 < clip.width and 0 < clip.height:
                 image = image.subsurface(clip)
             else:
-                image = pygame.Surface(cw.s((0, 0))).convert()
+                image = pygame.surface.Surface(cw.s((0, 0))).convert()
 
         # リサイズ for JpyPartsImage
         if not hasattr(self, "backcolor"):
@@ -530,7 +530,7 @@ class _JpySubImage(cw.image.Image):
 
             if 0 <= width and 0 <= height:
                 if width == 0 or height == 0:
-                    image = pygame.Surface(cw.s((0, 0))).convert()
+                    image = pygame.surface.Surface(cw.s((0, 0))).convert()
                 elif not size == image.get_size() and not size == cw.s((0, 0)):
                     image = cw.image.smoothscale(image, size, smoothing=self.smooth)
 
@@ -592,7 +592,7 @@ class _JpySubImage(cw.image.Image):
                         if doanime.countup():
                             sound.play(True)
 
-                    image = pygame.Surface((0, 0)).convert()
+                    image = pygame.surface.Surface((0, 0)).convert()
                 # Jpy1ファイル
                 elif ext == ".jpy1":
                     # 変化する場合はキャッシュ不可
@@ -632,7 +632,7 @@ class _JpySubImage(cw.image.Image):
             width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
             height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
             size = (width, height)
-            image = pygame.Surface(size).convert()
+            image = pygame.surface.Surface(size).convert()
             image.fill(self.backcolor)
         # 背景画像作成 for JpyPartsImage
         elif not hasattr(self, "backcolor") and -1 < self.height and self.width is not None and -1 < self.width:
@@ -641,11 +641,11 @@ class _JpySubImage(cw.image.Image):
             width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
             height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
             size = (width, height)
-            image = pygame.Surface(size).convert()
+            image = pygame.surface.Surface(size).convert()
             image.fill(self.color)
         # 画像なし
         else:
-            image = pygame.Surface((0, 0)).convert()
+            image = pygame.surface.Surface((0, 0)).convert()
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
@@ -667,9 +667,9 @@ class _JpySubImage(cw.image.Image):
 
             if not size == image.get_size():
                 if width == 0 or height == 0:
-                    image = pygame.Surface(cw.s((0, 0))).convert()
+                    image = pygame.surface.Surface(cw.s((0, 0))).convert()
                 elif image.get_width() == 0 or image.get_height() == 0:
-                    image = pygame.Surface(size).convert()
+                    image = pygame.surface.Surface(size).convert()
                 elif self.smooth:
                     image = cw.image.smoothscale(image, size)
                 else:
@@ -883,7 +883,7 @@ class JpyImage(cw.image.Image):
             # ドキュメントではbackwidthとbackheightは
             # 省略か-1指定で(632, 420)になると書かれているが、
             # 実際にはbackwidthが0未満だと消滅する
-            self.image = pygame.Surface(cw.s((0, 0))).convert()
+            self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
             self.is_cacheable = True
             self.is_animated = False
 
@@ -990,7 +990,7 @@ class JpyCache(object):
         if image:
             image = image.copy()
         else:
-            image = pygame.Surface(cw.s((0, 0))).convert()
+            image = pygame.surface.Surface(cw.s((0, 0))).convert()
 
         return image
 
@@ -1013,8 +1013,8 @@ class JpdcImage(cw.image.Image):
             h_noscale = cw.SIZE_AREA[1]
 
         x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
-        rect = pygame.Rect(x, y, w, h)
-        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
+        rect = pygame.rect.Rect(x, y, w, h)
+        self.image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
         # 互換動作: 1.50では`copymode=1`指定は`copymode=2`指定のように動く
@@ -1045,7 +1045,7 @@ class JpdcImage(cw.image.Image):
         else:
             # 画面外
             image = self.image
-            self.image = pygame.Surface(rect.size).convert_alpha()
+            self.image = pygame.surface.Surface(rect.size).convert_alpha()
             self.image.fill((255, 255, 255))
             if rect2.colliderect(rect):
                 self.image.blit(image.subsurface(rect2.clip(rect)), cw.s((0, 0)))
@@ -1208,7 +1208,7 @@ class JptxImage(cw.image.Image):
     def __init__(self, path: str, mask: bool) -> None:
         config = EffectBoosterConfig(path, "jptx:init", section_ignorecase=False)
         if not config.has_section("jptx:init"):
-            self.image = pygame.Surface((cw.s(1), cw.s(1))).convert_alpha()
+            self.image = pygame.surface.Surface((cw.s(1), cw.s(1))).convert_alpha()
             self.image.fill((0, 0, 0, 0))
             return
         # parameters
@@ -1232,7 +1232,7 @@ class JptxImage(cw.image.Image):
         # image
         width = backwidth if backwidth > cw.s(0) else cw.s(cw.SIZE_AREA[0])
         height = backheight if backheight > cw.s(0) else cw.s(cw.SIZE_AREA[0])
-        self.image = pygame.Surface((width, height)).convert(24)
+        self.image = pygame.surface.Surface((width, height)).convert(24)
         self.image.fill(backcolor)
 
         if mask:
@@ -1495,7 +1495,7 @@ class JptxImage(cw.image.Image):
             info.w = info.w if backwidth < 0 else backwidth
             info.h = info.h if backheight < 0 else backheight
             rect = self.image.get_rect()
-            self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, info.w, info.h)))
+            self.image = self.image.subsurface(rect.clip(pygame.rect.Rect(0, 0, info.w, info.h)))
 
     def get_fontcolor(self, fontcolor: str, default: Tuple[int, int, int] = (0, 0, 0)) -> Tuple[int, int, int]:
         if not fontcolor:
