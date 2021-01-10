@@ -42,7 +42,7 @@ class BattleCommand(wx.Dialog):
                                    func=self.start)
         w = cw.scr2win_s(header.rect.width)
         h = cw.scr2win_s(header.rect.height)
-        header.rect = pygame.Rect(cw.wins(5), cw.wins(5), w, h)
+        header.rect = pygame.rect.Rect(cw.wins(5), cw.wins(5), w, h)
         self.list.append(header)
         if cw.cwpy.battle.possible_runaway:
             # 逃げる
@@ -51,7 +51,7 @@ class BattleCommand(wx.Dialog):
             paths = [cw.image.ImageInfo(path)]
             header = BattleCommandCard(paths, "NORMAL", cw.cwpy.msgs["runaway"], can_loaded_scaledimage=True,
                                        func=self.runaway)
-            header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
+            header.rect = pygame.rect.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
             self.list.append(header)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1"
@@ -59,7 +59,7 @@ class BattleCommand(wx.Dialog):
         paths = [cw.image.ImageInfo(path)]
         header = BattleCommandCard(paths, "NORMAL", cw.cwpy.msgs["cancel"], can_loaded_scaledimage=True,
                                    func=self.cancel)
-        header.rect = pygame.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
+        header.rect = pygame.rect.Rect((w+cw.wins(5))*len(self.list)+cw.wins(5), cw.wins(5), w, h)
         self.list.append(header)
 
         self.toppanel = wx.Panel(self, -1, size=((w+cw.wins(5))*len(self.list)+cw.wins(5), h+cw.wins(5)*2))

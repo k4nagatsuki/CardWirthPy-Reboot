@@ -1083,7 +1083,7 @@ class AdventurerCreaterPage(wx.Panel, Generic[_KeyType]):
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(4), size[1] + cw.wins(4)
             pos = pos[0] - cw.wins(2), pos[1] - cw.wins(2)
-            self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
+            self.clickables[name] = pygame.rect.Rect(pos, size), method, wheelmethod
 
     def set_clickablearea(self, pos: Tuple[int, int], size: Union[Tuple[int, int], wx.Size], name: _KeyType,
                           method: Optional[Callable[[_KeyType], None]],
@@ -1092,7 +1092,7 @@ class AdventurerCreaterPage(wx.Panel, Generic[_KeyType]):
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(20), size[1] + cw.wins(20)
             pos = pos[0] - cw.wins(10), pos[1] - cw.wins(10)
-            self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
+            self.clickables[name] = pygame.rect.Rect(pos, size), method, wheelmethod
 
     def draw_clickablebmp(self, dc: wx.DC, bmp: wx.Bitmap, pos: Tuple[int, int], name: _KeyType,
                           method: Callable[[_KeyType], None],
@@ -2312,7 +2312,7 @@ class AttrPage(AdventurerCreaterPage[Tuple[str, Tuple[str, str]]]):
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(2), size[1] + cw.wins(2)
             pos = pos[0] - cw.wins(1), pos[1] - cw.wins(1)
-            self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
+            self.clickables[name] = pygame.rect.Rect(pos, size), method, wheelmethod
 
     def set_coupon(self, name: Tuple[str, Tuple[str, str]]) -> None:
         cname, coupons = name

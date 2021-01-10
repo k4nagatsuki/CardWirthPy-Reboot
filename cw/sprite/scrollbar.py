@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -46,10 +47,10 @@ class ScrollBar(base.CWPySprite):
 
     def update_scale(self) -> None:
         self.width = cw.s(8)
-        self.image = pygame.Surface((self.width, cw.s(cw.SIZE_AREA[1]))).convert_alpha()
+        self.image = pygame.surface.Surface((self.width, cw.s(cw.SIZE_AREA[1]))).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(cw.SIZE_AREA[0])-self.width, cw.s(0)
-        self.image.fill((0, 0, 0, 0), rect=pygame.Rect(0, 0, self.rect.width, self.rect.height))
+        self.image.fill((0, 0, 0, 0), rect=pygame.rect.Rect(0, 0, self.rect.width, self.rect.height))
         self.set_params(self.scrpos_noscale, self.scrsize_noscale)
 
     def update_lazyscroll(self) -> None:
@@ -112,7 +113,7 @@ class ScrollBar(base.CWPySprite):
         scrpos = int(round(scrpos))
         scrsize = int(round(scrsize))
 
-        self.image.fill((0, 0, 0, 128), rect=pygame.Rect(hwidth, 0, self.width-hwidth, self.rect.height))
+        self.image.fill((0, 0, 0, 128), rect=pygame.rect.Rect(hwidth, 0, self.width-hwidth, self.rect.height))
         if 0 < scrsize:
-            rect = pygame.Rect(hwidth, scrpos, self.width-hwidth, scrsize)
+            rect = pygame.rect.Rect(hwidth, scrpos, self.width-hwidth, scrsize)
             self.image.fill((255, 255, 255, 224), rect)

@@ -5,6 +5,7 @@ import itertools
 import os
 
 import pygame
+import pygame.surface
 from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGBA_MULT
 
 import cw
@@ -50,7 +51,7 @@ class BackGround(base.CWPySprite):
         base.CWPySprite.__init__(self)
         self._init = True
         self.bgs: List[Tuple[int, Optional[CellData]]] = []
-        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
+        self.image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
         # 画面スケール変更などによってアニメーションを途中まで
         # 再実行するための記憶用変数
@@ -83,7 +84,7 @@ class BackGround(base.CWPySprite):
         self.pc_cache: Dict[int, Tuple[List[Tuple[str, cw.image.ImageInfo]], bool]] = {}
 
     def update_scale(self) -> None:
-        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
+        self.image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
@@ -137,7 +138,7 @@ class BackGround(base.CWPySprite):
             if self.foregrounds:
                 # 他のスプライトがすでに配置されている箇所に多重にカーテンがかかってしまうのを
                 # 避けるため、カーテンから他スプライトの位置をカットするための情報を作成する
-                cutter = pygame.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
+                cutter = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert_alpha()
                 cutter.fill((0, 0, 0, 0))
 
                 for sprite in reversed(cw.cwpy.cardgrp.sprites()):
@@ -268,7 +269,7 @@ class BackGround(base.CWPySprite):
             if ext != ".jpdc" and cw.cwpy.is_playingscenario() and\
                     (path, mtime, size, mask, smoothing) in cw.cwpy.sdata.resource_cache:
                 cache = cw.cwpy.sdata.resource_cache[(path, mtime, size, mask, smoothing)]
-                assert isinstance(cache, pygame.Surface)
+                assert isinstance(cache, pygame.surface.Surface)
                 return cache.copy(), False, False
 
             if ext == ".jptx":
@@ -277,7 +278,7 @@ class BackGround(base.CWPySprite):
                 image = cw.effectbooster.JpdcImage(mask, path, doanime=doanime).get_image()
                 if cw.cwpy.is_processing:
                     # シナリオロード中。ロード後に再撮影する
-                    image = pygame.Surface(image.get_size()).convert()
+                    image = pygame.surface.Surface(image.get_size()).convert()
                     image.fill((0, 0, 0))
                     image.set_colorkey((0, 0, 0))
                 self.reload_jpdcimage = False
@@ -520,7 +521,7 @@ class BackGround(base.CWPySprite):
             visible = visible_s == "True"
         else:
             flag_value = cw.cwpy.sdata.get_flagvalue(flag)
-            visible = flag_value and size != (0, 0) and bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
+            visible = flag_value and size != (0, 0) and bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
         cellname = e.getattr(".", "cellname", "")
         return (size, pos, flag, visible, layer, cellname), hasvisible
 
@@ -983,8 +984,9 @@ class BackGround(base.CWPySprite):
                                                  nocheckvisible=nocheckvisible, can_loaded_scaledimage=scaledimage)
 
         ext = cw.util.splitext(path)[1].lower()
-        if not anime and ext != ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and\
-                visible and not mask and not flag:
+        if not anime and ext != ".jpdc" and\
+                pygame.rect.Rect(pos, size).contains(pygame.rect.Rect((0, 0), cw.SIZE_AREA)) and visible and\
+                not mask and not flag:
             if image and not image.get_colorkey() and not (image.get_flags() & pygame.SRCALPHA):
                 # 背景を覆ったので非継承の背景を実際に削除する
                 if 0 < self._inhrt_index:
@@ -1020,7 +1022,7 @@ class BackGround(base.CWPySprite):
             namelist = None
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
-                bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
+                bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
         flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
@@ -1070,7 +1072,7 @@ class BackGround(base.CWPySprite):
         blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
-                bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
+                bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
         if nocheckvisible:
             flagvalue = visible
         else:
@@ -1107,7 +1109,7 @@ class BackGround(base.CWPySprite):
         pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
-                bool(self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
+                bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:
@@ -1117,7 +1119,7 @@ class BackGround(base.CWPySprite):
                 paths, can_loaded_scaledimage = self.put_pccache(pi)
 
             if expand:
-                image = pygame.Surface(cw.s(cw.SIZE_CARDIMAGE)).convert_alpha()
+                image = pygame.surface.Surface(cw.s(cw.SIZE_CARDIMAGE)).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
@@ -1148,7 +1150,7 @@ class BackGround(base.CWPySprite):
                 else:
                     image = pygame.transform.scale(image, cw.s(size))
             else:
-                image = pygame.Surface(cw.s(size)).convert_alpha()
+                image = pygame.surface.Surface(cw.s(size)).convert_alpha()
                 image.fill((0, 0, 0, 0))
 
                 for path, info in paths:
@@ -1331,7 +1333,7 @@ def _draw_bgcell(surface: pygame.surface.Surface, bgdata: Tuple[int, _BlitData],
         text, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
             bcolor, size, pos = typing.cast(Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool, bool,
                                                   bool, Tuple[int, int, int], Tuple[int, int], Tuple[int, int]], d)
-        rect = cw.s(pygame.Rect(pos, size))
+        rect = cw.s(pygame.rect.Rect(pos, size))
         if srect.colliderect(rect):
             surface.set_clip(srect.clip(rect))
             cw.image.draw_textcell(surface, rect, text, face,
@@ -1360,7 +1362,7 @@ class BgCell(base.CWPySprite):
             # image, size, pos, _sflag = d
             image, size, pos, _sflag = typing.cast(Tuple[pygame.surface.Surface, Tuple[int, int], Tuple[int, int], int],
                                                    d)
-            self.rect_noscale = pygame.Rect(pos, size)
+            self.rect_noscale = pygame.rect.Rect(pos, size)
 
         elif bgtype == BG_TEXT:
             # 縁取り形式2以外のテキストセル
@@ -1372,7 +1374,7 @@ class BgCell(base.CWPySprite):
                 _bcolor, size, pos = typing.cast(Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool,
                                                        bool, bool, Tuple[int, int, int], Tuple[int, int],
                                                        Tuple[int, int]], d)
-            self.rect_noscale = pygame.Rect(pos, size)
+            self.rect_noscale = pygame.rect.Rect(pos, size)
 
         self.rect = cw.s(self.rect_noscale)
 
@@ -1432,9 +1434,9 @@ class Curtain(base.SelectableSprite):
 
     def update_scale(self) -> None:
         # 重なった領域・スケール変更
-        self.image = pygame.Surface(self.target.rect.size).convert_alpha()
+        self.image = pygame.surface.Surface(self.target.rect.size).convert_alpha()
         self.image.fill(self.color)
-        self.rect = pygame.Rect(self.target.rect)
+        self.rect = pygame.rect.Rect(self.target.rect)
 
         if self.cutter:
             self.image.blit(self.cutter, self.cutter_pos, special_flags=pygame.BLEND_RGBA_SUB)
@@ -1469,8 +1471,8 @@ class Curtain(base.SelectableSprite):
                     typing.cast(Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool, bool, bool,
                                       Tuple[int, int, int], Tuple[int, int], Tuple[int, int]],
                                 self.target.d)
-                rect = cw.s(pygame.Rect(cw.s((0, 0)), size))
-                subimg = pygame.Surface(rect.size).convert_alpha()
+                rect = cw.s(pygame.rect.Rect(cw.s((0, 0)), size))
+                subimg = pygame.surface.Surface(rect.size).convert_alpha()
                 subimg.fill((0, 0, 0, 0))
                 cw.image.draw_textcell(subimg, rect, text, face,
                                        cw.s(tsize), color, bold, italic, underline, strike, vertical, antialias, bcolor)
@@ -1627,20 +1629,20 @@ class LifeBar(base.CWPySprite):
     def update_scale(self) -> None:
         bgname = self.ccard.cardimg.get_cardbgname(self.ccard)
         cardbg = cw.cwpy.rsrc.cardbgs[bgname]
-        self.image = pygame.Surface(cardbg.get_size()).convert_alpha()
+        self.image = pygame.surface.Surface(cardbg.get_size()).convert_alpha()
         self.image.fill((0, 0, 0, 0))
         self.image.blit(self.ccard.cardimg.lifeimg, cw.s((8, 110)))
         self.image = cw.image.zoomcard(self.image, self.ccard.scale / 100.0)
         self._image = self.image
-        self.rect = pygame.Rect(self.ccard.rect)
-        self._rect = pygame.Rect(self.rect)
+        self.rect = pygame.rect.Rect(self.ccard.rect)
+        self._rect = pygame.rect.Rect(self.rect)
         if self.ccard.status == "click":
             self.click()
 
     def click(self) -> None:
         size = (self._rect.w * 9 // 10, self._rect.h * 9 // 10)
         self.image = pygame.transform.scale(self._image, size)
-        self.rect = pygame.Rect(self._rect)
+        self.rect = pygame.rect.Rect(self._rect)
         self.rect.size = size
         self.rect.center = self._rect.center
 
@@ -1674,7 +1676,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
         base.CWPySprite.__init__(self)
         # image, rect作成。
         self.image = background
-        self.rect = cw.s(pygame.Rect((0, 0), cw.SIZE_AREA))
+        self.rect = cw.s(pygame.rect.Rect((0, 0), cw.SIZE_AREA))
 
         # spritegroupに追加
         cw.add_layer(cw.cwpy.topgrp, self, layer=cw.LAYER_JPY_TEMPORAL)
@@ -1718,7 +1720,7 @@ class ClickableSprite(base.SelectableSprite):
             self._selclickedimage = cw.imageretouch.to_negative(self._clickedimage)
 
         self.image = self._image
-        self._rect = pygame.Rect(cw.s(self._pos_noscale), self._image.get_size())
+        self._rect = pygame.rect.Rect(cw.s(self._pos_noscale), self._image.get_size())
         self._clickedrect = self._clickedimage.get_rect()
         self._clickedrect.center = self._rect.center
         self.rect = self._rect
@@ -1845,7 +1847,7 @@ class NumberOfCards(base.CWPySprite):
 
         h = font.get_height()
         w = wn*2 + wm
-        image = pygame.Surface((w, h)).convert_alpha()
+        image = pygame.surface.Surface((w, h)).convert_alpha()
         image.fill((0, 0, 0, 0))
 
         subimg1 = font.render(str(num), True, (0, 0, 0))
@@ -1856,7 +1858,7 @@ class NumberOfCards(base.CWPySprite):
         image.blit(subimg2, (x, 0))
         image.blit(subimg3, (x+subimg2.get_width(), 0))
 
-        self.image = pygame.Surface((w+2, h+2)).convert_alpha()
+        self.image = pygame.surface.Surface((w+2, h+2)).convert_alpha()
         self.image.fill((0, 0, 0, 0))
         for x in range(3):
             for y in range(3):
@@ -1903,8 +1905,8 @@ class PriceOfCard(base.CWPySprite):
 
     def update_scale(self) -> None:
         if not self.header:
-            self.rect = pygame.Rect(0, 0, 0, 0)
-            self.image = pygame.Surface(cw.s((0, 0))).convert()
+            self.rect = pygame.rect.Rect(0, 0, 0, 0)
+            self.image = pygame.surface.Surface(cw.s((0, 0))).convert()
             return
 
         padw = cw.s(2)
@@ -1921,8 +1923,8 @@ class PriceOfCard(base.CWPySprite):
 
         py = y + h - ph - (margh+padh*2)
 
-        self.rect = pygame.Rect(x+margw, py, maxwidth, ph+padh*2)
-        self.image = pygame.Surface(self.rect.size).convert_alpha()
+        self.rect = pygame.rect.Rect(x+margw, py, maxwidth, ph+padh*2)
+        self.image = pygame.surface.Surface(self.rect.size).convert_alpha()
         self.image.fill((255, 255, 255, 160))
 
         fore = (0, 0, 0)

@@ -3,6 +3,7 @@
 
 import os
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -40,7 +41,7 @@ class Bill(object):
 
         w = size[0] + self._xp_noscale*2
         h = size[1] + self._yp_noscale*2
-        self.rect_noscale = pygame.Rect((cw.SIZE_AREA[0]-w) // 2, (cw.SIZE_AREA[1]-h) // 2, w, h)
+        self.rect_noscale = pygame.rect.Rect((cw.SIZE_AREA[0]-w) // 2, (cw.SIZE_AREA[1]-h) // 2, w, h)
 
     def create_image(self) -> Tuple[pygame.surface.Surface, pygame.rect.Rect]:
         up_scr = cw.UP_SCR
@@ -62,9 +63,9 @@ class Bill(object):
 
         xp = cw.s(self._xp_noscale)
         yp = cw.s(self._yp_noscale)
-        image = pygame.Surface((bmpw + xp*2, bmph + yp*2)).convert()
+        image = pygame.surface.Surface((bmpw + xp*2, bmph + yp*2)).convert()
         image.fill(cw.cwpy.setting.blwincolour)
-        image.set_clip(pygame.Rect(xp, yp, bmpw, bmph))
+        image.set_clip(pygame.rect.Rect(xp, yp, bmpw, bmph))
 
         image.blit(subimg, (xp, yp))
 
@@ -119,7 +120,7 @@ class Bill(object):
             subimg = font.render(s, 2 <= cw.UP_SCR, (0, 128, 128))
             image.blit(subimg, ((bmpw-w)//2 + xp, cw.s(15) + yp))
 
-        return image, cw.s(pygame.Rect(self.rect_noscale))
+        return image, cw.s(pygame.rect.Rect(self.rect_noscale))
 
     def get_height_noscale(self) -> int:
         result: int = self.rect_noscale.height
@@ -135,13 +136,13 @@ class BillSprite(base.CWPySprite):
         self.bill = bill
         self.selections = bill.selections
         self.specialchars = bill.specialchars
-        self.rect_noscale = pygame.Rect(bill.rect_noscale)
+        self.rect_noscale = pygame.rect.Rect(bill.rect_noscale)
         self.update_scale()
         cw.add_layer(cw.cwpy.backloggrp, self, layer=cw.layer_val(cw.LAYER_LOG))
 
     def update_scale(self) -> None:
         self.image, _rect = self.bill.create_image()
-        self.rect = cw.s(pygame.Rect(self.rect_noscale))
+        self.rect = cw.s(pygame.rect.Rect(self.rect_noscale))
 
 
 def get_detailtext(header: cw.header.ScenarioHeader) -> str:

@@ -3,6 +3,7 @@
 
 import time
 import pygame
+import pygame.surface
 
 import cw
 

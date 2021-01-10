@@ -3646,12 +3646,11 @@ class FontSettingPanel(wx.Panel):
             if cw.cwpy:
                 d = cw.cwpy.rsrc.fontnames_init
             else:
-                d = {}
-                d["gothic"] = "IPAゴシック"
-                d["uigothic"] = "IPA UIゴシック"
-                d["mincho"] = "IPA明朝"
-                d["pmincho"] = "IPA P明朝"
-                d["pgothic"] = "IPA Pゴシック"
+                d = {"gothic": "IPAゴシック",
+                     "uigothic": "IPA UIゴシック",
+                     "mincho": "IPA明朝",
+                     "pmincho": "IPA P明朝",
+                     "pgothic": "IPA Pゴシック"}
 
             face = d.get(fonttype, "")
 

@@ -7,6 +7,7 @@ import threading
 import io
 import wx
 import pygame
+import pygame.surface
 
 import cw
 
@@ -47,7 +48,7 @@ class ImageInfo(object):
     def calc_basecardposition(self, params: Tuple[int, int], noscale: bool = False, basecardtype: Optional[str] = None,
                               cardpostype: Optional[str] = None) -> pygame.rect.Rect:
         """カードに配置した時の描画位置を返す。
-        ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
+        ベースとなる情報が無い時はpygame.rect.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         (imgwidth, imgheight) = params
 
@@ -62,7 +63,7 @@ class ImageInfo(object):
     def calc_basecardposition_wx(self, imgsize: wx.Size, noscale: bool = False, basecardtype: Optional[str] = None,
                                  cardpostype: Optional[str] = None) -> pygame.rect.Rect:
         """カードに配置した時の描画位置を返す。
-        ベースとなる情報が無い時はpygame.Rect(0, 0, imgwidth, imgheight)を返す。
+        ベースとなる情報が無い時はpygame.rect.Rect(0, 0, imgwidth, imgheight)を返す。
         """
         (imgwidth, imgheight) = imgsize
 
@@ -104,7 +105,7 @@ class ImageInfo(object):
             bx, by = (163, 70)
             defpostype = "TopLeft"
         else:
-            return pygame.Rect(0, 0, imgwidth, imgheight)
+            return pygame.rect.Rect(0, 0, imgwidth, imgheight)
 
         if not noscale:
             # BUG: Tuple[int, int, int, int]とTuple[int, int]が混同されてエラーになる(mypy 0.782)
@@ -133,7 +134,7 @@ class ImageInfo(object):
             x -= bx
             y -= by
 
-        return pygame.Rect(x, y, w, h)
+        return pygame.rect.Rect(x, y, w, h)
 
     def __eq__(self, other: object) -> bool:
         assert isinstance(other, ImageInfo)
@@ -305,7 +306,7 @@ class CardImage(Image):
     @property
     def wxrect(self) -> pygame.rect.Rect:
         wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
-        return pygame.Rect(0, 0, wxsize[0], wxsize[1])
+        return pygame.rect.Rect(0, 0, wxsize[0], wxsize[1])
 
     def is_modifiedfile(self) -> bool:
         cw.fsync.sync()
@@ -952,7 +953,7 @@ class CharacterCardImage(CardImage):
         # フォント画像(レベル)
         self.set_levelimg(self.ccard.level)
         # rect
-        self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
+        self.rect = pygame.rect.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
     def fix_pcimage_updated(self) -> None:
         CardImage.fix_pcimage_updated(self)
@@ -1009,7 +1010,7 @@ class CharacterCardImage(CardImage):
             if font.get_italic():
                 overhang = max(overhang, size[0] - font.size_withoutoverhang(c)[0])
         size = (w, h)
-        self.levelimg = pygame.Surface(size, pygame.SRCALPHA).convert_alpha()
+        self.levelimg = pygame.surface.Surface(size, pygame.SRCALPHA).convert_alpha()
 
         w -= overhang
         s = str(level)
@@ -1138,7 +1139,7 @@ class CharacterCardImage(CardImage):
                 # LIFEGUAGE2_MASKのアルファ値を反映する
                 guage = cw.cwpy.rsrc.statuses["LIFEGUAGE2"]
                 lifemask = cw.cwpy.rsrc.statuses["LIFEGUAGE2_MASK"]
-                lifeimg = pygame.Surface(guage.get_size()).convert_alpha()
+                lifeimg = pygame.surface.Surface(guage.get_size()).convert_alpha()
                 lifeimg.fill((0, 0, 0, 0))
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
@@ -1148,7 +1149,7 @@ class CharacterCardImage(CardImage):
             else:
                 # LIFEGUAGEは(5, 5)の位置をマスク色とする。CardWirthのライフバーイメージと互換性がある
                 guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
-                lifeimg = pygame.Surface(guage.get_size()).convert()
+                lifeimg = pygame.surface.Surface(guage.get_size()).convert()
                 lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.RLEACCEL)
                 lifeimg.blit(lifebar, calc_barpos(guage))
                 lifeimg.blit(guage, (0, 0))
@@ -1255,10 +1256,10 @@ class CharacterCardImage(CardImage):
                 index += 1
                 size = subimg.get_size()
             else:
-                self.image.fill(subimg[0], pygame.Rect(pos, subimg[1]))
+                self.image.fill(subimg[0], pygame.rect.Rect(pos, subimg[1]))
                 size = subimg[1]
 
-            clip2 = pygame.Rect(pos[0]+ccard.rect.left, pos[1]+ccard.rect.top, size[0], size[1])
+            clip2 = pygame.rect.Rect(pos[0]+ccard.rect.left, pos[1]+ccard.rect.top, size[0], size[1])
             if clip:
                 clip.union_ip(clip2)
             else:
@@ -1347,7 +1348,7 @@ def create_type2textcell(text: str, face: str, size: int, color: Tuple[int, int,
         tcellsize = cellsize
         tbwidth = bwidth
 
-    img = pygame.Surface(tcellsize).convert_alpha()
+    img = pygame.surface.Surface(tcellsize).convert_alpha()
     img.fill((0, 0, 0, 0))
 
     w = tcellsize[0]
@@ -1403,7 +1404,7 @@ def draw_textcell(image: pygame.surface.Surface, rect: pygame.rect.Rect, text: s
                   antialias: bool, bcolor: Optional[Tuple[int, int, int]] = None) -> None:
     """縁取りType2以外のテキストセルを描画する。
     """
-    img = pygame.Surface(rect.size).convert_alpha()
+    img = pygame.surface.Surface(rect.size).convert_alpha()
     img.fill((0, 0, 0, 0))
     font, lineheight = get_textcellfont(size, face, color, bold,
                                         italic, uline, vertical, True)
@@ -1463,7 +1464,7 @@ def get_textcellfont(size: int, face: str, color: Tuple[int, int, int], bold: bo
 def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], gradient: str,
                      color2: Tuple[int, int, int, int]) -> pygame.surface.Surface:
     """ブレンド前のカラーセルを生成し、
-    pygame.Surfaceのインスタンスを返す。
+    pygame.surface.Surfaceのインスタンスを返す。
     size: セルのサイズ
     color1: 基本色
     gradient: グラデーション方向。
@@ -1476,7 +1477,7 @@ def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], g
         assert isinstance(image, pygame.surface.Surface)
         return image
 
-    image = pygame.Surface(size).convert_alpha()
+    image = pygame.surface.Surface(size).convert_alpha()
 
     def calc_per(mn: int, mx: int, per: float) -> int:
         if mn == mx:
@@ -1544,7 +1545,7 @@ def smoothscale(surface: pygame.surface.Surface, size: Tuple[int, int], smoothin
     size = (max(1, size[0]), max(1, size[1]))
 
     if surface.get_width() == 0 or surface.get_height() == 0:
-        return pygame.Surface(size).convert()
+        return pygame.surface.Surface(size).convert()
 
     if surface.get_height() <= 1:
         # FIXME: 環境によって、高さが1の画像に
@@ -1564,7 +1565,7 @@ def smoothscale(surface: pygame.surface.Surface, size: Tuple[int, int], smoothin
             #        この処理によって他の問題が出るか、
             #        pygame.transform.smoothscale()の問題が
             #        解消された場合は以下の処理を削除する。
-            bmp = pygame.Surface((w+1, h+1)).convert(24)
+            bmp = pygame.surface.Surface((w+1, h+1)).convert(24)
             bmp = pygame.transform.scale(surface, (w+1, h+1))
             bmp.fill((0, 0, 0, 0))
             bmp.blit(surface, (0, 0))
@@ -1698,7 +1699,7 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
 
 
 def conv2wximage(image: pygame.surface.Surface, biBitCount: int) -> wx.Image:
-    """pygame.Surfaceをwx.Bitmapに変換する。
+    """pygame.surface.Surfaceをwx.Bitmapに変換する。
     """
     w, h = image.get_size()
 

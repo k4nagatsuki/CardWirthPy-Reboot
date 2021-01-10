@@ -1247,25 +1247,26 @@ def get_scenario(fpath: str) -> Optional[cw.data.ScenarioData]:
     if not t:
         return None
 
-    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {}
-    dbrec["dpath"] = t[0]
-    dbrec["type"] = t[1]
-    dbrec["fname"] = t[2]
-    dbrec["name"] = t[3]
-    dbrec["author"] = t[4]
-    dbrec["desc"] = t[5]
-    dbrec["skintype"] = t[6]
-    dbrec["levelmin"] = t[7]
-    dbrec["levelmax"] = t[8]
-    dbrec["coupons"] = t[9]
-    dbrec["couponsnum"] = t[10]
-    dbrec["startid"] = t[11]
-    dbrec["tags"] = t[12]
-    dbrec["ctime"] = t[13]
-    dbrec["mtime"] = t[14]
-    dbrec["wsnversion"] = t[15]
-    dbrec["image"] = t[16]
-    dbrec["imgpath"] = t[17]
+    dbrec: Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]] = {
+        "dpath": t[0],
+        "type": t[1],
+        "fname": t[2],
+        "name": t[3],
+        "author": t[4],
+        "desc": t[5],
+        "skintype": t[6],
+        "levelmin": t[7],
+        "levelmax": t[8],
+        "coupons": t[9],
+        "couponsnum": t[10],
+        "startid": t[11],
+        "tags": t[12],
+        "ctime": t[13],
+        "mtime": t[14],
+        "wsnversion": t[15],
+        "image": t[16],
+        "imgpath": t[17]
+    }
     imgdbrec: List[Dict[str, Union[int, str, Optional[bytes]]]] = []
     for numorder, (image, info, scale) in enumerate(images):
         imgdbrec.append({

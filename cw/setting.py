@@ -17,6 +17,7 @@ import configparser
 import time
 import wx
 import pygame
+import pygame.surface
 
 import cw
 
@@ -2396,7 +2397,7 @@ class Resource(object):
             bottomleft.fill(color, special_flags=pygame.BLEND_RGBA_SUB)
             bottomright.fill(color, special_flags=pygame.BLEND_RGBA_SUB)
 
-        bmp = pygame.Surface((w, h)).convert_alpha()
+        bmp = pygame.surface.Surface((w, h)).convert_alpha()
 
         if flags & SB_DISABLE:
             r1 = g1 = b1 = 240
@@ -2418,8 +2419,8 @@ class Resource(object):
                 r2 = g2 = b2 = 232
             mid = h // 2
             for y in range(0, mid + 1, 1):
-                bmp.fill((r1 - y // 4, g1 - y // 4, b1 - y // 4), pygame.Rect(0, mid - y, w, 1))
-                bmp.fill((r2 - y, g2 - y, b2 - y), pygame.Rect(0, mid + y, w, 1))
+                bmp.fill((r1 - y // 4, g1 - y // 4, b1 - y // 4), pygame.rect.Rect(0, mid - y, w, 1))
+                bmp.fill((r2 - y, g2 - y, b2 - y), pygame.rect.Rect(0, mid + y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
         if flags & SB_PRESSED:
@@ -2863,7 +2864,7 @@ class Resource(object):
         """
         if bmp.get_width() <= cw.s(10) or bmp.get_height() <= cw.s(20):
             return 255
-        rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
+        rect = pygame.rect.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
         arr = array.array('B', buf)
@@ -3235,8 +3236,8 @@ def empty_wxbmp() -> wx.Bitmap:
 
 
 def empty_image() -> pygame.surface.Surface:
-    """空のpygame.Surfaceを返す。"""
-    image = pygame.Surface((1, 1)).convert()
+    """空のpygame.surface.Surfaceを返す。"""
+    image = pygame.surface.Surface((1, 1)).convert()
     image.set_colorkey(image.get_at((0, 0)), pygame.RLEACCEL)
     return image
 

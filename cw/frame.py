@@ -767,7 +767,7 @@ class Frame(wx.Frame):
                         sound.set_mastervolume(True, volume)
                 if cw.cwpy.lastsound_system:
                     cw.cwpy.lastsound_system.set_mastervolume(False, volume)
-                cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+                cw.cwpy.add_lazydraw(clip=cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
             cw.cwpy.force_exec_func(func)
             if self.debugger:
                 self.debugger.Iconize(False)
@@ -1416,7 +1416,7 @@ class Frame(wx.Frame):
             # 異なる値を設定する
             cw.cwpy.mousepos = (-2, -2)
             if redraw and not cw.cwpy.is_updating_skin:
-                cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+                cw.cwpy.add_lazydraw(clip=cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()

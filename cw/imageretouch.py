@@ -7,6 +7,7 @@ import ctypes
 
 import wx
 import pygame
+import pygame.surface
 from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SUB, BLEND_RGBA_ADD, BLEND_RGBA_SUB,\
                    BLEND_RGBA_MULT, RLEACCEL, SRCALPHA
 
@@ -84,7 +85,7 @@ def _retouch(func: Callable[..., bytes], image: pygame.surface.Surface, *args: t
 
 
 def to_negative(image: pygame.surface.Surface) -> pygame.surface.Surface:
-    """色反転したpygame.Surfaceを返す。
+    """色反転したpygame.surface.Surfaceを返す。
     image: 対象イメージ
     """
     outimage = image.copy()
@@ -99,7 +100,7 @@ def to_negative(image: pygame.surface.Surface) -> pygame.surface.Surface:
 
 
 def to_negative_for_card(image: pygame.surface.Surface, framewidth: int = 0) -> pygame.surface.Surface:
-    """色反転したpygame.Surfaceを返す。
+    """色反転したpygame.surface.Surfaceを返す。
     カード画像用なので外枠nピクセルは色反転しない。
     image: 対象イメージ
     framewidth: 外枠の幅。現在は1.50に合わせて外枠無し(0)
@@ -109,7 +110,7 @@ def to_negative_for_card(image: pygame.surface.Surface, framewidth: int = 0) -> 
     if w < cw.s(1 + framewidth*2) or h < cw.s(1 + framewidth*2):
         return image.copy()
 
-    rect = pygame.Rect(cw.s((framewidth, framewidth)), (w - cw.s(framewidth*2), h - cw.s(framewidth*2)))
+    rect = pygame.rect.Rect(cw.s((framewidth, framewidth)), (w - cw.s(framewidth*2), h - cw.s(framewidth*2)))
     outimage = image.copy()
 
     if image.get_flags() & SRCALPHA:
@@ -231,7 +232,7 @@ def add_noise(image: pygame.surface.Surface, value: int, colornoise: bool = Fals
 
 
 def exchange_rgbcolor(image: pygame.surface.Surface, colormodel: str) -> pygame.surface.Surface:
-    """RGB入れ替えしたpygame.Surfaceを返す。
+    """RGB入れ替えしたpygame.surface.Surfaceを返す。
     image: 対象イメージ
     colormodel: "r", "g", "b"を組み合わせた文字列。
     """
@@ -250,7 +251,7 @@ def exchange_rgbcolor(image: pygame.surface.Surface, colormodel: str) -> pygame.
 
 
 def to_grayscale(image: pygame.surface.Surface) -> pygame.surface.Surface:
-    """グレイスケール化したpygame.Surfaceを返す。
+    """グレイスケール化したpygame.surface.Surfaceを返す。
     image: 対象イメージ
     """
     if sys.platform == "darwin":
@@ -266,7 +267,7 @@ def to_grayscale(image: pygame.surface.Surface) -> pygame.surface.Surface:
 
 
 def to_sepiatone(image: pygame.surface.Surface, color: Tuple[int, int, int] = (30, 0, -30)) -> pygame.surface.Surface:
-    """褐色系の画像に変換したpygame.Surfaceを返す。
+    """褐色系の画像に変換したpygame.surface.Surfaceを返す。
     image: 対象イメージ
     color: グレイスケール化した画像に付加する色。(r, g, b)のタプル
     """
@@ -283,7 +284,7 @@ def to_sepiatone(image: pygame.surface.Surface, color: Tuple[int, int, int] = (3
 
 
 def spread_pixels(image: pygame.surface.Surface) -> pygame.surface.Surface:
-    """ピクセル拡散させたpygame.Surfaceを返す。
+    """ピクセル拡散させたpygame.surface.Surfaceを返す。
     """
     if sys.platform == "darwin":
         func = _imageretouch_mac.spread_pixels
@@ -444,7 +445,7 @@ def add_transparentmesh(image: pygame.surface.Surface, rect: Optional[Tuple[int,
         color = (color[0], color[1], color[2], 0)
 
     clip = image.get_clip()
-    image.set_clip(pygame.Rect(rect))
+    image.set_clip(pygame.rect.Rect(rect))
     x0, y0, w, h = rect
     for cnt in range(0, w + h, 2):
         pos1 = (x0 + cnt, y0)
@@ -480,9 +481,9 @@ def add_border(img: pygame.surface.Surface, bordercolor: Tuple[int, int, int], b
         if borderwidth == 1:
             img.set_at((x, y), bordercolor)
         elif borderwidth == 2:
-            img.fill(bordercolor, pygame.Rect(x - 1, y - 1, 2, 2))
+            img.fill(bordercolor, pygame.rect.Rect(x - 1, y - 1, 2, 2))
         else:
-            pygame.draw.ellipse(img, bordercolor, pygame.Rect(x - hbw, y - hbw, borderwidth, borderwidth))
+            pygame.draw.ellipse(img, bordercolor, pygame.rect.Rect(x - hbw, y - hbw, borderwidth, borderwidth))
 
 
 def blend_1_50(dest: pygame.surface.Surface, pos: Tuple[int, int], source: pygame.surface.Surface, flag: int) -> None:
@@ -592,7 +593,7 @@ def _to_disabledimage(buf: bytearray, size: Tuple[int, int]) -> None:
 
 
 def to_disabledsurface(image: pygame.surface.Surface) -> pygame.surface.Surface:
-    """_to_disabledimage()のpygame.Surface版。"""
+    """_to_disabledimage()のpygame.surface.Surface版。"""
     image = image.copy()
     image.fill((128, 128, 128), special_flags=pygame.BLEND_RGB_ADD)
     return to_grayscale(image)
@@ -1174,7 +1175,7 @@ class Font(object):
                 if sbold:
                     size2 = image.get_size()
                     size2 = (size2[0]+4, size2[1])
-                    image2 = pygame.Surface(size2).convert_alpha()
+                    image2 = pygame.surface.Surface(size2).convert_alpha()
                     image2.fill((0, 0, 0, 0))
                     for x in range(4):
                         image2.blit(image, (x, 0))
@@ -1186,7 +1187,7 @@ class Font(object):
                 if sbold:
                     size = bmp.get_size()
                     size = (size[0]+1, size[1])
-                    image2 = pygame.Surface(size).convert_alpha()
+                    image2 = pygame.surface.Surface(size).convert_alpha()
                     image2.fill((0, 0, 0, 0))
                     image2.blit(bmp, (0, 0))
                     image2.blit(bmp, (1, 0))
@@ -1216,7 +1217,7 @@ class Font(object):
             size2 = font_imagesize(self.fontinfo, b_text, antialias)
             if sbold:
                 size = (size[0]+4, size[1])
-                image2 = pygame.Surface(size).convert_alpha()
+                image2 = pygame.surface.Surface(size).convert_alpha()
                 image2.fill((0, 0, 0, 0))
                 for x in range(4):
                     image2.blit(image, (x, 0))
@@ -1252,7 +1253,7 @@ class Font(object):
             if sbold:
                 size = bmp.get_size()
                 size = (size[0]+1, size[1])
-                image2 = pygame.Surface(size).convert_alpha()
+                image2 = pygame.surface.Surface(size).convert_alpha()
                 image2.fill((0, 0, 0, 0))
                 image2.blit(bmp, (0, 0))
                 image2.blit(bmp, (1, 0))

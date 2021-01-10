@@ -1690,7 +1690,7 @@ class EventHandlerForBacklog(EventHandler):
 
         # 背景スプライト削除
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
-        cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+        cw.cwpy.add_lazydraw(clip=cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
 
     def keydown_event(self, key: int) -> bool:
         """その他のKEYDOWNイベント。"""
@@ -1782,7 +1782,7 @@ class EventHandlerForBacklog(EventHandler):
             # 次のログ
             self.mwin = self.backlog[self.index].create_message()
             self._page.update_page(self.index+1, self._get_maxpage())
-        cw.cwpy.add_lazydraw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_GAME)))
+        cw.cwpy.add_lazydraw(clip=cw.s(pygame.rect.Rect((0, 0), cw.SIZE_GAME)))
 
 
 class EventHandlerForEffectBooster(EventHandler):

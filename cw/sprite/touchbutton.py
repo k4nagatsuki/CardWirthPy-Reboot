@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -68,7 +69,7 @@ class TouchButton(base.SelectableSprite):
             th += fh
 
         # 画像を作成
-        self.image = pygame.Surface((tw, th)).convert_alpha()
+        self.image = pygame.surface.Surface((tw, th)).convert_alpha()
         color = (0, 0, 0, 192)
         linecolor = (255, 255, 255)
         tcolor = (255, 255, 255)
@@ -243,7 +244,7 @@ class SwitchSpriteTile(PointableTile):
         th = _calc_singlelinetileheight()
 
         # 画像を作成
-        self.image = pygame.Surface((self.width, th)).convert_alpha()
+        self.image = pygame.surface.Surface((self.width, th)).convert_alpha()
         color = (0, 0, 0, 192)
         self.image.fill(color)
         self.rect = self.image.get_rect()
@@ -287,7 +288,7 @@ class SimplePointableTile(PointableTile):
         th = _calc_singlelinetileheight()
 
         # 画像を作成
-        self.image = pygame.Surface((self.width, th)).convert_alpha()
+        self.image = pygame.surface.Surface((self.width, th)).convert_alpha()
         color = (0, 0, 0, 192)
         self.image.fill(color)
         self.rect = self.image.get_rect()
@@ -343,7 +344,7 @@ class VolumeTile(TouchButton):
         h = max(cw.s(16), font.get_height()+fspy*2, self.icon.get_height()) + spy*2
 
         # 画像を作成
-        self.image = pygame.Surface((self.width, h+cw.s(2))).convert_alpha()
+        self.image = pygame.surface.Surface((self.width, h+cw.s(2))).convert_alpha()
         color = (0, 0, 0, 192)
         self.image.fill(color)
         self.rect = self.image.get_rect()
@@ -356,7 +357,7 @@ class VolumeTile(TouchButton):
         pady = spy
         padw = self.rect.width - padx - spx
         padh = h - spy*2
-        self.padrect = pygame.Rect(padx, pady, padw, padh)
+        self.padrect = pygame.rect.Rect(padx, pady, padw, padh)
 
         self.update_image()
 

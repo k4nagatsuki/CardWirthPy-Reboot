@@ -6,6 +6,7 @@ import os
 import re
 import itertools
 import pygame
+import pygame.surface
 
 import cw
 from . import base
@@ -137,14 +138,14 @@ class MessageWindow(base.CWPySprite):
 
     def _init_image(self, size_noscale: Tuple[int, int], pos_noscale: Tuple[int, int]) -> None:
         # image
-        self.image = pygame.Surface(cw.s(size_noscale)).convert_alpha()
+        self.image = pygame.surface.Surface(cw.s(size_noscale)).convert_alpha()
         if self.backlog:
             wincolour = cw.cwpy.setting.blwincolour
         else:
             wincolour = cw.cwpy.setting.mwincolour
         self.image.fill(wincolour)
         # rect
-        self.rect_noscale = pygame.Rect(pos_noscale, size_noscale)
+        self.rect_noscale = pygame.rect.Rect(pos_noscale, size_noscale)
         self.rect = cw.s(self.rect_noscale)
         self.top_noscale = size_noscale[1]
         self.bottom_noscale = 0
@@ -282,7 +283,7 @@ class MessageWindow(base.CWPySprite):
                 # ただしログ表示時はウィンドウの上下が削られて縮められているので
                 # 削られた上端の分だけは追加しておく
                 h = self.rect_noscale[3]
-            self._fore = pygame.Surface(cw.s((470, h))).convert_alpha()
+            self._fore = pygame.surface.Surface(cw.s((470, h))).convert_alpha()
             assert self._fore
             self._fore.fill((0, 0, 0, 0))
             self._back = self._fore.copy()
@@ -319,7 +320,7 @@ class MessageWindow(base.CWPySprite):
                 pos2 = (pos[0] + shiftx, pos[1] - tt + shifty)
                 cw.imageretouch.blit_2bitbmp_to_message(self.image, txtimg2, pos2, wincolour)
                 size = txtimg2.get_size()
-                cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
+                cw.cwpy.add_lazydraw(clip=pygame.rect.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
 
             # 通常のテキスト描画
             if txtimg3:
@@ -329,8 +330,8 @@ class MessageWindow(base.CWPySprite):
                         pos2 = (x, y-bt)
                         self._back.blit(txtimg3, pos2)
                         size = txtimg3.get_size()
-                        cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top),
-                                                              size))
+                        cw.cwpy.add_lazydraw(clip=pygame.rect.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top),
+                                                                   size))
 
             if txtimg:
                 assert self._fore
@@ -340,8 +341,8 @@ class MessageWindow(base.CWPySprite):
             if size:
                 assert self._fore
                 assert self._back
-                area1 = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
-                area2 = pygame.Rect(area1)
+                area1 = pygame.rect.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
+                area2 = pygame.rect.Rect(area1)
                 if self.centering_y:
                     area2.top -= cw.s(self.blocktop_noscale)
                     area1.top += shifty
@@ -354,7 +355,7 @@ class MessageWindow(base.CWPySprite):
                 self.image.blit(self._fore, area1.topleft, area2)
                 size = area1.size
                 pos2 = area1.topleft
-                cw.cwpy.add_lazydraw(clip=pygame.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
+                cw.cwpy.add_lazydraw(clip=pygame.rect.Rect((pos2[0] + self.rect.left, pos2[1] + self.rect.top), size))
             self.frame += 1
         else:
             self.is_drawing = False
@@ -464,7 +465,7 @@ class MessageWindow(base.CWPySprite):
         bottom = self.rect_noscale[3]-yp_noscale-lineheight_noscale*7
 
         def put_xinfo(x: int, width: int) -> None:
-            linerect2 = pygame.Rect(x, 0, width, 1)
+            linerect2 = pygame.rect.Rect(x, 0, width, 1)
             if self._linerect:
                 self._linerect.union_ip(linerect2)
             else:
@@ -917,10 +918,10 @@ class SelectWindow(MessageWindow):
             colour = cw.cwpy.setting.blwincolour
         else:
             colour = cw.cwpy.setting.mwincolour
-        self.image = pygame.Surface(cw.s(size_noscale)).convert_alpha()
+        self.image = pygame.surface.Surface(cw.s(size_noscale)).convert_alpha()
         self.image.fill(colour)
         # rect
-        self.rect_noscale = pygame.Rect(pos_noscale, size_noscale)
+        self.rect_noscale = pygame.rect.Rect(pos_noscale, size_noscale)
         self.rect = cw.s(self.rect_noscale)
         self.top_noscale = size_noscale[1]
         self.bottom_noscale = 0
@@ -978,7 +979,7 @@ class SelectionBar(base.SelectableSprite):
         self.rect = self._image.get_rect()
         self.pos_noscale = pos_noscale
         self.rect.topleft = cw.s(self.pos_noscale)
-        self.rect_noscale = pygame.Rect(self.pos_noscale, self.size_noscale)
+        self.rect_noscale = pygame.rect.Rect(self.pos_noscale, self.size_noscale)
         # image
         self.image = self._image
         # status
@@ -1058,7 +1059,7 @@ class SelectionBar(base.SelectableSprite):
         self.frame += 1
 
     def get_image(self, size: Tuple[int, int]) -> pygame.surface.Surface:
-        image = pygame.Surface(size).convert_alpha()
+        image = pygame.surface.Surface(size).convert_alpha()
         if self.backlog:
             colour = cw.cwpy.setting.blwincolour
         else:
@@ -1245,7 +1246,7 @@ class BacklogCurtain(base.CWPySprite):
             self.color = cw.cwpy.setting.blcurtaincolour
         self.size_noscale = size_noscale
         self.pos_noscale = pos_noscale
-        self.image = pygame.Surface(cw.s(self.size_noscale)).convert()
+        self.image = pygame.surface.Surface(cw.s(self.size_noscale)).convert()
         self.image.fill(self.color[:3])
         self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
@@ -1258,7 +1259,7 @@ class BacklogCurtain(base.CWPySprite):
         cw.add_layer(spritegrp, self, layer=layer_val)
 
     def update_scale(self) -> None:
-        self.image = pygame.Surface(cw.s(self.size_noscale)).convert()
+        self.image = pygame.surface.Surface(cw.s(self.size_noscale)).convert()
         self.image.fill(self.color[:3])
         self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
@@ -1293,7 +1294,7 @@ class BacklogPage(base.CWPySprite):
         w += 2
         h += 2
 
-        self.image = pygame.Surface((w, h)).convert_alpha()
+        self.image = pygame.surface.Surface((w, h)).convert_alpha()
         self.image.fill((0, 0, 0, 0))
         x = 1
         y = 1
@@ -1335,7 +1336,7 @@ def decorate(image: pygame.surface.Surface, angle: int = 8,
         if not decoimg:
             # グラデーションのかかった台紙を作成
             h = image.get_height()
-            decoimg = pygame.Surface((h, h)).convert_alpha()
+            decoimg = pygame.surface.Surface((h, h)).convert_alpha()
             decoimg.fill(basecolour)
 
             w = decoimg.get_width()
