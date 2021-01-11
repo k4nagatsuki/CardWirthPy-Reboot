@@ -1500,20 +1500,29 @@ class CWPy(threading.Thread):
             sprite.frame = 0
             self.animations.remove(sprite)
 
-    def draw_to(self, scr: pygame.surface.Surface, draw_desc: bool) -> List[pygame.rect.Rect]:
-        dirty_rects = cw.sprite.background.layered_draw_ex(self.cardgrp, scr)
+    def draw_to(self, scr: pygame.surface.Surface, draw_desc: bool) -> Optional[pygame.rect.Rect]:
+        clip: Optional[pygame.rect.Rect] = None
+        for rect in itertools.chain(cw.sprite.background.layered_draw_ex(self.cardgrp, scr),
+                                    self.topgrp.draw(scr),
+                                    self.backloggrp.draw(scr)):
+            if clip is None:
+                clip = rect.copy()
+            else:
+                clip.union_ip(rect)
 
-        dirty_rects.extend(self.topgrp.draw(scr))
-        dirty_rects.extend(self.backloggrp.draw(scr))
         for music in self.music:
             if music.movie_scr:
                 scr.blit(music.movie_scr, (0, 0))
         clip2 = scr.get_clip()
         scr.set_clip(None)
-        dirty_rects.extend(self.statusbar.layered_draw_ex(self.sbargrp, scr, draw_desc))
+        for rect in self.statusbar.layered_draw_ex(self.sbargrp, scr, draw_desc):
+            if clip is None:
+                clip = rect.copy()
+            else:
+                clip.union_ip(rect)
         scr.set_clip(clip2)
 
-        return dirty_rects
+        return clip
 
     def lazy_draw(self) -> None:
         if self._lazy_draw:
@@ -1561,7 +1570,7 @@ class CWPy(threading.Thread):
             self._lazy_clip = None
             self._lazy_draw = False
 
-            dirty_rects = self.draw_to(self.scr_draw, True)
+            dirty_rect = self.draw_to(self.scr_draw, True)
 
             simple_scale = not self.setting.smoothexpand or cw.UP_SCR % cw.UP_WIN == 0.0 or cw.UP_WIN % cw.UP_SCR == 0.0
 
@@ -1603,8 +1612,8 @@ class CWPy(threading.Thread):
             else:
                 if clip:
                     pygame.display.update(clip)
-                else:
-                    pygame.display.update(*dirty_rects)
+                elif dirty_rect:
+                    pygame.display.update(dirty_rect)
 
             pos = cw.s((0, 0))
             size = cw.s(cw.SIZE_AREA)
