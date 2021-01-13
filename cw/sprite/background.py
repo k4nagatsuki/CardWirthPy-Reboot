@@ -148,16 +148,17 @@ class BackGround(base.CWPySprite):
                     elif isinstance(sprite, cw.sprite.background.BgCell):
                         # 背景画像、カラーセル、縁取り形式2のテキストセル
                         d = sprite.d
-                        assert len(d) == 4
-                        sflag = d[-1]
-                        assert isinstance(sflag, int)
-                        if sprite.bgtype == BG_COLOR and sflag in (pygame.BLEND_RGB_ADD,
-                                                                   pygame.BLEND_RGB_SUB,
-                                                                   pygame.BLEND_RGB_MULT,
-                                                                   pygame.BLEND_RGBA_ADD,
-                                                                   pygame.BLEND_RGBA_SUB,
-                                                                   pygame.BLEND_RGBA_MULT):
-                            continue
+                        if sprite.bgtype == BG_COLOR:
+                            assert len(d) == 4
+                            sflag = d[-1]
+                            assert isinstance(sflag, int)
+                            if sflag in (pygame.BLEND_RGB_ADD,
+                                         pygame.BLEND_RGB_SUB,
+                                         pygame.BLEND_RGB_MULT,
+                                         pygame.BLEND_RGBA_ADD,
+                                         pygame.BLEND_RGBA_SUB,
+                                         pygame.BLEND_RGBA_MULT):
+                                continue
                         bgcell = sprite
                         rect = bgcell.rect
                         curtain = cw.sprite.background.Curtain(bgcell, cw.cwpy.cardgrp, is_selectable=False,
