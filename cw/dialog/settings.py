@@ -840,19 +840,17 @@ class SettingsPanel(wx.Panel):
         # イメージの更新
         if update and (updatecardimg or updatemcardimg):
             def func_updateimg() -> None:
-                for ccard in cw.cwpy.get_pcards("unreversed"):
-                    ccard.update_image()
-                mcard: Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard]
+                for pcard in cw.cwpy.get_pcards("unreversed"):
+                    pcard.update_image()
                 if updatemcardimg:
                     for mcard in itertools.chain(cw.cwpy.get_mcards()):
                         if mcard.is_initialized():
                             mcard.update_scale()
                 else:
-                    for mcard in itertools.chain[Union[cw.sprite.card.EnemyCard,
-                                                       cw.sprite.card.FriendCard]](cw.cwpy.get_ecards("unreversed"),
-                                                                                   cw.cwpy.get_fcards("unreversed")):
-                        if mcard.is_initialized():
-                            mcard.update_image()
+                    for ccard in itertools.chain(cw.cwpy.get_ecards("unreversed"), cw.cwpy.get_fcards("unreversed")):
+                        assert isinstance(ccard, (cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
+                        if ccard.is_initialized():
+                            ccard.update_image()
             cw.cwpy.exec_func(func_updateimg)
 
         # ステータスバーの更新
