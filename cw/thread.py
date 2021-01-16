@@ -238,7 +238,9 @@ class CWPy(threading.Thread):
         self.areaid = 1
         # 特殊エリア移動前に保持しておく各種データ
         self.pre_areaids: List[Tuple[int, Optional[cw.data.CWPyElement]]] = []
-        self.pre_mcards: List[List[Union[cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard]]] = []
+        self.pre_mcards: List[List[Union[cw.sprite.card.MenuCard,
+                                         cw.sprite.card.EnemyCard,
+                                         cw.sprite.card.FriendCard]]] = []
         self.pre_dialogs: List[Tuple[str, cw.sprite.card.CWPyCard, Tuple[int, int], float]] = []
         # 各種入力イベント
         self.mousein = (False, False, False)
@@ -781,7 +783,11 @@ class CWPy(threading.Thread):
                 self.sdata.update_scale()
                 if self.pre_mcards:
                     mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1][0], data=self.pre_areaids[-1][1])
-                    self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False, splayer=False)
+                    mcards: List[Union[cw.sprite.card.MenuCard,
+                                       cw.sprite.card.EnemyCard,
+                                       cw.sprite.card.FriendCard]] = []
+                    mcards.extend(self.set_mcards(mcarddata, False, False, splayer=False))
+                    self.pre_mcards[-1] = mcards
                 if self.pre_areaids:
                     for i, (preareaid, _predata) in enumerate(self.pre_areaids[:]):
                         self.pre_areaids[i] = (preareaid, self.sdata.get_areadata(preareaid))
@@ -4212,8 +4218,7 @@ class CWPy(threading.Thread):
                     return
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
-                self.pre_mcards.append([mcard for mcard in self.get_mcards()
-                                        if not isinstance(mcard, cw.sprite.card.FriendCard)])
+                self.pre_mcards.append(self.get_mcards())
                 self.cardgrp.remove(*self.mcards)
                 self.mcards = []
                 self.mcards_expandspchars.clear()
