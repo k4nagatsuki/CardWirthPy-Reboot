@@ -1244,9 +1244,9 @@ class BranchCouponContent(BranchContent):
         scope = self.data.get("targets")
         s2 = self.textdict.get(scope.lower(), "")
         s = ""
+        ctype = ""
         if len(names) > 0 and names[0] != "":
             s = "」「".join(names)
-            ctype = ""
             if len(names) > 1:
                 if self.matchingtype == "And":
                     ctype = "の全て"
