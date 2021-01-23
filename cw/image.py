@@ -1483,7 +1483,7 @@ def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], g
         if mn == mx:
             return mn
         c = mx - mn
-        return min(255, max(0, int(mn + c * per)))
+        return min(255, max(0, round(mn + c * per)))
 
     w = image.get_width()
     h = image.get_height()
