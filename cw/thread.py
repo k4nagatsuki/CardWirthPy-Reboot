@@ -1417,7 +1417,9 @@ class CWPy(threading.Thread):
                 self.background.use_excache = False
                 self.file_updates_bg = True
             for mcard in self.get_mcards():
-                if mcard.is_initialized() and mcard.cardimg.use_excache:
+                if not mcard.is_initialized():
+                    continue
+                if mcard.cardimg.use_excache:
                     self.file_updates.add(mcard)
                 mcard.cardimg.use_excache = False
 
