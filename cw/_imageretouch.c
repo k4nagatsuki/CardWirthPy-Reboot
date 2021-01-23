@@ -19,7 +19,8 @@ intwrap(int i, int min, int max)
     return i;
 }
 
-#define colorwrap(i) intwrap(i, 0, 255)
+#define colorwrap(i) intwrap((i), 0, 255)
+#define fcolorwrap(d) intwrap((int) round(d), 0, 255)
 
 static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
@@ -479,9 +480,18 @@ blend_add_1_50(PyObject *self, PyObject *args)
         sb = (int) source[2];
         sa = (int) source[3];
 
-        dr = colorwrap((dr * (255 - sa) >> 8) + (colorwrap(dr + sr) * sa >> 8));
-        dg = colorwrap((dg * (255 - sa) >> 8) + (colorwrap(dg + sg) * sa >> 8));
-        db = colorwrap((db * (255 - sa) >> 8) + (colorwrap(db + sb) * sa >> 8));
+        if (sa != 255)
+        {
+            dr = fcolorwrap(((dr * (255 - sa)) + ((dr + sr) * sa)) / 255.0);
+            dg = fcolorwrap(((dg * (255 - sa)) + ((dg + sg) * sa)) / 255.0);
+            db = fcolorwrap(((db * (255 - sa)) + ((db + sb) * sa)) / 255.0);
+        }
+        else
+        {
+            dr = colorwrap(dr + sr);
+            dg = colorwrap(dg + sg);
+            db = colorwrap(db + sb);
+        }
 
         outdata[0] = (char) dr;
         outdata[1] = (char) dg;
@@ -526,15 +536,24 @@ blend_sub_1_50(PyObject *self, PyObject *args)
         sb = (int) source[2];
         sa = (int) source[3];
 
-        a = colorwrap(dr * (255 - sa) >> 8);
-        b = colorwrap(dr - (sr * sa >> 8));
-        dr = max(a, b);
-        a = colorwrap(dg * (255 - sa) >> 8);
-        b = colorwrap(dg - (sg * sa >> 8));
-        dg = max(a, b);
-        a = colorwrap(db * (255 - sa) >> 8);
-        b = colorwrap(db - (sb * sa >> 8));
-        db = max(a, b);
+        if (sa != 255)
+        {
+            a = fcolorwrap(dr * (255 - sa) / 255.0);
+            b = fcolorwrap(dr - (sr * sa / 255.0));
+            dr = max(a, b);
+            a = fcolorwrap(dg * (255 - sa) / 255.0);
+            b = fcolorwrap(dg - (sg * sa / 255.0));
+            dg = max(a, b);
+            a = fcolorwrap(db * (255 - sa) / 255.0);
+            b = fcolorwrap(db - (sb * sa / 255.0));
+            db = max(a, b);
+        }
+        else
+        {
+            dr = colorwrap(dr - sr);
+            dg = colorwrap(dg - sg);
+            db = colorwrap(db - sb);
+        }
 
         outdata[0] = (char) dr;
         outdata[1] = (char) dg;
@@ -577,13 +596,13 @@ blend_mult_1_50(PyObject *self, PyObject *args)
 
         if (sa != 255)
         {
-            sr = colorwrap(((sr * sa) + (((1 << 8) - sa) << 8)) >> 8);
-            sg = colorwrap(((sg * sa) + (((1 << 8) - sa) << 8)) >> 8);
-            sb = colorwrap(((sb * sa) + (((1 << 8) - sa) << 8)) >> 8);
+            sr = fcolorwrap(((sr * sa) + ((255 - sa) * 255)) / 255.0);
+            sg = fcolorwrap(((sg * sa) + ((255 - sa) * 255)) / 255.0);
+            sb = fcolorwrap(((sb * sa) + ((255 - sa) * 255)) / 255.0);
         }
-        dr = colorwrap(dr * sr >> 8);
-        dg = colorwrap(dg * sg >> 8);
-        db = colorwrap(db * sb >> 8);
+        dr = fcolorwrap(dr * sr / 255.0);
+        dg = fcolorwrap(dg * sg / 255.0);
+        db = fcolorwrap(db * sb / 255.0);
 
         outdata[0] = (char) dr;
         outdata[1] = (char) dg;
