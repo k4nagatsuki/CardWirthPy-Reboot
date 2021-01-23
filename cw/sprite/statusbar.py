@@ -183,6 +183,9 @@ class StatusBar(base.CWPySprite):
                 left -= cw.s(120) + cw.s(14)
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards():
                 self._create_infocards((cw.s(474) - rmargin, cw.s(3)))
+        elif cw.cwpy.is_battlestatus() and not cw.cwpy.battle:
+            panel = EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            left -= panel.size[0] + cw.s(14)
         elif cw.cwpy.is_battlestatus():
             assert cw.cwpy.battle
             if cw.cwpy.setting.show_roundautostartbutton:
