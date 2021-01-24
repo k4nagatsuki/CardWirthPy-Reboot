@@ -992,8 +992,8 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnBACKPACK(self, event: wx.PyCommandEvent) -> None:
-        selection, preinfo = self._get_cardcontrolparams()
-        areaid = self.change_cardcontrolarea()
+        selection, preinfo = self._get_cardcontrolparams(callname="BACKPACK")
+        areaid = self.change_cardcontrolarea(callname="BACKPACK")
         if not self._cardholder:
             self._cardholder = cw.dialog.cardcontrol.SelectCard(self, "BACKPACK")
         self._cardholder.reconstruct_cardholder("BACKPACK", selection, preinfo, areaid=areaid)
@@ -1002,8 +1002,8 @@ class Frame(wx.Frame):
         self._cardholder.ShowModal()
 
     def OnSTOREHOUSE(self, event: wx.PyCommandEvent) -> None:
-        selection, preinfo = self._get_cardcontrolparams()
-        areaid = self.change_cardcontrolarea()
+        selection, preinfo = self._get_cardcontrolparams(callname="STOREHOUSE")
+        areaid = self.change_cardcontrolarea(callname="STOREHOUSE")
         if not self._cardholder:
             self._cardholder = cw.dialog.cardcontrol.SelectCard(self, "STOREHOUSE")
         self._cardholder.reconstruct_cardholder("STOREHOUSE", selection, preinfo, areaid=areaid)
@@ -1018,11 +1018,11 @@ class Frame(wx.Frame):
         self._cardpocket_impl("CARDPOCKET")
 
     def _cardpocket_impl(self, callname: str) -> None:
-        selection, preinfo = self._get_cardcontrolparams()
+        selection, preinfo = self._get_cardcontrolparams(callname="CARDPOCKET")
         if isinstance(selection, (cw.character.Enemy, cw.character.Friend)):
             areaid = cw.cwpy.areaid
         else:
-            areaid = self.change_cardcontrolarea()
+            areaid = self.change_cardcontrolarea(callname="CARDPOCKET")
         if not self._cardholder:
             self._cardholder = cw.dialog.cardcontrol.SelectCard(self, callname)
         self._cardholder.reconstruct_cardholder(callname, selection, preinfo, areaid=areaid)
@@ -1031,7 +1031,8 @@ class Frame(wx.Frame):
         self._cardholder.ShowModal()
 
     def OnHANDVIEW(self, event: wx.PyCommandEvent) -> None:
-        selection, preinfo = self._get_cardcontrolparams()
+        selection, preinfo = self._get_cardcontrolparams(callname="HANDVIEW")
+        assert selection
         if not self._handview:
             self._handview = cw.dialog.cardcontrol.HandView(self)
         self._handview.reconstruct_handview(selection, preinfo)
@@ -1053,12 +1054,21 @@ class Frame(wx.Frame):
         else:
             self.kill_dlg(None)
 
-    def _get_cardcontrolparams(self) -> Tuple["cw.sprite.card.CWPyCard",
-                                              Optional[Tuple[str, "cw.sprite.card.CWPyCard", Tuple[int, int], float]]]:
+    def _get_cardcontrolparams(self, callname: str) -> Tuple[Optional["cw.sprite.card.CWPyCard"],
+                                                             Optional[Tuple[str, "cw.sprite.card.CWPyCard",
+                                                                            Tuple[int, int], float]]]:
         if cw.cwpy.pre_dialogs:
             preinfo: Optional[Tuple[str, cw.sprite.card.CWPyCard, Tuple[int, int], float]] = cw.cwpy.pre_dialogs.pop()
             assert preinfo
-            selection = preinfo[1]
+            selection: Optional[cw.sprite.card.CWPyCard] = preinfo[1]
+        elif callname == "BACKPACK":
+            # カード移動エリアに移動するのでこの時点ではカードを選択しない
+            selection = None
+            preinfo = None
+        elif callname == "STOREHOUSE":
+            # カード移動エリアに移動するのでこの時点ではカードを選択しない
+            selection = None
+            preinfo = None
         else:
             assert isinstance(cw.cwpy.selection, cw.sprite.card.CWPyCard)
             selection = cw.cwpy.selection
@@ -1620,7 +1630,7 @@ class Frame(wx.Frame):
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_selection)
 
-    def change_cardcontrolarea(self) -> int:
+    def change_cardcontrolarea(self, callname: str) -> int:
         """カード移動操作を行う特殊エリアに移動。"""
         if cw.cwpy.areaid in cw.AREAS_TRADE:
             return cw.cwpy.areaid
@@ -1628,6 +1638,10 @@ class Frame(wx.Frame):
             def func(areaid: int) -> None:
                 def func(areaid: int) -> None:
                     cw.cwpy.change_specialarea(areaid)
+                    if callname == "BACKPACK":
+                        cw.cwpy.change_selection(cw.cwpy.find_backpackcard())
+                    elif callname == "STOREHOUSE":
+                        cw.cwpy.change_selection(cw.cwpy.find_storehousecard())
                     cw.cwpy.statusbar.change()
                 cw.cwpy.exec_func(func, areaid)
             assert cw.cwpy.ydata
@@ -1638,6 +1652,8 @@ class Frame(wx.Frame):
             def func2() -> None:
                 def func() -> None:
                     cw.cwpy.change_specialarea(cw.AREA_TRADE3)
+                    if callname == "BACKPACK":
+                        cw.cwpy.change_selection(cw.cwpy.find_backpackcard())
                     cw.cwpy.statusbar.change()
                 cw.cwpy.exec_func(func)
             cw.cwpy.frame.exec_func(func2)

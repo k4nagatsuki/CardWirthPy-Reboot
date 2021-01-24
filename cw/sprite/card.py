@@ -1551,7 +1551,10 @@ class MenuCard(CWPyCard):
             cw.cwpy.play_sound("click", from_scenario=True)
             cw.animation.animate_sprite(self, "click")
             if self.command:
-                cw.content.PostEventContent.do_action(self.command, self.arg)
+                if self.events.check_keynum(1):
+                    self.events.start(keynum=1)
+                else:
+                    cw.content.PostEventContent.do_action(self.command, self.arg)
             else:
                 cw.cwpy.advlog.click_menucard(self)
                 self.events.start(keynum=1)
@@ -1560,7 +1563,10 @@ class MenuCard(CWPyCard):
         elif cw.cwpy.areaid in cw.AREAS_TRADE and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
             if self.command:
-                cw.content.PostEventContent.do_action(self.command, self.arg)
+                if self.events.check_keynum(1):
+                    self.events.start(keynum=1)
+                else:
+                    cw.content.PostEventContent.do_action(self.command, self.arg)
             else:
                 self.events.start(keynum=1)
 
@@ -1584,7 +1590,10 @@ class MenuCard(CWPyCard):
                 cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             if self.command:
-                cw.content.PostEventContent.do_action(self.command, self.arg)
+                if self.events.check_keynum(1):
+                    self.events.start(keynum=1)
+                else:
+                    cw.content.PostEventContent.do_action(self.command, self.arg)
             else:
                 self.events.start(keynum=1)
 

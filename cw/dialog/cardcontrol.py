@@ -2250,6 +2250,14 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
             # 選択中カード色反転
             self.Parent.change_selection(self.selection)
 
+        elif self.callname == "BACKPACK":
+            mcard = cw.cwpy.find_backpackcard()
+            self.Parent.change_selection(mcard)
+
+        elif self.callname == "STOREHOUSE":
+            mcard = cw.cwpy.find_storehousecard()
+            self.Parent.change_selection(mcard)
+
         else:
             # カード置き場、荷物袋、情報カード
             if self.callname != "INFOVIEW":
@@ -3188,20 +3196,24 @@ class SelectCard(CardHolder[cw.header.CardHeader]):
 
         if self.callname == "CARDPOCKET":
             self.bgcolour = wx.Colour(0, 0, 128)
+            self.Parent.change_selection(self.selection)
         elif self.callname == "CARDPOCKETB":
             self.bgcolour = wx.Colour(0, 0, 128)
             self._set_backpacklist()
-        else:
-            if self.callname == "BACKPACK":
-                self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_backpack"]))
-                self.bgcolour = wx.Colour(0, 0, 128)
-                assert cw.cwpy.ydata.party
-                self.list = self._narrow(cw.cwpy.ydata.party.backpack)
-            elif self.callname == "STOREHOUSE":
-                self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_storehouse"]))
-                self.bgcolour = wx.Colour(0, 69, 0)
-                self.list = self._narrow(cw.cwpy.ydata.storehouse)
+            self.Parent.change_selection(self.selection)
+        elif self.callname == "BACKPACK":
+            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_backpack"]))
+            self.bgcolour = wx.Colour(0, 0, 128)
+            assert cw.cwpy.ydata.party
+            self.list = self._narrow(cw.cwpy.ydata.party.backpack)
             self.selection = None
+            self.Parent.change_selection(cw.cwpy.find_backpackcard())
+        elif self.callname == "STOREHOUSE":
+            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_storehouse"]))
+            self.bgcolour = wx.Colour(0, 69, 0)
+            self.list = self._narrow(cw.cwpy.ydata.storehouse)
+            self.selection = None
+            self.Parent.change_selection(cw.cwpy.find_storehousecard())
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB", "BACKPACK") and self.areaid in cw.AREAS_TRADE:
             r, g, b = cw.cwpy.setting.trademode_cardholder_color
@@ -3210,7 +3222,6 @@ class SelectCard(CardHolder[cw.header.CardHeader]):
         for ctrl in self.change_bgs:
             ctrl.SetBackgroundColour(self.bgcolour)
 
-        self.Parent.change_selection(self.selection)
         if self.callname != old_callname:
             self._show_controls()
             self._do_layout()
