@@ -1075,7 +1075,7 @@ class Character(object):
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
-            if not is_scenariocard and cw.cwpy.is_playingscenario():
+            if (not is_scenariocard or e_mates is not None) and cw.cwpy.is_playingscenario():
                 # 特殊文字を元に戻す
                 cw.cwpy.rsrc.specialchars = specialchars
                 cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
