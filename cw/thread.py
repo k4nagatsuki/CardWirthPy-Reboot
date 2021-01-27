@@ -6268,7 +6268,7 @@ class CWPy(threading.Thread):
 
     def find_backpackcard(self) -> Optional["cw.sprite.card.MenuCard"]:
         """画面上に荷物袋のカードがあれば返す。"""
-        for mcard in self.get_mcards("visible"):
+        for mcard in self.get_mcards("visiblemenucards"):
             assert isinstance(mcard, cw.sprite.card.MenuCard)
             if mcard.is_backpack():
                 return mcard
@@ -6277,7 +6277,7 @@ class CWPy(threading.Thread):
 
     def find_storehousecard(self) -> Optional["cw.sprite.card.MenuCard"]:
         """画面上にカード置場のカードがあれば返す。"""
-        for mcard in self.get_mcards("visible"):
+        for mcard in self.get_mcards("visiblemenucards"):
             assert isinstance(mcard, cw.sprite.card.MenuCard)
             if mcard.is_storehouse():
                 return mcard
