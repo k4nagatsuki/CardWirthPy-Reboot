@@ -4234,6 +4234,7 @@ class Party(object):
             pcard.store_personalpocket()
         self.members.remove(pcard.data)
         if cw.cwpy.cardgrp.has(pcard):
+            pcard.hide()
             cw.cwpy.cardgrp.remove(pcard)
             cw.cwpy.pcards.remove(pcard)
         e_members = self.data.find("Property/Members")

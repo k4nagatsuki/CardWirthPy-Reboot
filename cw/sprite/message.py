@@ -245,6 +245,7 @@ class MessageWindow(base.CWPySprite):
 
     @staticmethod
     def clear_selections() -> None:
+        cw.cwpy.clear_selection()
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_1))
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SPSELECTIONBAR_1))
         cw.cwpy.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_SELECTIONBAR_2))

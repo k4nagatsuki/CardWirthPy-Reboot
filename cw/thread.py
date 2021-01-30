@@ -3099,6 +3099,7 @@ class CWPy(threading.Thread):
         for idx, data in enumerate(self.ydata.party.members):
             if idx < len(pcards):
                 pcard = pcards[idx]
+                pcard.hide()
                 self.cardgrp.remove(pcard)
                 self.pcards.remove(pcard)
 
@@ -3695,6 +3696,7 @@ class CWPy(threading.Thread):
         bginhrt: Trueの時は背景継承。
         """
         # メニューカードスプライトグループの中身を削除
+        self.clear_selection()
         self.cardgrp.remove(*self.mcards)
         self.mcards = []
         self.mcards_expandspchars.clear()
@@ -4249,6 +4251,7 @@ class CWPy(threading.Thread):
                     if self.selectedheader:
                         self.set_testaptitude(self.selectedheader)
 
+                self.clear_selection()
                 self.list = []
                 self.list.extend(self.get_mcards("selectable"))
                 self.index = -1
@@ -4415,6 +4418,7 @@ class CWPy(threading.Thread):
                     if mcard.spchars:
                         self.mcards_expandspchars.add(mcard)
                 self.deal_cards()
+                self.clear_selection()
                 self.list = []
                 self.list.extend(self.get_mcards("selectable"))
                 self.index = -1
@@ -5082,6 +5086,8 @@ class CWPy(threading.Thread):
                 areaid = 1
             self.change_area(areaid, bginhrt=False, newparty=newparty)
         elif newparty:
+            for pcard in self.pcards:
+                pcard.hide()
             self.cardgrp.remove(*self.pcards)
             self.pcards = []
             if loadsprites:
@@ -5093,6 +5099,8 @@ class CWPy(threading.Thread):
                 self.show_party()
         else:
             # 新規パーティ結成
+            for pcard in self.pcards:
+                pcard.hide()
             self.cardgrp.remove(*self.pcards)
             self.pcards = []
             if loadsprites and self.ydata.party:
@@ -5156,6 +5164,7 @@ class CWPy(threading.Thread):
             for pcard in pcards:
                 pcard.remove_numbercoupon()
                 pcard.store_personalpocket()
+                pcard.hide()
                 self.cardgrp.remove(pcard)
                 pcard.data.write_xml()
             self.pcards = []

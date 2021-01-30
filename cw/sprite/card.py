@@ -354,6 +354,8 @@ class CWPyCard(base.SelectableSprite):
         if self.hide_inusecardimg:
             cw.cwpy.clear_inusecardimg(self)
         self.clear_cardtarget()
+        if cw.cwpy.selection is self:
+            cw.cwpy.clear_selection()
 
     def update_lateralvibe(self) -> None:
         """

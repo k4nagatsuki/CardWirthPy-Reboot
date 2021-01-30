@@ -3451,6 +3451,7 @@ class Player(Character):
             else:
                 cw.cwpy.sdata.lostadventurers.add(fpath)
         if cw.cwpy.cardgrp.has(self):
+            self.hide()
             cw.cwpy.cardgrp.remove(self)
             cw.cwpy.pcards.remove(self)
 
