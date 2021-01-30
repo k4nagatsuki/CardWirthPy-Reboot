@@ -1355,6 +1355,10 @@ class BgCell(base.CWPySprite):
         self.bgtype = bgtype
         self.d = d
         self.flag = flag
+
+        splayer = cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP
+        if splayer and layer != cw.LAYER_BACKGROUND:
+            layer += cw.LAYER_SP_LAYER
         self.tlayer = (layer, cw.LTYPE_BACKGROUND, index, 0)
 
         if bgtype in (BG_IMAGE, BG_COLOR):
