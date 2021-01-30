@@ -1105,6 +1105,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             layer = moveddata[3]
         else:
             layer = mcarddata.getint("Property/Layer", -1)
+            layer = cw.util.numwrap(layer, -1, cw.LAYER_MAX)
         if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or
@@ -1445,6 +1446,7 @@ class MenuCard(CWPyCard):
             layer = moveddata[3]
         else:
             layer = data.getint("Property/Layer", -1)
+            layer = cw.util.numwrap(layer, -1, cw.LAYER_MAX)
         if layer < 0:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or

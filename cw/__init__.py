@@ -157,33 +157,35 @@ LAYER_TITLE = 0
 
 LTYPE_MESSAGE = 1
 LTYPE_BACKGROUND = 2
-LTYPE_MCARDS = 3
-LTYPE_PCARDS = 4
+LTYPE_BACKGROUND_CURTAIN = 3
+LTYPE_MCARDS = 4
+LTYPE_PCARDS = 5
 LTYPE_FCARDS = 0
 LTYPE_SPMESSAGE = 1
-LTYPE_SPMCARDS = 3
+LTYPE_SPMCARDS = 4
 
-LTYPE_MAX = 10
-LTYPE2_MAX = 0x00100000
+LTYPE_MAX = 11
+LTYPE2_MAX = 2
 
 LAYER_FRONT = 0x00200000
 LAYER_SP_LAYER = 0x00100000
+LAYER_MAX = LAYER_SP_LAYER - 1
 
 LAYER_BACKGROUND = 0  # 背景
-LAYER_SPBACKGROUND = 0x00100000  # 背景
+LAYER_SPBACKGROUND = LAYER_SP_LAYER  # 背景
 LAYER_MCARDS = 100  # メニューカード・エネミーカード
 LAYER_PCARDS = 200  # プレイヤーカード
 LAYER_MCARDS_120 = 300  # CardWirth 1.20でのメニューカード(PCより手前に表示)
-LAYER_FCARDS_T = 0x00200000  # デバッグモードで表示される戦闘中の同行キャスト
+LAYER_FCARDS_T = LAYER_FRONT  # デバッグモードで表示される戦闘中の同行キャスト
 LAYER_FCARDS = 1000  # 同行キャスト
 
 LINDEX_MAX = 0x00100000
 
 # (layer, index, kind)
-LAYER_BATTLE_START = (LAYER_FRONT, LTYPE_MAX-5, LINDEX_MAX-2, LTYPE2_MAX-1)  # バトル開始カード
-LAYER_FRONT_INUSECARD = (LAYER_FRONT, LTYPE_MAX-4, LINDEX_MAX-2, LTYPE2_MAX-1)  # カーソル下のカードの使用カード
-LAYER_TARGET_ARROW = (LAYER_FRONT, LTYPE_MAX-2, LINDEX_MAX-2, LTYPE2_MAX-1)  # 対象選択の指マーク
-LAYER_FRONT_LIFEBAR = (LAYER_FRONT, LTYPE_MAX-3, LINDEX_MAX-2, LTYPE2_MAX-1)  # ライフバー
+LAYER_BATTLE_START = (LAYER_FRONT, LTYPE_MAX-5, LINDEX_MAX-2, 0)  # バトル開始カード
+LAYER_FRONT_INUSECARD = (LAYER_FRONT, LTYPE_MAX-4, LINDEX_MAX-2, 0)  # カーソル下のカードの使用カード
+LAYER_TARGET_ARROW = (LAYER_FRONT, LTYPE_MAX-2, LINDEX_MAX-2, 0)  # 対象選択の指マーク
+LAYER_FRONT_LIFEBAR = (LAYER_FRONT, LTYPE_MAX-3, LINDEX_MAX-2, 0)  # ライフバー
 
 # index=-1は背景セル
 LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0)  # メッセージ
@@ -194,7 +196,7 @@ LAYER_SPMESSAGE = (LAYER_SP_LAYER+1000, LTYPE_SPMESSAGE, 0, 0)  # 特殊エリ�
 LAYER_SPSELECTIONBAR_1 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 1, 0)  # 特殊エリアのメッセージ選択肢
 LAYER_SPSELECTIONBAR_2 = (LAYER_SP_LAYER+1000, LTYPE_MESSAGE, 2, 0)  # 特殊エリアのメッセージ選択肢(クリック中)
 
-LAYER_TRANSITION = (LAYER_FRONT, LTYPE_MAX-1, LINDEX_MAX-2, LTYPE2_MAX-1)  # 背景遷移用
+LAYER_TRANSITION = (LAYER_FRONT, LTYPE_MAX-1, LINDEX_MAX-2, 0)  # 背景遷移用
 
 LAYER_LOG_CURTAIN = (2000, 0, 0, 0)  # ログ背景
 LAYER_LOG = (2001, 0, 0, 0)  # メッセージログ
@@ -207,19 +209,19 @@ LAYER_CLICKABLE_SPRITES = 0  # topgrpに表示されるClickableSprite
 
 def layer_val(tlayer: Tuple[int, int, int, int]) -> int:
     """レイヤの複合値を単一のintにまとめる。"""
-    layer, ltype, index, ltype2_or_bgindex = tlayer
+    layer, ltype, index, ltype2 = tlayer
     assert 0 <= layer
     assert 0 <= ltype
     assert -1 <= index
-    assert 0 <= ltype2_or_bgindex
+    assert 0 <= ltype2
     assert layer <= LAYER_FRONT
     assert ltype < LTYPE_MAX
     if LINDEX_MAX <= index + 1:
         raise ValueError("Invalid index: " + str(LINDEX_MAX) + " <= " + str(index) + " + 1")
-    if LTYPE2_MAX <= ltype2_or_bgindex:
-        raise ValueError("Invalid background index: " + str(LTYPE2_MAX) + " <= " + str(ltype2_or_bgindex))
+    if LTYPE2_MAX <= ltype2:
+        raise ValueError("Invalid background index: " + str(LTYPE2_MAX) + " <= " + str(ltype2))
     return layer * (LTYPE_MAX * LINDEX_MAX * LTYPE2_MAX) + ltype * (LINDEX_MAX * LTYPE2_MAX) +\
-        (index + 1) * LTYPE2_MAX + ltype2_or_bgindex
+        (index + 1) * LTYPE2_MAX + ltype2
 
 
 def add_layer(grp: pygame.sprite.LayeredDirty, *sprites: pygame.sprite.Sprite, layer: int) -> None:
