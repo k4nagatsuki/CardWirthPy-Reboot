@@ -1307,7 +1307,7 @@ class FriendCard(CWPyCard, character.Friend):
         self.zoomsize_noscale = (32, 42)
         self.index = index
         self.tlayer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, self.index, 0)
-        self.tlayer_t = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, self.index, 0)
+        self.tlayer_t: Tuple[int, int, int, int] = (cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, self.index, 0)
 
         if isinstance(data, cw.data.CWPyElement):
             data = cw.data.xml2etree(element=data)
