@@ -2146,6 +2146,7 @@ class ScenarioData(SystemData):
                 y = e.getint("Location", "top", 0)
                 scale = e.getint("Size", "scale", -1)
                 layer = e.getint("Layer", -1)
+                layer = cw.util.numwrap(layer, -1, cw.LAYER_MAX)
                 self.moved_mcards[(cardgroup, index)] = (x, y, scale, layer)
 
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")

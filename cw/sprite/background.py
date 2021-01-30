@@ -516,6 +516,7 @@ class BackGround(base.CWPySprite):
         size = (width, height)
         flag = e.gettext("Flag", "")
         layer = e.getint("Layer", cw.LAYER_BACKGROUND)
+        layer = cw.util.numwrap(layer, cw.LAYER_BACKGROUND, cw.LAYER_MAX)
         visible_s = e.getattr(".", "visible", "")
         hasvisible = visible_s != ""
         if visible_s in ("True", "False"):
@@ -1354,7 +1355,7 @@ class BgCell(base.CWPySprite):
         self.bgtype = bgtype
         self.d = d
         self.flag = flag
-        self.tlayer = (layer, cw.LTYPE_BACKGROUND, -1, index)
+        self.tlayer = (layer, cw.LTYPE_BACKGROUND, index, 0)
 
         if bgtype in (BG_IMAGE, BG_COLOR):
             # 背景画像、カラーセル、縁取り形式2のテキストセル
@@ -1429,7 +1430,7 @@ class Curtain(base.SelectableSprite):
         if layer:
             self.tlayer = layer
         else:
-            self.tlayer = (target.tlayer[0], target.tlayer[1], target.tlayer[2], 100)
+            self.tlayer = (target.tlayer[0], target.tlayer[1], target.tlayer[2], 1)
         cw.add_layer(spritegrp, self, layer=cw.layer_val(self.tlayer))
         cw.cwpy.curtains.append(self)
 
