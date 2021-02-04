@@ -129,40 +129,37 @@ else:
     SYNCPROC = ctypes.CFUNCTYPE(None, c_HSYNC, c_DWORD, c_DWORD, c_void_p)
 
 
-def _cc111loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
+def _cc111loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: Optional[int]) -> None:
     """CC#111の位置へシークし、再び演奏を始める。"""
-    if streamindex is None:
-        streamindex = 0
     _loop(handle, channel, data, streamindex)
 
 
 CC111LOOP = SYNCPROC(_cc111loop)
 
 
-def _free_channel(handle: Optional[c_HSYNC], channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
+def _free_channel(handle: Optional[c_HSYNC], channel: c_DWORD, data: c_DWORD, streamindex: Optional[int]) -> None:
     global _bass
     assert _bass
     _bass.BASS_ChannelStop(channel)
     _bass.BASS_StreamFree(channel)
     if streamindex is None:
-        streamindex_i = 0
-    else:
-        streamindex_i = struct.unpack("@N", streamindex)[0]
+        streamindex = 0
 
     @synclock(_fadeoutlock)
     def func(streamindex: int) -> None:
         global _fadeoutstreams
         _fadeoutstreams[streamindex] = None
-    func(streamindex_i)
+    func(streamindex)
 
 
-def _free_channel_lockfree(handle: Optional[c_HSYNC], channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
+def _free_channel_lockfree(handle: Optional[c_HSYNC], channel: c_DWORD, data: c_DWORD,
+                           streamindex: Optional[int]) -> None:
     global _bass, _fadeoutstreams
     assert _bass
-    _bass.BASS_ChannelStop(channel)
-    _bass.BASS_StreamFree(channel)
     if streamindex is None:
         streamindex = 0
+    _bass.BASS_ChannelStop(channel)
+    _bass.BASS_StreamFree(channel)
     _fadeoutstreams[streamindex] = None
 
 
@@ -170,9 +167,11 @@ FREE_CHANNEL = SYNCPROC(_free_channel)
 
 
 @synclock(_lock)
-def _loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: c_void_p) -> None:
+def _loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: Optional[int]) -> None:
     global _bass, _loopcounts, _loopstarts, _fadeoutstreams
     assert _bass
+    if streamindex is None:
+        streamindex = 0
     fadeouting = _fadeoutstreams[streamindex] and _fadeoutstreams[streamindex][0] == channel
     if fadeouting:
         # フェードアウト中のチャンネル
@@ -765,7 +764,7 @@ def _stop(streamindex: int, fade: int, stopfadeout: bool) -> None:
                 _fadeoutstreams[streamindex] = (stream, _loopcounts[streamindex], _loopstarts[streamindex])
             func(stream)
         else:
-            _free_channel(None, stream, c_DWORD(0), c_void_p(streamindex))
+            _free_channel(None, stream, c_DWORD(0), streamindex)
         _streams[streamindex] = c_DWORD(0)
 
 
@@ -774,7 +773,7 @@ def _free_fadeoutstream(streamindex: int) -> None:
     t = _fadeoutstreams[streamindex]
     if t:
         channel = t[0]
-        _free_channel_lockfree(None, channel, c_DWORD(0), c_void_p(streamindex))
+        _free_channel_lockfree(None, channel, c_DWORD(0), streamindex)
 
 
 def stop_bgm(channel: int = 0, fade: int = 0, stopfadeout: bool = False) -> None:
