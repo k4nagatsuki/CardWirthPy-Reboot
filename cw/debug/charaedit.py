@@ -1141,7 +1141,6 @@ class CharaRequirementPanel(wx.Panel):
         else:
             # パスを選択
             fpath = self.imgpathlist[self.imgcombo.GetSelection()-1]
-            assert len(fpath) == 1
             bmp = cw.util.load_wxbmp(fpath, mask=True, can_loaded_scaledimage=True, up_scr=cw.dpi_level)
             postype = "Center" if self.imgcentering.GetValue() else "Default"
             self.img.SetBitmap([cw.ppis(bmp)], [bmp], infos=[cw.image.ImageInfo(fpath, postype=postype)])

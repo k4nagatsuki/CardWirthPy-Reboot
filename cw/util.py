@@ -4267,8 +4267,10 @@ def create_fileselection(parent: wx.TopLevelWindow, target: Optional[wx.TextCtrl
                     seq.append(fpath)
                 if callback:
                     if multiple:
-                        callback2: Callable[..., bool] = callable
-                        callback2(seq)
+                        # BUG: 以下のコードはなぜか実行されない(Python 3.8.6)
+                        # callback2: Callable[..., bool] = callable
+                        # callback2(seq)
+                        callback(typing.cast(str, seq))
                     else:
                         callback(seq[0])
                 if target is not None:
