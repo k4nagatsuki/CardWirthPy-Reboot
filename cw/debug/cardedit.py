@@ -899,7 +899,7 @@ class CardEditDialog(wx.Dialog):
         def append_cards(getids: Callable[[], Iterable[int]],
                          getdata: Callable[[int], Optional[cw.data.CWPyElement]], image: wx.Bitmap) -> None:
             assert self.scdata
-            for resid in getids():
+            for resid in sorted(getids()):
                 index = self.cards.GetItemCount()
                 e = getdata(resid)
                 if e is None:
