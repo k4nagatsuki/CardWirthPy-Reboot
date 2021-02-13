@@ -2815,6 +2815,10 @@ class CWPy(threading.Thread):
                         if self.is_showingdebugger() and self.event:
                             self.event.refresh_variablelist()
 
+                        clip = cw.cwpy.update_statusimgs(is_runningevent=False)
+                        if clip:
+                            cw.cwpy.add_lazydraw(clip=clip)
+
                         if not self.setting.lastscenariopath:
                             self.setting.lastscenariopath = header.get_fpath()
                         self.ydata._loading = False
@@ -5112,6 +5116,10 @@ class CWPy(threading.Thread):
                 pcard.restore_personalpocket()
                 self.ydata.party.sort_backpack()
                 cw.animation.animate_sprite(pcard, "deal")
+
+        clip = cw.cwpy.update_statusimgs(is_runningevent=False)
+        if clip:
+            cw.cwpy.add_lazydraw(clip=clip)
 
         self.is_pcardsselectable = bool(self.ydata and self.ydata.party)
 
