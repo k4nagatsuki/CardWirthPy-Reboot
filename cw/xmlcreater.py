@@ -1190,6 +1190,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             if namelist:
                 e = cw.data.make_element("Names")
                 for item in namelist:
+                    assert item.name is not None
                     s = str(item.name) if not isinstance(item.data, cw.data.Variant) else ""
                     e_name = cw.data.make_element("Name", s)
                     if isinstance(item.data, cw.data.YadoData):

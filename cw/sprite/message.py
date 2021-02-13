@@ -1462,7 +1462,7 @@ class NameListItem(object):
     def __init__(self, data: Optional[Union[str, Optional[cw.character.Character], cw.header.CardHeader,
                                             cw.data.YadoData, cw.data.Party, cw.data.Flag, cw.data.Step,
                                             cw.data.Variant, "_NameGetter"]],
-                 name: Union[int, bool, cw.data.VariantValueType]) -> None:
+                 name: Optional[Union[int, bool, cw.data.VariantValueType]]) -> None:
         self.data = data
         self.name = name
 
