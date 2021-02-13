@@ -232,8 +232,15 @@ class SystemData(object):
                 e_vars.append(e_variant)
 
                 for name, variant in self.variants.items():
-                    e = cw.data.make_element("Variant", name, {"type": variant.type,
-                                                               "value": str(variant.value)})
+                    # CWPyのデータはテキストと子要素を両立させない構造になっているので
+                    # リストの場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
+                    if variant.type == "List":
+                        e = cw.data.make_element("Variant", "")
+                        e.append(cw.data.make_element("Name", name))
+                        Variant.value_to_element(variant.value, e)
+                    else:
+                        e = cw.data.make_element("Variant", name)
+                        Variant.value_to_element(variant.value, e)
                     e_variant.append(e)
         else:
             data.remove(".", e_vars)
@@ -276,11 +283,16 @@ class SystemData(object):
                 self.steps[e.text].value = e.getint(".", "value")
 
         for e in data.getfind("Variants", raiseerror=False):
-            if e.text in self.variants:
-                vtype = e.getattr(".", "type")
-                value = e.getattr(".", "value", "")
-                v_value = Variant.value_from_str(vtype, value)
-                self.variants[e.text].value = v_value
+            e_name = e.find("Name")
+            if e_name is None:
+                # 値がリスト以外の場合はテキストがそのままパスになっている
+                name = e.text
+            else:
+                # 値がリストの場合は<Name>要素が存在している
+                name = e_name.text
+            if name in self.variants:
+                v_value = Variant.value_from_element(e)
+                self.variants[name].value = v_value
 
     def reset_variables(self) -> None:
         """すべての状態変数を初期化する。"""
@@ -297,9 +309,7 @@ class SystemData(object):
             self.flags[name].redraw_cards()
 
         for e in self.summary.getfind("Variants", raiseerror=False):
-            vtype = e.getattr(".", "defaulttype")
-            s_value = e.getattr(".", "defaultvalue", "")
-            v_value = Variant.value_from_str(vtype, s_value)
+            v_value = Variant.value_from_element(e, "defaulttype", "defaultvalue")
             name = e.gettext("Name", "")
             self.variants[name].set(v_value)
 
@@ -2271,15 +2281,10 @@ def init_variants(data: Union["CWPyElementTree", "CWPyElement"], writable: bool)
     variants = {}
 
     for e in data.getfind("Variants", raiseerror=False):
-        deftype = e.getattr(".", "defaulttype", "String")
-        vtype = e.getattr(".", "type", deftype)
-        defvalue = e.getattr(".", "defaultvalue", "")
-        value = e.getattr(".", "value", defvalue)
-
-        v_value = Variant.value_from_str(vtype, value)
-        v_defvalue = Variant.value_from_str(deftype, defvalue)
+        defvalue = Variant.value_from_element(e, "defaulttype", "defaultvalue")
+        value = Variant.value_from_element(e) if e.get("type", "") != "" else defvalue
         name = e.gettext("Name", "")
-        variants[name] = Variant(data if writable else None, e, v_value, name, defaultvalue=v_defvalue)
+        variants[name] = Variant(data if writable else None, e, value, name, defaultvalue=defvalue)
 
     return variants
 
@@ -2427,7 +2432,9 @@ class Step(object):
                 self._parent.is_edited = True
 
 
-VariantValueType = Union[str, decimal.Decimal, bool]
+# BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
+# VariantValueType = Union[str, decimal.Decimal, bool, List["VariantValueType"]]
+VariantValueType = Union[str, decimal.Decimal, bool, List[Union[str, decimal.Decimal, bool]]]
 
 
 class Variant(object):
@@ -2458,17 +2465,40 @@ class Variant(object):
             return "Boolean"
         elif isinstance(value, decimal.Decimal):
             return "Number"
-        else:
+        elif isinstance(value, str):
             return "String"
+        else:
+            return "List"
 
     @staticmethod
-    def value_from_str(vtype: str, s: str) -> VariantValueType:
+    def value_from_element(e: "cw.data.CWPyElement", typeattr: str = "type",
+                           valueattr: Optional[str] = "value") -> VariantValueType:
+        vtype = e.getattr(".", typeattr)
         if vtype == "Boolean":
-            return cw.util.str2bool(s)
+            if valueattr is None:
+                return cw.util.str2bool(e.text)
+            else:
+                return e.getbool(".", valueattr)
         elif vtype == "Number":
-            return decimal.Decimal(s)
-        else:  # String
-            return s
+            if valueattr is None:
+                return decimal.Decimal(e.text)
+            else:
+                return decimal.Decimal(e.getattr(".", valueattr))
+        elif vtype == "String":
+            if valueattr is None:
+                return e.text
+            else:
+                return e.getattr(".", valueattr)
+        elif vtype == "List":
+            seq: List[VariantValueType] = []
+            for ve in e:
+                if ve.tag == "Value":
+                    seq.append(Variant.value_from_element(ve))
+            # BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
+            # return seq
+            return typing.cast(VariantValueType, seq)
+        else:
+            raise ValueError("Invalid variant type: %s" % vtype)
 
     @staticmethod
     def value_to_str(value: VariantValueType) -> str:
@@ -2479,8 +2509,27 @@ class Variant(object):
             if s == "":
                 s = "0"
             return s
-        else:
+        elif isinstance(value, str):
             return value
+        else:
+            def to_str(val: VariantValueType) -> str:
+                if isinstance(val, str):
+                    return "\"" + val.replace("\"", "\"\"") + "\""
+                else:
+                    return Variant.value_to_str(val)
+
+            return "LIST(" + ", ".join(map(to_str, value)) + ")"
+
+    @staticmethod
+    def value_to_element(value: VariantValueType, e: "cw.data.CWPyElement", typeattr: str = "type") -> None:
+        e.set(typeattr, Variant.value_to_type(value))
+        if isinstance(value, list):
+            for val in value:
+                ve = make_element("Value")
+                Variant.value_to_element(val, ve)
+                e.append(ve)
+        else:
+            e.set("value", Variant.value_to_str(value))
 
     def string_value(self) -> str:
         return Variant.value_to_str(self.value)
@@ -2489,10 +2538,26 @@ class Variant(object):
         if self.is_writable and self.initialization != "EventExit":
             assert self._parent is not None
             assert self._data is not None
-            self._data.set("type", self.type)
-            self._data.set("value", str(self.value))
+            Variant._write_value(self._data, self.value)
             if isinstance(self._parent, CWPyElementTree):
                 self._parent.is_edited = True
+
+    @staticmethod
+    def _write_value(e: "CWPyElement", val: VariantValueType) -> None:
+        # <Value>のみ削除する
+        e_name = e.find("Name")
+        del e[:]
+        if e_name is not None:
+            e.append(e_name)
+
+        e.set("type", Variant.value_to_type(val))
+        if isinstance(val, list):
+            for c in val:
+                e2 = make_element("Value")
+                Variant._write_value(e2, c)
+                e.append(e2)
+        else:
+            e.set("value", str(val))
 
 
 # ------------------------------------------------------------------------------
@@ -3916,10 +3981,7 @@ class YadoData(object):
             name = e_variant.getattr(".", "name", "")
             if not name:
                 continue
-            vtype = e_variant.getattr(".", "type", "")
-            if not vtype:
-                continue
-            value = Variant.value_from_str(vtype, e_variant.getattr(".", "value", ""))
+            value = Variant.value_from_element(e_variant)
             variants[name] = value
         return flags, steps, variants
 
@@ -4022,9 +4084,9 @@ class YadoData(object):
             e_variants = make_element("Variants")
             e.append(e_variants)
             for name, v_value in d_variants.items():
-                e_variants.append(make_element("Variant", attrs={"name": name,
-                                                                 "type": Variant.value_to_type(v_value),
-                                                                 "value": str(v_value)}))
+                ve = make_element("Variant", attrs={"name": name})
+                Variant.value_to_element(v_value, ve)
+                e_variants.append(ve)
 
         self.environment.is_edited = True
         self.saved_variables[key] = (e, d_flags, d_steps, d_variants)

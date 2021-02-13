@@ -2056,14 +2056,29 @@ class VariableListCtrl(wx.ListCtrl):
             dlg.Destroy()
 
     def _edit_variant(self, variant: cw.data.Variant, local: bool) -> None:
-        dlg = cw.debug.edit.VariantEditDialog(self.Parent, variant.name, "コモンの型と値", variant.value)
-        if dlg.ShowModal() == wx.ID_OK:
-            def func(item: cw.data.Variant, local: bool, value: cw.data.VariantValueType) -> None:
-                item.set(value)
-                item.write_value()
-                self._update_variablesowner()
-            cw.cwpy.exec_func(func, variant, local, dlg.value)
-        dlg.Destroy()
+        def func(self: VariableListCtrl, variant: cw.data.Variant, local: bool) -> None:
+            def func(self: VariableListCtrl, variant: cw.data.Variant, local: bool,
+                     is_differentscenario: bool) -> None:
+                dlg = cw.debug.edit.VariantEditDialog(self.Parent, variant.name, "コモンの型と値", variant.value,
+                                                      is_differentscenario)
+                if dlg.ShowModal() == wx.ID_OK:
+                    def func(item: cw.data.Variant, local: bool, value: cw.data.VariantValueType) -> None:
+                        item.set(value)
+                        item.write_value()
+                        self._update_variablesowner()
+                    assert dlg.value is not None
+                    cw.cwpy.exec_func(func, variant, local, dlg.value)
+                dlg.Destroy()
+            if local and cw.cwpy.event.in_inusecardevent:
+                assert cw.cwpy.is_playingscenario()
+                inusecard = cw.cwpy.event.get_inusecard()
+                assert inusecard
+                is_differentscenario = cw.cwpy.sdata.name != inusecard.scenario or\
+                    cw.cwpy.sdata.author != inusecard.author
+            else:
+                is_differentscenario = False
+            cw.cwpy.frame.exec_func(func, self, variant, local, is_differentscenario)
+        cw.cwpy.exec_func(func, self, variant, local)
 
     def OnGetItemText(self, row: int, col: int) -> str:
         i, _local, _editable = self.list[row]

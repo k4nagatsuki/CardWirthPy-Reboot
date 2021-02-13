@@ -169,35 +169,12 @@ class EventContentBase(object):
                 cw.cwpy.input()
                 cw.cwpy.get_eventhandler().run()
 
-    def variant_error(self, msg: str = "", ex: Optional[Exception] = None) -> None:
+    def variant_error(self, msg: str = "", ex: Optional["cw.calculator.ComputeException"] = None) -> None:
         desc = "コモンの処理でエラーが発生しました。"
         if msg:
             desc += "\n" + msg
         if ex:
-            if isinstance(ex, cw.calculator.TokanizeException):
-                desc += "\n" + "使用できない文字があります(行:%s 位置:%s)" % (ex.line, ex.pos)
-            elif isinstance(ex, cw.calculator.SemanticsException):
-                desc += "\n" + "構文が正しくありません(行:%s 位置:%s)" % (ex.line, ex.pos)
-            elif isinstance(ex, cw.calculator.FunctionIsNotDefinedException):
-                desc += "\n" + "関数 %s は定義されていません。" % (ex.func_name)
-            elif isinstance(ex, cw.calculator.ArgumentIsNotDecimalException):
-                desc += "\n" + "関数 %s の %s 番目の引数が数値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calculator.ArgumentIsNotStringException):
-                desc += "\n" + "関数 %s の %s 番目の引数が文字列ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calculator.ArgumentIsNotBooleanException):
-                desc += "\n" + "関数 %s の %s 番目の引数が真偽値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calculator.ArgumentsCountException):
-                desc += "\n" + "関数 %s の呼び出し引数の数が間違っています。" % (ex.func_name)
-            elif isinstance(ex, cw.calculator.InvalidArgumentException):
-                desc += "\n" + "関数 %s の %s 番目の引数の値が間違っています(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
-            elif isinstance(ex, cw.calculator.VariantNotFoundException):
-                desc += "\n" + "コモン『%s』はありません。" % (ex.path)
-            elif isinstance(ex, cw.calculator.FlagNotFoundException):
-                desc += "\n" + "フラグ『%s』はありません。" % (ex.path)
-            elif isinstance(ex, cw.calculator.StepNotFoundException):
-                desc += "\n" + "ステップ『%s』はありません。" % (ex.path)
-            elif isinstance(ex, cw.calculator.DifferentScenarioException):
-                desc += "\n" + "シナリオ名と作者名が一致しないため、状態変数にアクセスできません。"
+            desc += "\n" + variant_error_msg(ex)
 
         cw.cwpy.play_sound("error")
 
@@ -294,6 +271,39 @@ class EventContentBase(object):
             "item": "アイテムカード",  # 1.50
             "beast": "召喚獣カード",  # 1.50
         }
+
+
+def variant_error_msg(ex: "cw.calculator.ComputeException") -> str:
+    if isinstance(ex, cw.calculator.TokanizeException):
+        return "使用できない文字があります(行:%s 位置:%s)" % (ex.line, ex.pos)
+    elif isinstance(ex, cw.calculator.SemanticsException):
+        return "構文が正しくありません(行:%s 位置:%s)" % (ex.line, ex.pos)
+    elif isinstance(ex, cw.calculator.FunctionIsNotDefinedException):
+        return "関数 %s は定義されていません。" % (ex.func_name)
+    elif isinstance(ex, cw.calculator.ArgumentIsNotDecimalException):
+        return "関数 %s の %s 番目の引数が数値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+    elif isinstance(ex, cw.calculator.ArgumentIsNotStringException):
+        return "関数 %s の %s 番目の引数が文字列ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+    elif isinstance(ex, cw.calculator.ArgumentIsNotBooleanException):
+        return "関数 %s の %s 番目の引数が真偽値ではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+    elif isinstance(ex, cw.calculator.ArgumentsCountException):
+        return "関数 %s の呼び出し引数の数が間違っています。" % (ex.func_name)
+    elif isinstance(ex, cw.calculator.InvalidArgumentException):
+        return "関数 %s の %s 番目の引数の値が間違っています(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+    elif isinstance(ex, cw.calculator.VariantNotFoundException):
+        return "コモン『%s』はありません。" % (ex.path)
+    elif isinstance(ex, cw.calculator.FlagNotFoundException):
+        return "フラグ『%s』はありません。" % (ex.path)
+    elif isinstance(ex, cw.calculator.StepNotFoundException):
+        return "ステップ『%s』はありません。" % (ex.path)
+    elif isinstance(ex, cw.calculator.DifferentScenarioException):
+        return "シナリオ名と作者名が一致しないため、状態変数にアクセスできません。"
+    elif isinstance(ex, cw.calculator.ListIndexOutOfRangeException):
+        return "リストに%s番目の要素は存在しません(リストの長さ = %s)。" % (ex.n, ex.list_len)
+    elif isinstance(ex, cw.calculator.ArgumentIsNotListException):
+        return "関数 %s の %s 番目の引数がリストではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+    else:
+        assert False
 
 
 # ------------------------------------------------------------------------------

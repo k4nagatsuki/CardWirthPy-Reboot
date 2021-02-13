@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import time
+import threading
 import decimal
 import wx
 import wx.lib.mixins.listctrl as listmix
 
 import cw
 
-from typing import Callable, Dict, Iterable, List, Reversible, Set, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Optional, Reversible, Set, Tuple, TypeVar
 
 
 # ------------------------------------------------------------------------------
@@ -1633,26 +1635,38 @@ def down_to_bottom(values: EditableListCtrl, seq: List[_T], indexes: Reversible[
 
 class VariantEditDialog(wx.Dialog):
 
-    def __init__(self, parent: wx.TopLevelWindow, title: str, label: str, value: cw.data.VariantValueType) -> None:
+    def __init__(self, parent: wx.TopLevelWindow, title: str, label: str, value: cw.data.VariantValueType,
+                 is_differentscenario: bool) -> None:
         wx.Dialog.__init__(self, parent, -1, title,
-                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
+                           style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.RESIZE_BORDER)
         self.cwpy_debug = True
-        self.value = value
+        self.value: Optional[cw.data.VariantValueType] = value
+        self.is_differentscenario = is_differentscenario
+        self._expression = ""
+        self._time_modified = 0.0
 
         self.box = wx.StaticBox(self, -1, label)
 
         self.type_num = wx.RadioButton(self, -1, "数値")
         self.type_str = wx.RadioButton(self, -1, "文字列")
         self.type_bool = wx.RadioButton(self, -1, "真偽値")
+        self.type_expr = wx.RadioButton(self, -1, "式から設定")
 
         self.value_num = wx.TextCtrl(self, -1, "0", style=wx.ALIGN_RIGHT)
         self._value_num_colour = self.value_num.GetBackgroundColour()
         self.value_str = wx.TextCtrl(self, -1)
         self.value_bool = wx.Choice(self, -1, choices=["TRUE", "FALSE"])
+        self.value_expr = wx.TextCtrl(self, -1, "", size=cw.ppis((200, 50)), style=wx.TE_MULTILINE)
+        self.value_expr.SetFont(wx.Font(self.value_expr.GetFont().GetPointSize(), wx.FONTFAMILY_TELETYPE, wx.NORMAL,
+                                        wx.NORMAL, faceName="Monospace"))
+        self._value_expr_colour = self.value_expr.GetBackgroundColour()
         self.value_bool.Select(0)
         self.value_num.Disable()
         self.value_str.Disable()
         self.value_bool.Disable()
+        self.value_expr.Disable()
+
+        self.errors = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
 
         if isinstance(value, bool):
             self.type_bool.SetValue(True)
@@ -1668,27 +1682,39 @@ class VariantEditDialog(wx.Dialog):
             except Exception:
                 self.value_num.SetValue("0")
             self.value_num.Enable()
-        else:
+        elif isinstance(value, str):
             self.type_str.SetValue(True)
             self.value_str.SetValue(cw.data.Variant.value_to_str(value))
             self.value_str.Enable()
+        else:
+            assert isinstance(value, list)
+            self.type_expr.SetValue(True)
+            self.value_expr.SetValue(cw.data.Variant.value_to_str(value))
+            self.value_expr.Enable()
 
         # btn
         self.okbtn = wx.Button(self, wx.ID_OK, "&OK", (cw.ppis(100), -1))
         self.cnclbtn = wx.Button(self, wx.ID_CANCEL, "&Cancel", (cw.ppis(100), -1))
 
         self._update_value()
+        self.okbtn.Enable(True)
 
         self._do_layout()
         self._bind()
 
+        thr = threading.Thread(target=self._eval_thr)
+        thr.start()
+
     def _bind(self) -> None:
+        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_bool)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_num)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_str)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnType, self.type_expr)
         self.Bind(wx.EVT_CHOICE, self.OnValue, self.value_bool)
         self.Bind(wx.EVT_TEXT, self.OnValue, self.value_num)
         self.Bind(wx.EVT_TEXT, self.OnValue, self.value_str)
+        self.Bind(wx.EVT_TEXT, self.OnValue, self.value_expr)
 
     def _do_layout(self) -> None:
         sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
@@ -1696,29 +1722,48 @@ class VariantEditDialog(wx.Dialog):
         sizer_grid.Add(self.type_num, pos=(0, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
         sizer_grid.Add(self.type_str, pos=(1, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
         sizer_grid.Add(self.type_bool, pos=(2, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.type_expr, pos=(3, 0), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
         sizer_grid.Add(self.value_num, pos=(0, 1), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
         sizer_grid.Add(self.value_str, pos=(1, 1), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
         sizer_grid.Add(self.value_bool, pos=(2, 1), flag=wx.ALL | wx.ALIGN_CENTRE_VERTICAL, border=cw.ppis(3))
+        sizer_grid.Add(self.value_expr, pos=(3, 1), flag=wx.ALL | wx.EXPAND, border=cw.ppis(3))
+        sizer_grid.Add(self.errors, pos=(4, 0), flag=wx.ALL | wx.EXPAND, border=cw.ppis(3))
+        sizer_grid.SetItemSpan(self.errors, wx.GBSpan(1, 2))
+        sizer_grid.AddGrowableRow(3)
+        sizer_grid.AddGrowableCol(1)
         sizer_box.Add(sizer_grid, 1, wx.EXPAND, 0)
 
         sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
         sizer_buttons.AddStretchSpacer(0)
-        sizer_buttons.Add(self.okbtn, 1, wx.EXPAND | wx.RIGHT, cw.ppis(5))
+        sizer_buttons.Add(self.okbtn, 1, wx.RIGHT, cw.ppis(5))
         sizer_buttons.AddStretchSpacer(0)
-        sizer_buttons.Add(self.cnclbtn, 1, wx.EXPAND, cw.ppis(0))
+        sizer_buttons.Add(self.cnclbtn, 1, 0, cw.ppis(0))
         sizer_buttons.AddStretchSpacer(0)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_box, 1, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, cw.ppis(15))
-        sizer.Add(sizer_buttons, 0, wx.ALL | wx.EXPAND, cw.ppis(15))
+        sizer.Add(sizer_buttons, 0, wx.ALL | wx.ALIGN_RIGHT, cw.ppis(15))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnOkBtn(self, event: wx.CommandEvent) -> None:
+        if self.type_expr.GetValue():
+            try:
+                self.value = cw.calculator.eval_expr(cw.calculator.parse(self.value_expr.GetValue()),
+                                                     self.is_differentscenario).value
+            except cw.calculator.ComputeException:
+                return
+            except Exception:
+                cw.util.print_ex(file=sys.stderr)
+                raise
+        self.EndModal(wx.ID_OK)
 
     def OnType(self, event: wx.CommandEvent) -> None:
         self.value_num.Enable(self.type_num.GetValue())
         self.value_str.Enable(self.type_str.GetValue())
         self.value_bool.Enable(self.type_bool.GetValue())
+        self.value_expr.Enable(self.type_expr.GetValue())
         self._update_value()
 
     def OnValue(self, event: wx.CommandEvent) -> None:
@@ -1726,22 +1771,75 @@ class VariantEditDialog(wx.Dialog):
 
     def _update_value(self) -> None:
         if self.type_bool.GetValue():
+            self._expression = ""
             self.value = self.value_bool.GetSelection() == 0
+            self.errors.SetValue("")
         elif self.type_num.GetValue():
+            self._expression = ""
             try:
                 self.value = decimal.Decimal(self.value_num.GetValue())\
                     .quantize(decimal.Decimal('.001'), rounding=decimal.ROUND_HALF_UP).normalize()
                 if self._value_num_colour != self.value_num.GetBackgroundColour():
                     self.value_num.SetBackgroundColour(self._value_num_colour)
                     self.value_num.Refresh()
+                self.errors.SetValue("")
             except Exception:
-                cw.util.print_ex()
                 colour = wx.Colour(255, 255, 0)
                 if colour != self.value_num.GetBackgroundColour():
                     self.value_num.SetBackgroundColour(colour)
                     self.value_num.Refresh()
-        else:
+                self.value = None
+                self.errors.SetValue("入力値を数値に変換できません")
+        elif self.type_str.GetValue():
+            self._expression = ""
             self.value = self.value_str.GetValue()
+            self.errors.SetValue("")
+        else:
+            self.value = None
+            self._expression = self.value_expr.GetValue()
+            self._time_modified = time.time()
+
+        if not self.type_num.GetValue() and self._value_num_colour != self.value_num.GetBackgroundColour():
+            self.value_num.SetBackgroundColour(self._value_num_colour)
+        if not self.type_expr.GetValue() and self._value_expr_colour != self.value_expr.GetBackgroundColour():
+            self.value_expr.SetBackgroundColour(self._value_expr_colour)
+
+        self.okbtn.Enable(self.value is not None)
+
+    def _eval_thr(self) -> None:
+        while self:
+            # レスポンスが悪くなるのを避けるため、
+            # 最後の入力から一定時間経過後に文法チェックを行う
+            if time.time() < self._time_modified or self._time_modified + 0.5 < time.time() and self._expression:
+                try:
+                    value: Optional[cw.data.VariantValueType] =\
+                        cw.calculator.eval_expr(cw.calculator.parse(self._expression), self.is_differentscenario).value
+                    desc = ""
+                except cw.calculator.ComputeException as ex:
+                    value = None
+                    desc = cw.content.variant_error_msg(ex)
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    raise
+                self._expression = ""
+
+                def func(self: VariantEditDialog, value: Optional[cw.data.VariantValueType], desc: str) -> None:
+                    if not self:
+                        return
+                    self.value = value
+                    self.errors.SetValue(desc)
+                    if value is None:
+                        colour = wx.Colour(255, 255, 0)
+                        if colour != self.value_expr.GetBackgroundColour():
+                            self.value_expr.SetBackgroundColour(colour)
+                            self.value_expr.Refresh()
+                    elif self._value_expr_colour != self.value_expr.GetBackgroundColour():
+                        self.value_expr.SetBackgroundColour(self._value_expr_colour)
+                        self.value_expr.Refresh()
+                    self.okbtn.Enable(self.value is not None)
+
+                cw.cwpy.frame.exec_func(func, self, value, desc)
+            time.sleep(0.001)
 
 
 def main() -> None:
