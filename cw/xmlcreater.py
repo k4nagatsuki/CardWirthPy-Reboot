@@ -1190,7 +1190,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             if namelist:
                 e = cw.data.make_element("Names")
                 for item in namelist:
-                    e_name = cw.data.make_element("Name", str(item.name))
+                    s = str(item.name) if not isinstance(item.data, cw.data.Variant) else ""
+                    e_name = cw.data.make_element("Name", s)
                     if isinstance(item.data, cw.data.YadoData):
                         e_name.set("type", "Yado")
                     elif isinstance(item.data, cw.data.Party):
@@ -1208,7 +1209,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                     elif isinstance(item.data, cw.data.Variant):
                         e_name.set("type", "Variant")
                         e_name.set("variant", item.data.name)
-                        e_name.set("valuetype", item.data.type)
+                        if isinstance(item.name, list):
+                            cw.data.Variant.value_to_element(item.name, e_name, typeattr="valuetype")
+                        else:
+                            assert isinstance(item.name, bool) or not isinstance(item.name, int)
+                            e_name.set("valuetype", cw.data.Variant.value_to_type(item.name))
+                            e_name.text = cw.data.Variant.value_to_str(item.name)
                     elif item.data == "Number":
                         e_name.set("type", "Number")
                     e.append(e_name)
@@ -1314,8 +1320,15 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
         element.append(e_variant)
 
         for name, variant in sdata.variants.items():
-            e = cw.data.make_element("Variant", name, {"type": variant.type,
-                                                       "value": str(variant.value)})
+            # CWPyのデータはテキストと子要素を両立させない構造になっているので
+            # リストの場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
+            if variant.type == "List":
+                e = cw.data.make_element("Variant", "")
+                e.append(cw.data.make_element("Name", name))
+                cw.data.Variant.value_to_element(variant.value, e)
+            else:
+                e = cw.data.make_element("Variant", name)
+                cw.data.Variant.value_to_element(variant.value, e)
             e_variant.append(e)
 
     if not recording:

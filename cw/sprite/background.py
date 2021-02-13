@@ -3,6 +3,7 @@
 
 import itertools
 import os
+import sys
 
 import pygame
 import pygame.surface
@@ -606,7 +607,7 @@ class BackGround(base.CWPySprite):
             try:
                 for e_name in e_names:
                     vtype = e_name.getattr(".", "type", "")
-                    name: Union[int, bool, cw.data.VariantValueType] = e_name.text if e_name.text else ""
+                    name: Union[int, bool, cw.data.VariantValueType] = e_name.text
                     assert isinstance(name, str)
                     data: Optional[Union[cw.data.YadoData, cw.data.Party, cw.character.Player,
                                          cw.data.Flag, cw.data.Step, cw.data.Variant, str]]
@@ -637,8 +638,7 @@ class BackGround(base.CWPySprite):
                             data = cw.sprite.message.get_spstep(name2)
                     elif vtype == "Variant":
                         name2 = e_name.getattr(".", "variant", "")
-                        vtype = e_name.getattr(".", "valuetype")
-                        name = cw.data.Variant.value_from_str(vtype, name)
+                        name = cw.data.Variant.value_from_element(e_name, "valuetype", None)
                         if name2 in cw.cwpy.sdata.variants:
                             data = cw.cwpy.sdata.variants[name2]
                         else:
@@ -650,6 +650,7 @@ class BackGround(base.CWPySprite):
                         data = None
                     namelist.append(cw.sprite.message.NameListItem(data, name))
             except Exception:
+                cw.util.print_ex(file=sys.stderr)
                 namelist = []
 
         return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
@@ -1000,7 +1001,8 @@ class BackGround(base.CWPySprite):
         if image and image.get_size() != (0, 0):
             self.store_filepath(path)
             d2 = (image, size, pos, 0)
-            blitlist.append((BG_IMAGE, d2, flag, layer))
+            if visible:
+                blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, True, layer,
                                    cellname)))
         else:
@@ -1026,6 +1028,8 @@ class BackGround(base.CWPySprite):
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
                 bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
         flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
+        if nocheckvisible:
+            flagvalue = visible
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
             text2 = cw.util.decodewrap(text)
@@ -1040,8 +1044,6 @@ class BackGround(base.CWPySprite):
             # loaded = True
         else:
             text2 = text
-        if nocheckvisible:
-            flagvalue = visible
         d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
              btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, flagvalue, layer, cellname)
         if visible:
@@ -1231,8 +1233,7 @@ class BackGround(base.CWPySprite):
             bgtype, d2, flag, layer = t
             if layer == cw.LAYER_BACKGROUND:
                 # 特別なレイヤ指定が無いので本当の背景に描画
-                if cw.cwpy.sdata.get_flagvalue(flag):
-                    _draw_bgcell(self.image, (bgtype, d2))
+                _draw_bgcell(self.image, (bgtype, d2))
             else:
                 # それよりも手前に描画する場合はスプライトを生成する
                 if redisplay:

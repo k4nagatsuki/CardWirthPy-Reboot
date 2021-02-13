@@ -8,6 +8,7 @@ import fnmatch
 
 import cw
 
+import typing
 from typing import Callable, List, Optional, Tuple, Union
 
 
@@ -48,7 +49,7 @@ class FunctionIsNotDefinedException(ComputeException):
 
 class ArgumentIsNotDecimalException(ComputeException):
     """関数の引数が数値でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str,
                  line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
@@ -58,7 +59,7 @@ class ArgumentIsNotDecimalException(ComputeException):
 
 class ArgumentIsNotStringException(ComputeException):
     """関数の引数が文字列でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str,
                  line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
@@ -68,7 +69,17 @@ class ArgumentIsNotStringException(ComputeException):
 
 class ArgumentIsNotBooleanException(ComputeException):
     """関数の引数が真偽値でない。"""
-    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: cw.data.VariantValueType,
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str,
+                 line: int, pos: int) -> None:
+        ComputeException.__init__(self, msg, line, pos)
+        self.func_name = func_name
+        self.arg_index = arg_index
+        self.arg_value = arg_value
+
+
+class ArgumentIsNotListException(ComputeException):
+    """関数の引数がリストでない。"""
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str,
                  line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.func_name = func_name
@@ -90,6 +101,18 @@ class InvalidArgumentException(ComputeException):
         self.func_name = func_name
         self.arg_index = arg_index
         self.arg_value = arg_value
+
+
+class ListIndexOutOfRangeException(ComputeException):
+    """リストにn番目の要素は存在しない。"""
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str, n: int, list_len: int, line: int,
+                 pos: int) -> None:
+        ComputeException.__init__(self, msg, line, pos)
+        self.func_name = func_name
+        self.arg_index = arg_index
+        self.arg_value = arg_value
+        self.n = n
+        self.list_len = list_len
 
 
 class VariantNotFoundException(ComputeException):
@@ -168,15 +191,15 @@ class UnaryOperator(object):
         o = self.operator
         if o == '+':
             if not isinstance(rhs, DecimalValue):
-                raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+                raise SemanticsException("value [%s] is not number." % rhs.to_str(), rhs.line, rhs.pos)
             return DecimalValue(rhs.value, self.line, self.pos)
         elif o == '-':
             if not isinstance(rhs, DecimalValue):
-                raise SemanticsException("value [%s] is not number." % rhs.value, rhs.line, rhs.pos)
+                raise SemanticsException("value [%s] is not number." % rhs.to_str(), rhs.line, rhs.pos)
             return DecimalValue(-rhs.value, self.line, self.pos)
         elif o.lower() == "not":
             if not isinstance(rhs, BooleanValue):
-                raise SemanticsException("value [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
+                raise SemanticsException("value [%s] is not boolean." % rhs.to_str(), rhs.line, rhs.pos)
             return BooleanValue(not rhs.value, self.line, self.pos)
         else:
             raise SemanticsException("Invalid operator: %s" % o, self.line, self.pos)
@@ -192,76 +215,172 @@ class Operator(object):
         self.line = line
         self.pos = pos
 
-    def call(self, lhs: "ValueType", rhs: "ValueType") -> "ValueType":
-        o = self.operator
+    @staticmethod
+    def chk_num(lhs: "ValueType", rhs: "ValueType") -> Tuple[decimal.Decimal, decimal.Decimal]:
+        if not isinstance(lhs, DecimalValue):
+            raise SemanticsException("lhs [%s] is not number." % lhs.to_str(), lhs.line, lhs.pos)
+        if not isinstance(rhs, DecimalValue):
+            raise SemanticsException("rhs [%s] is not number." % rhs.to_str(), rhs.line, rhs.pos)
+        assert isinstance(lhs.value, decimal.Decimal)
+        assert isinstance(rhs.value, decimal.Decimal)
+        return lhs.value, rhs.value
 
-        def chk_num() -> Tuple[decimal.Decimal, decimal.Decimal]:
-            if not isinstance(lhs, DecimalValue):
-                raise SemanticsException("lhs [%s] is not number." % lhs.value, lhs.line, lhs.pos)
-            if not isinstance(rhs, DecimalValue):
-                raise SemanticsException("rhs [%s] is not number." % rhs.value, rhs.line, rhs.pos)
-            assert isinstance(lhs.value, decimal.Decimal)
-            assert isinstance(rhs.value, decimal.Decimal)
-            return lhs.value, rhs.value
+    @staticmethod
+    def chk_str(lhs: "ValueType", rhs: "ValueType") -> Tuple[str, str]:
+        if not isinstance(lhs, StringValue):
+            raise SemanticsException("lhs [%s] is not string." % lhs.to_str(), lhs.line, lhs.pos)
+        if not isinstance(rhs, StringValue):
+            raise SemanticsException("rhs [%s] is not string." % rhs.to_str(), rhs.line, rhs.pos)
+        assert isinstance(lhs.value, str)
+        assert isinstance(rhs.value, str)
+        return lhs.value, rhs.value
 
-        def chk_bool() -> Tuple[bool, bool]:
-            if not isinstance(lhs, BooleanValue):
-                raise SemanticsException("lhs [%s] is not boolean." % lhs.value, lhs.line, lhs.pos)
-            if not isinstance(rhs, BooleanValue):
-                raise SemanticsException("rhs [%s] is not boolean." % rhs.value, rhs.line, rhs.pos)
-            assert isinstance(lhs.value, bool)
-            assert isinstance(rhs.value, bool)
-            return lhs.value, rhs.value
+    @staticmethod
+    def chk_bool(lhs: "ValueType", rhs: "ValueType") -> Tuple[bool, bool]:
+        if not isinstance(lhs, BooleanValue):
+            raise SemanticsException("lhs [%s] is not boolean." % lhs.to_str(), lhs.line, lhs.pos)
+        if not isinstance(rhs, BooleanValue):
+            raise SemanticsException("rhs [%s] is not boolean." % rhs.to_str(), rhs.line, rhs.pos)
+        assert isinstance(lhs.value, bool)
+        assert isinstance(rhs.value, bool)
+        return lhs.value, rhs.value
+
+    @staticmethod
+    def chk_list(val: "ValueType") -> "ListValue":
+        if not isinstance(val, ListValue):
+            raise SemanticsException("rhs [%s] is not list." % val.to_str(), val.line, val.pos)
+        return val
+
+    @staticmethod
+    def equals(lhs: "ValueType", rhs: "ValueType", o: str, in_list: bool) -> bool:
+        if isinstance(lhs, ListValue):
+            lhs_list = lhs
+            if not in_list:
+                rhs_list = Operator.chk_list(rhs)
+            elif isinstance(rhs, ListValue):
+                rhs_list = rhs
+            else:
+                return o == "<>"
+            for i in range(min(len(lhs_list.value), len(rhs_list.value))):
+                b = Operator.equals(lhs_list.eval(i), rhs_list.eval(i), "=", True)
+                if not b:
+                    if o == "<>":
+                        b = not b
+                    return b
+            b = len(lhs_list.value) == len(rhs_list.value)
+            if o == "<>":
+                b = not b
+            return b
+
+        if not in_list and (isinstance(lhs, StringValue) or isinstance(rhs, StringValue)):
+            r = lhs.to_str() == rhs.to_str()
+        elif isinstance(lhs, StringValue):
+            if in_list and not isinstance(rhs, StringValue):
+                return o == "<>"
+            lhs_str, rhs_str = Operator.chk_str(lhs, rhs)
+            r = lhs_str == rhs_str
+        elif isinstance(lhs, BooleanValue):
+            if in_list and not isinstance(rhs, BooleanValue):
+                return o == "<>"
+            lhs_bool, rhs_bool = Operator.chk_bool(lhs, rhs)
+            r = lhs_bool == rhs_bool
+        else:
+            if in_list and not isinstance(rhs, DecimalValue):
+                return o == "<>"
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
+            r = lhs_int == rhs_int
+        if o == "<>":
+            r = not r
+        return r
+
+    def call(self, lhs: "ValueType", rhs: "ValueType", o: Optional[str] = None) -> "ValueType":
+        if o is None:
+            o = self.operator
         if o == '+':
-            lhs_int, rhs_int = chk_num()
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return DecimalValue(lhs_int + rhs_int, self.line, self.pos)
         elif o == '-':
-            lhs_int, rhs_int = chk_num()
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return DecimalValue(lhs_int - rhs_int, self.line, self.pos)
         elif o == '*':
-            lhs_int, rhs_int = chk_num()
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return DecimalValue(lhs_int * rhs_int, self.line, self.pos)
         elif o == '/':
-            lhs_int, rhs_int = chk_num()
-            if rhs.value == 0:
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
+            if rhs_int == 0:
                 raise ZeroDivisionException("Division by zero.", self.line, self.pos)
             return DecimalValue(lhs_int / rhs_int, self.line, self.pos)
         elif o == '%':
-            lhs_int, rhs_int = chk_num()
-            if rhs.value == 0:
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
+            if rhs_int == 0:
                 raise ZeroDivisionException("Division by zero.", self.line, self.pos)
             return DecimalValue(lhs_int % rhs_int, self.line, self.pos)
         elif o == '~':
+            if isinstance(lhs, ListValue):
+                if isinstance(rhs, ListValue):
+                    return ListValue(lhs.value + rhs.value, self.line, self.pos)
+                else:
+                    return ListValue(lhs.value + [rhs], self.line, self.pos)
+            elif isinstance(rhs, ListValue):
+                lhs2: List[Union[ValueType, Callable[[], ValueType]]] = [lhs]
+                return ListValue(lhs2 + rhs.value, self.line, self.pos)
             return StringValue(lhs.to_str() + rhs.to_str(), self.line, self.pos)
         elif o == "<=":
-            lhs_int, rhs_int = chk_num()
+            if isinstance(lhs, ListValue):
+                lhs_list = lhs
+                rhs_list = Operator.chk_list(rhs)
+                for i in range(min(len(lhs_list.value), len(rhs_list.value))):
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), "<")
+                    assert isinstance(b, BooleanValue)
+                    if b.value:
+                        return b
+                return BooleanValue(len(lhs_list.value) <= len(rhs_list.value), self.line, self.pos)
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return BooleanValue(lhs_int <= rhs_int, self.line, self.pos)
         elif o == ">=":
-            lhs_int, rhs_int = chk_num()
+            if isinstance(lhs, ListValue):
+                lhs_list = lhs
+                rhs_list = Operator.chk_list(rhs)
+                for i in range(min(len(lhs_list.value), len(rhs_list.value))):
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), ">")
+                    assert isinstance(b, BooleanValue)
+                    if b.value:
+                        return b
+                return BooleanValue(len(lhs_list.value) >= len(rhs_list.value), self.line, self.pos)
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return BooleanValue(lhs_int >= rhs_int, self.line, self.pos)
         elif o == "<":
-            lhs_int, rhs_int = chk_num()
+            if isinstance(lhs, ListValue):
+                lhs_list = lhs
+                rhs_list = Operator.chk_list(rhs)
+                for i in range(min(len(lhs_list.value), len(rhs_list.value))):
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), "<")
+                    assert isinstance(b, BooleanValue)
+                    if b.value:
+                        return b
+                return BooleanValue(len(lhs_list.value) < len(rhs_list.value), self.line, self.pos)
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return BooleanValue(lhs_int < rhs_int, self.line, self.pos)
         elif o == ">":
-            lhs_int, rhs_int = chk_num()
+            if isinstance(lhs, ListValue):
+                lhs_list = lhs
+                rhs_list = Operator.chk_list(rhs)
+                for i in range(min(len(lhs_list.value), len(rhs_list.value))):
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), ">")
+                    assert isinstance(b, BooleanValue)
+                    if b.value:
+                        return b
+                return BooleanValue(len(lhs_list.value) > len(rhs_list.value), self.line, self.pos)
+            lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return BooleanValue(lhs_int > rhs_int, self.line, self.pos)
         elif o in ("=", "<>"):
-            if isinstance(lhs, StringValue) or isinstance(rhs, StringValue):
-                r = lhs.to_str() == rhs.to_str()
-            elif isinstance(lhs, BooleanValue) or isinstance(rhs, BooleanValue):
-                lhs_bool, rhs_bool = chk_bool()
-                r = lhs_bool == rhs_bool
-            else:
-                lhs_int, rhs_int = chk_num()
-                r = lhs_int == rhs_int
-            if o == "<>":
-                r = not r
+            r = Operator.equals(lhs, rhs, o, False)
             return BooleanValue(r, self.line, self.pos)
         elif o.lower() == "and":
-            lhs_bool, rhs_bool = chk_bool()
+            lhs_bool, rhs_bool = Operator.chk_bool(lhs, rhs)
             return BooleanValue(lhs_bool and rhs_bool, self.line, self.pos)
         elif o.lower() == "or":
-            lhs_bool, rhs_bool = chk_bool()
+            lhs_bool, rhs_bool = Operator.chk_bool(lhs, rhs)
             return BooleanValue(lhs_bool or rhs_bool, self.line, self.pos)
         else:
             raise SemanticsException("Invalid operator: %s" % o, self.line, self.pos)
@@ -282,7 +401,6 @@ class Token(object):
 
 
 class ValueType(object):
-    value: cw.data.VariantValueType
     line: int
     pos: int
 
@@ -339,6 +457,42 @@ class BooleanValue(ValueType):
 
     def __repr__(self) -> str:
         return "Boolean(\"%s\")" % self.value
+
+
+class ListValue(ValueType):
+    """リスト。"""
+    value: List[Union[ValueType, Callable[[], ValueType]]]
+
+    def __init__(self, s: List[Union[ValueType, Callable[[], ValueType]]], line: int, pos: int) -> None:
+        self.value = s
+        self.line = line
+        self.pos = pos
+
+    def eval(self, i: int) -> ValueType:
+        val = self.value[i]
+        if callable(val):
+            val2 = val()
+            self.value[i] = val2
+            return val2
+        else:
+            return val
+
+    def to_str(self) -> str:
+        def to_str(i: int) -> str:
+            v = self.eval(i)
+            if isinstance(v, StringValue):
+                return "\"" + v.value.replace("\"", "\"\"") + "\""
+            else:
+                return v.to_str()
+
+        return "LIST(" + ", ".join(map(to_str, range(len(self.value)))) + ")"
+
+    def __repr__(self) -> str:
+        return self.to_str()
+
+
+assert ListValue([ListValue([ListValue([StringValue("STR", 0, 0)], 0, 0)], 0, 0)], 0, 0).to_str() ==\
+    "LIST(LIST(LIST(\"STR\")))"
 
 
 def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
@@ -574,7 +728,16 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
 
 def eval_expr(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
               is_differentscenario: bool) -> cw.data.Variant:
-    return cw.data.Variant(None, None, calculate(st, is_differentscenario).value, "", "")
+    def to_variantvalue(val: ValueType) -> cw.data.VariantValueType:
+        if isinstance(val, ListValue):
+            # BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
+            # return [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
+            return typing.cast(cw.data.VariantValueType, [to_variantvalue(val.eval(i)) for i in range(len(val.value))])
+        else:
+            assert isinstance(val, (StringValue, DecimalValue, BooleanValue))
+            return val.value
+    val = calculate(st, is_differentscenario)
+    return cw.data.Variant(None, None, to_variantvalue(val), "", "")
 
 
 def _chk_diffsc(is_differentscenario: bool, line: int, pos: int) -> None:
@@ -599,7 +762,7 @@ def _chk_decimal(arg: ValueType, func_name: str, arg_index: int) -> decimal.Deci
         assert isinstance(arg.value, decimal.Decimal)
         return arg.value
     else:
-        raise ArgumentIsNotDecimalException("%s is not Decimal." % arg.value, func_name, arg_index, arg.to_str(),
+        raise ArgumentIsNotDecimalException("%s is not Decimal." % arg.to_str(), func_name, arg_index, arg.to_str(),
                                             arg.line, arg.pos)
 
 
@@ -619,7 +782,7 @@ def _chk_string(arg: ValueType, func_name: str, arg_index: int) -> str:
         assert isinstance(arg.value, str)
         return arg.value
     else:
-        raise ArgumentIsNotStringException("%s is not String." % arg.value, func_name, arg_index, arg.value,
+        raise ArgumentIsNotStringException("%s is not String." % arg.to_str(), func_name, arg_index, arg.to_str(),
                                            arg.line, arg.pos)
 
 
@@ -629,8 +792,18 @@ def _chk_boolean(arg: ValueType, func_name: str, arg_index: int) -> bool:
         assert isinstance(arg.value, bool)
         return arg.value
     else:
-        raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.value, func_name, arg_index, arg.value,
+        raise ArgumentIsNotBooleanException("%s is not Boolean." % arg.to_str(), func_name, arg_index, arg.to_str(),
                                             arg.line, arg.pos)
+
+
+def _chk_list(arg: ValueType, func_name: str, arg_index: int) -> ListValue:
+    """argがListValueか調べる。"""
+    if isinstance(arg, ListValue):
+        assert isinstance(arg.value, list)
+        return arg
+    else:
+        raise ArgumentIsNotListException("%s is not List." % arg.to_str(), func_name, arg_index, arg.to_str(), arg.line,
+                                         arg.pos)
 
 
 def _is_alldecimal(args: List[ValueType], func_name: str) -> bool:
@@ -648,7 +821,12 @@ def _func_max(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     """引数中の最大の値を返す。"""
     args_r = _all_eval(args)
     if len(args_r) and _is_alldecimal(args_r, "MAX"):
-        return DecimalValue(max(*map(lambda a: a.value, args_r)) if 1 < len(args_r) else args_r[0].value, line, pos)
+        def val_int(a: ValueType) -> decimal.Decimal:
+            assert isinstance(a, DecimalValue)
+            return a.value
+        val = max(*map(val_int, args_r)) if 1 < len(args_r) else val_int(args_r[0])
+        assert isinstance(val, decimal.Decimal)
+        return DecimalValue(val, line, pos)
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
 
 
@@ -656,7 +834,12 @@ def _func_min(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     """引数中の最小の値を返す。"""
     args_r = _all_eval(args)
     if len(args_r) and _is_alldecimal(args_r, "MIN"):
-        return DecimalValue(min(*map(lambda a: a.value, args_r)) if 1 < len(args_r) else args_r[0].value, line, pos)
+        def val_int(a: ValueType) -> decimal.Decimal:
+            assert isinstance(a, DecimalValue)
+            return a.value
+        val = min(*map(val_int, args_r)) if 1 < len(args_r) else val_int(args_r[0])
+        assert isinstance(val, decimal.Decimal)
+        return DecimalValue(val, line, pos)
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
 
 
@@ -756,13 +939,13 @@ def _func_value(args: List[Callable[[], ValueType]], is_differentscenario: bool,
     elif isinstance(a, StringValue):
         assert isinstance(a.value, str)
         if not _NUM_REG.match(a.value):
-            raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
+            raise InvalidArgumentException("Invalid argument: %s" % a.to_str(), "VALUE", 0, a.to_str(), a.line, a.pos)
         try:
             value = decimal.Decimal(a.value)
         except Exception:
-            raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
+            raise InvalidArgumentException("Invalid argument: %s" % a.to_str(), "VALUE", 0, a.to_str(), a.line, a.pos)
     else:
-        raise InvalidArgumentException("Invalid argument: %s" % a.value, "VALUE", 0, a.to_str(), a.line, a.pos)
+        raise InvalidArgumentException("Invalid argument: %s" % a.to_str(), "VALUE", 0, a.to_str(), a.line, a.pos)
     return DecimalValue(value, line, pos)
 
 
@@ -778,9 +961,9 @@ def _func_int(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
         try:
             value = decimal.Decimal(a.value)
         except Exception:
-            raise InvalidArgumentException("Invalid argument: %s" % a.value, "INT", 0, a.to_str(), a.line, a.pos)
+            raise InvalidArgumentException("Invalid argument: %s" % a.to_str(), "INT", 0, a.to_str(), a.line, a.pos)
     else:
-        raise InvalidArgumentException("Invalid argument: %s" % a.value, "INT", 0, a.to_str(), a.line, a.pos)
+        raise InvalidArgumentException("Invalid argument: %s" % a.to_str(), "INT", 0, a.to_str(), a.line, a.pos)
     return DecimalValue(value.to_integral_exact(decimal.ROUND_DOWN), line, pos)
 
 
@@ -815,10 +998,23 @@ def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     elif variant.type == "Number":
         assert isinstance(variant.value, decimal.Decimal)
         return DecimalValue(variant.value, line, pos)
-    else:
-        assert variant.type == "String"
+    elif variant.type == "String":
         assert isinstance(variant.value, str)
         return StringValue(variant.value, line, pos)
+    else:
+        assert variant.type == "List"
+        assert isinstance(variant.value, list)
+
+        def variantvalue_to_valuetype(val: cw.data.VariantValueType) -> ValueType:
+            if isinstance(val, str):
+                return StringValue(val, line, pos)
+            elif isinstance(val, decimal.Decimal):
+                return DecimalValue(val, line, pos)
+            elif isinstance(val, bool):
+                return BooleanValue(val, line, pos)
+            else:
+                return ListValue([variantvalue_to_valuetype(val) for val in val], line, pos)
+        return variantvalue_to_valuetype(variant.value)
 
 
 def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
@@ -1099,7 +1295,101 @@ def _func_partyname(args: List[Callable[[], ValueType]], is_differentscenario: b
     return StringValue(cw.cwpy.ydata.party.get_showingname(), line, pos)
 
 
+def _func_list(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+    """リストを生成する。"""
+    args2: List[Union[ValueType, Callable[[], ValueType]]] = []
+    args2.extend(args)
+    return ListValue(args2, line, pos)
+
+
+def _func_at(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ValueType:
+    """リストの要素を取り出す。"""
+    _chk_argscount(args, 2, "AT", line, pos)
+    args_r = _all_eval(args)
+    a = _chk_list(args_r[0], "AT", 0)
+    index = int(_chk_minvalue(args_r[1], "AT", 1, 1)) - 1
+    if len(a.value) <= index:
+        raise ListIndexOutOfRangeException("List index is out of range.", "AT", 1, args_r[1].to_str(), index + 1,
+                                           len(a.value), args_r[1].line, args_r[1].pos)
+    return a.eval(index)
+
+
+def _func_llen(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+    """リストの長さを返す。"""
+    _chk_argscount(args, 1, "LLEN", line, pos)
+    args_r = _all_eval(args)
+    a = _chk_list(args_r[0], "LLEN", 0)
+    return DecimalValue(len(a.value), line, pos)
+
+
+def _func_lfind(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+    """リスト内を検索する。"""
+    _chk_argscount2(args, 2, 3, "LFIND", line, pos)
+    args_r = _all_eval(args)
+    a = args_r[0]
+    t = _chk_list(args_r[1], "LFIND", 1)
+    if 2 < len(args_r):
+        n = args_r[2]
+        start = int(_chk_minvalue(n, "LFIND", 2))
+        if start == 0:
+            return DecimalValue(0, line, pos)
+        start -= 1
+        if len(t.value) <= start:
+            return DecimalValue(0, line, pos)
+    else:
+        start = 0
+    if not t.value:
+        return DecimalValue(0, line, pos)
+    for i in range(start, len(t.value)):
+        if Operator.equals(a, t.eval(i), "=", True):
+            return DecimalValue(i + 1, line, pos)
+    return DecimalValue(0, line, pos)
+
+
+def _func_lleft(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+    """リストの左側を取り出す。"""
+    _chk_argscount(args, 2, "LLEFT", line, pos)
+    args_r = _all_eval(args)
+    s = args_r[0]
+    n = args_r[1]
+    a = _chk_list(s, "LLEFT", 0)
+    v = min(int(_chk_minvalue(n, "LLEFT", 1)), len(a.value))
+    return ListValue(a.value[:int(v)], line, pos)
+
+
+def _func_lright(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+    """リストの右側を取り出す。"""
+    _chk_argscount(args, 2, "LRIGHT", line, pos)
+    args_r = _all_eval(args)
+    s = args_r[0]
+    n = args_r[1]
+    a = _chk_list(s, "LRIGHT", 0)
+    v = len(a.value) - min(int(_chk_minvalue(n, "LRIGHT", 1)), len(a.value))
+    return ListValue(a.value[int(v):], line, pos)
+
+
+def _func_lmid(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+    """リストの[N1-1:N1+N2]の範囲を取り出す。"""
+    _chk_argscount2(args, 2, 3, "LMID", line, pos)
+    args_r = _all_eval(args)
+    s = args_r[0]
+    n1 = args_r[1]
+    a = _chk_list(s, "LMID", 0).value
+    n1value = int(_chk_minvalue(n1, "LMID", 1, 1))
+    if len(a)+1 <= n1value:
+        a = []
+    else:
+        v = n1value - 1
+        a = a[int(v):]
+        if len(args_r) == 3:
+            n2 = args_r[2]
+            v = min(int(_chk_minvalue(n2, "LMID", 2)), len(a))
+            a = a[:int(v)]
+    return ListValue(a, line, pos)
+
+
 _functions = {
+    # Wsn.4
     "len": _func_len,
     "find": _func_find,
     "left": _func_left,
@@ -1126,103 +1416,127 @@ _functions = {
     "findgossip": _func_findgossip,
     "gossiptext": _func_gossiptext,
     "partyname": _func_partyname,
+    # Wsn.5
+    "list": _func_list,
+    "at": _func_at,
+    "llen": _func_llen,
+    "lfind": _func_lfind,
+    "lleft": _func_lleft,
+    "lright": _func_lright,
+    "lmid": _func_lmid,
 }
 
-assert calculate(parse("--5")).value == 5
-assert calculate(parse("---5")).value == -5
-assert calculate(parse("-(--5)")).value == -5
-assert calculate(parse("-- min(100,23)+5")).value == 28
-assert calculate(parse("+-Min(100,23)+ - 5")).value == -28
-assert calculate(parse("max (45, 42, 100.5,  23 ) + 0.123")).value == decimal.Decimal("100.623")
-assert calculate(parse("mAX(45,42,100.5,23)+0.123 = 100.623")).value is True
-assert calculate(parse("max(45,42,100.5,23)+0.123 <> 100.623")).value is False
-assert calculate(parse("true or false")).value is True
-assert calculate(parse("tRUe and faLSE")).value is False
-assert calculate(parse("true and true or false and false")).value is True
-assert calculate(parse("((true and true) or false) and false")).value is False
-assert calculate(parse("not false and true or false and false")).value is True
-assert calculate(parse("not false or false")).value is True
-assert calculate(parse("not not (false or false)")).value is False
-assert calculate(parse("not not not true")).value is False
-assert calculate(parse("not 1 = 2")).value is True
-assert calculate(parse("not 1 + 2 = 3")).value is False
-assert calculate(parse("nOT False And tRUe oR FALSE aND faLse")).value is True
-assert calculate(parse("NOT 1 + 2 = 3")).value is False
-assert calculate(parse("nOt 1 + 2 = 3")).value is False
-assert calculate(parse("(not true) ~ \"&\" ~ (not true)")).value == "FALSE&FALSE"
-assert calculate(parse("(5+8) % 3")).value == 1
-assert calculate(parse("5 + 8%3")).value == 7
-assert calculate(parse("-2+22*2")).value == 42
-assert calculate(parse("9/3")).value == 3
-assert calculate(parse("4<=5")).value is True
-assert calculate(parse("4<=4")).value is True
-assert calculate(parse("4<=3")).value is False
-assert calculate(parse("5>=4")).value is True
-assert calculate(parse("4>=4")).value is True
-assert calculate(parse("3>=4")).value is False
-assert calculate(parse("4<5")).value is True
-assert calculate(parse("4<4")).value is False
-assert calculate(parse("4<3")).value is False
-assert calculate(parse("5>4")).value is True
-assert calculate(parse("4>4")).value is False
-assert calculate(parse("3>4")).value is False
-assert calculate(parse("5=4")).value is False
-assert calculate(parse("4=4")).value is True
-assert calculate(parse("3=4")).value is False
-assert calculate(parse("5<>4")).value is True
-assert calculate(parse("4<>4")).value is False
-assert calculate(parse("3<>4")).value is True
-assert calculate(parse("LEN(\"TESTあいうえお\")")).value == 9
-assert calculate(parse("FIND(\"対象文字列\", \"対象文字列\")")).value == 1
-assert calculate(parse("FIND(\"文字\", \"対象文字列\")")).value == 3
-assert calculate(parse("FIND(\"文じ\", \"対象文字列\")")).value == 0
-assert calculate(parse("FIND(\"文字\", \"対象文字列\", 3)")).value == 3
-assert calculate(parse("FIND(\"文字\", \"対象文字列\", 4)")).value == 0
-assert calculate(parse("FIND(\"文字\", \"対象文字列\", 0)")).value == 0
-assert calculate(parse("FIND(\"列\", \"対象文字列\", 5)")).value == 5
-assert calculate(parse("FIND(\"列\", \"対象文字列\", 6)")).value == 0
-assert calculate(parse("FIND(\"\", \"対象文字列\")")).value == 1
-assert calculate(parse("FIND(\"\", \"対象文字列\", 5)")).value == 5
-assert calculate(parse("FIND(\"\", \"対象文字列\", 6)")).value == 0
-assert calculate(parse("FIND(\"字\", \"A象B文C字D列\")")).value == 6
-assert calculate(parse("FIND(\"字\", \"A象B文C字D列\", 6)")).value == 6
-assert calculate(parse("FIND(\"字\", \"A象B文C字D列\", 7)")).value == 0
-assert calculate(parse("FIND(\"\", \"\")")).value == 0
-assert calculate(parse("find(\"列\", \"対象文字列\", 5)")).value == 5
-assert calculate(parse("fIND(\"列\", \"対象文字列\", 5)")).value == 5
-assert calculate(parse("LEFT(\"あいうえお\", 0)")).value == ""
-assert calculate(parse("LEFT(\"あいうえお\", 3)")).value == "あいう"
-assert calculate(parse("LEFT(\"あいうえお\", 8)")).value == "あいうえお"
-assert calculate(parse("LEFT(\"あいうえお\", 8)")).value == "あいうえお"
-assert calculate(parse("Left(\"あいうえお\", 8)")).value == "あいうえお"
-assert calculate(parse("RIGHT(\"あいうえお\", 0)")).value == ""
-assert calculate(parse("RIGHT(\"あいうえお\", 3)")).value == "うえお"
-assert calculate(parse("RIGHT(\"あいうえお\", 8)")).value == "あいうえお"
-assert calculate(parse("right(\"あいうえお\", 8)")).value == "あいうえお"
-assert calculate(parse("MID(\"あいうえお\", 2, 3)")).value == "いうえ"
-assert calculate(parse("MID(\"あいうえお\", 5, 3)")).value == "お"
-assert calculate(parse("MID(\"あいうえお\", 6, 3)")).value == ""
-assert calculate(parse("MID(\"あいうえお\", 3)")).value == "うえお"
-assert calculate(parse("MID(\"あいうえお\", 5)")).value == "お"
-assert calculate(parse("MID(\"あいうえお\", 6)")).value == ""
-assert calculate(parse("MID(\"あいうえお\", 7)")).value == ""
-assert calculate(parse("mId(\"あいうえお\", 7)")).value == ""
-assert calculate(parse("STR(\"あいうえお\")")).value == "あいうえお"
-assert calculate(parse("STR(42)")).value == "42"
-assert calculate(parse("STR(42.42 + 5)")).value == "47.42"
-assert calculate(parse("sTR(42.42 + 5)")).value == "47.42"
-assert calculate(parse("VALUE(42.42 + 5)")).value == decimal.Decimal("47.42")
-assert calculate(parse("VALUE(42)")).value == 42
-assert calculate(parse("VALUE(\"42\")")).value == 42
-assert calculate(parse("VALUE(\"42.123\")")).value == decimal.Decimal("42.123")
-assert calculate(parse("VAluE(\"42.123\")")).value == decimal.Decimal("42.123")
-assert calculate(parse("INT(\"42.123\")")).value == 42
-assert calculate(parse("INT(\"42.9\")")).value == 42
-assert calculate(parse("INT(\" -42.9  \")")).value == -42
-assert calculate(parse("int(\" -42.9  \")")).value == -42
-assert calculate(parse("IF(1=2,99,88)")).value == 88
-assert calculate(parse("IF(2=2,99,88)")).value == 99
-assert calculate(parse("If(2=2,99,88)")).value == 99
+
+def _assert_s(val: ValueType, n: str) -> bool:
+    assert isinstance(val, StringValue)
+    return val.value == n
+
+
+def _assert_d(val: ValueType, n: Union[int, decimal.Decimal]) -> bool:
+    assert isinstance(val, DecimalValue)
+    return val.value == n
+
+
+def _assert_b(val: ValueType, n: bool) -> bool:
+    assert isinstance(val, BooleanValue)
+    return val.value is n
+
+
+assert _assert_d(calculate(parse("--5")), 5)
+assert _assert_d(calculate(parse("---5")), -5)
+assert _assert_d(calculate(parse("-(--5)")), -5)
+assert _assert_d(calculate(parse("-- min(100,23)+5")), 28)
+assert _assert_d(calculate(parse("+-Min(100,23)+ - 5")), -28)
+assert _assert_d(calculate(parse("max (45, 42, 100.5,  23 ) + 0.123")), decimal.Decimal("100.623"))
+assert _assert_b(calculate(parse("mAX(45,42,100.5,23)+0.123 = 100.623")), True)
+assert _assert_b(calculate(parse("max(45,42,100.5,23)+0.123 <> 100.623")), False)
+assert _assert_b(calculate(parse("true or false")), True)
+assert _assert_b(calculate(parse("tRUe and faLSE")), False)
+assert _assert_b(calculate(parse("true and true or false and false")), True)
+assert _assert_b(calculate(parse("((true and true) or false) and false")), False)
+assert _assert_b(calculate(parse("not false and true or false and false")), True)
+assert _assert_b(calculate(parse("not false or false")), True)
+assert _assert_b(calculate(parse("not not (false or false)")), False)
+assert _assert_b(calculate(parse("not not not true")), False)
+assert _assert_b(calculate(parse("not 1 = 2")), True)
+assert _assert_b(calculate(parse("not 1 + 2 = 3")), False)
+assert _assert_b(calculate(parse("nOT False And tRUe oR FALSE aND faLse")), True)
+assert _assert_b(calculate(parse("NOT 1 + 2 = 3")), False)
+assert _assert_b(calculate(parse("nOt 1 + 2 = 3")), False)
+assert _assert_s(calculate(parse("(not true) ~ \"&\" ~ (not true)")), "FALSE&FALSE")
+assert _assert_d(calculate(parse("(5+8) % 3")), 1)
+assert _assert_d(calculate(parse("5 + 8%3")), 7)
+assert _assert_d(calculate(parse("-2+22*2")), 42)
+assert _assert_d(calculate(parse("9/3")), 3)
+assert _assert_b(calculate(parse("4<=5")), True)
+assert _assert_b(calculate(parse("4<=4")), True)
+assert _assert_b(calculate(parse("4<=3")), False)
+assert _assert_b(calculate(parse("5>=4")), True)
+assert _assert_b(calculate(parse("4>=4")), True)
+assert _assert_b(calculate(parse("3>=4")), False)
+assert _assert_b(calculate(parse("4<5")), True)
+assert _assert_b(calculate(parse("4<4")), False)
+assert _assert_b(calculate(parse("4<3")), False)
+assert _assert_b(calculate(parse("5>4")), True)
+assert _assert_b(calculate(parse("4>4")), False)
+assert _assert_b(calculate(parse("3>4")), False)
+assert _assert_b(calculate(parse("5=4")), False)
+assert _assert_b(calculate(parse("4=4")), True)
+assert _assert_b(calculate(parse("3=4")), False)
+assert _assert_b(calculate(parse("5<>4")), True)
+assert _assert_b(calculate(parse("4<>4")), False)
+assert _assert_b(calculate(parse("3<>4")), True)
+assert _assert_d(calculate(parse("LEN(\"TESTあいうえお\")")), 9)
+assert _assert_d(calculate(parse("FIND(\"対象文字列\", \"対象文字列\")")), 1)
+assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\")")), 3)
+assert _assert_d(calculate(parse("FIND(\"文じ\", \"対象文字列\")")), 0)
+assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\", 3)")), 3)
+assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\", 4)")), 0)
+assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\", 0)")), 0)
+assert _assert_d(calculate(parse("FIND(\"列\", \"対象文字列\", 5)")), 5)
+assert _assert_d(calculate(parse("FIND(\"列\", \"対象文字列\", 6)")), 0)
+assert _assert_d(calculate(parse("FIND(\"\", \"対象文字列\")")), 1)
+assert _assert_d(calculate(parse("FIND(\"\", \"対象文字列\", 5)")), 5)
+assert _assert_d(calculate(parse("FIND(\"\", \"対象文字列\", 6)")), 0)
+assert _assert_d(calculate(parse("FIND(\"字\", \"A象B文C字D列\")")), 6)
+assert _assert_d(calculate(parse("FIND(\"字\", \"A象B文C字D列\", 6)")), 6)
+assert _assert_d(calculate(parse("FIND(\"字\", \"A象B文C字D列\", 7)")), 0)
+assert _assert_d(calculate(parse("FIND(\"\", \"\")")), 0)
+assert _assert_d(calculate(parse("find(\"列\", \"対象文字列\", 5)")), 5)
+assert _assert_d(calculate(parse("fIND(\"列\", \"対象文字列\", 5)")), 5)
+assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 0)")), "")
+assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 3)")), "あいう")
+assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 8)")), "あいうえお")
+assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 8)")), "あいうえお")
+assert _assert_s(calculate(parse("Left(\"あいうえお\", 8)")), "あいうえお")
+assert _assert_s(calculate(parse("RIGHT(\"あいうえお\", 0)")), "")
+assert _assert_s(calculate(parse("RIGHT(\"あいうえお\", 3)")), "うえお")
+assert _assert_s(calculate(parse("RIGHT(\"あいうえお\", 8)")), "あいうえお")
+assert _assert_s(calculate(parse("right(\"あいうえお\", 8)")), "あいうえお")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 2, 3)")), "いうえ")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 5, 3)")), "お")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 6, 3)")), "")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 3)")), "うえお")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 5)")), "お")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 6)")), "")
+assert _assert_s(calculate(parse("MID(\"あいうえお\", 7)")), "")
+assert _assert_s(calculate(parse("mId(\"あいうえお\", 7)")), "")
+assert _assert_s(calculate(parse("STR(\"あいうえお\")")), "あいうえお")
+assert _assert_s(calculate(parse("STR(42)")), "42")
+assert _assert_s(calculate(parse("STR(42.42 + 5)")), "47.42")
+assert _assert_s(calculate(parse("sTR(42.42 + 5)")), "47.42")
+assert _assert_d(calculate(parse("VALUE(42.42 + 5)")), decimal.Decimal("47.42"))
+assert _assert_d(calculate(parse("VALUE(42)")), 42)
+assert _assert_d(calculate(parse("VALUE(\"42\")")), 42)
+assert _assert_d(calculate(parse("VALUE(\"42.123\")")), decimal.Decimal("42.123"))
+assert _assert_d(calculate(parse("VAluE(\"42.123\")")), decimal.Decimal("42.123"))
+assert _assert_d(calculate(parse("INT(\"42.123\")")), 42)
+assert _assert_d(calculate(parse("INT(\"42.9\")")), 42)
+assert _assert_d(calculate(parse("INT(\" -42.9  \")")), -42)
+assert _assert_d(calculate(parse("int(\" -42.9  \")")), -42)
+assert _assert_d(calculate(parse("IF(1=2,99,88)")), 88)
+assert _assert_d(calculate(parse("IF(2=2,99,88)")), 99)
+assert _assert_d(calculate(parse("If(2=2,99,88)")), 99)
 try:
     assert calculate(parse("5 / (2-1-1)"))
     assert False
@@ -1238,6 +1552,70 @@ try:
     assert False
 except ArgumentsCountException:
     pass
+
+_test_list1 = calculate(parse("LIST(\"STR\", 42, TRUE)"))
+assert isinstance(_test_list1, ListValue)
+assert len(_test_list1.value) == 3
+assert _assert_s(_test_list1.eval(0), "STR")
+assert _assert_d(_test_list1.eval(1), 42)
+assert _assert_b(_test_list1.eval(2), True)
+
+_test_list2 = calculate(parse("LIST(LIST(1, 2, 3), LIST(3, 4, 5))"))
+assert isinstance(_test_list2, ListValue)
+assert len(_test_list2.value) == 2
+_test_list2_0 = _test_list2.eval(0)
+assert isinstance(_test_list2_0, ListValue)
+assert len(_test_list2_0.value) == 3
+assert _assert_d(_test_list2_0.eval(0), 1)
+assert _assert_d(_test_list2_0.eval(1), 2)
+assert _assert_d(_test_list2_0.eval(2), 3)
+_test_list2_1 = _test_list2.eval(1)
+assert isinstance(_test_list2_1, ListValue)
+assert len(_test_list2_1.value) == 3
+assert _assert_d(_test_list2_1.eval(0), 3)
+assert _assert_d(_test_list2_1.eval(1), 4)
+assert _assert_d(_test_list2_1.eval(2), 5)
+
+assert _assert_b(calculate(parse("LIST(1, 2, 3) = LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) = LIST(1, \"2\", 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) = LIST(1, 2)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2) = LIST(1, 2, 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) <> LIST(1, 2, 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) <> LIST(1, \"2\", 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) <> LIST(1, 2)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2) <> LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) < LIST(1, 2, 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) < LIST(1, 2)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) < LIST(1, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2) < LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) <= LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) <= LIST(1, 2)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) <= LIST(1, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2) <= LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) > LIST(1, 2, 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) > LIST(1, 2)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2) > LIST(1, 2, 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 3) > LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) >= LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) >= LIST(1, 2)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2) >= LIST(1, 2, 3)")), False)
+assert _assert_b(calculate(parse("LIST(1, 3) >= LIST(1, 2, 3)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) ~ LIST(4, 5, 6) = LIST(1, 2, 3, 4, 5, 6)")), True)
+assert _assert_b(calculate(parse("LIST(1, 2, 3) ~ LIST(4, 5, 6) ~ LIST(7) = LIST(1, 2, 3, 4, 5, 6, 7)")), True)
+
+assert _assert_b(calculate(parse("AT(LIST(TRUE, 42, \"STR\"), 1)")), True)
+assert _assert_d(calculate(parse("AT(LIST(TRUE, 42, \"STR\"), 2)")), 42)
+assert _assert_s(calculate(parse("AT(LIST(TRUE, 42, \"STR\"), 3)")), "STR")
+assert _assert_d(calculate(parse("LLEN(LIST(1, 2, 3))")), 3)
+assert _assert_b(calculate(parse("LLEFT(LIST(1, 2, 3), 2) = LIST(1, 2)")), True)
+assert _assert_b(calculate(parse("LRIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)")), True)
+assert _assert_b(calculate(parse("LMID(LIST(1, 2, 3, 4), 2, 2) = LIST(2, 3)")), True)
+assert _assert_d(calculate(parse("LFIND(3, LIST(1, 2, 3, 4))")), 3)
+assert _assert_d(calculate(parse("LFIND(5, LIST(1, 2, 3, 4))")), 0)
+assert _assert_d(calculate(parse("LFIND(\"TEST\", LIST(1, 2, \"TEST\", 4))")), 3)
+assert _assert_d(calculate(parse("LFIND(LIST(99), LIST(1, 2, LIST(99), 4))")), 3)
+assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 4, 42), 3)")), 4)
+assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 42, 4), 3)")), 3)
 
 
 def main() -> None:

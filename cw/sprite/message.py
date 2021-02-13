@@ -1480,9 +1480,7 @@ def _get_namefromlist(index: int, namelist: Sequence[NameListItem]) -> Tuple[int
     return index, name
 
 
-def _get_namefromtable(nc: str,
-                       nametable: Dict[str, _NameData],
-                       namelist: List[NameListItem]) -> str:
+def _get_namefromtable(nc: str, updatetype: str, nametable: Dict[str, _NameData], namelist: List[NameListItem]) -> str:
     data: Union[str, _NameData] = nametable.get("#" + nc, "")
     if isinstance(data, _NameGetter):
         data = data.get_name()
@@ -1664,7 +1662,7 @@ def _get_variantvalue(key: str, full: int, updatetype: str,
         if updatetype == "Fixed":
             if basenamelist is not None:
                 variant_value = basenamelist[namelistindex].name
-                assert not isinstance(variant_value, int)
+                assert isinstance(variant_value, bool) or not isinstance(variant_value, int)
                 s = cw.data.Variant.value_to_str(variant_value)
             else:
                 assert namelist is not None
@@ -1777,7 +1775,7 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
             if (full & _SP_FULL) != 0:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
                     if basenamelist is None:
-                        buf.append(_get_namefromtable(nc, name_table, namelist))
+                        buf.append(_get_namefromtable(nc, updatetype, name_table, namelist))
                     else:
                         namelistindex, name = _get_namefromlist(namelistindex, basenamelist)
                         buf.append(name)
@@ -1789,7 +1787,7 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
             else:
                 if nc in ('m', 'r', 'u', 't', 'y') or ((full & _SP_CARD_NAME) != 0 and nc == 'c'):
                     if basenamelist is None:
-                        buf.append(_get_namefromtable(nc, name_table, namelist))
+                        buf.append(_get_namefromtable(nc, updatetype, name_table, namelist))
                     else:
                         namelistindex, name = _get_namefromlist(namelistindex, basenamelist)
                         buf.append(name)
