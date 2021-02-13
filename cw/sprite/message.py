@@ -1544,18 +1544,20 @@ def _get_stepvalue(key: str, full: int, updatetype: str,
     if v is None:
         return None, namelistindex
 
-    if updatetype == "Fixed":
-        if basenamelist is not None:
-            step_value = basenamelist[namelistindex].name
-            assert isinstance(step_value, int)
-            s = v.get_valuename(step_value)
-        else:
-            assert namelist is not None
-            s = v.get_valuename()
-            namelist.append(NameListItem(v, v.value))
-        namelistindex += 1
+    if basenamelist is not None:
+        step_value = basenamelist[namelistindex].name
+        if step_value is None:
+            # 状態変数値を更新する場合はrpl_specialchar()呼出前に
+            # 記憶された値がクリアされているので改めて現在の状態変数値を取得する
+            step_value = v.value
+            basenamelist[namelistindex].name = step_value
+        assert isinstance(step_value, int)
+        s = v.get_valuename(step_value)
     else:
+        assert namelist is not None
         s = v.get_valuename()
+        namelist.append(NameListItem(v, v.value))
+    namelistindex += 1
 
     if stack <= 0 and v.spchars:
         # 特殊文字の展開(Wsn.2)
@@ -1583,7 +1585,7 @@ def _get_spstep(name: str, full: int, updatetype: str, basenamelist: Optional[Se
         if (full & _SP_NO_SHARPS) == 0 and lname in "??selectedplayer":
             # 選択メンバのパーティ内の番号(Wsn.2)
             # パーティ内の選択メンバがいない場合は"0"
-            if basenamelist is None:
+            def get_selectednum() -> int:
                 if cw.cwpy.event.has_selectedmember():
                     sel = cw.cwpy.event.get_selectedmember()
                     assert isinstance(sel, cw.character.Character)
@@ -1592,15 +1594,18 @@ def _get_spstep(name: str, full: int, updatetype: str, basenamelist: Optional[Se
                 pcards = cw.cwpy.get_pcards()
                 if sel and sel in pcards:
                     assert isinstance(sel, cw.sprite.card.PlayerCard)
-                    value = pcards.index(sel)+1
+                    return pcards.index(sel)+1
                 else:
-                    value = 0
+                    return 0
+
+            if basenamelist is None:
+                value = get_selectednum()
                 if namelist is not None:
                     namelist.append(NameListItem("Number", value))
             else:
-                step_value = basenamelist[namelistindex].name
-                assert isinstance(step_value, int)
-                value = step_value
+                item = basenamelist[namelistindex]
+                item.name = get_selectednum()
+                value = item.name
                 namelistindex += 1
             return cw.data.Step(None, None, value, name, ["0", "1", "2", "3", "4", "5", "6"], 0, False), namelistindex
         elif lname in ["??player%d" % a for a in range(1, 6+1)]:
@@ -1628,18 +1633,20 @@ def _get_flagvalue(key: str, full: int, updatetype: str,
     v = cw.cwpy.sdata.find_flag(key, False,
                                 cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is not None:
-        if updatetype == "Fixed":
-            if basenamelist is not None:
-                flag_value = basenamelist[namelistindex].name
-                assert isinstance(flag_value, bool)
-                s = v.get_valuename(flag_value)
-            else:
-                assert namelist is not None
-                s = v.get_valuename()
-                namelist.append(NameListItem(v, v.value))
-            namelistindex += 1
+        if basenamelist is not None:
+            flag_value = basenamelist[namelistindex].name
+            if flag_value is None:
+                # 状態変数値を更新する場合はrpl_specialchar()呼出前に
+                # 記憶された値がクリアされているので改めて現在の状態変数値を取得する
+                flag_value = v.value
+                basenamelist[namelistindex].name = flag_value
+            assert isinstance(flag_value, bool)
+            s = v.get_valuename(flag_value)
         else:
+            assert namelist is not None
             s = v.get_valuename()
+            namelist.append(NameListItem(v, v.value))
+        namelistindex += 1
     else:
         return None, namelistindex
 
@@ -1659,18 +1666,20 @@ def _get_variantvalue(key: str, full: int, updatetype: str,
     v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(),
                                    cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is not None:
-        if updatetype == "Fixed":
-            if basenamelist is not None:
-                variant_value = basenamelist[namelistindex].name
-                assert isinstance(variant_value, bool) or not isinstance(variant_value, int)
-                s = cw.data.Variant.value_to_str(variant_value)
-            else:
-                assert namelist is not None
-                s = v.string_value()
-                namelist.append(NameListItem(v, v.value))
-            namelistindex += 1
+        if basenamelist is not None:
+            variant_value = basenamelist[namelistindex].name
+            if variant_value is None:
+                # 状態変数値を更新する場合はrpl_specialchar()呼出前に
+                # 記憶された値がクリアされているので改めて現在の状態変数値を取得する
+                variant_value = v.value
+                basenamelist[namelistindex].name = variant_value
+            assert isinstance(variant_value, bool) or not isinstance(variant_value, int)
+            s = cw.data.Variant.value_to_str(variant_value)
         else:
+            assert namelist is not None
             s = v.string_value()
+            namelist.append(NameListItem(v, v.value))
+        namelistindex += 1
     else:
         return None, namelistindex
 

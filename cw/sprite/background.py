@@ -1022,8 +1022,13 @@ class BackGround(base.CWPySprite):
                       d: TextCellData, nocheckvisible: bool = False) -> bool:
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
-        if not nocheckvisible and updatetype == "All":
-            namelist = None
+        if not nocheckvisible and namelist:
+            if updatetype == "All":
+                namelist = None
+            elif updatetype == "Variables":
+                for item in namelist:
+                    if isinstance(item.data, (cw.data.Flag, cw.data.Step, cw.data.Variant)):
+                        item.name = None
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
                 bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
