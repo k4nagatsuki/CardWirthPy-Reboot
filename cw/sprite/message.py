@@ -1474,7 +1474,7 @@ def _get_namefromlist(index: int, namelist: Sequence[NameListItem]) -> Tuple[int
     else:
         assert item.data is None or isinstance(item.data, (cw.character.Character, cw.data.YadoData, cw.data.Party,
                                                            cw.header.CardHeader))
-        assert isinstance(item.name, str)
+        assert isinstance(item.name, str), item.name
         name = item.data.get_showingname() if item.data is not None else item.name
     index += 1
     return index, name
