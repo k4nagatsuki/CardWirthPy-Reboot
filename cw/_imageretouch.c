@@ -20,7 +20,7 @@ intwrap(int i, int min, int max)
 }
 
 #define colorwrap(i) intwrap((i), 0, 255)
-#define fcolorwrap(d) intwrap((int) round(d), 0, 255)
+#define fcolorwrap(d) intwrap((d + 128) >> 8, 0, 255)
 
 static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
@@ -482,9 +482,9 @@ blend_add_1_50(PyObject *self, PyObject *args)
 
         if (sa != 255)
         {
-            dr = fcolorwrap(((dr * (255 - sa)) + ((dr + sr) * sa)) / 255.0);
-            dg = fcolorwrap(((dg * (255 - sa)) + ((dg + sg) * sa)) / 255.0);
-            db = fcolorwrap(((db * (255 - sa)) + ((db + sb) * sa)) / 255.0);
+            dr = fcolorwrap((dr * (255 - sa)) + ((dr + sr) * sa));
+            dg = fcolorwrap((dg * (255 - sa)) + ((dg + sg) * sa));
+            db = fcolorwrap((db * (255 - sa)) + ((db + sb) * sa));
         }
         else
         {
@@ -538,14 +538,14 @@ blend_sub_1_50(PyObject *self, PyObject *args)
 
         if (sa != 255)
         {
-            a = fcolorwrap(dr * (255 - sa) / 255.0);
-            b = fcolorwrap(dr - (sr * sa / 255.0));
+            a = fcolorwrap(dr * (255 - sa));
+            b = colorwrap(dr - fcolorwrap(sr * sa));
             dr = max(a, b);
-            a = fcolorwrap(dg * (255 - sa) / 255.0);
-            b = fcolorwrap(dg - (sg * sa / 255.0));
+            a = fcolorwrap(dg * (255 - sa));
+            b = colorwrap(dg - fcolorwrap(sg * sa));
             dg = max(a, b);
-            a = fcolorwrap(db * (255 - sa) / 255.0);
-            b = fcolorwrap(db - (sb * sa / 255.0));
+            a = fcolorwrap(db * (255 - sa));
+            b = colorwrap(db - fcolorwrap(sb * sa));
             db = max(a, b);
         }
         else
@@ -596,13 +596,13 @@ blend_mult_1_50(PyObject *self, PyObject *args)
 
         if (sa != 255)
         {
-            sr = fcolorwrap(((sr * sa) + ((255 - sa) * 255)) / 255.0);
-            sg = fcolorwrap(((sg * sa) + ((255 - sa) * 255)) / 255.0);
-            sb = fcolorwrap(((sb * sa) + ((255 - sa) * 255)) / 255.0);
+            sr = fcolorwrap((sr * sa) + ((255 - sa) * 255));
+            sg = fcolorwrap((sg * sa) + ((255 - sa) * 255));
+            sb = fcolorwrap((sb * sa) + ((255 - sa) * 255));
         }
-        dr = fcolorwrap(dr * sr / 255.0);
-        dg = fcolorwrap(dg * sg / 255.0);
-        db = fcolorwrap(db * sb / 255.0);
+        dr = fcolorwrap(dr * sr);
+        dg = fcolorwrap(dg * sg);
+        db = fcolorwrap(db * sb);
 
         outdata[0] = (char) dr;
         outdata[1] = (char) dg;
