@@ -1479,17 +1479,18 @@ def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], g
 
     image = pygame.surface.Surface(size).convert_alpha()
 
-    def calc_per(mn: int, mx: int, per: float) -> int:
+    def calc_per(mn: int, mx: int, per: int) -> int:
         if mn == mx:
             return mn
         c = mx - mn
-        return min(255, max(0, round(mn + c * per)))
+        c = mn + (((c * per) + (128 if 0 <= c else -128)) >> 8)
+        return min(255, max(0, c))
 
     w = image.get_width()
     h = image.get_height()
     if gradient == "LeftToRight":
         for x in range(w):
-            per = float(x) / w
+            per = int((x << 8) // w)
             r = calc_per(color1[0], color2[0], per)
             g = calc_per(color1[1], color2[1], per)
             b = calc_per(color1[2], color2[2], per)
@@ -1497,7 +1498,7 @@ def create_colorcell(size: Tuple[int, int], color1: Tuple[int, int, int, int], g
             pygame.draw.line(image, (r, g, b, a), (x, 0), (x, h), 1)
     elif gradient == "TopToBottom":
         for y in range(h):
-            per = float(h - y) / h
+            per = int(((h - y - 1) << 8) // h)
             r = calc_per(color2[0], color1[0], per)  # 縦グラデーションは色の方向が逆
             g = calc_per(color2[1], color1[1], per)
             b = calc_per(color2[2], color1[2], per)
