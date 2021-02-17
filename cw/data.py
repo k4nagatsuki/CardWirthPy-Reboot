@@ -572,7 +572,7 @@ class SystemData(object):
     def sleep_timekeeper(self) -> None:
         pass
 
-    def set_log(self) -> Tuple[bool, Optional[Iterable[Tuple[str, int, int, bool, str]]]]:
+    def set_log(self, force_create=False) -> Tuple[bool, Optional[Iterable[Tuple[str, int, int, bool, str]]]]:
         """
         wslファイルの読み込みまたは新規作成を行う。
         読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
@@ -584,7 +584,7 @@ class SystemData(object):
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
-        if path:
+        if path and not force_create:
             cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
             musicpaths = self.load_log(cw.util.join_paths(cw.tempdir, "ScenarioLog/ScenarioLog.xml"), False)
             return True, musicpaths

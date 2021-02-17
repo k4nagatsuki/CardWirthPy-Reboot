@@ -2744,7 +2744,7 @@ class CWPy(threading.Thread):
                         pcard.set_fullrecovery()
                         pcard.update_image()
 
-                loaded, musicpaths = self.sdata.set_log()
+                loaded, musicpaths = self.sdata.set_log(force_create=not resume)
                 self.sdata.start()
                 self.update_titlebar()
                 areaid = self.sdata.startid
