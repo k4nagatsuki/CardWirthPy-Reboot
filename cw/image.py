@@ -1625,7 +1625,7 @@ def fix_cwnext16bitbitmap(data: bytes) -> Tuple[Union[bytes, wx.Image], bool]:
             data = cw.image.patch_rle4bitmap(data)
             with io.BytesIO(data) as f:
                 try:
-                    bmp = pygame.image.load(f)
+                    pygame.image.load(f)
                     return data, True
                 except Exception:
                     pass
