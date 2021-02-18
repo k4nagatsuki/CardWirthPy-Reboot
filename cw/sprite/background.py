@@ -998,18 +998,18 @@ class BackGround(base.CWPySprite):
                 bginhrt = False
                 self._inhrt_index = 0
 
+        if nocheckvisible:
+            flagvalue = visible
+        else:
+            flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
         if image and image.get_size() != (0, 0):
             self.store_filepath(path)
             d2 = (image, size, pos, 0)
-            if visible:
+            if flagvalue:
                 blitlist.append((BG_IMAGE, d2, flag, layer))
             bgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, True, layer,
                                    cellname)))
         else:
-            if nocheckvisible:
-                flagvalue = visible
-            else:
-                flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
             bgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, flagvalue,
                                    layer, cellname)))
             oldbgs.append((BG_IMAGE, (basepath, inusecard, scaledimage, mask, smoothing, size, pos, flag, flagvalue,
