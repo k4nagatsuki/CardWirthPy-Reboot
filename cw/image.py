@@ -1626,7 +1626,7 @@ def fix_cwnext16bitbitmap(data: bytes) -> Tuple[Union[bytes, wx.Image], bool]:
             with io.BytesIO(data) as f:
                 try:
                     bmp = pygame.image.load(f)
-                    return conv2wximage(bmp, biBitCount), True
+                    return data, True
                 except Exception:
                     pass
                 f.close()
@@ -1697,17 +1697,6 @@ def fix_cwnext32bitbitmap(data: bytes) -> Tuple[bytes, bool]:
             data[54+biClrUsed*4:]
         return data, False
     return data, True
-
-
-def conv2wximage(image: pygame.surface.Surface, biBitCount: int) -> wx.Image:
-    """pygame.surface.Surfaceをwx.Bitmapに変換する。
-    """
-    w, h = image.get_size()
-
-    buf = pygame.image.tostring(image, "RGB")
-    image = wx.ImageFromBuffer(w, h, buf)
-
-    return image
 
 
 def patch_rle4bitmap(data: bytes) -> bytes:
