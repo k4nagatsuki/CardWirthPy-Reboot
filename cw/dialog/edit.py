@@ -1401,7 +1401,7 @@ class BackColorEditDialog(wx.Dialog):
         # 選択値に丸印
         dc.SetBrush(wx.Brush(wx.TRANSPARENT_BRUSH))
         dc.SetPen(wx.Pen("white"))
-        dc.DrawCircle(cw.wins(self.hsv[0] * 180), hsize[1] // 2, hsize[1] // 4)
+        dc.DrawCircle(cw.wins(round(self.hsv[0] * 180)), hsize[1] // 2, hsize[1] // 4)
 
     def OnLeftClickSaturationPanel(self, evt: wx.MouseEvent) -> None:
         s = self._x_wrap(evt.GetX()) / cw.UP_WIN / 180
@@ -1470,7 +1470,7 @@ class BackColorEditDialog(wx.Dialog):
         # 選択値に丸印
         dc.SetBrush(wx.Brush(wx.TRANSPARENT_BRUSH))
         dc.SetPen(wx.Pen("white"))
-        dc.DrawCircle(cw.wins(self.hsv[1] * 180), ssize[1] // 2, ssize[1] // 4)
+        dc.DrawCircle(cw.wins(round(self.hsv[1] * 180)), ssize[1] // 2, ssize[1] // 4)
 
     def _x_wrap(self, x: int) -> int:
         return min(max(0, x), cw.wins(180))
@@ -1543,7 +1543,7 @@ class BackColorEditDialog(wx.Dialog):
         # 選択値に丸印
         dc.SetBrush(wx.Brush(wx.TRANSPARENT_BRUSH))
         dc.SetPen(wx.Pen("white"))
-        dc.DrawCircle(cw.wins((self.hsv[2] - 0.125) * 480), vsize[1] // 2, vsize[1] // 4)
+        dc.DrawCircle(cw.wins(round((self.hsv[2] - 0.125) * 480)), vsize[1] // 2, vsize[1] // 4)
 
     def OnChoicePreset(self, evt: wx.CommandEvent) -> None:
         index = self.colorchoice.GetSelection()
