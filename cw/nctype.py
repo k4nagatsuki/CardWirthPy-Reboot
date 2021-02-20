@@ -43,6 +43,7 @@ def nctype(c: str) -> str:
     """
     cの文字タイプを返す。
     """
+    c = c[0]
     for ctype, s in (_an, _as, _aa, _sa, _sn, _ss, _sh, _sk, _shk, _sg, _sc, _k4, _k3, _k2, _k1):
         if c in s:
             return ctype

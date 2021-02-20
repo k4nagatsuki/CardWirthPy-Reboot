@@ -11,7 +11,9 @@ pygame = "*"
 pypiwin32 = "*"
 pywin32 = "*"
 wxpython = "*"
+regex = "*"
+grapheme = "*"
 cx-freeze = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"

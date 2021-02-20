@@ -2823,6 +2823,9 @@ class CWPy(threading.Thread):
                             self.setting.lastscenariopath = header.get_fpath()
                         self.ydata._loading = False
 
+                    except CWPyRunningError:
+                        raise
+
                     except Exception:
                         # 読込失敗(帰還)
                         cw.util.print_ex()
