@@ -272,6 +272,8 @@ def build_exe():
         "lib/numpy/linalg/VCRUNTIME140.dll",
         "lib/numpy/random/VCRUNTIME140.dll",
         "lib/pydoc_data",
+        "lib/regex/python38.dll",
+        "lib/regex/VCRUNTIME140.dll",
     )
     for fname in rmfiles:
         print("Deleting %s" % fname)

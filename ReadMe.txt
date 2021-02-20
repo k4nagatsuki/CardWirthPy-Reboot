@@ -300,6 +300,14 @@ lib/win32*.pyd, lib/pythoncom36.dll, lib/pywintypes36.dll, lib/win32com以下の
 lib/lhafile以下の全てのファイルとディレクトリ
  : License: 修正BSDライセンス
 
+[grapheme](https://github.com/alvinlindstam/grapheme)
+lib/grapheme以下の全てのファイルとディレクトリ
+ : License: MITライセンス
+
+[regex](https://bitbucket.org/mrabarnett/mrab-regex)
+lib/regex以下の全てのファイルとディレクトリ
+ : Apache Software License
+
 VCRUNTIME140.dll
  : License: Distributable Code Files for Visual Studio 2015
  : [License URL](https://docs.microsoft.com/en-us/visualstudio/productinfo/2015-redistribution-vs#visual-c-runtime-files)

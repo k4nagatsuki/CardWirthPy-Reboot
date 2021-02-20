@@ -40,6 +40,9 @@ import pygame.image
 import pygame.surface
 from pygame import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
 
+import grapheme
+import regex
+
 import cw
 
 import typing
@@ -3181,13 +3184,26 @@ def decodetextlist(s: str) -> List[str]:
     return decodewrap(s).split("\n")
 
 
-def is_hw(c: str) -> bool:
+def _is_hw(c: str) -> bool:
     """unichrが半角文字であればTrueを返す。"""
     return not unicodedata.east_asian_width(c) in ('F', 'W', 'A')
 
 
 def get_strlen(s: str) -> int:
-    return reduce(lambda a, b: a + b, [1 if is_hw(c) else 2 for c in s])
+    def ln(c: str) -> int:
+        if not c or unicodedata.combining(c):
+            return 0
+        elif _is_hw(c):
+            return 1
+        else:
+            return 2
+    return reduce(lambda a, b: a + b, [ln(c) for c in s])
+
+
+assert get_strlen("#") == 1
+assert get_strlen("##") == 2
+assert get_strlen("#あ") == 3
+assert get_strlen("#あ゙") == 3
 
 
 def slice_str(s: str, width: int, get_width: Optional[Callable[[str], int]] = None) -> Tuple[str, str]:
@@ -3303,7 +3319,8 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
             else:
                 spcharinfo2.append(reduce(lambda l, s: l + len(s), seq[:index], 0))
 
-    for index, char in enumerate(s):
+    index = 0
+    for char in grapheme.graphemes(s):
         spchar2 = spchar
         spchar = False
         width2 = width
@@ -3329,6 +3346,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
                         asciicnt = 0
                         wraped = False
                         wrapafter = True
+                index += len(char)
                 continue
 
             chars = char + get_char(s, index + 1)
@@ -3351,6 +3369,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
                         if chars.startswith("#"):
                             cnt += len(char)
                         skipchars = chars
+                        index += len(char)
                         continue
                     spchar = True
                     if not chars.startswith("&"):
@@ -3373,15 +3392,15 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
             wraped = False
             wrapafter = False
         # 半角文字
-        elif is_hw(char):
+        elif get_strlen(char) == 1:
             seq.append(char)
             seqlen += len(char)
             cnt += 1
             if not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) and \
-                    not (mode == 1 and index + 1 < len(s) and not is_hw(s[index + 1])):
+                    not (mode == 1 and index + 1 < len(s) and not get_strlen(s[index + 1]) == 1):
                 asciicnt += 1
             if spchar2 or not (mode in (2, 3) or (mode in (1, 4) and char == ' ')) or \
-                    len(s) <= index + 1 or is_hw(s[index + 1]):
+                    len(s) <= index + 1 or get_strlen(s[index + 1]) == 1:
                 width2 += 1
             wrapafter = False
 
@@ -3392,7 +3411,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
             cnt += 2
             asciicnt = 0
             wrapafter = False
-            if mode in (1, 2, 3) and index + 1 < len(s) and is_hw(s[index + 1]):
+            if mode in (1, 2, 3) and index + 1 < len(s) and get_strlen(s[index + 1]) == 1:
                 width2 += 1
 
         # 互換動作: 1.28以降は行末に半角スペースがあると折り返し位置が変わる
@@ -3423,6 +3442,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
                 cnt = 0
                 asciicnt = 0
                 wraped = False
+        index += len(char)
 
     if spcharinfo is not None:
         spcharinfo.clear()
@@ -3442,7 +3462,8 @@ def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]]
     if not get_width:
         get_width = get_strlen
 
-    iterwords = re.findall("[a-z0-9_]+|[ａ-ｚＡ-Ｚ０-９＿]+|.", s, re.I)
+    iterwords: List[str] = regex.findall(r"(?>[a-z0-9_]\p{M}*)+|(?>[ａ-ｚＡ-Ｚ０-９＿]\p{M}*)+|.\p{M}*", s,
+                                         regex.IGNORECASE)
     if spcharinfo is not None:
         # 特殊文字と単語を分離しておく
         iter2: List[str] = []
@@ -3637,6 +3658,7 @@ assert wordwrap("\"Let's it go!!\"", 4) == "\"Let'\ns it \ngo!!\""
 assert wordwrap("あいうえおA.かきくけこ", 11) == "あいうえおA.\nかきくけこ"
 assert wordwrap("あいうえおA。かきくけこ", 11) == "あいうえお\nA。かきくけ\nこ"
 assert wordwrap("ｐｑｒ pqr ＰＱＲ", 6) == "ｐｑｒ \npqr \nＰＱＲ"
+assert wordwrap("あ゙い゙ゔえ゙お゙か゚き゚く゚け゚こ゚", 6) == "あ゙い゙ゔ\nえ゙お゙か゚\nき゚く゚け゚\nこ゚"
 
 
 def _test_wordwrap(s: str, width: int, spcharinfo: Set[int]) -> Tuple[str, Set[int]]:
@@ -4434,7 +4456,7 @@ def abbr_longstr_with_count(text: str, w: int) -> str:
     text: 編集対象の文字列。
     w: 目標文字列長(半角文字数)。
     """
-    width = sum(map(lambda c: 1 if is_hw(c) else 2, text))
+    width = get_strlen(text)
     if w <= 0 and text:
         if width <= len("..."):
             return text
@@ -4442,7 +4464,7 @@ def abbr_longstr_with_count(text: str, w: int) -> str:
             return "..."
     if width > w:
         while text and width + len("...") > w:
-            width -= 1 if is_hw(text[-1]) else 2
+            width -= get_strlen(text[-1])
             text = text[:-1]
         text += "..."
     return text

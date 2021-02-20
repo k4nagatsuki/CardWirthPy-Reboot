@@ -7,6 +7,7 @@ import re
 import itertools
 import pygame
 import pygame.surface
+import grapheme
 
 import cw
 from . import base
@@ -485,7 +486,8 @@ class MessageWindow(base.CWPySprite):
         additional_wait = False
         additional_wait_after_space = False
 
-        for index, char in enumerate(self.text):
+        index = 0
+        for char in grapheme.graphemes(self.text):
             def add_wait(space: bool, is_waitchar: bool) -> Tuple[float, bool, bool]:
                 if cw.cwpy.setting.wait_after_punctuation_mark and not is_waitchar:
                     if additional_wait or (additional_wait_after_space and space):
@@ -509,11 +511,13 @@ class MessageWindow(base.CWPySprite):
                 if cnt > 6 and not self.centering_y:
                     break
                 else:
+                    index += len(char)
                     continue
 
             # 特殊文字を使った後は一文字スキップする
             elif skip:
                 skip = False
+                index += len(char)
                 continue
 
             orig_chars = self.text[index:index+2]
@@ -547,6 +551,7 @@ class MessageWindow(base.CWPySprite):
                             pos = pos[0] + cw.s(20), pos[1]
                             skip = True
                             log_seq.append(orig_chars)
+                            index += len(char)
                             continue
 
                         frame_base, additional_wait, additional_wait_after_space = add_wait(False, True)
@@ -563,6 +568,7 @@ class MessageWindow(base.CWPySprite):
                         skip = True
                         log_seq.append(orig_chars)
                         additional_wait_after_space = True
+                        index += len(char)
                         continue
 
                 # 文字色変更
@@ -570,14 +576,12 @@ class MessageWindow(base.CWPySprite):
                     colour = self.get_fontcolour(chars[1])
                     if chars[1] != '\n':
                         skip = True
+                    index += len(char)
                     continue
 
             log_seq.append(char)
             # 半角文字だったら文字幅は半分にする
-            if cw.util.is_hw(char):
-                cwidth = cw.s(10)
-            else:
-                cwidth = cw.s(20)
+            cwidth = cw.util.get_strlen(char) * cw.s(10)
 
             if char:
                 put_xinfo(pos[0], cwidth)
@@ -663,6 +667,7 @@ class MessageWindow(base.CWPySprite):
                     additional_wait_after_space = True
 
             pos = pos[0] + cwidth, pos[1]
+            index += len(char)
 
         if self.centering_y:
             top = (180 - (self.blockbottom_noscale - self.blocktop_noscale)) // 2

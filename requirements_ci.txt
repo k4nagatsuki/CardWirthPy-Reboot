@@ -3,5 +3,7 @@ pygame
 #pypiwin32
 #pywin32
 #wxPython
+regex
+grapheme
 mypy
 flake8
