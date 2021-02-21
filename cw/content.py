@@ -2505,6 +2505,22 @@ class EffectContent(EventContentBase):
 
     def action(self) -> int:
         """効果コンテント。"""
+        if cw.cwpy.event.has_selectedmember():
+            ccard = cw.cwpy.event.get_selectedmember()
+            selectedmember = ccard
+            assert ccard
+            if ccard.status == "hidden" and\
+                    isinstance(ccard, cw.character.Enemy) and\
+                    ccard.status == "hidden":
+                # BUG: CardWirthではフラグによって隠蔽状態の敵が選択状態の時に
+                #      効果コンテントを実行するとメンバ選択が解除される
+                cw.cwpy.event.clear_selectedmember()
+                cw.cwpy.event.is_changestate = True
+                if self.targetm == "Selected":
+                    return 0
+        else:
+            selectedmember = None
+
         target: Optional[Union[cw.character.Character, List[Union[cw.character.Character, cw.sprite.card.CWPyCard]],
                                List[cw.character.Character], List[cw.sprite.card.CWPyCard], cw.header.CardHeader]]
         if self.targetm == "CardTarget":
@@ -2520,16 +2536,6 @@ class EffectContent(EventContentBase):
                     target.append(card)
         else:
             target = cw.cwpy.event.get_targetmember(self.targetm, coupon=self.holdingcoupon)
-            if self.targetm == "Selected" and target and\
-                    isinstance(target, cw.character.Enemy) and\
-                    target.status == "hidden":
-                # BUG: CardWirthではフラグによって隠蔽状態の敵に
-                #      効果を適用しようとした場合にメンバ選択が解除される
-                cw.cwpy.event.clear_selectedmember()
-                cw.cwpy.event.is_changestate = True
-                return 0
-
-        selectedmember = cw.cwpy.event.get_selectedmember()
 
         self.eff.update_status(selectedmember=selectedmember)
 
