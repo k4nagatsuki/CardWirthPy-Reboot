@@ -2641,9 +2641,9 @@ class EffectContent(EventContentBase):
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
             targets: List[cw.sprite.card.CWPyCard] = []
-            for ccard in target:
-                assert isinstance(ccard, cw.sprite.card.CWPyCard)
-                targets.append(ccard)
+            for ccard2 in target:
+                assert isinstance(ccard2, cw.sprite.card.CWPyCard)
+                targets.append(ccard2)
         else:
             assert isinstance(target, cw.sprite.card.CWPyCard)
             targets = [target]
