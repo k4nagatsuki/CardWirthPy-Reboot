@@ -186,9 +186,9 @@ class Effect(object):
         else:
             self._level = cw.util.numwrap(self.user.level if self.user else self.level, -65536, 65536)
         for motion in self.motions:
-            assert isinstance(selectedmember, (cw.sprite.card.PlayerCard,
-                                               cw.sprite.card.EnemyCard,
-                                               cw.sprite.card.FriendCard))
+            assert selectedmember is None or isinstance(selectedmember, (cw.sprite.card.PlayerCard,
+                                                                         cw.sprite.card.EnemyCard,
+                                                                         cw.sprite.card.FriendCard))
             motion.update_status(selectedmember=selectedmember)
 
     def get_level(self) -> int:
@@ -667,7 +667,7 @@ class EffectMotion(object):
         if self.refability:
             self._enhance_act = 0
             ccard = selectedmember
-            assert isinstance(ccard, cw.character.Character)
+            assert ccard is None or isinstance(ccard, cw.character.Character)
             assert self._vocation
             self._vocation_val = get_vocation_val(ccard, self._vocation, enhance_act=True) if ccard else 6
             self._vocation_level = get_vocation_level(ccard, self._vocation, enhance_act=True) if ccard else 2
