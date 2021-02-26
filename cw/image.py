@@ -1743,6 +1743,51 @@ def patch_rle4bitmap(data: bytes) -> bytes:
     return data
 
 
+def patch_rle8bitmap(data: bytes) -> Tuple[bytes, bool]:
+    if len(data) < 14 + 40:
+        return data, True
+    s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
+    if s[0] != ord('B'):
+        return data, True
+    if s[1] != ord('M'):
+        return data, True
+    # bfSize = s[2]
+    # bfReserved1 = s[3]
+    # bfReserved2 = s[4]
+    bfOffBits = s[5]
+    if bfOffBits == 0:
+        return data, True
+    biSize = s[6]
+    if biSize != 40:
+        return data, True
+    biWidth = s[7]
+    biHeight = s[8]
+    # biPlanes = s[9]
+    biBitCount = s[10]
+    biCompression = s[11]
+    if biCompression == 1:  # RLE8
+        # FIXME: RLE8の場合、wxPythonで読み込みに失敗する場合がある
+        #        問題を避けるために予め展開する
+        bmpdata = data[bfOffBits:]
+        bpl = ((biWidth * biBitCount + 31) // 32) * 4
+        h = -biHeight if biHeight < 0 else biHeight
+        bmpdata = cw.imageretouch.decode_rle8data(bmpdata, h, bpl)
+
+        f = io.BytesIO()
+        f.write(data[:2])
+        f.write(struct.pack("<I", bfOffBits + len(bmpdata)))
+        f.write(data[2+4:2+4+8+16])
+        f.write(struct.pack("<I", 0))
+        f.write(struct.pack("<I", len(bmpdata)))
+        f.write(data[2+4+8+16+4+4:bfOffBits])
+        f.write(bmpdata)
+        data = f.getvalue()
+        f.close()
+        return data, False
+    else:
+        return data, True
+
+
 def get_bmpdepth(data: bytes) -> int:
     """
     Bitmapデータのビット深度値を返す。

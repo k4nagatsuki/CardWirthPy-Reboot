@@ -91,6 +91,11 @@ def add_lightness(buf: bytearray, size: Tuple[int, int], lightness: int) -> None
 def decode_rle4data(data: bytes, h: int, bpl: int) -> bytes: ...
 
 
+"""Windows BitmapのRLE8データをデコードする。
+"""
+def decode_rle8data(data: bytes, h: int, bpl: int) -> bytes: ...
+
+
 """RGBA列の中に0以外のα値があるかを返す。
 """
 def has_alphabmp32(buf: str) -> bool: ...

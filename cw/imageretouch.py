@@ -661,6 +661,20 @@ def decode_rle4data(data: bytes, h: int, bpl: int) -> bytes:
     return func(data, h, bpl)
 
 
+def decode_rle8data(data: bytes, h: int, bpl: int) -> bytes:
+    """Windows BitmapのRLE8データをデコードする。
+    """
+    if sys.platform == "darwin":
+        func = _imageretouch_mac.decode_rle8data
+    elif sys.maxsize == 0x7fffffff:
+        func = _imageretouch32.decode_rle8data
+    elif sys.maxsize == 0x7fffffffffffffff:
+        func = _imageretouch64.decode_rle8data
+    else:
+        raise ValueError()
+    return func(data, h, bpl)
+
+
 def patch_alphadata(image: pygame.surface.Surface, ext: str, data: bytes) -> pygame.surface.Surface:
     """CardWirthのビットマップデコーダは、32ビットイメージの
     各ピクセルの4バイト中、予備領域に1件でも0以外のデータがある時に限り

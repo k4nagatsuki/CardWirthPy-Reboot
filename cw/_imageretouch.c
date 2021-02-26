@@ -945,6 +945,80 @@ exit_error:
 }
 
 static PyObject *
+decode_rle8data(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    Py_ssize_t outlen, slen, si = 0, linepos = 0, x = 0, y = 0, pixels = 0, lines = 0, j = 0;
+    int h, bpl;
+    unsigned char count = 0, sb = 0;
+    unsigned char *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#ii", &source, &slen, &h, &bpl))
+        return NULL;
+
+    outlen = h * bpl;
+    string = PyBytes_FromStringAndSize(NULL, outlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
+
+    memset(outdata, 0, outlen);
+
+    while (si < slen)
+    {
+        count = source[si++];
+        if (count == 0)
+        {
+            count = source[si++];
+            switch (count)
+            {
+            case 0:
+                /* EOL */
+                x = 0;
+                y++;
+                linepos = y * bpl;
+                break;
+            case 1:
+                /* EOB */
+                si = slen * 2;
+                break;
+            case 2:
+                /* Jump */
+                pixels = source[si++];
+                lines = source[si++];
+                x += pixels;
+                y += lines;
+                linepos = y * bpl;
+                break;
+            default:
+                /* Absolute Data */
+                for (j = 0; j < count; j++)
+                {
+                    outdata[linepos + x] = source[si++];
+                    x++;
+                }
+                if (count & 1) si++;
+                break;
+            }
+        }
+        else
+        {
+            /* Encoded Data */
+            sb = source[si++];
+            for (j = 0; j < count; j++)
+            {
+                outdata[linepos + x] = sb;
+                x++;
+            }
+        }
+    }
+
+    return string;
+}
+
+static PyObject *
 has_alphabmp32(PyObject *self, PyObject *args)
 {
     Py_ssize_t i, slen;
@@ -1480,6 +1554,8 @@ _imageretouchMethods[] =
         "add_lightness(char*, size, lightness)"},
     {"decode_rle4data", decode_rle4data, METH_VARARGS,
         "decode_rle4data(char*, h, bpl)"},
+    {"decode_rle8data", decode_rle8data, METH_VARARGS,
+        "decode_rle8data(char*, h, bpl)"},
     {"has_alphabmp32", has_alphabmp32, METH_VARARGS,
         "has_alphabmp32(char*)"},
     {"has_alpha", has_alpha, METH_VARARGS,

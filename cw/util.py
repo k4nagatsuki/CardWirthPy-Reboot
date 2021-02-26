@@ -3837,9 +3837,8 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
                 bmpdepth = cw.image.get_bmpdepth(data)
                 data, ok1 = cw.image.fix_cwnext32bitbitmap(data)
                 data, ok2 = cw.image.fix_cwnext16bitbitmap(data)
-                if isinstance(data, wx.Image):
-                    image = data
-                elif name and ok1 and ok2 and not cw.binary.image.path_is_code(name):
+                data, ok3 = cw.image.patch_rle8bitmap(data)
+                if name and ok1 and ok2 and ok3 and not cw.binary.image.path_is_code(name):
                     # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
                     #      二重にファイルを読む処理よりなお10倍も遅い
                     image = wx.Image(name)
