@@ -596,7 +596,7 @@ class CWPyCard(base.SelectableSprite):
     def update_scale(self) -> None:
         if not self.is_initialized():
             return
-        if not self.cardimg:
+        if not self._cardimg:
             return
 
         zoom = 0 < len(self.zoomimgs)
