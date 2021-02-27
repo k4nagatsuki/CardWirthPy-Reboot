@@ -57,12 +57,17 @@ class Deck(object):
             if header.type != "ActionCard":
                 hand2.append(header)
                 continue
-            header2 = cw.cwpy.rsrc.actioncards.get(i, None)
+            header2 = cw.cwpy.rsrc.actioncards.get(header.id, None)
             if header2 is None:
                 continue
             header3 = header2.copy()
             header3.set_owner(ccard)
             hand2.append(header3)
+            if self._used is header:
+                self._used = header3
+            if ccard.actiondata and ccard.actiondata[1] is header:
+                ccard.actiondata = (ccard.actiondata[0], header3, ccard.actiondata[2])
+
         self.hand = hand2
         self.talon = []
         self.talon.extend(self.get_actioncards(ccard))
@@ -287,6 +292,7 @@ class Deck(object):
         return self._throwaway
 
     def _remove(self, header: cw.header.CardHeader) -> None:
+        assert header in self.hand
         self.hand.remove(header)
         if header.type == "SkillCard":
             orig = header.ref_original()
@@ -377,6 +383,7 @@ class Deck(object):
         スキルカードは1枚消失する。
         アクションカードは山札に戻る。
         """
+        assert header.type != "ActionCard" or header in self.hand
         if header in self.hand and not header.type == "ItemCard" and\
                 not (header.type == "ActionCard" and header.id == 0):
             self.hand.remove(header)
