@@ -1151,7 +1151,10 @@ class Character(object):
                     try:
                         self.use_card(targets, header)
                     finally:
-                        self.deck.use(header)
+                        # usedは画面スケール変更等で差し変わっている場合があるためここで再取得する
+                        used = self.deck.get_used()
+                        if used:
+                            self.deck.use(used)
 
     def set_action(self, target: Optional[Union["cw.sprite.card.CWPyCard", List["cw.sprite.card.CWPyCard"]]],
                    header: Optional[cw.header.CardHeader],
@@ -2885,7 +2888,7 @@ class Character(object):
                 elif bgtype == cw.sprite.background.BG_TEXT:
                     assert d
                     namelist = d[1]
-                    assert isinstance(d, list)
+                    assert isinstance(namelist, list)
                     for item in namelist:
                         if item.data is self:
                             # テキストセルに表示中の名前
