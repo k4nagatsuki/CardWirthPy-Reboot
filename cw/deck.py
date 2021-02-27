@@ -116,9 +116,10 @@ class Deck(object):
         # 手札構築
         self.hand = []
         # カード交換カードを手札に加える
-        header = cw.cwpy.rsrc.actioncards[0].copy()
-        header.set_owner(ccard)
-        self.hand.append(header)
+        if ccard.actions.get(0, True):
+            header = cw.cwpy.rsrc.actioncards[0].copy()
+            header.set_owner(ccard)
+            self.hand.append(header)
         # アイテムカードを手札に加える
         self.hand.extend(ccard.get_pocketcards(cw.POCKET_ITEM))
         # アクションカード、技能カードを手札に加える
