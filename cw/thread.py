@@ -436,6 +436,7 @@ class CWPy(threading.Thread):
             self.init_fullscreenparams()
 
             # リソース(辞書)
+            init_rsrc.acquire()
             if self.rsrc:
                 self.rsrc.dispose()
             rsrc = self.rsrc
@@ -454,6 +455,7 @@ class CWPy(threading.Thread):
             else:
                 self.rsrc.actioncards = self.rsrc.get_actioncards()
                 self.rsrc.backpackcards = self.rsrc.get_backpackcards()
+            init_rsrc.release()
             # 背景スプライト
             if not self.background.is_initialized():
                 self.background.init()
