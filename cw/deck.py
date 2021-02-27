@@ -51,6 +51,24 @@ class Deck(object):
 
         return seq
 
+    def update_actioncards(self, ccard: "cw.character.Character") -> None:
+        hand2 = []
+        for i, header in enumerate(self.hand):
+            if header.type != "ActionCard":
+                hand2.append(header)
+                continue
+            header2 = cw.cwpy.rsrc.actioncards.get(i, None)
+            if header2 is None:
+                continue
+            header3 = header2.copy()
+            header3.set_owner(ccard)
+            hand2.append(header3)
+        self.hand = hand2
+        self.talon = []
+        self.talon.extend(self.get_actioncards(ccard))
+        self.talon.extend(self.get_skillcards(ccard))
+        self.shuffle()
+
     def get_skillcards(self, ccard: "cw.character.Character",
                        handcounts: Optional[Dict[cw.header.CardHeader, int]] = None) -> List[cw.header.CardHeader]:
         if handcounts is None:

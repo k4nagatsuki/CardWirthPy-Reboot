@@ -464,6 +464,10 @@ class CWPy(threading.Thread):
                 # ステータスバークリップ
                 self.sbargrp.set_clip(self.statusbar.rect)
 
+            for ccard in itertools.chain(self.get_pcards(), self.get_ecards(), self.get_fcards()):
+                assert isinstance(ccard, cw.character.Character)
+                ccard.deck.update_actioncards(ccard)
+
             self.update_fullscreenbackground()
             self.frame.exec_func(self.frame.update_dialogparams)
 
