@@ -1820,21 +1820,21 @@ class Resource(object):
         self.msgs = self.get_msgs(setting)
         # wxダイアログのボタン画像(辞書)
         # wxスレッドから初期化
-        self.buttons = ResourceTable[str, wx.Bitmap]("Button", {}, empty_wxbmp)
+        self.buttons = ResourceTable[str, wx.Bitmap]("Button", {}, None)
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs(cw.util.load_image, empty_image)
         self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image, empty_image)
         # wx版。wxスレッドから初期化
-        self.dialogs = ResourceTable[str, wx.Bitmap]("Dialog", {}, empty_wxbmp)
+        self.dialogs = ResourceTable[str, wx.Bitmap]("Dialog", {}, None)
         # デバッガで使う画像(辞書)
         self.pygamedebugs = self.get_debugs(cw.util.load_image, empty_image, cw.s)
         # wx版。wxスレッドから初期化
-        self.debugs = ResourceTable[str, wx.Bitmap]("Debug", {}, empty_wxbmp)
+        self.debugs = ResourceTable[str, wx.Bitmap]("Debug", {}, None)
         # ダイアログで使うカーソル(辞書)
         # wxスレッドから初期化
-        self.cursors = ResourceTable[str, wx.Cursor]("Cursor", {}, empty_wxbmp)
+        self.cursors = ResourceTable[str, wx.Cursor]("Cursor", {}, None)
         # 特殊文字の画像(辞書)
         self.specialchars_is_changed = False
         self.specialchars = self.get_specialchars()
@@ -1843,7 +1843,7 @@ class Resource(object):
         # 適性値・使用回数値画像(辞書)
         self.stones = self.get_stones()
         # wx版。wxスレッドから初期化
-        self.wxstones = ResourceTable[str, wx.Bitmap]("Stone", {}, empty_wxbmp)
+        self.wxstones = ResourceTable[str, wx.Bitmap]("Stone", {}, None)
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts, self.msg_exfonts = self.create_fonts()
@@ -1857,7 +1857,12 @@ class Resource(object):
 
         self.ignorecase_table = {}
 
-        cw.cwpy.frame.exec_func(self.init_wxresources)
+        # FIXME: 現在はLazyResourceを使用するためinit_wxresourcesは
+        #        pygame側のスレッドから呼び出してよい
+        #        安定して動くようなら上の方の「wxスレッドから初期化」と
+        #        書かれているダミーResourceTableの代入処理を削除する
+        # cw.cwpy.frame.exec_func(self.init_wxresources)
+        self.init_wxresources()
         if os.path.normcase("A") != "a":
             # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
             #        取得に失敗する事があるので、すべて小文字のパスをキーにして
