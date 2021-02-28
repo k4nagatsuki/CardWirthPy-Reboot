@@ -2118,6 +2118,13 @@ def get_materialpath(path: str, mtype: int, scedir: str = "", system: bool = Fal
     cw.fsync.sync()
     if mtype == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
+
+    orig_scedir = scedir
+    cachekey = (path, mtype, system, findskin)
+    if orig_scedir == "":
+        if cachekey in cw.cwpy.sdata.path_cache:
+            return cw.cwpy.sdata.path_cache[cachekey]
+
     if not system and (cw.cwpy.is_playingscenario() or scedir):
         tpath = cw.util.join_paths(cw.tempdir, "ScenarioLog/TempFile", path)
         tpath = cw.cwpy.rsrc.get_filepath(tpath)
@@ -2132,7 +2139,11 @@ def get_materialpath(path: str, mtype: int, scedir: str = "", system: bool = Fal
         path = cw.cwpy.rsrc.get_filepath(path)
         if not os.path.isfile(path):
             path = cw.util.join_paths(cw.cwpy.skindir, path)
-    return get_materialpathfromskin(path, mtype, findskin=findskin)
+
+    path = get_materialpathfromskin(path, mtype, findskin=findskin)
+    if orig_scedir == "":
+        cw.cwpy.sdata.path_cache[cachekey] = path
+    return path
 
 
 def get_materialpathfromskin(path: str, mtype: int, findskin: bool = True) -> str:

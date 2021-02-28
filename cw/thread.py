@@ -507,6 +507,7 @@ class CWPy(threading.Thread):
             self.is_updating_skin = True
 
         self.file_updates.clear()
+        self.sdata.path_cache.clear()
         if self.status == "Title" and restartop:
             changearea = False
             self.cardgrp.remove(*self.mcards)
@@ -1435,6 +1436,7 @@ class CWPy(threading.Thread):
             for path in self.sdata.ex_cache.keys():
                 path = cw.util.get_keypath(cw.util.get_symlinktarget(path))
 
+            self.sdata.path_cache.clear()
             self.sdata.resource_cache.clear()
             self.sdata.resource_cache_size = 0
 
