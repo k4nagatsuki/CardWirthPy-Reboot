@@ -2338,7 +2338,7 @@ class ChangeEnvironmentContent(EventContentBase):
             cw.cwpy.sdata.party_environment_backpack = True
         elif self.backpack == "Disable":
             cw.cwpy.sdata.party_environment_backpack = False
-        # ゲームオーバー(Wsn.5)
+        # 敗北・ゲームオーバー(Wsn.5)
         if self.gameover == "Enable":
             cw.cwpy.sdata.party_environment_gameover = True
         elif self.gameover == "Disable":
@@ -2355,7 +2355,7 @@ class ChangeEnvironmentContent(EventContentBase):
                 return "変更しない"
         backpack = enable_str(self.backpack, "使用可", "使用不可")
         gameover = enable_str(self.gameover, "発生有り", "発生無し")
-        return "荷物袋 = %s ゲームオーバー = %s" % (backpack, gameover)
+        return "荷物袋 = %s 敗北・ゲームオーバー = %s" % (backpack, gameover)
 
 
 # ------------------------------------------------------------------------------

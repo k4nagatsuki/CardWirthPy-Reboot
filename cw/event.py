@@ -1018,7 +1018,7 @@ class Event(object):
         # 戦闘中か否か
         if cw.cwpy.is_battlestatus():
             # 敗北処理
-            if cw.cwpy.is_gameover():
+            if cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover():
                 # 互換動作: 1.15では戦闘中でもゲームオーバーになる。
                 #           それより前のバージョンは不明だが1.15と同じように振る舞うと想定。
                 if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.15", cw.cwpy.sdata.get_versionhint()):

@@ -432,12 +432,12 @@ class BattleEngine(object):
         return flag
 
     def check_defeat(self) -> bool:
+        if not cw.cwpy.sdata.can_gameover():
+            return False
         flag = True
-
         for pcard in cw.cwpy.get_pcards():
             if pcard.is_alive():
                 flag = False
-
         return flag
 
     def set_members(self) -> None:
