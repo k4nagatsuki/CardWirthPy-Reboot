@@ -2329,7 +2329,7 @@ class ChangeEnvironmentContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
         self.backpack = self.data.getattr(".", "backpack", "NotSet")  # Wsn.4
-        self.gameover = self.data.getattr(".", "gameover", "NotSet")  # Wsn.4
+        self.gameover = self.data.getattr(".", "gameover", "NotSet")  # Wsn.5
 
     def action(self) -> int:
         """状況設定コンテント。"""
