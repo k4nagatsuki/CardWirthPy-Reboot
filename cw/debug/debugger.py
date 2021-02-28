@@ -794,10 +794,12 @@ class Debugger(wx.Frame):
         cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnPartyEnvTool(self, event: wx.CommandEvent) -> None:
-        choices = ["荷物袋の使用が可能"]
+        choices = ["荷物袋の使用が可能", "ゲームオーバーが発生する"]
         selections = []
         if cw.cwpy.sdata.party_environment_backpack:
             selections.append(0)
+        if cw.cwpy.sdata.party_environment_gameover:
+            selections.append(1)
         dlg = wx.MultiChoiceDialog(
             self, "パーティの状況を設定してください",
             "状況設定", choices, style=wx.DEFAULT_DIALOG_STYLE | wx.OK | wx.CANCEL | wx.MINIMIZE_BOX)
@@ -806,9 +808,12 @@ class Debugger(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             party_environment_backpack = False
+            party_environment_gameover = False
             for index in dlg.GetSelections():
                 if index == 0:
                     party_environment_backpack = True
+                elif index == 1:
+                    party_environment_gameover = True
 
             def func() -> None:
                 if cw.cwpy.is_playingscenario() and\
@@ -816,6 +821,8 @@ class Debugger(wx.Frame):
                     cw.cwpy.sdata.party_environment_backpack = party_environment_backpack
                     if cw.cwpy.areaid == cw.AREA_CAMP:
                         cw.data.redraw_cards(party_environment_backpack)
+                if cw.cwpy.is_playingscenario():
+                    cw.cwpy.sdata.party_environment_gameover = party_environment_gameover
             cw.cwpy.exec_func(func)
         dlg.Destroy()
 

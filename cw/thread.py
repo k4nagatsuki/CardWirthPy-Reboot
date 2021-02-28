@@ -2066,7 +2066,7 @@ class CWPy(threading.Thread):
 
             if 0 <= self.areaid and self.is_playingscenario() and callname in ("CARDPOCKET", "CARDPOCKETB"):
                 # ゲームオーバーになった場合は開かない
-                if cw.cwpy.is_gameover():
+                if cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover():
                     self.pre_dialogs.pop()
                     return
 
@@ -4184,7 +4184,7 @@ class CWPy(threading.Thread):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
                 self.elapse_time(playeronly=True)
-                if self.is_gameover():
+                if self.is_gameover() and cw.cwpy.sdata.can_gameover():
                     self.set_gameover()
                     return
 
@@ -5066,7 +5066,7 @@ class CWPy(threading.Thread):
                     raise cw.event.EffectBreakError()
                 else:
                     raise cw.battle.BattleDefeatError()
-            else:
+            elif cw.cwpy.sdata.can_gameover():
                 cw.cwpy.set_gameover()
                 if fromevent:
                     raise cw.event.ScenarioBadEndError()

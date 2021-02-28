@@ -2328,26 +2328,34 @@ def check_areaid(resid: int) -> bool:
 class ChangeEnvironmentContent(EventContentBase):
     def __init__(self, data: cw.data.CWPyElement) -> None:
         EventContentBase.__init__(self, data, is_changestate=True)
-        self.backpack = self.data.getattr(".", "backpack", "NotSet")
+        self.backpack = self.data.getattr(".", "backpack", "NotSet")  # Wsn.4
+        self.gameover = self.data.getattr(".", "gameover", "NotSet")  # Wsn.5
 
     def action(self) -> int:
         """状況設定コンテント。"""
+        # 荷物袋(Wsn.4)
         if self.backpack == "Enable":
             cw.cwpy.sdata.party_environment_backpack = True
         elif self.backpack == "Disable":
             cw.cwpy.sdata.party_environment_backpack = False
+        # ゲームオーバー(Wsn.5)
+        if self.gameover == "Enable":
+            cw.cwpy.sdata.party_environment_gameover = True
+        elif self.gameover == "Disable":
+            cw.cwpy.sdata.party_environment_gameover = False
         return 0
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
-        def enable_str(s: str) -> str:
+        def enable_str(s: str, on: str, off: str) -> str:
             if s == "Enable":
-                return "使用可"
+                return on
             elif s == "Disable":
-                return "使用不可"
+                return off
             else:
                 return "変更しない"
-        backpack = enable_str(self.backpack)
-        return "荷物袋 = %s" % (backpack)
+        backpack = enable_str(self.backpack, "使用可", "使用不可")
+        gameover = enable_str(self.gameover, "発生有り", "発生無し")
+        return "荷物袋 = %s ゲームオーバー = %s" % (backpack, gameover)
 
 
 # ------------------------------------------------------------------------------
@@ -2642,11 +2650,14 @@ class EffectContent(EventContentBase):
         if isinstance(target, list):
             targets: List[cw.sprite.card.CWPyCard] = []
             for ccard2 in target:
-                assert isinstance(ccard2, cw.sprite.card.CWPyCard)
+                assert isinstance(ccard2, cw.sprite.card.CWPyCard), ccard2
                 targets.append(ccard2)
         else:
-            assert isinstance(target, cw.sprite.card.CWPyCard)
-            targets = [target]
+            if target:
+                assert isinstance(target, cw.sprite.card.CWPyCard), target
+                targets = [target]
+            else:
+                targets = []
 
         if not targets:
             # 対象無しの場合は無条件に消費する
@@ -2743,7 +2754,7 @@ class EffectContent(EventContentBase):
                 if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                     break
 
-        if cw.cwpy.is_gameover():
+        if cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover():
             # 効果中断。引き続き
             # ゲームオーバーイベントが発生する。
             raise cw.event.EffectBreakError()
