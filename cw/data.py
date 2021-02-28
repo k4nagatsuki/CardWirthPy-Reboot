@@ -99,6 +99,7 @@ class SystemData(object):
         self.party_environment_backpack = True
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None
         self.data_cache: Dict[str, CacheData] = {}
+        self.path_cache: Dict[Tuple[str, int, bool, bool], str] = {}
         self.resource_cache = {}
         self.resource_cache_size = 0
         self.autostart_round = False
@@ -408,6 +409,7 @@ class SystemData(object):
         update_table(self._beasts)
 
         self.data_cache = {}
+        self.path_cache = {}
         self.resource_cache = {}
         self.resource_cache_size = 0
 
@@ -1242,6 +1244,8 @@ class ScenarioData(SystemData):
 
         # ロードしたデータファイルのキャッシュ
         self.data_cache: Dict[str, CacheData] = {}
+        # パス探索が重いのでキャッシュする
+        self.path_cache: Dict[Tuple[str, int, bool, bool], str] = {}
         # ロードしたイメージ等のリソースのキャッシュ
         self.resource_cache = {}
         self.resource_cache_size = 0
@@ -1692,6 +1696,7 @@ class ScenarioData(SystemData):
         self.reload_variables()
 
         self.data_cache = {}
+        self.path_cache = {}
         self.resource_cache = {}
         self.resource_cache_size = 0
         self._init_xmlpaths()

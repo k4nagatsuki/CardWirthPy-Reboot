@@ -1170,6 +1170,7 @@ class JpdcImage(cw.image.Image):
 
                 if cw.cwpy.is_playingscenario():
                     cw.cwpy.rsrc.specialchars.reset()
+                cw.cwpy.sdata.path_cache = {}
 
                 # メニューカードが更新されるものを更新リストに登録する
                 if not cw.cwpy.update_scaling:
