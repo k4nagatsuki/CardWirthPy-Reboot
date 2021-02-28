@@ -794,7 +794,7 @@ class Debugger(wx.Frame):
         cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnPartyEnvTool(self, event: wx.CommandEvent) -> None:
-        choices = ["荷物袋の使用が可能", "ゲームオーバーが発生する"]
+        choices = ["荷物袋の使用が可能", "敗北・ゲームオーバーが発生する"]
         selections = []
         if cw.cwpy.sdata.party_environment_backpack:
             selections.append(0)

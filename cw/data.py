@@ -1111,8 +1111,8 @@ class SystemData(object):
 
     def can_gameover(self) -> bool:
         """
-        ゲームオーバーが有効な状態か。
-        ゲームオーバー不可状態でも全員対象消去されていれば有効とする。
+        敗北・ゲームオーバーが有効な状態か。
+        敗北・ゲームオーバー不可状態でも全員対象消去されていれば有効とする。
         """
         return self.party_environment_gameover or not cw.cwpy.get_pcards()
 
@@ -1237,7 +1237,7 @@ class ScenarioData(SystemData):
         self.infocards_beforeevent = None  # イベント開始前の所持情報カードのset
         # 荷物袋の有効・無効(Wsn.4)
         self.party_environment_backpack = True
-        # ゲームオーバーの有効・無効(Wsn.5)
+        # 敗北・ゲームオーバーの有効・無効(Wsn.5)
         self.party_environment_gameover = True
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None

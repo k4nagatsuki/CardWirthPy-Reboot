@@ -5060,13 +5060,13 @@ class CWPy(threading.Thread):
         finally:
             self._elapse_time = False
 
-        if self.is_gameover() and self.is_playingscenario():
+        if self.is_gameover() and cw.cwpy.sdata.can_gameover() and self.is_playingscenario():
             if cw.cwpy.is_battlestatus():
                 if fromevent:
                     raise cw.event.EffectBreakError()
                 else:
                     raise cw.battle.BattleDefeatError()
-            elif cw.cwpy.sdata.can_gameover():
+            else:
                 cw.cwpy.set_gameover()
                 if fromevent:
                     raise cw.event.ScenarioBadEndError()
