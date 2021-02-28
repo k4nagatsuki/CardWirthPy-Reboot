@@ -408,7 +408,7 @@ class BattleEngine(object):
 
         cw.cwpy.advlog.end_battle(self)
 
-        if event:
+        if event or not cw.cwpy.sdata.can_gameover():
             cw.cwpy.hide_cards(True)
             cw.cwpy.cardgrp.remove(*cw.cwpy.mcards)
             cw.cwpy.mcards = []

@@ -97,6 +97,7 @@ class SystemData(object):
         self.notice_infoview = False
         self.infocards_beforeevent: Optional[Set[int]] = None
         self.party_environment_backpack = True
+        self.party_environment_gameover = True
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None
         self.data_cache: Dict[str, CacheData] = {}
         self.path_cache: Dict[Tuple[str, int, bool, bool], str] = {}
@@ -1108,6 +1109,13 @@ class SystemData(object):
                 headers.append(header)
         return headers
 
+    def can_gameover(self) -> bool:
+        """
+        ゲームオーバーが有効な状態か。
+        ゲームオーバー不可状態でも全員対象消去されていれば有効とする。
+        """
+        return self.party_environment_gameover or not cw.cwpy.get_pcards()
+
 
 def get_skinkeys() -> Tuple[Set[str], Dict[str, Tuple[str, str]]]:
     """使用可能なスキンの一覧をVariablesKeyのsetで返す。"""
@@ -1229,6 +1237,8 @@ class ScenarioData(SystemData):
         self.infocards_beforeevent = None  # イベント開始前の所持情報カードのset
         # 荷物袋の有効・無効(Wsn.4)
         self.party_environment_backpack = True
+        # ゲームオーバーの有効・無効(Wsn.5)
+        self.party_environment_gameover = True
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None
         # バトル中、自動で行動開始するか
@@ -2100,6 +2110,7 @@ class ScenarioData(SystemData):
         self.autostart_round = etree.getbool("Property/RoundAutoStart", False)
         self.notice_infoview = etree.getbool("Property/NoticeInfoView", False)
         self.party_environment_backpack = etree.gettext("Property/PartyEnvironment/Backpack", "Enable") != "Disable"
+        self.party_environment_gameover = etree.gettext("Property/PartyEnvironment/GameOver", "Enable") != "Disable"
         cw.cwpy.statusbar.loading = True
 
         self._load_variables(etree)

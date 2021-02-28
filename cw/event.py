@@ -993,7 +993,7 @@ class Event(object):
         if not (isinstance(self.error, AreaChangeError) or
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status not in ("Title", "GameOver"):
-            if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
+            if not (cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover()) and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
                 if not cw.cwpy.is_updating_skin:
                     cw.cwpy.disposition_pcards()
@@ -1001,7 +1001,7 @@ class Event(object):
 
         if not isinstance(self.error, AreaChangeError):
             # BUG: CardWirthでは全滅時は選択メンバがクリアされない
-            if not (cw.cwpy.is_battlestatus() and cw.cwpy.is_gameover()):
+            if not (cw.cwpy.is_battlestatus() and cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover()):
                 cw.cwpy.event.set_selectedmember(None)
 
         cw.cwpy.event.clear()
@@ -1036,7 +1036,8 @@ class Event(object):
             cw.cwpy.fix_updated_file(force=True)
 
         # ゲームオーバ
-        elif cw.cwpy.is_gameover() and cw.cwpy.is_playingscenario() and not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
+        elif cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover() and cw.cwpy.is_playingscenario() and\
+                not cw.cwpy.sdata.in_f9 and 0 <= cw.cwpy.areaid:
             cw.cwpy.set_gameover()
 
     def get_events(self, target: "cw.sprite.card.CWPyCard") -> Optional[EventEngine]:
@@ -1267,7 +1268,7 @@ class Event(object):
 
     def check_gameover(self) -> None:
         """ゲームオーバーチェック。"""
-        if cw.cwpy.is_playingscenario():
+        if cw.cwpy.is_playingscenario() and cw.cwpy.sdata.can_gameover():
             flag = True
 
             for pcard in cw.cwpy.get_pcards():
@@ -1558,7 +1559,7 @@ class CardEvent(Event, Targeting):
     def _exit_event(self) -> None:
         if not (isinstance(self.error, AreaChangeError) or
                 isinstance(self.error, ScenarioBadEndError)):
-            if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
+            if not (cw.cwpy.is_gameover() and cw.cwpy.sdata.can_gameover()) and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
 
     def run_areaevent(self) -> None:
