@@ -2951,7 +2951,7 @@ class StackTraceView(wx.ListCtrl, wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin)
                 if enemy is None:
                     name = "(未設定)"
                 else:
-                    name = enemy[0] if enemy[0] else "(名称なし)"
+                    name = enemy if enemy else "(名称なし)"
             else:
                 name = e.gettext("Property/Name", "(名称なし)")
             name += " (%s)" % (evt.treekeys[0] if evt.treekeys[0] else "イベント名なし")
