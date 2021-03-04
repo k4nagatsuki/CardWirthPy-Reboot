@@ -383,7 +383,6 @@ class Deck(object):
         スキルカードは1枚消失する。
         アクションカードは山札に戻る。
         """
-        assert header.type != "ActionCard" or header in self.hand
         if header in self.hand and not header.type == "ItemCard" and\
                 not (header.type == "ActionCard" and header.id == 0):
             self.hand.remove(header)
