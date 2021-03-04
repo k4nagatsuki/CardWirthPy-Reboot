@@ -140,8 +140,12 @@ class EventContentBase(object):
         使用中のカードが現在プレイ中のシナリオと異なる
         シナリオから持ち出されたものであればTrueを返す。
         """
-        if event and not event.is_active:
-            return False
+        if event:
+            if not event.is_active:
+                return False
+            return bool(event.inusecard) and (event.scenario != cw.cwpy.sdata.name or
+                                              event.author != cw.cwpy.sdata.author)
+
         if self._scenario is None:
             if cw.cwpy.is_playingscenario():
                 inusecard = cw.cwpy.event.get_inusecard()
