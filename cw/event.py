@@ -741,6 +741,8 @@ class EffectBreakError(EventError):
 
 class Event(object):
     is_active: bool
+    scenario: str
+    author: str
     packageid: int
     keycode_matching: str
     line_index: int
