@@ -1397,6 +1397,15 @@ def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: 
     return DecimalValue(cw.cwpy.ydata.party.money, line, pos)
 
 
+def _func_partynumber(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                      pos: int) -> DecimalValue:
+    """パーティーの人数を返す。パーティー非編成時は 0 を返す。"""
+    _chk_argscount(args, 0, "PARTYNUMBER", line, pos)
+    if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
+        return DecimalValue(0, line, pos)
+    return DecimalValue(len(cw.cwpy.get_pcards()), line, pos)
+
+
 def _func_yadoname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
                    pos: int) -> StringValue:
     """拠点名を返す。拠点無しの場合は空文字列を返す。"""
@@ -1443,6 +1452,7 @@ _functions = {
     "lright": _func_lright,
     "lmid": _func_lmid,
     "partymoney": _func_partymoney,
+    "partynumber": _func_partynumber,
     "yadoname": _func_yadoname,
 }
 
