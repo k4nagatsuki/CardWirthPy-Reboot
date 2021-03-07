@@ -1397,6 +1397,15 @@ def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: 
     return DecimalValue(cw.cwpy.ydata.party.money, line, pos)
 
 
+def _func_yadoname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                   pos: int) -> StringValue:
+    """拠点名を返す。拠点無しの場合は空文字列を返す。"""
+    _chk_argscount(args, 0, "YADONAME", line, pos)
+    if cw.cwpy.ydata is None:
+        return StringValue("", line, pos)
+    return StringValue(cw.cwpy.ydata.get_showingname(), line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1434,6 +1443,7 @@ _functions = {
     "lright": _func_lright,
     "lmid": _func_lmid,
     "partymoney": _func_partymoney,
+    "yadoname": _func_yadoname,
 }
 
 
