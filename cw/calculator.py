@@ -1388,6 +1388,15 @@ def _func_lmid(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
     return ListValue(a, line, pos)
 
 
+def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                     pos: int) -> DecimalValue:
+    """パーティーの所持金を返す。パーティー非編成時は -1 を返す。"""
+    _chk_argscount(args, 0, "PARTYMONEY", line, pos)
+    if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
+        return DecimalValue(-1, line, pos)
+    return DecimalValue(cw.cwpy.ydata.party.money, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1424,6 +1433,7 @@ _functions = {
     "lleft": _func_lleft,
     "lright": _func_lright,
     "lmid": _func_lmid,
+    "partymoney": _func_partymoney,
 }
 
 
