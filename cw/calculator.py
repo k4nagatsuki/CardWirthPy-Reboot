@@ -1415,6 +1415,16 @@ def _func_yadoname(args: List[Callable[[], ValueType]], is_differentscenario: bo
     return StringValue(cw.cwpy.ydata.get_showingname(), line, pos)
 
 
+def _func_battleround(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                      pos: int) -> DecimalValue:
+    """現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。"""
+    _chk_argscount(args, 0, "BATTLEROUND", line, pos)
+    if not cw.cwpy.is_battlestatus():
+        return DecimalValue(-1, line, pos)
+    assert cw.cwpy.battle
+    return DecimalValue(cw.cwpy.battle.round, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1454,6 +1464,7 @@ _functions = {
     "partymoney": _func_partymoney,
     "partynumber": _func_partynumber,
     "yadoname": _func_yadoname,
+    "battleround": _func_battleround,
 }
 
 
