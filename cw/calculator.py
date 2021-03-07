@@ -1387,6 +1387,7 @@ def _func_lmid(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
             a = a[:int(v)]
     return ListValue(a, line, pos)
 
+
 def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
                      pos: int) -> DecimalValue:
     """パーティーの所持金を返す。パーティー非編成時は -1 を返す。"""
