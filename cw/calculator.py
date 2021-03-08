@@ -1397,6 +1397,46 @@ def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: 
     return DecimalValue(cw.cwpy.ydata.party.money, line, pos)
 
 
+def _func_partynumber(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                      pos: int) -> DecimalValue:
+    """パーティーの人数を返す。パーティー非編成時は 0 を返す。"""
+    _chk_argscount(args, 0, "PARTYNUMBER", line, pos)
+    if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
+        return DecimalValue(0, line, pos)
+    return DecimalValue(len(cw.cwpy.get_pcards()), line, pos)
+
+
+def _func_yadoname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                   pos: int) -> StringValue:
+    """拠点名を返す。拠点無しの場合は空文字列を返す。"""
+    _chk_argscount(args, 0, "YADONAME", line, pos)
+    if cw.cwpy.ydata is None:
+        return StringValue("", line, pos)
+    return StringValue(cw.cwpy.ydata.get_showingname(), line, pos)
+
+
+def _func_battleround(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                      pos: int) -> DecimalValue:
+    """現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。"""
+    _chk_argscount(args, 0, "BATTLEROUND", line, pos)
+    if not cw.cwpy.is_battlestatus():
+        return DecimalValue(-1, line, pos)
+    assert cw.cwpy.battle
+    return DecimalValue(cw.cwpy.battle.round, line, pos)
+
+
+def _func_castlevel(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターのレベルを返す。存在しない場合は 0 を返す。"""
+    _chk_argscount(args, 1, "CASTLEVEL", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "CASTLEVEL")
+    if ccard:
+        return DecimalValue(ccard.level, line, pos)
+    else:
+        return DecimalValue(0, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1434,6 +1474,10 @@ _functions = {
     "lright": _func_lright,
     "lmid": _func_lmid,
     "partymoney": _func_partymoney,
+    "partynumber": _func_partynumber,
+    "yadoname": _func_yadoname,
+    "battleround": _func_battleround,
+    "castlevel": _func_castlevel,
 }
 
 
