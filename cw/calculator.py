@@ -1425,6 +1425,18 @@ def _func_battleround(args: List[Callable[[], ValueType]], is_differentscenario:
     return DecimalValue(cw.cwpy.battle.round, line, pos)
 
 
+def _func_castlevel(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターのレベルを返す。存在しない場合は 0 を返す。"""
+    _chk_argscount(args, 1, "CASTLEVEL", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "CASTLEVEL")
+    if ccard:
+        return DecimalValue(ccard.level, line, pos)
+    else:
+        return DecimalValue(0, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1465,6 +1477,7 @@ _functions = {
     "partynumber": _func_partynumber,
     "yadoname": _func_yadoname,
     "battleround": _func_battleround,
+    "castlevel": _func_castlevel,
 }
 
 
