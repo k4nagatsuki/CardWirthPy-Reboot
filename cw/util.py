@@ -3331,7 +3331,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
                 spcharinfo2.append(reduce(lambda l, s: l + len(s), seq[:index], 0))
 
     index = 0
-    for char in grapheme.graphemes(s):
+    for char in graphemes(s):
         spchar2 = spchar
         spchar = False
         width2 = width
@@ -3460,6 +3460,17 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
         spcharinfo.update(spcharinfo2)
 
     return "".join(seq).rstrip()
+
+
+def graphemes(s: str) -> Sequence[str]:
+    arr: List[str] = []
+    for chars in grapheme.graphemes(s):
+        if len(chars) == 2 and chars[1] in ('ﾞ', 'ﾟ'):
+            arr.append(chars[0])
+            arr.append(chars[1])
+        else:
+            arr.append(chars)
+    return arr
 
 
 def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]], open_chars: str, close_chars: str,
