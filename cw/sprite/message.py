@@ -7,7 +7,6 @@ import re
 import itertools
 import pygame
 import pygame.surface
-import grapheme
 
 import cw
 from . import base
@@ -487,7 +486,7 @@ class MessageWindow(base.CWPySprite):
         additional_wait_after_space = False
 
         index = 0
-        for char in grapheme.graphemes(self.text):
+        for char in cw.util.graphemes(self.text):
             def add_wait(space: bool, is_waitchar: bool) -> Tuple[float, bool, bool]:
                 if cw.cwpy.setting.wait_after_punctuation_mark and not is_waitchar:
                     if additional_wait or (additional_wait_after_space and space):
