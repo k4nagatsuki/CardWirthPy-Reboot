@@ -99,7 +99,7 @@ class BackGround(base.CWPySprite):
                 self.image.fill((0, 0, 0))
                 self.bgs = bgs
                 self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True)
-                if elements:
+                if elements is not None:
                     # 再実行
                     self.load(elements, doanime=doanime, ttype=ttype)
                 else:
