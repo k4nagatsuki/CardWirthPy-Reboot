@@ -240,14 +240,20 @@ class _AnimationPart(object):
             height = self.parent.size_noscale[1]
 
         ref = False
-        if not isinstance(width, (int, float)) and width.startswith("Ref:"):
+        if isinstance(width, str) and width.startswith("Ref:"):
             ref = True
         else:
-            width = int(width)
-        if not isinstance(height, (int, float)) and height.startswith("Ref:"):
+            try:
+                width = int(width)
+            except Exception:
+                raise Exception("width の定義 %s が正しくありません。数値か Ref:* である必要があります。" % width)
+        if isinstance(height, str) and height.startswith("Ref:"):
             ref = True
         else:
-            height = int(height)
+            try:
+                height = int(height)
+            except Exception:
+                raise Exception("height の定義 %s が正しくありません。数値か Ref:* である必要があります。" % height)
 
         if left == "Center":
             if not isinstance(width, (int, float)):
@@ -258,20 +264,30 @@ class _AnimationPart(object):
                 raise Exception("top に Center を指定している場合、height に Ref:* を指定する事はできません。")
             top = (self.parent.size_noscale[1] - height) // 2
 
-        if not isinstance(left, (int, float)) and left.startswith("Ref:"):
+        if isinstance(left, str) and left.startswith("Ref:"):
             ref = True
         else:
-            left = int(left)
-        if not isinstance(top, (int, float)) and top.startswith("Ref:"):
+            try:
+                left = int(left)
+            except Exception:
+                raise Exception("left の定義 %s が正しくありません。数値か Ref:* である必要があります。" % left)
+        if isinstance(top, str) and top.startswith("Ref:"):
             ref = True
         else:
-            top = int(top)
+            try:
+                top = int(top)
+            except Exception:
+                raise Exception("top の定義 %s が正しくありません。数値か Ref:* である必要があります。" % top)
 
         if ref:
             self.parent.refs.append(self)
 
+        assert isinstance(left, (int, str))
+        assert isinstance(top, (int, str))
+        assert isinstance(width, (int, str))
+        assert isinstance(height, (int, str))
         self.pos_noscale: Tuple[Union[int, str], Union[int, str]] = (left, top)
-        self.size_noscale: Tuple[int, int] = (width, height)
+        self.size_noscale: Tuple[Union[int, str], Union[int, str]] = (width, height)
 
     def update_scale(self) -> None:
         if not self.image_noscale:
