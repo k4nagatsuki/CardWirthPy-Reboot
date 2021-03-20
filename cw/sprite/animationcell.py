@@ -236,25 +236,10 @@ class _AnimationPart(object):
 
         if width == "Max":
             width = self.parent.size_noscale[0]
-        assert isinstance(width, (int, float))
         if height == "Max":
             height = self.parent.size_noscale[1]
-        assert isinstance(height, (int, float))
-
-        if left == "Center":
-            left = (self.parent.size_noscale[0] - width) // 2
-        if top == "Center":
-            top = (self.parent.size_noscale[1] - height) // 2
 
         ref = False
-        if not isinstance(left, (int, float)) and left.startswith("Ref:"):
-            ref = True
-        else:
-            left = int(left)
-        if not isinstance(top, (int, float)) and top.startswith("Ref:"):
-            ref = True
-        else:
-            top = int(top)
         if not isinstance(width, (int, float)) and width.startswith("Ref:"):
             ref = True
         else:
@@ -263,6 +248,24 @@ class _AnimationPart(object):
             ref = True
         else:
             height = int(height)
+
+        if left == "Center":
+            if not isinstance(width, (int, float)):
+                raise Exception("left に Center を指定している場合、width に Ref:* を指定する事はできません。")
+            left = (self.parent.size_noscale[0] - width) // 2
+        if top == "Center":
+            if not isinstance(height, (int, float)):
+                raise Exception("top に Center を指定している場合、height に Ref:* を指定する事はできません。")
+            top = (self.parent.size_noscale[1] - height) // 2
+
+        if not isinstance(left, (int, float)) and left.startswith("Ref:"):
+            ref = True
+        else:
+            left = int(left)
+        if not isinstance(top, (int, float)) and top.startswith("Ref:"):
+            ref = True
+        else:
+            top = int(top)
 
         if ref:
             self.parent.refs.append(self)
