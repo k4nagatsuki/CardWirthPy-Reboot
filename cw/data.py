@@ -98,6 +98,7 @@ class SystemData(object):
         self.infocards_beforeevent: Optional[Set[int]] = None
         self.party_environment_backpack = True
         self.party_environment_gameover = True
+        self.party_environment_runaway = True
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None
         self.data_cache: Dict[str, CacheData] = {}
         self.path_cache: Dict[Tuple[str, int, bool, bool], str] = {}
@@ -1239,6 +1240,9 @@ class ScenarioData(SystemData):
         self.party_environment_backpack = True
         # 敗北・ゲームオーバーの有効・無効(Wsn.5)
         self.party_environment_gameover = True
+        # 逃走の有効・無効(Wsn.5)
+        # 逃走不可に設定されているバトルからは常に逃走不可であるためこのパラメータは影響しない
+        self.party_environment_runaway = True
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
         self.pre_battleareadata: Optional[Tuple[int, Tuple[str, int, int, int], Tuple[str, int, int, int]]] = None
         # バトル中、自動で行動開始するか
@@ -2111,6 +2115,7 @@ class ScenarioData(SystemData):
         self.notice_infoview = etree.getbool("Property/NoticeInfoView", False)
         self.party_environment_backpack = etree.gettext("Property/PartyEnvironment/Backpack", "Enable") != "Disable"
         self.party_environment_gameover = etree.gettext("Property/PartyEnvironment/GameOver", "Enable") != "Disable"
+        self.party_environment_runaway = etree.gettext("Property/PartyEnvironment/RunAway", "Enable") != "Disable"
         cw.cwpy.statusbar.loading = True
 
         self._load_variables(etree)
