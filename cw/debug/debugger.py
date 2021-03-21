@@ -794,12 +794,14 @@ class Debugger(wx.Frame):
         cw.cwpy.exec_func(cw.cwpy.update_yadoinitial)
 
     def OnPartyEnvTool(self, event: wx.CommandEvent) -> None:
-        choices = ["荷物袋の使用が可能", "敗北・ゲームオーバーが発生する"]
+        choices = ["荷物袋の使用が可能", "敗北・ゲームオーバーが発生する", "逃走が可能"]
         selections = []
         if cw.cwpy.sdata.party_environment_backpack:
             selections.append(0)
         if cw.cwpy.sdata.party_environment_gameover:
             selections.append(1)
+        if cw.cwpy.sdata.party_environment_runaway:
+            selections.append(2)
         dlg = wx.MultiChoiceDialog(
             self, "パーティの状況を設定してください",
             "状況設定", choices, style=wx.DEFAULT_DIALOG_STYLE | wx.OK | wx.CANCEL | wx.MINIMIZE_BOX)
@@ -809,20 +811,26 @@ class Debugger(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             party_environment_backpack = False
             party_environment_gameover = False
+            party_environment_runaway = False
             for index in dlg.GetSelections():
                 if index == 0:
                     party_environment_backpack = True
                 elif index == 1:
                     party_environment_gameover = True
+                elif index == 2:
+                    party_environment_runaway = True
 
             def func() -> None:
-                if cw.cwpy.is_playingscenario() and\
-                        cw.cwpy.sdata.party_environment_backpack != party_environment_backpack:
-                    cw.cwpy.sdata.party_environment_backpack = party_environment_backpack
-                    if cw.cwpy.areaid == cw.AREA_CAMP:
-                        cw.data.redraw_cards(party_environment_backpack)
                 if cw.cwpy.is_playingscenario():
+                    if cw.cwpy.sdata.party_environment_backpack != party_environment_backpack:
+                        cw.cwpy.sdata.party_environment_backpack = party_environment_backpack
+                        if cw.cwpy.areaid == cw.AREA_CAMP:
+                            cw.data.redraw_cards(party_environment_backpack)
                     cw.cwpy.sdata.party_environment_gameover = party_environment_gameover
+                    if cw.cwpy.sdata.party_environment_runaway != party_environment_runaway:
+                        cw.cwpy.sdata.party_environment_runaway = party_environment_runaway
+                        if cw.cwpy.is_battlestatus() and cw.cwpy.battle and cw.cwpy.battle.is_ready():
+                            cw.cwpy.statusbar.change()
             cw.cwpy.exec_func(func)
         dlg.Destroy()
 

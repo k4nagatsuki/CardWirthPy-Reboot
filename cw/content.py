@@ -2334,6 +2334,7 @@ class ChangeEnvironmentContent(EventContentBase):
         EventContentBase.__init__(self, data, is_changestate=True)
         self.backpack = self.data.getattr(".", "backpack", "NotSet")  # Wsn.4
         self.gameover = self.data.getattr(".", "gameover", "NotSet")  # Wsn.5
+        self.runaway = self.data.getattr(".", "runaway", "NotSet")  # Wsn.5
 
     def action(self) -> int:
         """状況設定コンテント。"""
@@ -2347,19 +2348,27 @@ class ChangeEnvironmentContent(EventContentBase):
             cw.cwpy.sdata.party_environment_gameover = True
         elif self.gameover == "Disable":
             cw.cwpy.sdata.party_environment_gameover = False
+        # 逃走(Wsn.5)
+        if self.runaway == "Enable":
+            cw.cwpy.sdata.party_environment_runaway = True
+        elif self.runaway == "Disable":
+            cw.cwpy.sdata.party_environment_runaway = False
         return 0
 
     def get_status(self, event: Optional[cw.event.Event]) -> str:
-        def enable_str(s: str, on: str, off: str) -> str:
+        seq: List[str] = []
+
+        def enable_str(s: str, name: str, on: str, off: str) -> None:
             if s == "Enable":
-                return on
+                seq.append("%s = %s" % (name, on))
             elif s == "Disable":
-                return off
-            else:
-                return "変更しない"
-        backpack = enable_str(self.backpack, "使用可", "使用不可")
-        gameover = enable_str(self.gameover, "発生有り", "発生無し")
-        return "荷物袋 = %s 敗北・ゲームオーバー = %s" % (backpack, gameover)
+                seq.append("%s = %s" % (name, off))
+
+        enable_str(self.backpack, "荷物袋", "使用可", "使用不可")
+        enable_str(self.gameover, "敗北・ゲームオーバー", "発生有り", "発生無し")
+        enable_str(self.runaway, "逃走", "可能", "不可能")
+
+        return " ".join(seq) if seq else "状況を変更しない"
 
 
 # ------------------------------------------------------------------------------

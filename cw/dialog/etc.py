@@ -44,7 +44,7 @@ class BattleCommand(wx.Dialog):
         h = cw.scr2win_s(header.rect.height)
         header.rect = pygame.rect.Rect(cw.wins(5), cw.wins(5), w, h)
         self.list.append(header)
-        if cw.cwpy.battle.possible_runaway:
+        if cw.cwpy.battle.possible_runaway and cw.cwpy.sdata.party_environment_runaway:
             # 逃げる
             path = "Resource/Image/Card/ACTION9"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)

@@ -1073,6 +1073,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
         e.append(cw.data.make_element("Backpack", "Disable"))
     if not sdata.party_environment_gameover:
         e.append(cw.data.make_element("GameOver", "Disable"))
+    if not sdata.party_environment_runaway:
+        e.append(cw.data.make_element("RunAway", "Disable"))
     if len(e):
         e_prop.append(e)
     if cw.cwpy.setting.write_playlog:

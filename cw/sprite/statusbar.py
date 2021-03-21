@@ -197,7 +197,7 @@ class StatusBar(base.CWPySprite):
                 btn = ActionButton(self, (left2, cw.s((6))))
                 if self.autostart:
                     self.autostart.actionbtn = btn
-                if cw.cwpy.battle.possible_runaway:
+                if cw.cwpy.battle.possible_runaway and cw.cwpy.sdata.party_environment_runaway:
                     RunAwayButton(self, (cw.s(123) + left2, cw.s((6))))
             panel = RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
             left -= cw.s(120) + cw.s(14)
