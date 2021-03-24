@@ -4347,8 +4347,10 @@ class TalkMessageContent(TalkContent):
         text = cw.util.decodewrap(self.data.gettext("Text", ""))
         # 選択肢取得
         names = self.get_selections_and_indexes()
+        # 単行メッセージ(Wsn.5)
+        singleline = self.data.getbool(".", "singleline", False)
         # 画像パス取得
-        imgpaths = cw.image.get_imageinfos(self.data)
+        imgpaths = cw.image.get_imageinfos(self.data) if not singleline else []
         # 選択肢列数(Wsn.1)
         columns = max(1, self.data.getint(".", "columns", 1))
         # 横方向の中央寄せ(Wsn.2)
@@ -4493,11 +4495,17 @@ class TalkMessageContent(TalkContent):
             versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
 
         # MessageWindow表示
+        mwin: cw.sprite.message.MessageWindow
         if text:
-            mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker, columns=columns,
-                                                   versionhint=versionhint,
-                                                   centering_x=centering_x, centering_y=centering_y,
-                                                   boundarycheck=boundarycheck)
+            if singleline:
+                mwin = cw.sprite.message.SelectWindow(names, text, columns=columns, versionhint=versionhint,
+                                                      specialchars=cw.cwpy.rsrc.specialchars.copy(),
+                                                      centering_x=centering_x)
+            else:
+                mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker, columns=columns,
+                                                    versionhint=versionhint,
+                                                    centering_x=centering_x, centering_y=centering_y,
+                                                    boundarycheck=boundarycheck)
             index = cw.cwpy.show_message(mwin)
         # テキストが存在せず、選択肢が複数存在する場合はSelectWindowを表示する
         elif len(names) > 1:

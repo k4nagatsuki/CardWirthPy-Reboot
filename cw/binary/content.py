@@ -523,6 +523,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("2", "縦方向の中央寄せ")
             if data.getbool(".", "selecttalker", False):
                 f.check_wsnversion("3", "話者の選択")
+            if data.getbool(".", "singleline", False):
+                f.check_wsnversion("5", "単行メッセージ")
             text = ""
             for e in data:
                 if e.tag == "Text":
