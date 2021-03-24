@@ -837,7 +837,11 @@ class SelectWindow(MessageWindow):
                  namesubtable: Optional[Dict[str, _NameData]] = None,
                  flagtable: Optional[Dict[str, cw.data.Flag]] = None,
                  steptable: Optional[Dict[str, cw.data.Step]] = None,
-                 varianttable: Optional[Dict[str, cw.data.Variant]] = None) -> None:
+                 varianttable: Optional[Dict[str, cw.data.Variant]] = None,
+                 versionhint: Optional[Tuple[str, str, bool, bool, bool]] = None,
+                 specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]]] = None,
+                 spcharinfo: Optional[Set[int]] = None,
+                 centering_x: bool = False) -> None:
         if nametable is None:
             nametable = {}
         if namesubtable is None:
@@ -856,7 +860,7 @@ class SelectWindow(MessageWindow):
             size_noscale = (470, 40)
         self.trim_top_noscale = 0
         self.columns = columns
-        self.centering_x = False
+        self.centering_x = centering_x
         self.centering_y = False
         self.boundarycheck = False
         self.blocktop_noscale = 0
@@ -877,8 +881,8 @@ class SelectWindow(MessageWindow):
         if not self.name_subtable:
             self.name_subtable = _create_nametable(False, None)
         self.talker_image = []
-        self.versionhint = None
-        self.specialchars = cw.setting.ResourceTable("")
+        self.versionhint = versionhint
+        self.specialchars = specialchars
         self.specialchars_used = set()
 
         # メッセージの選択結果
@@ -890,7 +894,7 @@ class SelectWindow(MessageWindow):
         self.imgpaths = []
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.text_log = ""
-        self.spcharinfo = set()
+        self.spcharinfo = spcharinfo
         self.talker = None
         self.talker_name = None
         self._init_image(size_noscale, pos_noscale)
@@ -1167,7 +1171,8 @@ class BacklogData(object):
         """メッセージと選択肢の表示高さを計算して返す。
         """
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
-            if self.type == 0:
+            if self.text:
+                print(self.text)
                 h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9,
                                                                                  self.top_noscale)
                 height_noscale: int = min(self.rect_noscale.height, h)
@@ -1223,15 +1228,23 @@ class BacklogData(object):
                                  boundarycheck=self.boundarycheck)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
-                names = self.names_log[self._from_index:self._to_index]
-                showing_result = self.showing_result - self._from_index
+                if self.text != "" and len(self.names_log) == 1 and self.columns == 1 and \
+                        self.names_log[0][1] == cw.cwpy.msgs["ok"]:
+                    # 高さ圧縮時はデフォルト選択肢を表示しない
+                    names = []
+                    showing_result = -1
+                else:
+                    names = self.names_log[self._from_index:self._to_index]
+                    showing_result = self.showing_result - self._from_index
             else:
                 names = self.names_log
                 showing_result = self.showing_result
             base = SelectWindow(names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
                                 True, None, showing_result, columns=self.columns,
                                 nametable=self.name_table, namesubtable=self.name_subtable,
-                                flagtable=self.flag_table, steptable=self.step_table, varianttable=self.variant_table)
+                                flagtable=self.flag_table, steptable=self.step_table, varianttable=self.variant_table,
+                                specialchars=self.specialchars, spcharinfo=self.spcharinfo,
+                                versionhint=self.versionhint, centering_x=self.centering_x)
 
         return base
 
