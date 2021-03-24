@@ -882,7 +882,7 @@ class SelectWindow(MessageWindow):
             self.name_subtable = _create_nametable(False, None)
         self.talker_image = []
         self.versionhint = versionhint
-        self.specialchars = specialchars
+        self.specialchars = specialchars if specialchars else cw.setting.ResourceTable("")
         self.specialchars_used = set()
 
         # メッセージの選択結果
@@ -1172,7 +1172,6 @@ class BacklogData(object):
         """
         if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
             if self.text:
-                print(self.text)
                 h = max(self.talker_bottom_noscale+9, self.bottom_noscale) - min(self.talker_top_noscale-9,
                                                                                  self.top_noscale)
                 height_noscale: int = min(self.rect_noscale.height, h)
