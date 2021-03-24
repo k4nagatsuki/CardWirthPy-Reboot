@@ -4503,9 +4503,9 @@ class TalkMessageContent(TalkContent):
                                                       centering_x=centering_x)
             else:
                 mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker, columns=columns,
-                                                    versionhint=versionhint,
-                                                    centering_x=centering_x, centering_y=centering_y,
-                                                    boundarycheck=boundarycheck)
+                                                       versionhint=versionhint,
+                                                       centering_x=centering_x, centering_y=centering_y,
+                                                       boundarycheck=boundarycheck)
             index = cw.cwpy.show_message(mwin)
         # テキストが存在せず、選択肢が複数存在する場合はSelectWindowを表示する
         elif len(names) > 1:
