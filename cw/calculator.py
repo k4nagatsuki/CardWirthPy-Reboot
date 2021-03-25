@@ -1437,6 +1437,22 @@ def _func_castlevel(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(0, line, pos)
 
 
+def _func_couponvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                      pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターの所持するクーポン名の点数を返す。
+       キャラクター及びクーポンが存在しない場合は 0 を返す。"""
+    _chk_argscount(args, 2, "COUPONVALUE", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "COUPONVALUE")
+    coupon_name = _chk_string(args_r[1], "COUPONVALUE", 1)
+    if ccard is None:
+        return DecimalValue(0, line, pos)
+    num = ccard.get_couponvalue(coupon_name, False)
+    if num is None:
+        return DecimalValue(0, line, pos)
+    return DecimalValue(num, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1478,6 +1494,7 @@ _functions = {
     "yadoname": _func_yadoname,
     "battleround": _func_battleround,
     "castlevel": _func_castlevel,
+    "couponvalue": _func_couponvalue,
 }
 
 
