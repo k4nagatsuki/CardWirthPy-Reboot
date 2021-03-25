@@ -1453,6 +1453,18 @@ def _func_couponvalue(args: List[Callable[[], ValueType]], is_differentscenario:
     return DecimalValue(num, line, pos)
 
 
+def _func_liferatio(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターのライフ残量を割合で返す。存在しない場合は -1 を返す。"""
+    _chk_argscount(args, 1, "LIFERATIO", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "LIFERATIO")
+    if ccard:
+        return DecimalValue(ccard.life / ccard.maxlife, line, pos)
+    else:
+        return DecimalValue(-1, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1495,6 +1507,7 @@ _functions = {
     "battleround": _func_battleround,
     "castlevel": _func_castlevel,
     "couponvalue": _func_couponvalue,
+    "liferatio": _func_liferatio,
 }
 
 
