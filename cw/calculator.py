@@ -1440,7 +1440,7 @@ def _func_castlevel(args: List[Callable[[], ValueType]], is_differentscenario: b
 def _func_couponvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
                       pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターの所持するクーポン名の点数を返す。
-       キャラクター及びクーポンが存在しない場合は 0 を返す。"""
+       キャラクターまたはクーポンが存在しない場合は 0 を返す。"""
     _chk_argscount(args, 2, "COUPONVALUE", line, pos)
     args_r = _all_eval(args)
     ccard = _ccard_from(args_r[0], "COUPONVALUE")
