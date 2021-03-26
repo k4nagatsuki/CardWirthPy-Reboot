@@ -412,7 +412,7 @@ class DecimalValue(ValueType):
     """数値トークン。"""
     value: decimal.Decimal
 
-    def __init__(self, s: Union[str, decimal.Decimal, int], line: int, pos: int) -> None:
+    def __init__(self, s: Union[str, decimal.Decimal, int, float], line: int, pos: int) -> None:
         self.value = decimal.Decimal(s)
         self.line = line
         self.pos = pos
