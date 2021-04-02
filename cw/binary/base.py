@@ -849,6 +849,9 @@ class CWBinaryBase(object):
         elif n == "Field":
             f.check_version(1.30, "クーポン所持分岐のフィールド全体指定")
             return 3
+        elif n == "Npc":
+            f.check_wsnversion("5", "クーポン検索範囲の同行キャスト指定")
+            return 0
         else:
             raise cw.binary.cwfile.UnsupportedError(funcname="クーポン検索範囲「%s」" % n)
 
