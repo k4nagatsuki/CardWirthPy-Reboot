@@ -9,7 +9,7 @@ import threading
 import cw
 from cw.util import synclock
 
-from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
 
 _couponlock = threading.Lock()
 
@@ -458,34 +458,41 @@ class Character(object):
         return s
 
     def find_keycode(self, keycode: str, skill: bool = True, item: bool = True, beast: bool = True,
-                     hand: bool = True) -> Optional[cw.header.CardHeader]:
+                     hand: bool = True, condition: str = "Has") -> Optional[cw.header.CardHeader]:
         """指定されたキーコードを所持しているか。
         当該キーコードを含むカードを返す。
         見つからなかった場合はNoneを返す。
+        conditionが"HasNot"の場合はキーコードを含まないカードを返す。
         """
+        def match(keycode: str, keycodes: Sequence[str]) -> bool:
+            if condition == "HasNot":
+                return keycode not in keycodes
+            else:
+                return keycode in keycodes
+
         if hand and self.deck:
             # 戦闘時の手札(Wsn.2)
             for header in self.deck.get_hand(self):
-                if keycode in header.get_keycodes():
+                if match(keycode, header.get_keycodes()):
                     return header
             if self.actiondata and self.actiondata[1]:
                 header = self.actiondata[1]
-                if header and keycode in header.get_keycodes():
+                if header and match(keycode, header.get_keycodes()):
                     return header
             used = self.deck.get_used()
-            if used and keycode in used.get_keycodes():
+            if used and match(keycode, used.get_keycodes()):
                 return used
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
-                if keycode in header.get_keycodes():
+                if match(keycode, header.get_keycodes()):
                     return header
         if item:
             for header in self.get_pocketcards(cw.POCKET_ITEM):
-                if keycode in header.get_keycodes():
+                if match(keycode, header.get_keycodes()):
                     return header
         if beast:
             for header in self.get_pocketcards(cw.POCKET_BEAST):
-                if keycode in header.get_keycodes():
+                if match(keycode, header.get_keycodes()):
                     return header
 
         return None
