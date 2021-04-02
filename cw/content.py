@@ -1228,7 +1228,7 @@ class BranchCouponContent(BranchContent):
         #      判定対象が0人の時に絶対成功する。
         #      これは誰か一人が失敗した時点で判定がFalseとなって
         #      終了といったような処理になっているためと思われる
-        if len(targets) == 0:
+        if len(targets) == 0 and scope != "Npc":
             cw.cwpy.event.clear_selectedmember()
             return self.get_boolean_index(scope != "Selected")
 
