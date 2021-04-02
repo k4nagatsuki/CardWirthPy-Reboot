@@ -864,6 +864,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("3", "カードの選択")
             if data.getbool(".", "invert", False):
                 f.check_wsnversion("4", "判定条件の反転")
+            if data.getattr(".", "condition", "Has") != "Has":
+                f.check_wsnversion("5", "キーコード不保有カードの検索")
             f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc"), f))
             # Wsn.1方式
             etype = data.get("effectCardType", "All")

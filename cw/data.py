@@ -4224,10 +4224,11 @@ class Party(object):
         self.sorted_backpack_by_order = (sorttype == "order")
 
     def find_keycode(self, keycode: str, skill: bool = True, item: bool = True, beast: bool = True,
-                     hand: bool = True) -> Optional["cw.header.CardHeader"]:
+                     hand: bool = True, condition: str = "Has") -> Optional["cw.header.CardHeader"]:
         """指定されたキーコードを所持しているか。
         当該キーコードを含むカードを返す。
         見つからなかった場合はNoneを返す。
+        conditionが"HasNot"の場合はキーコードを含まないカードを返す。
         """
         if not self.sorted_backpack_by_order:
             self.sort_backpack(sorttype="order")
@@ -4240,7 +4241,11 @@ class Party(object):
             elif not beast and header.type == "BeastCard":
                 continue
 
-            if keycode in header.get_keycodes():
+            if condition == "HasNot":
+                match = keycode not in header.get_keycodes()
+            else:
+                match = keycode in header.get_keycodes()
+            if match:
                 return header
 
         return None

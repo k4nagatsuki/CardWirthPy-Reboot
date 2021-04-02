@@ -1757,9 +1757,10 @@ class BranchKeyCodeContent(BranchContent):
 
         # 見つかったカードを選択状態にする(Wsn.3)
         self.selectcard = self.data.getbool(".", "selectcard", False)
-
-        # 判定条件の反転(Wsn.4)
+        # 該当カードの不保有で分岐(Wsn.4)
         self.invert = self.data.getbool(".", "invert", False)
+        # カードのマッチング条件(Wsn.5)
+        self.condition = self.data.getattr(".", "condition", "Has")
 
     def action(self) -> int:
         """キーコード所持分岐コンテント(1.30)。"""
@@ -1778,7 +1779,11 @@ class BranchKeyCodeContent(BranchContent):
                         (self.hand and cw.cwpy.is_battlestatus() and
                          isinstance(owner, cw.character.Character) and
                          any([h.ref_original == selcard.ref_original for h in owner.deck.hand])):
-                    if self.keycode in selcard.get_keycodes():
+                    if self.condition == "HasNot":
+                        match = self.keycode not in selcard.get_keycodes()
+                    else:
+                        match = self.keycode in selcard.get_keycodes()
+                    if match:
                         header = selcard
                         owner = header.get_owner()
                         if isinstance(owner, cw.character.Character):
@@ -1812,7 +1817,8 @@ class BranchKeyCodeContent(BranchContent):
 
             # キーコード所持判定
             for target in targets:
-                header = target.find_keycode(self.keycode, self.skill, self.item, self.beast, self.hand)
+                header = target.find_keycode(self.keycode, self.skill, self.item, self.beast, self.hand,
+                                             condition=self.condition)
                 success = bool(header)
                 if self.invert:
                     # 判定条件の反転(Wsn.4)
@@ -1850,11 +1856,12 @@ class BranchKeyCodeContent(BranchContent):
         success = self.get_contentname(child) == "○"
         if self.invert:
             success = not success
+        s4 = "持たない" if self.condition == "HasNot" else "持つ"
 
         if success:
-            return "%sの%sからキーコード『%s』を持つカードを所有する" % (s, s2, s3)
+            return "%sの%sからキーコード『%s』を%sカードを所有する" % (s, s2, s3, s4)
         else:
-            return "%sの%sからキーコード『%s』を持つカードを所有しない" % (s, s2, s3)
+            return "%sの%sからキーコード『%s』を%sカードを所有しない" % (s, s2, s3, s4)
 
 
 class BranchRoundContent(BranchContent):
