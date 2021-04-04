@@ -4984,7 +4984,10 @@ class CWPyElement(_CWPyElementInterface, Sequence["CWPyElement"]):
     def __setitem__(self, index: int, element: "CWPyElement") -> None:
         e = self[index]
         assert isinstance(e, CWPyElement)
-        e.cwxparent = None
+        if element.cwxparent is not self:
+            # self[index1], self[index2] = self[index2], self[index1]
+            # のようなケースでe.cwxparentをNoneにするとself[index2].cwxparentが消えてしまう
+            e.cwxparent = None
         element.cwxparent = self
         self.element.__setitem__(index, element.element)
 
