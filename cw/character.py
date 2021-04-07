@@ -1349,21 +1349,17 @@ class Character(object):
 
                     headers.append((targets, header))
 
-        targets2, header2 = self.decide_usecard(headers)
-        assert targets2 is not None
-        assert header2 is not None
-        targets = targets2
-        header = header2
+        targets, header2 = self.decide_usecard(headers)
 
-        if header and not header.allrange and len(targets) > 1:
+        if header2 and not header2.allrange and len(targets) > 1:
             # 効果ごとにtargetsから適用可能な対象を抽出し、
             # 適用可能な対象が存在する効果が見つかったら
             # その対象群から実際の対象を選択する
-            for motion in self._get_motions(header):
+            for motion in self._get_motions(header2):
                 seq = []
                 for target in targets:
                     assert isinstance(target, cw.character.Character)
-                    if target.is_effective(header, motion):
+                    if target.is_effective(header2, motion):
                         seq.append(target)
                 if seq:
                     targets = [cw.cwpy.dice.choice_exists(seq)]
@@ -1372,10 +1368,10 @@ class Character(object):
                 targets = [cw.cwpy.dice.choice_exists(targets)]
 
         # 行動設定
-        self.set_action(targets, header, beasts, True)
+        self.set_action(targets, header2, beasts, True)
 
     def decide_usecard(self, headers: List[Tuple[List["cw.sprite.card.CWPyCard"],
-                                           cw.header.CardHeader]]) -> Tuple[Optional[List["cw.sprite.card.CWPyCard"]],
+                                           cw.header.CardHeader]]) -> Tuple[List["cw.sprite.card.CWPyCard"],
                                                                             Optional[cw.header.CardHeader]]:
         """
         使用可能な手札のいずれかを自動選択する。
@@ -1399,7 +1395,7 @@ class Character(object):
         # カードごとに決定し、これまでの最大値を上回れば選択
         maxd = -2147483647
         # 選択されたカード
-        selected: Tuple[Optional[List["cw.sprite.card.CWPyCard"]], Optional[cw.header.CardHeader]] = (None, None)
+        selected: Tuple[List[cw.sprite.card.CWPyCard], Optional[cw.header.CardHeader]] = ([], None)
         for i, t in enumerate(itertools.chain(seq, exchange)):
             header = t[1]
 
