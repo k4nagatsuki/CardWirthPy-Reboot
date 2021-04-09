@@ -236,7 +236,7 @@ class SystemData(object):
 
                 for name, variant in self.variants.items():
                     # CWPyのデータはテキストと子要素を両立させない構造になっているので
-                    # リストの場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
+                    # リストか構造体の場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
                     if variant.type == "List":
                         e = cw.data.make_element("Variant", "")
                         e.append(cw.data.make_element("Name", name))
@@ -2453,9 +2453,16 @@ class Step(object):
                 self._parent.is_edited = True
 
 
+class StructVal(object):
+    """構造体データ。"""
+    def __init__(self, name: str, members: Sequence["VariantValueType"]) -> None:
+        self.name = name  # 構造体名
+        self.members = members  # メンバ値
+
+
 # BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
-# VariantValueType = Union[str, decimal.Decimal, bool, List["VariantValueType"]]
-VariantValueType = Union[str, decimal.Decimal, bool, List[Union[str, decimal.Decimal, bool]]]
+# VariantValueType = Union[str, decimal.Decimal, bool, List["VariantValueType"], StructVal]
+VariantValueType = Union[str, decimal.Decimal, bool, List[Union[str, decimal.Decimal, bool]], StructVal]
 
 
 class Variant(object):
@@ -2488,6 +2495,8 @@ class Variant(object):
             return "Number"
         elif isinstance(value, str):
             return "String"
+        elif isinstance(value, StructVal):
+            return "Structure"
         else:
             return "List"
 
@@ -2510,8 +2519,25 @@ class Variant(object):
                 return e.text
             else:
                 return e.getattr(".", valueattr)
-        elif vtype == "List":
+        elif vtype == "Structure":
+            name: str = ""
             seq: List[VariantValueType] = []
+            check: List[Tuple[str, VariantValueType]] = []
+            for ve in e:
+                if ve.tag == "StructureName":
+                    name = ve.text.lower()
+                elif ve.tag == "Member":
+                    v = Variant.value_from_element(ve)
+                    seq.append(v)
+                    check.append((ve.getattr(".", "name").lower(), v))
+            if not cw.calculator.is_valid_structure(name, check):
+                if not name:
+                    name = name if name.upper() else "<No Name>"
+                    members = [t[0].upper() + "=" + Variant.value_to_str(t[1]) for t in check]
+                raise Exception("Invalid structure %s(%s)" % (name, ", ".join(members)))
+            return StructVal(name, seq)
+        elif vtype == "List":
+            seq = []
             for ve in e:
                 if ve.tag == "Value":
                     seq.append(Variant.value_from_element(ve))
@@ -2523,6 +2549,12 @@ class Variant(object):
 
     @staticmethod
     def value_to_str(value: VariantValueType) -> str:
+        def to_str(val: VariantValueType) -> str:
+            if isinstance(val, str):
+                return "\"" + val.replace("\"", "\"\"") + "\""
+            else:
+                return Variant.value_to_str(val)
+
         if isinstance(value, bool):
             return str(value).upper()
         elif isinstance(value, decimal.Decimal):
@@ -2532,18 +2564,21 @@ class Variant(object):
             return s
         elif isinstance(value, str):
             return value
+        elif isinstance(value, StructVal):
+            return value.name + "(" + ", ".join(map(to_str, value.members)) + ")"
         else:
-            def to_str(val: VariantValueType) -> str:
-                if isinstance(val, str):
-                    return "\"" + val.replace("\"", "\"\"") + "\""
-                else:
-                    return Variant.value_to_str(val)
-
             return "LIST(" + ", ".join(map(to_str, value)) + ")"
 
     @staticmethod
     def value_to_element(value: VariantValueType, e: "cw.data.CWPyElement", typeattr: str = "type") -> None:
         e.set(typeattr, Variant.value_to_type(value))
+        if isinstance(value, StructVal):
+            members = cw.calculator.struct_members(value.name)
+            e.append(make_element("StructureName", value.name))
+            for m, v in zip(members, value.members):
+                e2 = make_element("Member", attrs={"name": m.name})
+                Variant._write_value(e2, v)
+                e.append(e2)
         if isinstance(value, list):
             for val in value:
                 ve = make_element("Value")
@@ -2565,20 +2600,13 @@ class Variant(object):
 
     @staticmethod
     def _write_value(e: "CWPyElement", val: VariantValueType) -> None:
-        # <Value>のみ削除する
+        # <Value>,<StructureName>,<Member>を削除する
         e_name = e.find("Name")
         del e[:]
         if e_name is not None:
             e.append(e_name)
 
-        e.set("type", Variant.value_to_type(val))
-        if isinstance(val, list):
-            for c in val:
-                e2 = make_element("Value")
-                Variant._write_value(e2, c)
-                e.append(e2)
-        else:
-            e.set("value", str(val))
+        Variant.value_to_element(val, e, "type")
 
 
 # ------------------------------------------------------------------------------
