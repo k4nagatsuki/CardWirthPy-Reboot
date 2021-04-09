@@ -40,6 +40,17 @@ def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List[
     return imgpaths
 
 
+def cardtype_to_pocket(ctype: str) -> int:
+    if ctype == "SkillCard":
+        return cw.POCKET_SKILL
+    elif ctype == "ItemCard":
+        return cw.POCKET_ITEM
+    elif ctype == "BeastCard":
+        return cw.POCKET_BEAST
+    else:
+        assert False
+
+
 class CardHeader(object):
     name: str
 

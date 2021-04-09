@@ -1326,8 +1326,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
 
         for name, variant in sdata.variants.items():
             # CWPyのデータはテキストと子要素を両立させない構造になっているので
-            # リストの場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
-            if variant.type == "List":
+            # リストか構造体の場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
+            if variant.type in ("List", "Structure"):
                 e = cw.data.make_element("Variant", "")
                 e.append(cw.data.make_element("Name", name))
                 cw.data.Variant.value_to_element(variant.value, e)

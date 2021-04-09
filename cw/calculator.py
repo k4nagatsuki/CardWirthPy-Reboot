@@ -604,7 +604,7 @@ class _StructureInfo(object):
 
 _structures = {
     "cardinfo": _StructureInfo("cardinfo", [
-        StructureMember("castindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(0)),
+        StructureMember("castindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(-2)),
         StructureMember("cardindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(0)),
     ], 2)
 }
@@ -655,8 +655,8 @@ assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4))])
 assert not is_valid_structure("cardinfo", [("cardindex", decimal.Decimal(4)), ("castindex", decimal.Decimal(2))])
 assert not is_valid_structure("cardinfo", [("castindex", ""), ("cardindex", decimal.Decimal(2))])
 assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4)), ("cardindex", False)])
-assert is_valid_structure("cardinfo", [("castindex", decimal.Decimal(0)), ("cardindex", decimal.Decimal(0))])
-assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(-1)), ("cardindex", decimal.Decimal(2))])
+assert is_valid_structure("cardinfo", [("castindex", decimal.Decimal(-2)), ("cardindex", decimal.Decimal(0))])
+assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(-2.1)), ("cardindex", decimal.Decimal(2))])
 assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4)), ("cardindex", decimal.Decimal(-0.1))])
 
 
@@ -1409,6 +1409,23 @@ def _func_dice(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
     return DecimalValue(n, line, pos)
 
 
+def _ccard_index(ccard: cw.character.Character) -> int:
+    if isinstance(ccard, cw.sprite.card.PlayerCard):
+        pcards = cw.cwpy.get_pcards()
+        return pcards.index(ccard) + 1
+    elif isinstance(ccard, cw.sprite.card.EnemyCard):
+        pcards_len = len(cw.cwpy.get_pcards())
+        ecards = cw.cwpy.get_ecards()
+        return ecards.index(ccard) + 1 + pcards_len
+    elif isinstance(ccard, cw.sprite.card.FriendCard):
+        pcards_len = len(cw.cwpy.get_pcards())
+        ecards_len = len(cw.cwpy.get_ecards())
+        fcards = cw.cwpy.get_fcards()
+        return fcards.index(ccard) + 1 + pcards_len + ecards_len
+    else:
+        assert False
+
+
 def _func_selected(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
                    pos: int) -> DecimalValue:
     """選択メンバのキャラクター番号を数値(1～)で返す。"""
@@ -1416,20 +1433,8 @@ def _func_selected(args: List[Callable[[], ValueType]], is_differentscenario: bo
     if cw.cwpy.event.has_selectedmember():
         try:
             ccard = cw.cwpy.event.get_selectedmember()
-            if isinstance(ccard, cw.sprite.card.PlayerCard):
-                pcards = cw.cwpy.get_pcards()
-                n = pcards.index(ccard) + 1
-            elif isinstance(ccard, cw.sprite.card.EnemyCard):
-                pcards_len = len(cw.cwpy.get_pcards())
-                ecards = cw.cwpy.get_ecards()
-                n = ecards.index(ccard) + 1 + pcards_len
-            elif isinstance(ccard, cw.sprite.card.FriendCard):
-                pcards_len = len(cw.cwpy.get_pcards())
-                ecards_len = len(cw.cwpy.get_ecards())
-                fcards = cw.cwpy.get_fcards()
-                n = fcards.index(ccard) + 1 + pcards_len + ecards_len
-            else:
-                assert False
+            assert ccard is not None
+            n = _ccard_index(ccard)
         except ValueError:
             cw.util.print_ex(file=sys.stderr)
             n = 0
@@ -1729,6 +1734,167 @@ def _func_liferatio(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(-1, line, pos)
 
 
+def _func_selectedcard(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                       pos: int) -> StructureValue:
+    """選択カードがある場合はカード情報を返す。存在しない場合は無効なカード情報を返す。"""
+    _chk_argscount(args, 0, "SELECTEDCARD", line, pos)
+    header = cw.cwpy.event.get_selectedcard()
+    header = header.ref_original() if header else None
+    if header is None or header.type == "ActionCard":
+        args2: List[Union[ValueType, Callable[[], ValueType]]] = [
+            DecimalValue(decimal.Decimal(0), line, pos),
+            DecimalValue(decimal.Decimal(0), line, pos),
+        ]
+        return StructureValue("cardinfo", args2, line, pos)
+    owner = header.get_owner()
+    if cw.cwpy.ydata and cw.cwpy.ydata.storehouse is owner:
+        castindex = -2
+        cardindex = cw.cwpy.ydata.storehouse.index(header) + 1
+    elif cw.cwpy.ydata and cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack is owner:
+        castindex = -1
+        cardindex = cw.cwpy.ydata.party.backpack.index(header) + 1
+    else:
+        assert isinstance(owner, cw.character.Character)
+        pocket = cw.header.cardtype_to_pocket(header.type)
+        castindex = _ccard_index(owner)
+        # CARDINDEXは特殊技能・アイテム・召喚獣全ての通し番号になる
+        cardindex = owner.cardpocket[pocket].index(header) + 1
+        for i in range(0, pocket):
+            cardindex += len(owner.cardpocket[i])
+    args2 = [
+        DecimalValue(decimal.Decimal(castindex), line, pos),
+        DecimalValue(decimal.Decimal(cardindex), line, pos),
+    ]
+    return StructureValue("cardinfo", args2, line, pos)
+
+
+def _header_from(arg: ValueType, func_name: str, arg_index: int) -> Optional[cw.header.CardHeader]:
+    info = _chk_structure(arg, func_name, arg_index, "cardinfo")
+    castindex_v = info.eval(0)
+    cardindex_v = info.eval(1)
+    assert isinstance(castindex_v, DecimalValue)
+    assert isinstance(cardindex_v, DecimalValue)
+    castindex = int(castindex_v.value)
+    cardindex = int(cardindex_v.value)
+    assert -2 <= castindex
+    assert 0 <= cardindex
+    if castindex == 0 or cardindex == 0:
+        return None
+    if castindex == -2:
+        # カード置場
+        if cw.cwpy.ydata and cardindex <= len(cw.cwpy.ydata.storehouse):
+            return cw.cwpy.ydata.storehouse[cardindex - 1]
+        else:
+            return None
+    elif castindex == -1:
+        # 荷物袋
+        if cw.cwpy.ydata and cw.cwpy.ydata.party and cardindex <= len(cw.cwpy.ydata.party.backpack):
+            return cw.cwpy.ydata.party.backpack[cardindex - 1]
+        else:
+            return None
+    else:
+        # キャラクター(CARDINDEXは特殊技能・アイテム・召喚獣全ての通し番号になる)
+        ccard = _ccard_from(castindex_v, func_name)
+        if ccard is None:
+            return None
+        for pocket in (cw.POCKET_SKILL, cw.POCKET_ITEM, cw.POCKET_BEAST):
+            if cardindex <= len(ccard.cardpocket[pocket]):
+                return ccard.cardpocket[pocket][cardindex - 1]
+            cardindex -= len(ccard.cardpocket[pocket])
+        return None
+
+
+def _func_cardname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                   pos: int) -> StringValue:
+    """カード名を返す。カード情報が無効の場合は空文字列を返す。"""
+    _chk_argscount(args, 1, "CARDNAME", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "CARDNAME", 0)
+    if header is None:
+        return StringValue("", line, pos)
+    else:
+        return StringValue(header.get_showingname(), line, pos)
+
+
+def _func_cardtype(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                   pos: int) -> DecimalValue:
+    """
+    カードのタイプを返す(特殊技能=1, アイテム=2, 召喚獣=3)。
+    カード情報が無効の場合は0を返す。
+    """
+    _chk_argscount(args, 1, "CARDTYPE", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "CARDTYPE", 0)
+    if header is None:
+        return DecimalValue(0, line, pos)
+    else:
+        return DecimalValue(cw.header.cardtype_to_pocket(header.type) + 1, line, pos)
+
+
+def _func_cardrarity(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                     pos: int) -> DecimalValue:
+    """
+    カードの希少度を返す(一般=1, レア=2, プレミア=3)。
+    カード情報が無効の場合は0を返す。
+    """
+    _chk_argscount(args, 1, "CARDRARITY", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "CARDRARITY", 0)
+    if header is None:
+        return DecimalValue(0, line, pos)
+    elif header.premium == "Rare":
+        return DecimalValue(2, line, pos)
+    elif header.premium == "Premier":
+        return DecimalValue(3, line, pos)
+    else:
+        return DecimalValue(1, line, pos)
+
+
+def _func_cardprice(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> DecimalValue:
+    """
+    カードの価格を返す。
+    カード情報が無効の場合は-1を返す。
+    """
+    _chk_argscount(args, 1, "CARDPRICE", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "CARDPRICE", 0)
+    if header is None:
+        return DecimalValue(-1, line, pos)
+    else:
+        return DecimalValue(header.price, line, pos)
+
+
+def _func_cardlevel(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> DecimalValue:
+    """
+    カードのレベルを返す。
+    カード情報が無効か、特殊技能カードでない場合は-1を返す。
+    """
+    _chk_argscount(args, 1, "CARDLEVEL", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "CARDLEVEL", 0)
+    if header is None or header.type != "SkillCard":
+        return DecimalValue(-1, line, pos)
+    else:
+        return DecimalValue(header.level, line, pos)
+
+
+def _func_cardcount(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                    pos: int) -> DecimalValue:
+    """
+    カードの残り使用回数を返す。
+    カード情報が無効の場合は-1を返す。
+    """
+    _chk_argscount(args, 1, "CARDCOUNT", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "CARDCOUNT", 0)
+    if header is None:
+        return DecimalValue(-1, line, pos)
+    else:
+        return DecimalValue(header.uselimit, line, pos)
+
+
 def _create_structure(info: _StructureInfo, args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
                       pos: int) -> StructureValue:
     """構造体のインスタンスを生成する。"""
@@ -1786,6 +1952,13 @@ _functions = {
     "castlevel": _func_castlevel,
     "couponvalue": _func_couponvalue,
     "liferatio": _func_liferatio,
+    "selectedcard": _func_selectedcard,
+    "cardname": _func_cardname,
+    "cardtype": _func_cardtype,
+    "cardrarity": _func_cardrarity,
+    "cardprice": _func_cardprice,
+    "cardlevel": _func_cardlevel,
+    "cardcount": _func_cardcount,
 }
 
 
