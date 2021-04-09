@@ -9,7 +9,7 @@ import fnmatch
 import cw
 
 import typing
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 
 class ComputeException(Exception):
@@ -87,6 +87,17 @@ class ArgumentIsNotListException(ComputeException):
         self.arg_value = arg_value
 
 
+class ArgumentIsNotStructureException(ComputeException):
+    """関数の引数が構造体でない。"""
+    def __init__(self, msg: str, func_name: str, arg_index: int, arg_value: str, struct_name: str,
+                 line: int, pos: int) -> None:
+        ComputeException.__init__(self, msg, line, pos)
+        self.func_name = func_name
+        self.arg_index = arg_index
+        self.arg_value = arg_value
+        self.struct_name = struct_name
+
+
 class ArgumentsCountException(ComputeException):
     """関数の引数の数が誤っている。"""
     def __init__(self, msg: str, func_name: str, line: int, pos: int) -> None:
@@ -113,6 +124,14 @@ class ListIndexOutOfRangeException(ComputeException):
         self.arg_value = arg_value
         self.n = n
         self.list_len = list_len
+
+
+class DifferentStructureException(ComputeException):
+    """構造体の名前が一致しない。"""
+    def __init__(self, msg: str, lhs_name: str, rhs_name: str, line: int, pos: int) -> None:
+        ComputeException.__init__(self, msg, line, pos)
+        self.lhs_name = lhs_name
+        self.rhs_name = rhs_name
 
 
 class VariantNotFoundException(ComputeException):
@@ -151,7 +170,7 @@ class DifferentScenarioException(ComputeException):
 class Function(object):
     """関数の名前と引数を保持し、計算を行う。"""
     def __init__(self, name: str, line: int, pos: int,
-                 args: List[List[Union["ValueType", "Function", "UnaryOperator", "Operator"]]]) -> None:
+                 args: List[List[Union["ValueType", "Function", "UnaryOperator", "Operator", "Symbol"]]]) -> None:
         self.name = name.lower()
         self.line = line
         self.pos = pos
@@ -161,7 +180,7 @@ class Function(object):
         args = []
         for arg in self.args:
             class F(object):
-                def __init__(self, arg: List[Union[ValueType, Function, UnaryOperator, Operator]],
+                def __init__(self, arg: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
                              is_differentscenario: bool) -> None:
                     self.arg = arg
                     self.is_differentscenario = is_differentscenario
@@ -173,6 +192,8 @@ class Function(object):
         name = self.name
         if name in _functions:
             return _functions[name](args, is_differentscenario, self.line, self.pos)
+        elif name in _structures:
+            return _create_structure(_structures[name], args, is_differentscenario, self.line, self.pos)
         else:
             raise FunctionIsNotDefinedException("Function \"%s\" is not defined." % name, name, self.line, self.pos)
 
@@ -187,8 +208,10 @@ class UnaryOperator(object):
         self.line = line
         self.pos = pos
 
-    def call(self, rhs: "ValueType") -> "ValueType":
+    def call(self, rhs: Union["ValueType", "Symbol"]) -> "ValueType":
         o = self.operator
+        if isinstance(rhs, Symbol):
+            raise SemanticsException("Unknown symbol: %s" % rhs.symbol, rhs.line, rhs.pos)
         if o == '+':
             if not isinstance(rhs, DecimalValue):
                 raise SemanticsException("value [%s] is not number." % rhs.to_str(), rhs.line, rhs.pos)
@@ -252,6 +275,18 @@ class Operator(object):
         return val
 
     @staticmethod
+    def chk_struct(val: "ValueType") -> "StructureValue":
+        if not isinstance(val, StructureValue):
+            raise SemanticsException("rhs [%s] is not structure." % (val.to_str()), val.line, val.pos)
+        return val
+
+    @staticmethod
+    def chk_structmembername(val: Union["ValueType", "Symbol"]) -> "Symbol":
+        if not isinstance(val, Symbol):
+            raise SemanticsException("rhs [%s] is not struct member name." % (val.to_str()), val.line, val.pos)
+        return val
+
+    @staticmethod
     def equals(lhs: "ValueType", rhs: "ValueType", o: str, in_list: bool) -> bool:
         if isinstance(lhs, ListValue):
             lhs_list = lhs
@@ -271,6 +306,29 @@ class Operator(object):
             if o == "<>":
                 b = not b
             return b
+        elif isinstance(lhs, StructureValue):
+            lhs_struct = lhs
+            if not in_list:
+                rhs_struct = Operator.chk_struct(rhs)
+            elif isinstance(rhs, StructureValue):
+                rhs_struct = rhs
+            else:
+                return o == "<>"
+            if lhs_struct.name != rhs_struct.name:
+                if in_list:
+                    return o == "<>"
+                else:
+                    raise DifferentStructureException("different structure %s:%s." % (lhs_struct.name,
+                                                                                      rhs_struct.name),
+                                                      lhs_struct.name, rhs_struct.name, rhs_struct.line,
+                                                      rhs_struct.pos)
+            for i in range(min(len(lhs_struct.value), len(rhs_struct.value))):
+                b = Operator.equals(lhs_struct.eval(i), rhs_struct.eval(i), "=", True)
+                if not b:
+                    if o == "<>":
+                        b = not b
+                    return b
+            return o == "="
 
         if not in_list and (isinstance(lhs, StringValue) or isinstance(rhs, StringValue)):
             r = lhs.to_str() == rhs.to_str()
@@ -293,9 +351,28 @@ class Operator(object):
             r = not r
         return r
 
-    def call(self, lhs: "ValueType", rhs: "ValueType", o: Optional[str] = None) -> "ValueType":
+    def call(self, lhs: Union["ValueType", "Symbol"], rhs: Union["ValueType", "Symbol"],
+             o: Optional[str] = None) -> "ValueType":
         if o is None:
             o = self.operator
+
+        if isinstance(lhs, Symbol):
+            raise SemanticsException("Unknown symbol: %s" % lhs.symbol, lhs.line, lhs.pos)
+        if o != '.' and isinstance(rhs, Symbol):
+            raise SemanticsException("Unknown symbol: %s" % rhs.symbol, rhs.line, rhs.pos)
+
+        if o == '.':
+            lhs_struct = Operator.chk_struct(lhs)
+            if lhs_struct.name not in _structures:
+                raise SemanticsException("structure %s is not found." % lhs_struct.name, rhs.line, rhs.pos)
+            struct_info = _structures[lhs_struct.name]
+            rhs_symbol = Operator.chk_structmembername(rhs)
+            mindex = struct_info.index_of(rhs_symbol.symbol)
+            if mindex == -1:
+                raise SemanticsException("structure %s has not been %s." % (lhs_struct.name, rhs_symbol.symbol),
+                                         rhs.line, rhs.pos)
+            return lhs_struct.eval(mindex)
+        assert not isinstance(rhs, Symbol)
         if o == '+':
             lhs_int, rhs_int = Operator.chk_num(lhs, rhs)
             return DecimalValue(lhs_int + rhs_int, self.line, self.pos)
@@ -495,14 +572,167 @@ assert ListValue([ListValue([ListValue([StringValue("STR", 0, 0)], 0, 0)], 0, 0)
     "LIST(LIST(LIST(\"STR\")))"
 
 
-def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
+class StructureMember(object):
+    """構造体メンバ定義。"""
+    def __init__(self, name: str, defvalue: "cw.data.VariantValueType", type_check: bool, vtype: str = "",
+                 min_value: Optional[decimal.Decimal] = None, struct_name: str = "") -> None:
+        self.name = name  # 構造体メンバ名
+        self.defvalue = defvalue  # 未指定時の値
+        self.type_check = type_check  # 型チェックを行うか
+        self.vtype = vtype  # 型
+        self.min_value = min_value  # 数値型の時の下限値。下限がない場合はNone
+        self.struct_name = struct_name  # 構造体型の時の構造体名
+
+
+class _StructureInfo(object):
+    """構造体定義。"""
+    def __init__(self, name: str, members: Sequence[StructureMember], required_member_num: int) -> None:
+        self.name = name  # 構造体名
+        self.members = members  # メンバ定義
+        self.required_member_num = required_member_num  # 生成時に必ず値を指定しなければならないメンバの数
+        self._index_table = {}
+        for i, mem in enumerate(members):
+            self._index_table[mem.name] = i
+
+    def index_of(self, name: str) -> int:
+        """
+        メンバのインデックスを返す。
+        指定された名前のメンバが存在しない場合は-1を返す。
+        """
+        return self._index_table.get(name.lower(), -1)
+
+
+_structures = {
+    "cardinfo": _StructureInfo("cardinfo", [
+        StructureMember("castindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(0)),
+        StructureMember("cardindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(0)),
+    ], 2)
+}
+
+
+def struct_members(name: str) -> Sequence[StructureMember]:
+    """構造体のメンバ情報を返す。"""
+    info = _structures.get(name.lower(), None)
+    if not info:
+        raise Exception("Structure %s has been declared." % name)
+    return info.members
+
+
+def is_valid_structure(name: str, members: Sequence[Tuple[str, "cw.data.VariantValueType"]]) -> bool:
+    """構造体名及びメンバ名及び値をチェックし、正しければtrueを返す。"""
+    info = _structures.get(name.lower(), None)
+    if not info:
+        return False
+    if len(info.members) < len(members):
+        return False
+    for i, m in enumerate(info.members):
+        if len(members) <= i:
+            return info.required_member_num <= i
+        if m.name != members[i][0].lower():
+            return False
+        if m.type_check:
+            if m.vtype != cw.data.Variant.value_to_type(members[i][1]):
+                return False
+            if m.vtype == "Number" and m.min_value is not None:
+                num_val = members[i][1]
+                assert isinstance(num_val, decimal.Decimal)
+                if num_val < m.min_value:
+                    return False
+            if m.vtype == "Structure":
+                struct_val = members[i][1]
+                assert isinstance(struct_val, cw.data.StructVal)
+                if m.struct_name != struct_val.name:
+                    return False
+    return True
+
+
+assert is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4)), ("cardindex", decimal.Decimal(2))])
+assert is_valid_structure("CardInfo", [("CastIndex", decimal.Decimal(4)), ("CardIndex", decimal.Decimal(2))])
+assert not is_valid_structure("cardinfo_", [("castindex", decimal.Decimal(4)), ("cardindex", decimal.Decimal(2))])
+assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4)), ("cardindex", decimal.Decimal(2)),
+                                           ("dummy", decimal.Decimal(0))])
+assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4))])
+assert not is_valid_structure("cardinfo", [("cardindex", decimal.Decimal(4)), ("castindex", decimal.Decimal(2))])
+assert not is_valid_structure("cardinfo", [("castindex", ""), ("cardindex", decimal.Decimal(2))])
+assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4)), ("cardindex", False)])
+assert is_valid_structure("cardinfo", [("castindex", decimal.Decimal(0)), ("cardindex", decimal.Decimal(0))])
+assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(-1)), ("cardindex", decimal.Decimal(2))])
+assert not is_valid_structure("cardinfo", [("castindex", decimal.Decimal(4)), ("cardindex", decimal.Decimal(-0.1))])
+
+
+class StructureValue(ValueType):
+    """構造体。"""
+    name: str
+    value: List[Union[ValueType, Callable[[], ValueType]]]
+
+    def __init__(self, name: str, s: List[Union[ValueType, Callable[[], ValueType]]], line: int, pos: int) -> None:
+        self.name = name.lower()
+        self.value = s
+        info = _structures[self.name]
+        for m in info.members[len(s):]:
+            self.value.append(_variantvalue_to_valuetype(m.defvalue, line, pos))
+        self.line = line
+        self.pos = pos
+
+    def eval(self, i: int) -> ValueType:
+        val = self.value[i]
+        if callable(val):
+            val2 = val()
+
+            m = _structures[self.name].members[i]
+            if m.type_check:
+                uname = self.name
+                if m.vtype == "Number":
+                    if m.min_value is not None:
+                        _chk_minvalue(val2, uname, i, m.min_value)
+                    else:
+                        _chk_decimal(val2, uname, i)
+                elif m.vtype == "String":
+                    _chk_string(val2, uname, i)
+                elif m.vtype == "Boolean":
+                    _chk_boolean(val2, uname, i)
+                elif m.vtype == "List":
+                    _chk_list(val2, uname, i)
+                elif m.vtype == "Structure":
+                    _chk_structure(val2, uname, i, m.struct_name)
+                else:
+                    assert False
+
+            self.value[i] = val2
+            return val2
+        else:
+            return val
+
+    def to_str(self) -> str:
+        def to_str(i: int) -> str:
+            v = self.eval(i)
+            if isinstance(v, StringValue):
+                return "\"" + v.value.replace("\"", "\"\"") + "\""
+            else:
+                return v.to_str()
+
+        return self.name.upper() + "(" + ", ".join(map(to_str, range(len(self.value)))) + ")"
+
+    def __repr__(self) -> str:
+        return self.to_str()
+
+
+class Symbol(object):
+    """その他シンボル。"""
+    def __init__(self, symbol: str, line: int, pos: int) -> None:
+        self.symbol = symbol
+        self.line = line
+        self.pos = pos
+
+
+def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]]:
     """文字列sを式として解析し、スタックを生成する。"""
     tokens = []
     bpos = 0
     bm: Optional[re.Match[str]] = None
     line = 1
     pos = 1
-    reg = "[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~]|[\\(\\)]|,|@?\"([^\"]|\"\")*\"|or|and|"\
+    reg = "[0-9]+(\\.[0-9]+)?|[a-z_][a-z_0-9]*|[\\+\\-\\*\\/\\%\\~\\.]|[\\(\\)]|,|@?\"([^\"]|\"\")*\"|or|and|"\
           "<=|>=|<>|<|>|=|true|false|\\n|\\s+"
     for m in re.finditer(reg, s, re.I):
         if bpos is None or m.start() != bpos:
@@ -521,7 +751,7 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
             pos += ln
 
     def parse_arguments(tokens: List[Token],
-                        i: int) -> Tuple[int, List[List[Union[ValueType, Function, UnaryOperator, Operator]]]]:
+                        i: int) -> Tuple[int, List[List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]]]]:
         if len(tokens) <= i + 1:
             raise SemanticsException("Invalid function call.", tokens[i].line, tokens[i].pos)
         i += 1
@@ -542,8 +772,8 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
         return i + 1, args
 
     def parse_semantics(tokens: List[Token],
-                        i: int) -> Tuple[int, List[Union[ValueType, Function, UnaryOperator, Operator]]]:
-        num: List[Union[ValueType, Function, UnaryOperator, Operator]] = []
+                        i: int) -> Tuple[int, List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]]]:
+        num: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]] = []
         op: List[Tuple[int, int, bool, Token]] = []
 
         isop = True
@@ -560,6 +790,11 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
                 # 真偽値反転演算子
                 oplevel = 2
                 unary = True
+            elif t == ".":
+                if isop:
+                    raise SemanticsException("Need a symbol or number here.", line, pos)
+                # 構造体メンバアクセス
+                oplevel = 100
             elif t in ('-', '+'):
                 if isop:
                     # 単項演算子
@@ -657,9 +892,14 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
                 if not isop:
                     raise SemanticsException("Need an operator here.", line, pos)
                 # その他シンボル
-                # 現在は関数呼び出しのみ
-                i, args = parse_arguments(tokens, i)
-                num.append(Function(t, line, pos, args))
+                if i + 1 < len(tokens) and tokens[i + 1].token == "(":
+                    # 関数呼び出し
+                    i, args = parse_arguments(tokens, i)
+                    num.append(Function(t, line, pos, args))
+                else:
+                    # 構造体メンバ名
+                    num.append(Symbol(t, line, pos))
+                    i += 1
                 isop = False
                 continue
 
@@ -694,14 +934,14 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator]]:
     return num
 
 
-def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
+def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
               is_differentscenario: bool = False) -> ValueType:
     """スタックstの式を実行する。"""
-    op: List[ValueType] = []
+    op: List[Union[ValueType, Symbol]] = []
     for t in st:
         if isinstance(t, Function):
             # 関数呼び出し
-            v = t.call(is_differentscenario)
+            v: Union[ValueType, Symbol] = t.call(is_differentscenario)
         elif isinstance(t, UnaryOperator):
             # 単項演算子
             if not op:
@@ -718,21 +958,27 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
             lhs = op.pop()
             v = t.call(lhs, rhs)
         else:
-            # 数値・文字列・真偽値
+            # 数値・文字列・真偽値・シンボル
             v = t
         op.append(v)
     if not op:
         raise SemanticsException("Invalid semantics.", 0, 0)
-    return op.pop(-1)
+    t = op.pop(-1)
+    if isinstance(t, Symbol):
+        raise SemanticsException("Unknown symbol: %s" % t.symbol, t.line, t.pos)
+    return t
 
 
-def eval_expr(st: List[Union[ValueType, Function, UnaryOperator, Operator]],
+def eval_expr(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
               is_differentscenario: bool) -> cw.data.Variant:
     def to_variantvalue(val: ValueType) -> cw.data.VariantValueType:
         if isinstance(val, ListValue):
             # BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
             # return [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
             return typing.cast(cw.data.VariantValueType, [to_variantvalue(val.eval(i)) for i in range(len(val.value))])
+        elif isinstance(val, StructureValue):
+            members = [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
+            return cw.data.StructVal(val.name, members)
         else:
             assert isinstance(val, (StringValue, DecimalValue, BooleanValue))
             return val.value
@@ -751,6 +997,8 @@ def _chk_argscount(args: List[Callable[[], ValueType]], n: int, func_name: str, 
 
 
 def _chk_argscount2(args: List[Callable[[], ValueType]], n1: int, n2: int, func_name: str, line: int, pos: int) -> None:
+    if n1 == n2:
+        return _chk_argscount(args, n1, func_name, line, pos)
     if not len(args) in (n1, n2):
         raise ArgumentsCountException("Invalid arguments count: %s-%s != %s" % (n1, n2, len(args)), func_name, line,
                                       pos)
@@ -766,7 +1014,8 @@ def _chk_decimal(arg: ValueType, func_name: str, arg_index: int) -> decimal.Deci
                                             arg.line, arg.pos)
 
 
-def _chk_minvalue(arg: ValueType, func_name: str, arg_index: int, minvalue: int = 0) -> decimal.Decimal:
+def _chk_minvalue(arg: ValueType, func_name: str, arg_index: int,
+                  minvalue: Union[int, decimal.Decimal] = 0) -> decimal.Decimal:
     """argが0以上のDecimalValueか調べる。"""
     r = _chk_decimal(arg, func_name, arg_index)
     if r < minvalue:
@@ -804,6 +1053,15 @@ def _chk_list(arg: ValueType, func_name: str, arg_index: int) -> ListValue:
     else:
         raise ArgumentIsNotListException("%s is not List." % arg.to_str(), func_name, arg_index, arg.to_str(), arg.line,
                                          arg.pos)
+
+
+def _chk_structure(arg: ValueType, func_name: str, arg_index: int, struct_name: str) -> StructureValue:
+    """argがStructureValueか調べる。"""
+    if isinstance(arg, StructureValue) and arg.name == struct_name:
+        return arg
+    else:
+        raise ArgumentIsNotStructureException("%s is not Structure." % arg.to_str(), func_name, arg_index,
+                                              arg.to_str(), struct_name, arg.line, arg.pos)
 
 
 def _is_alldecimal(args: List[ValueType], func_name: str) -> bool:
@@ -1001,20 +1259,26 @@ def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     elif variant.type == "String":
         assert isinstance(variant.value, str)
         return StringValue(variant.value, line, pos)
-    else:
-        assert variant.type == "List"
+    elif variant.type == "List":
         assert isinstance(variant.value, list)
+        return _variantvalue_to_valuetype(variant.value, line, pos)
+    else:
+        assert variant.type == "Structure"
+        assert isinstance(variant.value, cw.data.StructVal)
+        return _variantvalue_to_valuetype(variant.value, line, pos)
 
-        def variantvalue_to_valuetype(val: cw.data.VariantValueType) -> ValueType:
-            if isinstance(val, str):
-                return StringValue(val, line, pos)
-            elif isinstance(val, decimal.Decimal):
-                return DecimalValue(val, line, pos)
-            elif isinstance(val, bool):
-                return BooleanValue(val, line, pos)
-            else:
-                return ListValue([variantvalue_to_valuetype(val) for val in val], line, pos)
-        return variantvalue_to_valuetype(variant.value)
+
+def _variantvalue_to_valuetype(val: cw.data.VariantValueType, line: int, pos: int) -> ValueType:
+    if isinstance(val, str):
+        return StringValue(val, line, pos)
+    elif isinstance(val, decimal.Decimal):
+        return DecimalValue(val, line, pos)
+    elif isinstance(val, bool):
+        return BooleanValue(val, line, pos)
+    elif isinstance(val, cw.data.StructVal):
+        return StructureValue(val.name, [_variantvalue_to_valuetype(val, line, pos) for val in val.members], line, pos)
+    else:
+        return ListValue([_variantvalue_to_valuetype(val, line, pos) for val in val], line, pos)
 
 
 def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
@@ -1465,6 +1729,20 @@ def _func_liferatio(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(-1, line, pos)
 
 
+def _create_structure(info: _StructureInfo, args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+                      pos: int) -> StructureValue:
+    """構造体のインスタンスを生成する。"""
+    uname = info.name.upper()
+    _chk_argscount2(args, info.required_member_num, len(info.members), uname, line, pos)
+
+    args2: List[Union[ValueType, Callable[[], ValueType]]] = []
+    args2.extend(args)
+    for m in info.members[len(args):]:
+        args2.append(_variantvalue_to_valuetype(m.defvalue, line, pos))
+
+    return StructureValue(info.name, args2, line, pos)
+
+
 _functions = {
     # Wsn.4
     "len": _func_len,
@@ -1700,6 +1978,26 @@ assert _assert_d(calculate(parse("LFIND(\"TEST\", LIST(1, 2, \"TEST\", 4))")), 3
 assert _assert_d(calculate(parse("LFIND(LIST(99), LIST(1, 2, LIST(99), 4))")), 3)
 assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 4, 42), 3)")), 4)
 assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 42, 4), 3)")), 3)
+
+assert _assert_d(calculate(parse("CARDINFO(4, 2).CASTINDEX")), 4)
+assert _assert_d(calculate(parse("CARDINFO(4, 2).CARDINDEX")), 2)
+assert _assert_d(calculate(parse("-CARDINFO(4, 2).CASTINDEX")), -4)
+assert _assert_d(calculate(parse("---CARDINFO(4, 2).CASTINDEX")), -4)
+assert _assert_b(calculate(parse("CARDINFO(4, 2).CASTINDEX = 4")), True)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 2)")), True)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 2)")), False)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(5, 2)")), False)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(5, 2)")), True)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 3)")), False)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 3)")), True)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 2))")),
+                 True)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))")),
+                 False)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))")),
+                 False)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))")),
+                 True)
 
 
 def main() -> None:

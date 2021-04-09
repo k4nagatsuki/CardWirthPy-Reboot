@@ -1687,7 +1687,7 @@ class VariantEditDialog(wx.Dialog):
             self.value_str.SetValue(cw.data.Variant.value_to_str(value))
             self.value_str.Enable()
         else:
-            assert isinstance(value, list)
+            assert isinstance(value, (list, cw.data.StructVal))
             self.type_expr.SetValue(True)
             self.value_expr.SetValue(cw.data.Variant.value_to_str(value))
             self.value_expr.Enable()

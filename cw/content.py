@@ -303,9 +303,13 @@ def variant_error_msg(ex: "cw.calculator.ComputeException") -> str:
     elif isinstance(ex, cw.calculator.DifferentScenarioException):
         return "シナリオ名と作者名が一致しないため、状態変数にアクセスできません。"
     elif isinstance(ex, cw.calculator.ListIndexOutOfRangeException):
-        return "リストに%s番目の要素は存在しません(リストの長さ = %s)。" % (ex.n, ex.list_len)
+        return "リストに%s番目の要素は存在しません(リストの長さ = %s)" % (ex.n, ex.list_len)
     elif isinstance(ex, cw.calculator.ArgumentIsNotListException):
         return "関数 %s の %s 番目の引数がリストではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
+    elif isinstance(ex, cw.calculator.ArgumentIsNotStructureException):
+        return "関数 %s の %s 番目の引数が%sではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.struct_name, ex.arg_value)
+    elif isinstance(ex, cw.calculator.DifferentStructureException):
+        return "異なる構造体を比較しようとしました(%s:%s)" % (ex.lhs_name, ex.rhs_name)
     else:
         assert False
 
@@ -2066,7 +2070,8 @@ class BranchVariantContent(BranchContent):
         self.parsed_expression: Optional[List[Union[cw.calculator.ValueType,
                                                     cw.calculator.Function,
                                                     cw.calculator.UnaryOperator,
-                                                    cw.calculator.Operator]]] = None
+                                                    cw.calculator.Operator,
+                                                    cw.calculator.Symbol]]] = None
 
     def action(self) -> int:
         """コモン分岐コンテント(Wsn.4)。"""
@@ -2444,7 +2449,8 @@ class CheckVariantContent(EventContentBase):
         self.parsed_expression: Optional[List[Union[cw.calculator.ValueType,
                                                     cw.calculator.Function,
                                                     cw.calculator.UnaryOperator,
-                                                    cw.calculator.Operator]]] = None
+                                                    cw.calculator.Operator,
+                                                    cw.calculator.Symbol]]] = None
 
     def action(self) -> int:
         """コモン判定コンテント(Wsn.4)。"""
@@ -4170,7 +4176,8 @@ class SetVariantContent(BranchContent):
         self.parsed_expression: Optional[List[Union[cw.calculator.ValueType,
                                                     cw.calculator.Function,
                                                     cw.calculator.UnaryOperator,
-                                                    cw.calculator.Operator]]] = None
+                                                    cw.calculator.Operator,
+                                                    cw.calculator.Symbol]]] = None
         self.variant = self.data.getattr(".", "variant", "")
         self.step = self.data.getattr(".", "step", "")
         self.flag = self.data.getattr(".", "flag", "")
