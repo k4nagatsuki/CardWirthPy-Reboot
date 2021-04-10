@@ -237,7 +237,7 @@ class SystemData(object):
                 for name, variant in self.variants.items():
                     # CWPyのデータはテキストと子要素を両立させない構造になっているので
                     # リストか構造体の場合はパスをテキストにするのではなく、<Name>要素を生成するようにする
-                    if variant.type == "List":
+                    if variant.type in ("List", "Structure"):
                         e = cw.data.make_element("Variant", "")
                         e.append(cw.data.make_element("Name", name))
                         Variant.value_to_element(variant.value, e)
@@ -291,7 +291,7 @@ class SystemData(object):
                 # 値がリスト以外の場合はテキストがそのままパスになっている
                 name = e.text
             else:
-                # 値がリストの場合は<Name>要素が存在している
+                # 値がリストか構造体の場合は<Name>要素が存在している
                 name = e_name.text
             if name in self.variants:
                 v_value = Variant.value_from_element(e)
@@ -2565,7 +2565,7 @@ class Variant(object):
         elif isinstance(value, str):
             return value
         elif isinstance(value, StructVal):
-            return value.name + "(" + ", ".join(map(to_str, value.members)) + ")"
+            return value.name.upper() + "(" + ", ".join(map(to_str, value.members)) + ")"
         else:
             return "LIST(" + ", ".join(map(to_str, value)) + ")"
 
@@ -2574,12 +2574,12 @@ class Variant(object):
         e.set(typeattr, Variant.value_to_type(value))
         if isinstance(value, StructVal):
             members = cw.calculator.struct_members(value.name)
-            e.append(make_element("StructureName", value.name))
+            e.append(make_element("StructureName", value.name.upper()))
             for m, v in zip(members, value.members):
-                e2 = make_element("Member", attrs={"name": m.name})
+                e2 = make_element("Member", attrs={"name": m.name.upper()})
                 Variant._write_value(e2, v)
                 e.append(e2)
-        if isinstance(value, list):
+        elif isinstance(value, list):
             for val in value:
                 ve = make_element("Value")
                 Variant.value_to_element(val, ve)
