@@ -1480,19 +1480,20 @@ class ScenarioData(SystemData):
             inusecard = inusecardheader if inusecardheader else cw.cwpy.event.get_inusecard()
         else:
             inusecard = None
-        if inusecard and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion or inusecardheader):
+        if inusecard and (cw.cwpy.event.in_inusecardevent or cw.cwpy.event.in_cardeffectmotion or inusecardheader) and\
+                (not inusecard.scenariocard or (inusecard.carddata is not None and
+                                                inusecard.carddata.gettext("Property/Materials", ""))):
             assert inusecard.carddata is not None
-            if not inusecard.scenariocard or inusecard.carddata.gettext("Property/Materials", ""):
-                # プレイ中のシナリオ外のカードを使用
-                mates = inusecard.carddata.gettext("Property/Materials", "")
-                if not mates:
-                    return None
+            # プレイ中のシナリオ外のカードを使用
+            mates = inusecard.carddata.gettext("Property/Materials", "")
+            if not mates:
+                return None
 
-                dpath = cw.util.join_yadodir(mates)
-                fpath = self._get_carddatapath(linkdata.tag, resid, dpath)
-                if not fpath:
-                    return None
-                data = xml2element(fpath, nocache=True)
+            dpath = cw.util.join_yadodir(mates)
+            fpath = self._get_carddatapath(linkdata.tag, resid, dpath)
+            if not fpath:
+                return None
+            data = xml2element(fpath, nocache=True)
 
         else:
             # プレイ中のシナリオ内のカードを使用
