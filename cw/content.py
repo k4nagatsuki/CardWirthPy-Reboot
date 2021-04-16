@@ -309,10 +309,10 @@ def variant_error_msg(ex: "cw.calculator.ComputeException") -> str:
     elif isinstance(ex, cw.calculator.ArgumentIsNotStructureException):
         return "関数 %s の %s 番目の引数が%sではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.struct_name, ex.arg_value)
     elif isinstance(ex, cw.calculator.PermissionError):
-        if isinstance(ex.info, cw.calculator.StructureMember):
-            return "%sは参照できません。" % (ex.info.name.upper())
+        if ex.m:
+            return "%s.%sは参照できません。" % (ex.info.name.upper(), ex.m.name.upper())
         else:
-            return "%sは関数以外で生成できません。" % (ex.info.name.upper())
+            return "%sは関数で生成しなければなりません。" % (ex.info.name.upper())
     elif isinstance(ex, cw.calculator.DifferentStructureException):
         return "異なる構造体を比較しようとしました(%s:%s)" % (ex.lhs_name, ex.rhs_name)
     else:

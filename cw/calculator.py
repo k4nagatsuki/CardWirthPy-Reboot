@@ -128,9 +128,10 @@ class ListIndexOutOfRangeException(ComputeException):
 
 class PermissionError(ComputeException):
     """アクセスできないメンバにアクセスしようとした。"""
-    def __init__(self, msg: str, info: Union["StructureInfo", "StructureMember"], line: int, pos: int) -> None:
+    def __init__(self, msg: str, info: "StructureInfo", m: Optional["StructureMember"], line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
         self.info = info
+        self.m = m
 
 
 class DifferentStructureException(ComputeException):
@@ -377,8 +378,9 @@ class Operator(object):
             mindex = struct_info.index_of(rhs_symbol.symbol)
             m = struct_info.members[mindex]
             if not m.is_public and option.evaltype != "Test":
-                raise PermissionError("Structure member \"%s\" is not accesible." % m.name.upper(), m, self.line,
-                                      self.pos)
+                raise PermissionError("Structure member %s.%s is not accesible." % (struct_info.name.upper(),
+                                                                                    m.name.upper()),
+                                      struct_info, m, self.line, self.pos)
             if mindex == -1:
                 raise SemanticsException("structure %s has not been %s." % (lhs_struct.name, rhs_symbol.symbol),
                                          rhs.line, rhs.pos)
@@ -637,11 +639,18 @@ def cut_optionalmembers(name: str,
                         members: Sequence["cw.data.VariantValueType"]) -> Sequence["cw.data.VariantValueType"]:
     """membersの後方にオプショナル項目のデフォルト値があれば削って返す。"""
     info = struct_info(name)
+    assert len(info.members) == len(members)
     for i in reversed(range(len(info.members))):
         if i < info.required_member_num or info.members[i].defvalue != members[i]:
             break
         members = members[:i]
     return members
+
+
+assert cut_optionalmembers("cardinfo", [decimal.Decimal(0), decimal.Decimal(0), decimal.Decimal(-2)]) ==\
+                           [decimal.Decimal(0), decimal.Decimal(0)]
+assert cut_optionalmembers("cardinfo", [decimal.Decimal(0), decimal.Decimal(0), decimal.Decimal(-2.1)]) ==\
+                           [decimal.Decimal(0), decimal.Decimal(0), decimal.Decimal(-2.1)]
 
 
 def is_valid_structure(name: str, members: Sequence[Tuple[str, "cw.data.VariantValueType"]]) -> bool:
@@ -1923,7 +1932,7 @@ def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], 
     """構造体のインスタンスを生成する。"""
     uname = info.name.upper()
     if not info.is_public and option.evaltype not in ("Debugger", "Test"):
-        raise PermissionError("Structure \"%s\" is not accesible." % uname, info, line, pos)
+        raise PermissionError("Structure %s is not accesible." % uname, info, None, line, pos)
     _chk_argscount2(args, info.required_member_num, len(info.members), uname, line, pos)
 
     args2: List[Union[ValueType, Callable[[], ValueType]]] = []
