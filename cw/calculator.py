@@ -126,6 +126,13 @@ class ListIndexOutOfRangeException(ComputeException):
         self.list_len = list_len
 
 
+class PermissionError(ComputeException):
+    """アクセスできないメンバにアクセスしようとした。"""
+    def __init__(self, msg: str, info: Union["StructureInfo", "StructureMember"], line: int, pos: int) -> None:
+        ComputeException.__init__(self, msg, line, pos)
+        self.info = info
+
+
 class DifferentStructureException(ComputeException):
     """構造体の名前が一致しない。"""
     def __init__(self, msg: str, lhs_name: str, rhs_name: str, line: int, pos: int) -> None:
@@ -176,24 +183,24 @@ class Function(object):
         self.pos = pos
         self.args = args
 
-    def call(self, is_differentscenario: bool) -> "ValueType":
+    def call(self, option: "CalcOption") -> "ValueType":
         args = []
         for arg in self.args:
             class F(object):
                 def __init__(self, arg: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
-                             is_differentscenario: bool) -> None:
+                             option: CalcOption) -> None:
                     self.arg = arg
-                    self.is_differentscenario = is_differentscenario
+                    self.option = option
 
                 def eval_arg(self) -> ValueType:
-                    return calculate(self.arg, self.is_differentscenario)
+                    return calculate(self.arg, self.option)
 
-            args.append(F(arg, is_differentscenario).eval_arg)
+            args.append(F(arg, option).eval_arg)
         name = self.name
         if name in _functions:
-            return _functions[name](args, is_differentscenario, self.line, self.pos)
+            return _functions[name](args, option, self.line, self.pos)
         elif name in _structures:
-            return _create_structure(_structures[name], args, is_differentscenario, self.line, self.pos)
+            return _create_structure(_structures[name], args, option, self.line, self.pos)
         else:
             raise FunctionIsNotDefinedException("Function \"%s\" is not defined." % name, name, self.line, self.pos)
 
@@ -352,7 +359,7 @@ class Operator(object):
         return r
 
     def call(self, lhs: Union["ValueType", "Symbol"], rhs: Union["ValueType", "Symbol"],
-             o: Optional[str] = None) -> "ValueType":
+             option: "CalcOption", o: Optional[str] = None) -> "ValueType":
         if o is None:
             o = self.operator
 
@@ -368,6 +375,10 @@ class Operator(object):
             struct_info = _structures[lhs_struct.name]
             rhs_symbol = Operator.chk_structmembername(rhs)
             mindex = struct_info.index_of(rhs_symbol.symbol)
+            m = struct_info.members[mindex]
+            if not m.is_public and option.evaltype != "Test":
+                raise PermissionError("Structure member \"%s\" is not accesible." % m.name.upper(), m, self.line,
+                                      self.pos)
             if mindex == -1:
                 raise SemanticsException("structure %s has not been %s." % (lhs_struct.name, rhs_symbol.symbol),
                                          rhs.line, rhs.pos)
@@ -407,7 +418,7 @@ class Operator(object):
                 lhs_list = lhs
                 rhs_list = Operator.chk_list(rhs)
                 for i in range(min(len(lhs_list.value), len(rhs_list.value))):
-                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), "<")
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), option, "<")
                     assert isinstance(b, BooleanValue)
                     if b.value:
                         return b
@@ -419,7 +430,7 @@ class Operator(object):
                 lhs_list = lhs
                 rhs_list = Operator.chk_list(rhs)
                 for i in range(min(len(lhs_list.value), len(rhs_list.value))):
-                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), ">")
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), option, ">")
                     assert isinstance(b, BooleanValue)
                     if b.value:
                         return b
@@ -431,7 +442,7 @@ class Operator(object):
                 lhs_list = lhs
                 rhs_list = Operator.chk_list(rhs)
                 for i in range(min(len(lhs_list.value), len(rhs_list.value))):
-                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), "<")
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), option, "<")
                     assert isinstance(b, BooleanValue)
                     if b.value:
                         return b
@@ -443,7 +454,7 @@ class Operator(object):
                 lhs_list = lhs
                 rhs_list = Operator.chk_list(rhs)
                 for i in range(min(len(lhs_list.value), len(rhs_list.value))):
-                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), ">")
+                    b = self.call(lhs_list.eval(i), rhs_list.eval(i), option, ">")
                     assert isinstance(b, BooleanValue)
                     if b.value:
                         return b
@@ -574,9 +585,10 @@ assert ListValue([ListValue([ListValue([StringValue("STR", 0, 0)], 0, 0)], 0, 0)
 
 class StructureMember(object):
     """構造体メンバ定義。"""
-    def __init__(self, name: str, defvalue: "cw.data.VariantValueType", type_check: bool, vtype: str = "",
-                 min_value: Optional[decimal.Decimal] = None, struct_name: str = "") -> None:
+    def __init__(self, name: str, is_public: bool, defvalue: "cw.data.VariantValueType", type_check: bool,
+                 vtype: str = "", min_value: Optional[decimal.Decimal] = None, struct_name: str = "") -> None:
         self.name = name  # 構造体メンバ名
+        self.is_public = is_public  # ユーザがアクセス可能なメンバか
         self.defvalue = defvalue  # 未指定時の値
         self.type_check = type_check  # 型チェックを行うか
         self.vtype = vtype  # 型
@@ -584,10 +596,12 @@ class StructureMember(object):
         self.struct_name = struct_name  # 構造体型の時の構造体名
 
 
-class _StructureInfo(object):
+class StructureInfo(object):
     """構造体定義。"""
-    def __init__(self, name: str, members: Sequence[StructureMember], required_member_num: int) -> None:
+    def __init__(self, name: str, is_public: bool, members: Sequence[StructureMember],
+                 required_member_num: int) -> None:
         self.name = name  # 構造体名
+        self.is_public = is_public  # ユーザが作成可能な構造体か
         self.members = members  # メンバ定義
         self.required_member_num = required_member_num  # 生成時に必ず値を指定しなければならないメンバの数
         self._index_table = {}
@@ -603,19 +617,31 @@ class _StructureInfo(object):
 
 
 _structures = {
-    "cardinfo": _StructureInfo("cardinfo", [
-        StructureMember("castindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(-2)),
-        StructureMember("cardindex", decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(0)),
+    "cardinfo": StructureInfo("cardinfo", False, [
+        StructureMember("castindex", False, decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(-2)),
+        StructureMember("cardindex", False, decimal.Decimal(0), True, "Number", min_value=decimal.Decimal(0)),
+        StructureMember("actioncardid", False, decimal.Decimal(-2), True, "Number"),
     ], 2)
 }
 
 
-def struct_members(name: str) -> Sequence[StructureMember]:
-    """構造体のメンバ情報を返す。"""
+def struct_info(name: str) -> StructureInfo:
+    """構造体の情報を返す。"""
     info = _structures.get(name.lower(), None)
     if not info:
         raise Exception("Structure %s has been declared." % name)
-    return info.members
+    return info
+
+
+def cut_optionalmembers(name: str,
+                        members: Sequence["cw.data.VariantValueType"]) -> Sequence["cw.data.VariantValueType"]:
+    """membersの後方にオプショナル項目のデフォルト値があれば削って返す。"""
+    info = struct_info(name)
+    for i in reversed(range(len(info.members))):
+        if i < info.required_member_num or info.members[i].defvalue != members[i]:
+            break
+        members = members[:i]
+    return members
 
 
 def is_valid_structure(name: str, members: Sequence[Tuple[str, "cw.data.VariantValueType"]]) -> bool:
@@ -704,14 +730,7 @@ class StructureValue(ValueType):
             return val
 
     def to_str(self) -> str:
-        def to_str(i: int) -> str:
-            v = self.eval(i)
-            if isinstance(v, StringValue):
-                return "\"" + v.value.replace("\"", "\"\"") + "\""
-            else:
-                return v.to_str()
-
-        return self.name.upper() + "(" + ", ".join(map(to_str, range(len(self.value)))) + ")"
+        return cw.data.Variant.value_to_str(to_variantvalue(self))
 
     def __repr__(self) -> str:
         return self.to_str()
@@ -934,14 +953,20 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator, Sy
     return num
 
 
+class CalcOption(object):
+    def __init__(self, evaltype: str, is_differentscenario: bool) -> None:
+        self.evaltype = evaltype
+        self.is_differentscenario = is_differentscenario
+
+
 def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
-              is_differentscenario: bool = False) -> ValueType:
+              option: CalcOption = CalcOption("Event", False)) -> ValueType:
     """スタックstの式を実行する。"""
     op: List[Union[ValueType, Symbol]] = []
     for t in st:
         if isinstance(t, Function):
             # 関数呼び出し
-            v: Union[ValueType, Symbol] = t.call(is_differentscenario)
+            v: Union[ValueType, Symbol] = t.call(option)
         elif isinstance(t, UnaryOperator):
             # 単項演算子
             if not op:
@@ -956,7 +981,7 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbo
             if not op:
                 raise SemanticsException("Invalid semantics.", t.line, t.pos)
             lhs = op.pop()
-            v = t.call(lhs, rhs)
+            v = t.call(lhs, rhs, option)
         else:
             # 数値・文字列・真偽値・シンボル
             v = t
@@ -970,24 +995,26 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbo
 
 
 def eval_expr(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
-              is_differentscenario: bool) -> cw.data.Variant:
-    def to_variantvalue(val: ValueType) -> cw.data.VariantValueType:
-        if isinstance(val, ListValue):
-            # BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
-            # return [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
-            return typing.cast(cw.data.VariantValueType, [to_variantvalue(val.eval(i)) for i in range(len(val.value))])
-        elif isinstance(val, StructureValue):
-            members = [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
-            return cw.data.StructVal(val.name, members)
-        else:
-            assert isinstance(val, (StringValue, DecimalValue, BooleanValue))
-            return val.value
-    val = calculate(st, is_differentscenario)
+              option: CalcOption) -> cw.data.Variant:
+    val = calculate(st, option)
     return cw.data.Variant(None, None, to_variantvalue(val), "", "")
 
 
-def _chk_diffsc(is_differentscenario: bool, line: int, pos: int) -> None:
-    if is_differentscenario:
+def to_variantvalue(val: ValueType) -> cw.data.VariantValueType:
+    if isinstance(val, ListValue):
+        # BUG: error: Cannot resolve name "VariantValueType" (possible cyclic definition) (mypy 0.790)
+        # return [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
+        return typing.cast(cw.data.VariantValueType, [to_variantvalue(val.eval(i)) for i in range(len(val.value))])
+    elif isinstance(val, StructureValue):
+        members = [to_variantvalue(val.eval(i)) for i in range(len(val.value))]
+        return cw.data.StructVal(val.name, members)
+    else:
+        assert isinstance(val, (StringValue, DecimalValue, BooleanValue))
+        return val.value
+
+
+def _chk_diffsc(option: CalcOption, line: int, pos: int) -> None:
+    if option.is_differentscenario:
         raise DifferentScenarioException("Read a variable at different scenario.", line, pos)
 
 
@@ -1075,7 +1102,7 @@ def _all_eval(args: List[Callable[[], ValueType]]) -> List[ValueType]:
     return [arg() for arg in args]
 
 
-def _func_max(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_max(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """引数中の最大の値を返す。"""
     args_r = _all_eval(args)
     if len(args_r) and _is_alldecimal(args_r, "MAX"):
@@ -1088,7 +1115,7 @@ def _func_max(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     raise ArgumentsCountException("No argments of max.", "MAX", line, pos)
 
 
-def _func_min(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_min(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """引数中の最小の値を返す。"""
     args_r = _all_eval(args)
     if len(args_r) and _is_alldecimal(args_r, "MIN"):
@@ -1101,7 +1128,7 @@ def _func_min(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     raise ArgumentsCountException("No argments of min.", "MIN", line, pos)
 
 
-def _func_len(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_len(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """文字列の文字数を返す。"""
     _chk_argscount(args, 1, "LEN", line, pos)
     args_r = _all_eval(args)
@@ -1109,7 +1136,7 @@ def _func_len(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     return DecimalValue(len(_chk_string(a, "LEN", 0)), line, pos)
 
 
-def _func_find(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_find(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """文字列内を検索する。"""
     _chk_argscount2(args, 2, 3, "FIND", line, pos)
     args_r = _all_eval(args)
@@ -1134,7 +1161,7 @@ def _func_find(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
     return DecimalValue(r + 1, line, pos)
 
 
-def _func_left(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_left(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """文字列の左側を取り出す。"""
     _chk_argscount(args, 2, "LEFT", line, pos)
     args_r = _all_eval(args)
@@ -1145,7 +1172,7 @@ def _func_left(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
     return StringValue(a[:int(v)], line, pos)
 
 
-def _func_right(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_right(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """文字列の右側を取り出す。"""
     _chk_argscount(args, 2, "RIGHT", line, pos)
     args_r = _all_eval(args)
@@ -1156,7 +1183,7 @@ def _func_right(args: List[Callable[[], ValueType]], is_differentscenario: bool,
     return StringValue(a[int(v):], line, pos)
 
 
-def _func_mid(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_mid(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """文字列の[N1-1:N1+N2]の範囲を取り出す。"""
     _chk_argscount2(args, 2, 3, "MID", line, pos)
     args_r = _all_eval(args)
@@ -1176,7 +1203,7 @@ def _func_mid(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     return StringValue(a, line, pos)
 
 
-def _func_str(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_str(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """引数を文字列に変換する。"""
     _chk_argscount(args, 1, "STR", line, pos)
     args_r = _all_eval(args)
@@ -1186,7 +1213,7 @@ def _func_str(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
 _NUM_REG = re.compile("\\A\\s*-?([0-9]+(\\.[0-9]*)?|([0-9]*\\.)?[0-9]+)\\s*\\Z")
 
 
-def _func_value(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_value(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """引数を数値化する。"""
     _chk_argscount(args, 1, "VALUE", line, pos)
     args_r = _all_eval(args)
@@ -1207,7 +1234,7 @@ def _func_value(args: List[Callable[[], ValueType]], is_differentscenario: bool,
     return DecimalValue(value, line, pos)
 
 
-def _func_int(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_int(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """引数を整数化する。"""
     _chk_argscount(args, 1, "INT", line, pos)
     args_r = _all_eval(args)
@@ -1225,7 +1252,7 @@ def _func_int(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     return DecimalValue(value.to_integral_exact(decimal.ROUND_DOWN), line, pos)
 
 
-def _func_if(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ValueType:
+def _func_if(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ValueType:
     """args[0]がTrueであればargs[1]を、そうでなければargs[2]を返す。"""
     _chk_argscount(args, 3, "IF", line, pos)
     a = args[0]()
@@ -1235,7 +1262,7 @@ def _func_if(args: List[Callable[[], ValueType]], is_differentscenario: bool, li
     return t() if a_bool else f()
 
 
-def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ValueType:
+def _func_var(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ValueType:
     """汎用変数の値を読む。"""
     _chk_argscount(args, 1, "VAR", line, pos)
     args_r = _all_eval(args)
@@ -1245,7 +1272,7 @@ def _func_var(args: List[Callable[[], ValueType]], is_differentscenario: bool, l
     if event and path in event.variants:
         variant = event.variants[path]
     elif path in cw.cwpy.sdata.variants:
-        _chk_diffsc(is_differentscenario, line, pos)
+        _chk_diffsc(option, line, pos)
         variant = cw.cwpy.sdata.variants[path]
     else:
         raise VariantNotFoundException("Variant \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
@@ -1281,8 +1308,7 @@ def _variantvalue_to_valuetype(val: cw.data.VariantValueType, line: int, pos: in
         return ListValue([_variantvalue_to_valuetype(val, line, pos) for val in val], line, pos)
 
 
-def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> BooleanValue:
+def _func_flagvalue(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> BooleanValue:
     """フラグの値を読む。"""
     _chk_argscount(args, 1, "FLAGVALUE", line, pos)
     args_r = _all_eval(args)
@@ -1292,7 +1318,7 @@ def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
     if event and path in event.flags:
         flag = event.flags[path]
     elif path in cw.cwpy.sdata.flags:
-        _chk_diffsc(is_differentscenario, line, pos)
+        _chk_diffsc(option, line, pos)
         flag = cw.cwpy.sdata.flags[path]
     else:
         raise FlagNotFoundException("Flag \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
@@ -1300,7 +1326,7 @@ def _func_flagvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
     return BooleanValue(flag.value, line, pos)
 
 
-def _func_flagtext(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_flagtext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """フラグの値の文字列を読む。"""
     _chk_argscount2(args, 1, 2, "FLAGTEXT", line, pos)
     args_r = _all_eval(args)
@@ -1310,7 +1336,7 @@ def _func_flagtext(args: List[Callable[[], ValueType]], is_differentscenario: bo
     if event and path in event.flags:
         flag = event.flags[path]
     elif path in cw.cwpy.sdata.flags:
-        _chk_diffsc(is_differentscenario, line, pos)
+        _chk_diffsc(option, line, pos)
         flag = cw.cwpy.sdata.flags[path]
     else:
         raise FlagNotFoundException("Flag \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
@@ -1328,8 +1354,7 @@ def _func_flagtext(args: List[Callable[[], ValueType]], is_differentscenario: bo
     return StringValue(s, line, pos)
 
 
-def _func_stepvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> DecimalValue:
+def _func_stepvalue(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """ステップの値を読む。"""
     _chk_argscount(args, 1, "STEPVALUE", line, pos)
     args_r = _all_eval(args)
@@ -1339,7 +1364,7 @@ def _func_stepvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
     if event and path in event.steps:
         step = event.steps[path]
     elif path in cw.cwpy.sdata.steps:
-        _chk_diffsc(is_differentscenario, line, pos)
+        _chk_diffsc(option, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
@@ -1347,7 +1372,7 @@ def _func_stepvalue(args: List[Callable[[], ValueType]], is_differentscenario: b
     return DecimalValue(decimal.Decimal(step.value), line, pos)
 
 
-def _func_steptext(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_steptext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """ステップの値の文字列を読む。"""
     _chk_argscount2(args, 1, 2, "STEPTEXT", line, pos)
     args_r = _all_eval(args)
@@ -1357,7 +1382,7 @@ def _func_steptext(args: List[Callable[[], ValueType]], is_differentscenario: bo
     if event and path in event.steps:
         step = event.steps[path]
     elif path in cw.cwpy.sdata.steps:
-        _chk_diffsc(is_differentscenario, line, pos)
+        _chk_diffsc(option, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
@@ -1378,7 +1403,7 @@ def _func_steptext(args: List[Callable[[], ValueType]], is_differentscenario: bo
     return StringValue(s, line, pos)
 
 
-def _func_stepmax(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_stepmax(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """ステップの最大値を取得する。"""
     _chk_argscount(args, 1, "STEPMAX", line, pos)
     args_r = _all_eval(args)
@@ -1388,7 +1413,7 @@ def _func_stepmax(args: List[Callable[[], ValueType]], is_differentscenario: boo
     if event and path in event.steps:
         step = event.steps[path]
     elif path in cw.cwpy.sdata.steps:
-        _chk_diffsc(is_differentscenario, line, pos)
+        _chk_diffsc(option, line, pos)
         step = cw.cwpy.sdata.steps[path]
     else:
         raise StepNotFoundException("Step \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
@@ -1396,7 +1421,7 @@ def _func_stepmax(args: List[Callable[[], ValueType]], is_differentscenario: boo
     return DecimalValue(decimal.Decimal(len(step.valuenames)-1), line, pos)
 
 
-def _func_dice(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_dice(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """ダイスを振って結果の値を返す。"""
     _chk_argscount(args, 2, "DICE", line, pos)
     args_r = _all_eval(args)
@@ -1426,8 +1451,7 @@ def _ccard_index(ccard: cw.character.Character) -> int:
         assert False
 
 
-def _func_selected(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                   pos: int) -> DecimalValue:
+def _func_selected(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """選択メンバのキャラクター番号を数値(1～)で返す。"""
     _chk_argscount(args, 0, "SELECTED", line, pos)
     if cw.cwpy.event.has_selectedmember():
@@ -1463,8 +1487,7 @@ def _ccard_from(arg: ValueType, func_name: str) -> Optional[cw.character.Charact
         return None
 
 
-def _func_casttype(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                   pos: int) -> DecimalValue:
+def _func_casttype(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターのタイプ(1=Player,2=Enemy,3=Friend)を返す。"""
     _chk_argscount(args, 1, "CASTTYPE", line, pos)
     args_r = _all_eval(args)
@@ -1479,7 +1502,7 @@ def _func_casttype(args: List[Callable[[], ValueType]], is_differentscenario: bo
         return DecimalValue(0, line, pos)
 
 
-def _func_castname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> StringValue:
+def _func_castname(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """キャラクター番号からキャラクターの名前を返す。"""
     _chk_argscount(args, 1, "CASTNAME", line, pos)
     args_r = _all_eval(args)
@@ -1490,8 +1513,7 @@ def _func_castname(args: List[Callable[[], ValueType]], is_differentscenario: bo
         return StringValue("", line, pos)
 
 
-def _func_findcoupon(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                     pos: int) -> DecimalValue:
+def _func_findcoupon(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """キャラクター番号のキャラクターのクーポンを検索してクーポン番号を返す。"""
     _chk_argscount2(args, 2, 3, "FINDCOUPON", line, pos)
     args_r = _all_eval(args)
@@ -1511,8 +1533,7 @@ def _func_findcoupon(args: List[Callable[[], ValueType]], is_differentscenario: 
     return DecimalValue(index + 1, line, pos)
 
 
-def _func_coupontext(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                     pos: int) -> StringValue:
+def _func_coupontext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """キャラクター番号のキャラクターの所持するクーポン名を返す。"""
     _chk_argscount(args, 2, "COUPONTEXT", line, pos)
     args_r = _all_eval(args)
@@ -1526,8 +1547,7 @@ def _func_coupontext(args: List[Callable[[], ValueType]], is_differentscenario: 
     return StringValue(ccard.get_coupon_at(index)[0], line, pos)
 
 
-def _func_findgossip(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                     pos: int) -> DecimalValue:
+def _func_findgossip(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """ゴシップを検索してゴシップ番号を返す。"""
     _chk_argscount2(args, 1, 2, "FINDGOSSIP", line, pos)
     args_r = _all_eval(args)
@@ -1544,8 +1564,7 @@ def _func_findgossip(args: List[Callable[[], ValueType]], is_differentscenario: 
     return DecimalValue(index + 1, line, pos)
 
 
-def _func_gossiptext(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                     pos: int) -> StringValue:
+def _func_gossiptext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """ゴシップ名を返す。"""
     _chk_argscount(args, 1, "GOSSIPTEXT", line, pos)
     args_r = _all_eval(args)
@@ -1555,8 +1574,7 @@ def _func_gossiptext(args: List[Callable[[], ValueType]], is_differentscenario: 
     return StringValue(cw.cwpy.ydata.get_gossip_at(index), line, pos)
 
 
-def _func_partyname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> StringValue:
+def _func_partyname(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """パーティ名を返す。"""
     _chk_argscount(args, 0, "PARTYNAME", line, pos)
     if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
@@ -1564,14 +1582,14 @@ def _func_partyname(args: List[Callable[[], ValueType]], is_differentscenario: b
     return StringValue(cw.cwpy.ydata.party.get_showingname(), line, pos)
 
 
-def _func_list(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+def _func_list(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ListValue:
     """リストを生成する。"""
     args2: List[Union[ValueType, Callable[[], ValueType]]] = []
     args2.extend(args)
     return ListValue(args2, line, pos)
 
 
-def _func_at(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ValueType:
+def _func_at(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ValueType:
     """リストの要素を取り出す。"""
     _chk_argscount(args, 2, "AT", line, pos)
     args_r = _all_eval(args)
@@ -1583,7 +1601,7 @@ def _func_at(args: List[Callable[[], ValueType]], is_differentscenario: bool, li
     return a.eval(index)
 
 
-def _func_llen(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_llen(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """リストの長さを返す。"""
     _chk_argscount(args, 1, "LLEN", line, pos)
     args_r = _all_eval(args)
@@ -1591,7 +1609,7 @@ def _func_llen(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
     return DecimalValue(len(a.value), line, pos)
 
 
-def _func_lfind(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> DecimalValue:
+def _func_lfind(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """リスト内を検索する。"""
     _chk_argscount2(args, 2, 3, "LFIND", line, pos)
     args_r = _all_eval(args)
@@ -1615,7 +1633,7 @@ def _func_lfind(args: List[Callable[[], ValueType]], is_differentscenario: bool,
     return DecimalValue(0, line, pos)
 
 
-def _func_lleft(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+def _func_lleft(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ListValue:
     """リストの左側を取り出す。"""
     _chk_argscount(args, 2, "LLEFT", line, pos)
     args_r = _all_eval(args)
@@ -1626,7 +1644,7 @@ def _func_lleft(args: List[Callable[[], ValueType]], is_differentscenario: bool,
     return ListValue(a.value[:int(v)], line, pos)
 
 
-def _func_lright(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+def _func_lright(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ListValue:
     """リストの右側を取り出す。"""
     _chk_argscount(args, 2, "LRIGHT", line, pos)
     args_r = _all_eval(args)
@@ -1637,7 +1655,7 @@ def _func_lright(args: List[Callable[[], ValueType]], is_differentscenario: bool
     return ListValue(a.value[int(v):], line, pos)
 
 
-def _func_lmid(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int, pos: int) -> ListValue:
+def _func_lmid(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> ListValue:
     """リストの[N1-1:N1+N2]の範囲を取り出す。"""
     _chk_argscount2(args, 2, 3, "LMID", line, pos)
     args_r = _all_eval(args)
@@ -1657,8 +1675,7 @@ def _func_lmid(args: List[Callable[[], ValueType]], is_differentscenario: bool, 
     return ListValue(a, line, pos)
 
 
-def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                     pos: int) -> DecimalValue:
+def _func_partymoney(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """パーティーの所持金を返す。パーティー非編成時は -1 を返す。"""
     _chk_argscount(args, 0, "PARTYMONEY", line, pos)
     if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
@@ -1666,8 +1683,7 @@ def _func_partymoney(args: List[Callable[[], ValueType]], is_differentscenario: 
     return DecimalValue(cw.cwpy.ydata.party.money, line, pos)
 
 
-def _func_partynumber(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                      pos: int) -> DecimalValue:
+def _func_partynumber(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """パーティーの人数を返す。パーティー非編成時は 0 を返す。"""
     _chk_argscount(args, 0, "PARTYNUMBER", line, pos)
     if cw.cwpy.ydata is None or cw.cwpy.ydata.party is None:
@@ -1675,7 +1691,7 @@ def _func_partynumber(args: List[Callable[[], ValueType]], is_differentscenario:
     return DecimalValue(len(cw.cwpy.get_pcards()), line, pos)
 
 
-def _func_yadoname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+def _func_yadoname(args: List[Callable[[], ValueType]], option: CalcOption, line: int,
                    pos: int) -> StringValue:
     """拠点名を返す。拠点無しの場合は空文字列を返す。"""
     _chk_argscount(args, 0, "YADONAME", line, pos)
@@ -1684,8 +1700,7 @@ def _func_yadoname(args: List[Callable[[], ValueType]], is_differentscenario: bo
     return StringValue(cw.cwpy.ydata.get_showingname(), line, pos)
 
 
-def _func_battleround(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                      pos: int) -> DecimalValue:
+def _func_battleround(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。"""
     _chk_argscount(args, 0, "BATTLEROUND", line, pos)
     if not cw.cwpy.is_battlestatus():
@@ -1694,8 +1709,7 @@ def _func_battleround(args: List[Callable[[], ValueType]], is_differentscenario:
     return DecimalValue(cw.cwpy.battle.round, line, pos)
 
 
-def _func_castlevel(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> DecimalValue:
+def _func_castlevel(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターのレベルを返す。存在しない場合は 0 を返す。"""
     _chk_argscount(args, 1, "CASTLEVEL", line, pos)
     args_r = _all_eval(args)
@@ -1706,8 +1720,7 @@ def _func_castlevel(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(0, line, pos)
 
 
-def _func_couponvalue(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                      pos: int) -> DecimalValue:
+def _func_couponvalue(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターの所持するクーポン名の点数を返す。
        キャラクターまたはクーポンが存在しない場合は 0 を返す。"""
     _chk_argscount(args, 2, "COUPONVALUE", line, pos)
@@ -1722,8 +1735,7 @@ def _func_couponvalue(args: List[Callable[[], ValueType]], is_differentscenario:
     return DecimalValue(num, line, pos)
 
 
-def _func_liferatio(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> DecimalValue:
+def _func_liferatio(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターのライフ残量を割合で返す。存在しない場合は -1 を返す。"""
     _chk_argscount(args, 1, "LIFERATIO", line, pos)
     args_r = _all_eval(args)
@@ -1734,36 +1746,45 @@ def _func_liferatio(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(-1, line, pos)
 
 
-def _func_selectedcard(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                       pos: int) -> StructureValue:
+def _func_selectedcard(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StructureValue:
     """選択カードがある場合はカード情報を返す。存在しない場合は無効なカード情報を返す。"""
     _chk_argscount(args, 0, "SELECTEDCARD", line, pos)
     header = cw.cwpy.event.get_selectedcard()
-    header = header.ref_original() if header else None
-    if header is None or header.type == "ActionCard":
+    header_orig = header.ref_original() if header else None
+    if header_orig is None:
         args2: List[Union[ValueType, Callable[[], ValueType]]] = [
             DecimalValue(decimal.Decimal(0), line, pos),
             DecimalValue(decimal.Decimal(0), line, pos),
+            DecimalValue(decimal.Decimal(-2), line, pos),
         ]
         return StructureValue("cardinfo", args2, line, pos)
+    assert header
     owner = header.get_owner()
     if cw.cwpy.ydata and cw.cwpy.ydata.storehouse is owner:
         castindex = -2
-        cardindex = cw.cwpy.ydata.storehouse.index(header) + 1
+        cardindex = cw.cwpy.ydata.storehouse.index(header_orig) + 1
+        actioncardid = -2
     elif cw.cwpy.ydata and cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack is owner:
         castindex = -1
-        cardindex = cw.cwpy.ydata.party.backpack.index(header) + 1
+        cardindex = cw.cwpy.ydata.party.backpack.index(header_orig) + 1
+        actioncardid = -2
     else:
         assert isinstance(owner, cw.character.Character)
-        pocket = cw.header.cardtype_to_pocket(header.type)
         castindex = _ccard_index(owner)
-        # CARDINDEXは特殊技能・アイテム・召喚獣全ての通し番号になる
-        cardindex = owner.cardpocket[pocket].index(header) + 1
-        for i in range(0, pocket):
-            cardindex += len(owner.cardpocket[i])
+        if header_orig.type == "ActionCard":
+            cardindex = 0
+            actioncardid = header_orig.id
+        else:
+            pocket = cw.header.cardtype_to_pocket(header_orig.type)
+            # CARDINDEXは特殊技能・アイテム・召喚獣全ての通し番号になる
+            cardindex = owner.cardpocket[pocket].index(header_orig) + 1
+            for i in range(0, pocket):
+                cardindex += len(owner.cardpocket[i])
+            actioncardid = -2
     args2 = [
         DecimalValue(decimal.Decimal(castindex), line, pos),
         DecimalValue(decimal.Decimal(cardindex), line, pos),
+        DecimalValue(decimal.Decimal(actioncardid), line, pos),
     ]
     return StructureValue("cardinfo", args2, line, pos)
 
@@ -1772,14 +1793,18 @@ def _header_from(arg: ValueType, func_name: str, arg_index: int) -> Optional[cw.
     info = _chk_structure(arg, func_name, arg_index, "cardinfo")
     castindex_v = info.eval(0)
     cardindex_v = info.eval(1)
+    actioncardid_v = info.eval(2)
     assert isinstance(castindex_v, DecimalValue)
     assert isinstance(cardindex_v, DecimalValue)
+    assert isinstance(actioncardid_v, DecimalValue)
     castindex = int(castindex_v.value)
     cardindex = int(cardindex_v.value)
+    actioncardid = int(actioncardid_v.value)
     assert -2 <= castindex
     assert 0 <= cardindex
     if castindex == 0 or cardindex == 0:
-        return None
+        # アクションカード、もしくは無効なカード情報
+        return cw.cwpy.rsrc.actioncards.get(actioncardid, None)
     if castindex == -2:
         # カード置場
         if cw.cwpy.ydata and cardindex <= len(cw.cwpy.ydata.storehouse):
@@ -1804,8 +1829,7 @@ def _header_from(arg: ValueType, func_name: str, arg_index: int) -> Optional[cw.
         return None
 
 
-def _func_cardname(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                   pos: int) -> StringValue:
+def _func_cardname(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
     """カード名を返す。カード情報が無効の場合は空文字列を返す。"""
     _chk_argscount(args, 1, "CARDNAME", line, pos)
     args_r = _all_eval(args)
@@ -1816,10 +1840,9 @@ def _func_cardname(args: List[Callable[[], ValueType]], is_differentscenario: bo
         return StringValue(header.get_showingname(), line, pos)
 
 
-def _func_cardtype(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                   pos: int) -> DecimalValue:
+def _func_cardtype(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """
-    カードのタイプを返す(特殊技能=1, アイテム=2, 召喚獣=3)。
+    カードのタイプを返す(特殊技能=1, アイテム=2, 召喚獣=3, アクションカード=-1)。
     カード情報が無効の場合は0を返す。
     """
     _chk_argscount(args, 1, "CARDTYPE", line, pos)
@@ -1827,12 +1850,13 @@ def _func_cardtype(args: List[Callable[[], ValueType]], is_differentscenario: bo
     header = _header_from(args_r[0], "CARDTYPE", 0)
     if header is None:
         return DecimalValue(0, line, pos)
+    elif header.type == "ActionCard":
+        return DecimalValue(-1, line, pos)
     else:
         return DecimalValue(cw.header.cardtype_to_pocket(header.type) + 1, line, pos)
 
 
-def _func_cardrarity(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                     pos: int) -> DecimalValue:
+def _func_cardrarity(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """
     カードの希少度を返す(一般=1, レア=2, プレミア=3)。
     カード情報が無効の場合は0を返す。
@@ -1850,8 +1874,7 @@ def _func_cardrarity(args: List[Callable[[], ValueType]], is_differentscenario: 
         return DecimalValue(1, line, pos)
 
 
-def _func_cardprice(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> DecimalValue:
+def _func_cardprice(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """
     カードの価格を返す。
     カード情報が無効の場合は-1を返す。
@@ -1865,8 +1888,7 @@ def _func_cardprice(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(header.price, line, pos)
 
 
-def _func_cardlevel(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> DecimalValue:
+def _func_cardlevel(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """
     カードのレベルを返す。
     カード情報が無効か、特殊技能カードでない場合は-1を返す。
@@ -1880,8 +1902,7 @@ def _func_cardlevel(args: List[Callable[[], ValueType]], is_differentscenario: b
         return DecimalValue(header.level, line, pos)
 
 
-def _func_cardcount(args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
-                    pos: int) -> DecimalValue:
+def _func_cardcount(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """
     カードの残り使用回数を返す。
     カード情報が無効の場合は-1を返す。
@@ -1891,14 +1912,18 @@ def _func_cardcount(args: List[Callable[[], ValueType]], is_differentscenario: b
     header = _header_from(args_r[0], "CARDCOUNT", 0)
     if header is None:
         return DecimalValue(-1, line, pos)
+    elif header.type == "ActionCard":
+        return DecimalValue(0, line, pos)
     else:
         return DecimalValue(header.uselimit, line, pos)
 
 
-def _create_structure(info: _StructureInfo, args: List[Callable[[], ValueType]], is_differentscenario: bool, line: int,
+def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], option: CalcOption, line: int,
                       pos: int) -> StructureValue:
     """構造体のインスタンスを生成する。"""
     uname = info.name.upper()
+    if not info.is_public and option.evaltype not in ("Debugger", "Test"):
+        raise PermissionError("Structure \"%s\" is not accesible." % uname, info, line, pos)
     _chk_argscount2(args, info.required_member_num, len(info.members), uname, line, pos)
 
     args2: List[Union[ValueType, Callable[[], ValueType]]] = []
@@ -2152,25 +2177,25 @@ assert _assert_d(calculate(parse("LFIND(LIST(99), LIST(1, 2, LIST(99), 4))")), 3
 assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 4, 42), 3)")), 4)
 assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 42, 4), 3)")), 3)
 
-assert _assert_d(calculate(parse("CARDINFO(4, 2).CASTINDEX")), 4)
-assert _assert_d(calculate(parse("CARDINFO(4, 2).CARDINDEX")), 2)
-assert _assert_d(calculate(parse("-CARDINFO(4, 2).CASTINDEX")), -4)
-assert _assert_d(calculate(parse("---CARDINFO(4, 2).CASTINDEX")), -4)
-assert _assert_b(calculate(parse("CARDINFO(4, 2).CASTINDEX = 4")), True)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 2)")), True)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 2)")), False)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(5, 2)")), False)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(5, 2)")), True)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 3)")), False)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 3)")), True)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 2))")),
-                 True)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))")),
-                 False)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))")),
-                 False)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))")),
-                 True)
+assert _assert_d(calculate(parse("CARDINFO(4, 2).CASTINDEX"), CalcOption("Test", False)), 4)
+assert _assert_d(calculate(parse("CARDINFO(4, 2).CARDINDEX"), CalcOption("Test", False)), 2)
+assert _assert_d(calculate(parse("-CARDINFO(4, 2).CASTINDEX"), CalcOption("Test", False)), -4)
+assert _assert_d(calculate(parse("---CARDINFO(4, 2).CASTINDEX"), CalcOption("Test", False)), -4)
+assert _assert_b(calculate(parse("CARDINFO(4, 2).CASTINDEX = 4"), CalcOption("Test", False)), True)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 2)"), CalcOption("Test", False)), True)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 2)"), CalcOption("Test", False)), False)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(5, 2)"), CalcOption("Test", False)), False)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(5, 2)"), CalcOption("Test", False)), True)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 3)"), CalcOption("Test", False)), False)
+assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 3)"), CalcOption("Test", False)), True)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 2))"),
+                           CalcOption("Test", False)), True)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))"),
+                           CalcOption("Test", False)), False)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))"),
+                           CalcOption("Test", False)), False)
+assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))"),
+                           CalcOption("Test", False)), True)
 
 
 def main() -> None:

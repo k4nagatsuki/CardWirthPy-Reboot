@@ -308,6 +308,11 @@ def variant_error_msg(ex: "cw.calculator.ComputeException") -> str:
         return "関数 %s の %s 番目の引数がリストではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
     elif isinstance(ex, cw.calculator.ArgumentIsNotStructureException):
         return "関数 %s の %s 番目の引数が%sではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.struct_name, ex.arg_value)
+    elif isinstance(ex, cw.calculator.PermissionError):
+        if isinstance(ex.info, cw.calculator.StructureMember):
+            return "%sは参照できません。" % (ex.info.name.upper())
+        else:
+            return "%sは関数以外で生成できません。" % (ex.info.name.upper())
     elif isinstance(ex, cw.calculator.DifferentStructureException):
         return "異なる構造体を比較しようとしました(%s:%s)" % (ex.lhs_name, ex.rhs_name)
     else:
@@ -2080,7 +2085,8 @@ class BranchVariantContent(BranchContent):
                 self.parsed_expression = cw.calculator.parse(self.expression)
             if len(self.parsed_expression) == 0:
                 return self.get_boolean_index(False)
-            variant = cw.calculator.eval_expr(self.parsed_expression, self.is_differentscenario())
+            option = cw.calculator.CalcOption("Event", self.is_differentscenario())
+            variant = cw.calculator.eval_expr(self.parsed_expression, option)
             if variant.type == "Boolean":
                 assert isinstance(variant.value, bool)
                 index = self.get_boolean_index(variant.value)
@@ -2459,7 +2465,8 @@ class CheckVariantContent(EventContentBase):
                 self.parsed_expression = cw.calculator.parse(self.expression)
             if len(self.parsed_expression) == 0:
                 return cw.IDX_TREEEND
-            variant = cw.calculator.eval_expr(self.parsed_expression, self.is_differentscenario())
+            option = cw.calculator.CalcOption("Event", self.is_differentscenario())
+            variant = cw.calculator.eval_expr(self.parsed_expression, option)
             if variant.type == "Boolean":
                 return 0 if variant.value else cw.IDX_TREEEND
             else:
@@ -4194,7 +4201,8 @@ class SetVariantContent(BranchContent):
                     self.parsed_expression = cw.calculator.parse(self.expression)
                 if len(self.parsed_expression) == 0:
                     return None
-                return cw.calculator.eval_expr(self.parsed_expression, diffsc)
+                option = cw.calculator.CalcOption("Event", diffsc)
+                return cw.calculator.eval_expr(self.parsed_expression, option)
             except cw.calculator.ComputeException as ex:
                 cw.util.print_ex()
                 self.variant_error(ex=ex)

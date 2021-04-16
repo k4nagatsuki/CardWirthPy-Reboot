@@ -2534,8 +2534,11 @@ class Variant(object):
             if not cw.calculator.is_valid_structure(name, check):
                 if not name:
                     name = name if name.upper() else "<No Name>"
-                    members = [t[0].upper() + "=" + Variant.value_to_str(t[1]) for t in check]
+                members = [t[0].upper() + "=" + Variant.value_to_str(t[1]) for t in check]
                 raise Exception("Invalid structure %s(%s)" % (name, ", ".join(members)))
+            info = cw.calculator.struct_info(name)
+            for i in range(len(seq), len(info.members)):
+                seq.append(info.members[i].defvalue)
             return StructVal(name, seq)
         elif vtype == "List":
             seq = []
@@ -2566,7 +2569,8 @@ class Variant(object):
         elif isinstance(value, str):
             return value
         elif isinstance(value, StructVal):
-            return value.name.upper() + "(" + ", ".join(map(to_str, value.members)) + ")"
+            members = cw.calculator.cut_optionalmembers(value.name, value.members)
+            return value.name.upper() + "(" + ", ".join(map(to_str, members)) + ")"
         else:
             return "LIST(" + ", ".join(map(to_str, value)) + ")"
 
@@ -2574,9 +2578,10 @@ class Variant(object):
     def value_to_element(value: VariantValueType, e: "cw.data.CWPyElement", typeattr: str = "type") -> None:
         e.set(typeattr, Variant.value_to_type(value))
         if isinstance(value, StructVal):
-            members = cw.calculator.struct_members(value.name)
+            info = cw.calculator.struct_info(value.name)
             e.append(make_element("StructureName", value.name.upper()))
-            for m, v in zip(members, value.members):
+            members = cw.calculator.cut_optionalmembers(info.name, value.members)
+            for i, (m, v) in enumerate(zip(info.members[:len(members)], members)):
                 e2 = make_element("Member", attrs={"name": m.name.upper()})
                 Variant._write_value(e2, v)
                 e.append(e2)

@@ -1750,8 +1750,8 @@ class VariantEditDialog(wx.Dialog):
     def OnOkBtn(self, event: wx.CommandEvent) -> None:
         if self.type_expr.GetValue():
             try:
-                self.value = cw.calculator.eval_expr(cw.calculator.parse(self.value_expr.GetValue()),
-                                                     self.is_differentscenario).value
+                option = cw.calculator.CalcOption("Debugger", self.is_differentscenario)
+                self.value = cw.calculator.eval_expr(cw.calculator.parse(self.value_expr.GetValue()), option).value
             except cw.calculator.ComputeException:
                 return
             except Exception:
@@ -1812,8 +1812,9 @@ class VariantEditDialog(wx.Dialog):
             # 最後の入力から一定時間経過後に文法チェックを行う
             if time.time() < self._time_modified or self._time_modified + 0.5 < time.time() and self._expression:
                 try:
+                    option = cw.calculator.CalcOption("Debugger", self.is_differentscenario)
                     value: Optional[cw.data.VariantValueType] =\
-                        cw.calculator.eval_expr(cw.calculator.parse(self._expression), self.is_differentscenario).value
+                        cw.calculator.eval_expr(cw.calculator.parse(self._expression), option).value
                     desc = ""
                 except cw.calculator.ComputeException as ex:
                     value = None
