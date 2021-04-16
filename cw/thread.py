@@ -878,7 +878,7 @@ class CWPy(threading.Thread):
         cw.sprite.message.MessageWindow.clear_selections()
         for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_MESSAGE)),
                                       self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_SPMESSAGE))):
-            assert isinstance(sprite, cw.sprite.card.CWPyCard)
+            assert isinstance(sprite, cw.sprite.base.CWPySprite), sprite
             sprite.update_scale()
         if isinstance(self._log_handler, cw.eventhandler.EventHandlerForBacklog):
             self._log_handler.update_sprites(clearcache=True)
