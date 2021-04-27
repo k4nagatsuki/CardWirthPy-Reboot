@@ -1548,6 +1548,8 @@ class CWPy(threading.Thread):
             self.draw()
 
     def add_lazydraw(self, clip: pygame.rect.Rect) -> None:
+        if not clip:
+            return
         if self._lazy_clip:
             self._lazy_clip.union_ip(clip)
         else:
@@ -2437,7 +2439,7 @@ class CWPy(threading.Thread):
 
         # 次のアニメーションの前に再描画を行う
         for sprite in seq:
-            assert sprite.rect
+            assert sprite.rect is not None
             self.add_lazydraw(sprite.rect)
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
@@ -4705,7 +4707,7 @@ class CWPy(threading.Thread):
         """所持枚数表示を消去する。"""
         sprites = self.topgrp.sprites()
         for sprite in sprites:
-            assert sprite.rect
+            assert sprite.rect is not None
             self.add_lazydraw(clip=sprite.rect)
         self.topgrp.empty()
 
@@ -4947,7 +4949,7 @@ class CWPy(threading.Thread):
         """対象選択の指矢印の画像を削除。"""
         arrows = self.cardgrp.get_sprites_from_layer(cw.layer_val(cw.LAYER_TARGET_ARROW))
         for arrow in arrows:
-            assert arrow.rect
+            assert arrow.rect is not None
             cw.cwpy.add_lazydraw(clip=arrow.rect)
         self.cardgrp.remove_sprites_of_layer(cw.layer_val(cw.LAYER_TARGET_ARROW))
 

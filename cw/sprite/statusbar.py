@@ -231,7 +231,7 @@ class StatusBar(base.CWPySprite):
         for sprite in itertools.chain(cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_ITEM),
                                       cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_STATUS_PROGRESS),
                                       cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_DESC)):
-            assert sprite.rect
+            assert sprite.rect is not None
             cw.cwpy.add_lazydraw(clip=sprite.rect)
 
     def _create_autostart(self, pos: Tuple[int, int]) -> None:
@@ -363,7 +363,7 @@ class StatusBar(base.CWPySprite):
             rect: Optional[pygame.rect.Rect] = None
             for btn in btns:
                 assert isinstance(btn, cw.sprite.base.CWPySprite)
-                assert btn.rect
+                assert btn.rect is not None
                 cw.cwpy.stop_animation(btn)
                 cw.cwpy.add_lazydraw(clip=btn.rect)
                 if rect:
@@ -1629,7 +1629,7 @@ class TouchMenuButton(StatusBarButton):
         if self.is_pushed:
             self.set_desc(cw.cwpy.msgs["desc_touch_menu"])
             for sprite in cw.cwpy.sbargrp.remove_sprites_of_layer(LAYER_TOUCH_BUTTON):
-                assert sprite.rect
+                assert sprite.rect is not None
                 cw.cwpy.add_lazydraw(clip=sprite.rect)
             return
 

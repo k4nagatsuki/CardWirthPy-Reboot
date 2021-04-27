@@ -299,7 +299,7 @@ class MessageWindow(base.CWPySprite):
             size = None
 
             if self.centering_x:
-                assert linerect
+                assert linerect is not None
                 shiftx = (self.rect.width - linerect.width) // 2
             else:
                 shiftx = 0
@@ -542,7 +542,7 @@ class MessageWindow(base.CWPySprite):
                             frame_base, additional_wait, additional_wait_after_space = add_wait(False, False)
                             cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
                             put_xinfo(pos[0], cw.s(charimg.get_width()))
-                            assert self._linerect
+                            assert self._linerect is not None
                             put_topbottom(y_noscale+1, h)
                             frame_base += speed
                             frame = round(frame_base)
@@ -555,7 +555,7 @@ class MessageWindow(base.CWPySprite):
 
                         frame_base, additional_wait, additional_wait_after_space = add_wait(False, True)
                         put_xinfo(pos[0], cw.s(charimg.get_width()))
-                        assert self._linerect
+                        assert self._linerect is not None
                         put_topbottom(y_noscale-1, lineheight_noscale+2)
                         image2 = cw.s(charimg)
                         image2 = image2.convert_alpha()
@@ -584,14 +584,14 @@ class MessageWindow(base.CWPySprite):
 
             if char:
                 put_xinfo(pos[0], cwidth)
-                assert self._linerect
+                assert self._linerect is not None
 
             if char:
                 frame_base, additional_wait, additional_wait_after_space =\
                     add_wait(char.isspace(), char in _WAIT_CHARS or char in _WAIT_CHARS_BEFORE_SPACE)
 
             if char and not char.isspace():
-                assert self._linerect
+                assert self._linerect is not None
                 ctype = cw.nctype.nctype(char)
                 if ctype == cw.nctype.NC_SYMBOL:
                     font = cw.cwpy.rsrc.msg_exfonts["fw_symbol"]

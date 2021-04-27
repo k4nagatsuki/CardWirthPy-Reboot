@@ -965,8 +965,8 @@ class JpyCache(object):
 
     def restore(self) -> None:
         if self.before:
-            assert self.beforeback
-            assert self.beforerect
+            assert self.beforeback is not None
+            assert self.beforerect is not None
             self.beforeback.blit(self.before, self.beforerect.topleft)
             self.before = None
             self.beforeback = None
@@ -1034,8 +1034,8 @@ class JpdcImage(cw.image.Image):
             cw.cwpy.change_selection(selection)
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
-                    assert sprite.image
-                    assert sprite.rect
+                    assert sprite.image is not None
+                    assert sprite.rect is not None
                     self.image.blit(sprite.image, sprite.rect.topleft)
             cw.cwpy.background.reload_jpdcimage = False
 
