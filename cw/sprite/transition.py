@@ -155,8 +155,8 @@ def get_transition(name_and_speed: Tuple[str, Union[str, int]]) -> Optional[Tran
             image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
             cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, image)
             for sprite in cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_JPY_TEMPORAL):
-                assert sprite.image
-                assert sprite.rect
+                assert sprite.image is not None
+                assert sprite.rect is not None
                 image.blit(sprite.image, sprite.rect.topleft)
             result: Transition = cls(image, speed)
             return result
