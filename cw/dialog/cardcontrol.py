@@ -3711,6 +3711,9 @@ class InfoView(CardHolder[cw.header.InfoCardHeader]):
     def is_showpersonal(self) -> bool:
         return False
 
+    def _update_sortattr(self, draw: bool = True) -> bool:
+        return False
+
     def OnLeftUp(self, event: wx.MouseEvent) -> None:
         self.OnRightUp(event)
 
