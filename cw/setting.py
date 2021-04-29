@@ -22,8 +22,8 @@ import pygame.surface
 import cw
 
 import typing
-from typing import List, Literal, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Sequence,\
-    Set, Tuple, TypeVar, Union
+from typing import List, Literal, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Pattern,\
+    Sequence, Set, Tuple, TypeVar, Union
 
 
 _KeyType = TypeVar("_KeyType")
@@ -3651,7 +3651,7 @@ class SystemCoupons(object):
         """
         return self._match_impl(coupon, self._normal, self._regexes)
 
-    def _match_impl(self, coupon: str, normal: Set[str], regexes: List[re.Pattern]) -> bool:
+    def _match_impl(self, coupon: str, normal: Set[str], regexes: List[Pattern[str]]) -> bool:
         if self._ats and not coupon.startswith("＠"):
             return False
         if coupon in normal:
