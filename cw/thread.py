@@ -3374,6 +3374,9 @@ class CWPy(threading.Thread):
             # シナリオプレイ途中から再開
             if header:
                 def set_scenario(header: Optional[cw.header.ScenarioHeader], resume: bool) -> None:
+                    assert self.ydata
+                    assert self.ydata.party
+                    self.ydata.party.set_numbercoupon()
                     self.set_scenario(header, resume=resume)
                 self.exec_func(set_scenario, header, resume)
             # シナリオロードに失敗
