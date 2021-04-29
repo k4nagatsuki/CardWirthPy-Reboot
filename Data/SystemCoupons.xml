@@ -3,4 +3,8 @@
   <SystemCoupon regex="True">\A＠CardWirthPy Version\.(0\.12\.([23]|3b)|1\.[01]|2\.[0123]|3\.[01234]|4\.[0123]|5\.[0])\Z</SystemCoupon>
   <SystemCoupon>＠CardWirthPy Version.5.0 Only</SystemCoupon>
   <SystemCoupon regex="True">＠Wsn\.[2345]</SystemCoupon>
+
+  <!-- CardWirth 1.29以降の識別用クーポン
+       method="UnconditionalSuccess"はキャラクターごとの判定を行わず無条件に成功する -->
+  <SystemCoupon regex="False" method="UnconditionalSuccess">＠ＭＰ３</SystemCoupon>
 </SystemCoupons>

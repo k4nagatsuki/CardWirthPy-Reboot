@@ -3609,12 +3609,14 @@ class RecentHistory(object):
 class SystemCoupons(object):
     """称号選択分岐で特殊処理するシステムクーポン群。
     シナリオ側からのエンジンのバージョン判定等に利用する。
-    CardWirth由来の"＿１"～"＿６"や"＠ＭＰ３"は含まれない。
+    通常のクーポンと同様に動く"＿１"～"＿６"は含まれない。
     """
 
     def __init__(self, fpath: str = "Data/SystemCoupons.xml", data: Optional[cw.data.CWPyElement] = None) -> None:
         self._normal = set()  # 固定値
         self._regexes = []  # 正規表現
+        self._uc_normal = set()  # 固定値(強制成功)
+        self._uc_regexes = []  # 正規表現(強制成功)
         self._ats = True  # u"＠"で始まる称号のみが含まれる場合はTrue
         if data is None and os.path.isfile(fpath):
             data = cw.data.xml2element(path=fpath)
@@ -3623,21 +3625,39 @@ class SystemCoupons(object):
                 if self._ats and not e.text.startswith("＠"):
                     self._ats = False
 
+                method = e.getattr(".", "method", "Normal")
                 regex = e.getbool(".", "regex", False)
                 if regex:
-                    self._regexes.append(re.compile(e.text))
+                    reg = re.compile(e.text)
+                    if method == "UnconditionalSuccess":
+                        self._uc_regexes.append(reg)
+                    else:
+                        self._regexes.append(reg)
                 else:
-                    self._normal.add(e.text)
+                    if method == "UnconditionalSuccess":
+                        self._uc_normal.add(e.text)
+                    else:
+                        self._normal.add(e.text)
+
+    def unconditional_match(self, coupon: str) -> bool:
+        """
+        couponが無条件に判定成功とするシステムクーポンに含まれている場合はTrueを返す。
+        """
+        return self._match_impl(coupon, self._uc_normal, self._uc_regexes)
 
     def match(self, coupon: str) -> bool:
-        """couponがシステムクーポンに含まれている場合はTrueを返す。
         """
+        couponがシステムクーポンに含まれている場合はTrueを返す。
+        """
+        return self._match_impl(coupon, self._normal, self._regexes)
+
+    def _match_impl(self, coupon: str, normal: Set[str], regexes: List[re.Pattern]) -> bool:
         if self._ats and not coupon.startswith("＠"):
             return False
-        if coupon in self._normal:
+        if coupon in normal:
             return True
 
-        for r in self._regexes:
+        for r in regexes:
             if r.match(coupon):
                 return True
         return False
