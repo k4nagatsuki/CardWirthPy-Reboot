@@ -4462,7 +4462,6 @@ class Party(object):
             pcard.set_coupon(names[index], 0)
             if pcard.level < pcard.get_limitlevel():
                 pcard.set_coupon("：レベル補正中", 0)  # 1.28
-            pcard.set_coupon("＠ＭＰ３", 0)  # 1.29
 
     def remove_numbercoupon(self) -> None:
         """

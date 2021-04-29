@@ -11,7 +11,7 @@ import pygame
 
 import cw
 
-from typing import Dict, Iterable, List, Literal, Optional, Set, Tuple, Union
+from typing import Dict, Iterable, List, Literal, Optional, Sequence, Set, Tuple, Union
 
 
 class EventContentBase(object):
@@ -1926,13 +1926,18 @@ def _get_couponscope(scope: str) -> Tuple[str, bool, bool]:
     return scope, someone, unreversed
 
 
-def _has_coupon(targets: Iterable[cw.character.Character], names: Iterable[str], scope: str, someone: bool,
+def _has_coupon(targets: Iterable[cw.character.Character], names: Sequence[str], scope: str, someone: bool,
                 allmatch: bool, multi: bool, invert: bool = False) -> bool:
     if not names:
         return False
 
+    if not multi and len(names) == 1 and cw.cwpy.syscoupons.unconditional_match(names[0]):
+        # 選択メンバを変更せず無条件成功
+        return not invert
+
     def has_coupon(target: cw.character.Character, coupon: str) -> bool:
         return cw.cwpy.syscoupons.match(coupon) or \
+               cw.cwpy.syscoupons.unconditional_match(coupon) or \
                cw.cwpy.setting.skinsyscoupons.match(coupon) or \
                target.has_coupon(coupon)
 
