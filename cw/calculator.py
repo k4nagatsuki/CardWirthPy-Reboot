@@ -380,7 +380,7 @@ class Operator(object):
             if not m.is_public and option.evaltype != "Test":
                 raise ExprPermissionError("Structure member %s.%s is not accesible." % (struct_info.name.upper(),
                                                                                         m.name.upper()),
-                                      struct_info, m, self.line, self.pos)
+                                          struct_info, m, self.line, self.pos)
             if mindex == -1:
                 raise SemanticsException("structure %s has not been %s." % (lhs_struct.name, rhs_symbol.symbol),
                                          rhs.line, rhs.pos)
@@ -2035,7 +2035,7 @@ def _assert_d(expr: str, n: Union[int, decimal.Decimal]) -> bool:
     return _assert_d_val(val, n)
 
 
-def _assert_d_val(val: ValueType, n: str) -> bool:
+def _assert_d_val(val: ValueType, n: Union[int, decimal.Decimal]) -> bool:
     assert isinstance(val, DecimalValue)
     return val.value == n
 
