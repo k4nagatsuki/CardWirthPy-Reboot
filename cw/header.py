@@ -973,11 +973,9 @@ class CardHeader(object):
         return -1
 
     def get_keycode_at(self, index: int) -> str:
-        """指定位置のキーコードを返す。添字が範囲外なら空文字を返す。"""
+        """指定位置のキーコードを返す。添字が範囲外の場合は考慮せず例外を送出する。"""
         keycodes = self.get_keycodes()
-        if index >= 0 and index < len(keycodes):
-            return keycodes[index]
-        return ""
+        return keycodes[index]
 
     def set_hold(self, hold: bool) -> None:
         assert cw.cwpy.ydata
