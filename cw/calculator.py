@@ -2065,6 +2065,17 @@ def _func_findkeycode(args: List[Callable[[], ValueType]], option: CalcOption, l
     return DecimalValue(index + 1, line, pos)
 
 
+def _func_keycodetext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
+    """カードのキーコード名を位置番号指定で返す。位置指定が無効の場合は空文字を返す。"""
+    _chk_argscount(args, 2, "KEYCODETEXT", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "KEYCODETEXT", 0)
+    index = int(_chk_minvalue(args_r[1], "KEYCODETEXT", 0)) - 1
+    if header is None:
+        return StringValue("", line, pos)
+    return StringValue(header.get_keycode_at(index), line, pos)
+
+
 def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], option: CalcOption, line: int,
                       pos: int) -> StructureValue:
     """構造体のインスタンスを生成する。"""
@@ -2135,6 +2146,7 @@ _functions = {
     "cardlevel": _func_cardlevel,
     "cardcount": _func_cardcount,
     "findkeycode": _func_findkeycode,
+    "keycodetext": _func_keycodetext,
 }
 
 

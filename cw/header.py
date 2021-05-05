@@ -972,6 +972,13 @@ class CardHeader(object):
                     return i + startindex
         return -1
 
+    def get_keycode_at(self, index: int) -> str:
+        """指定位置のキーコードを返す。添字が範囲外なら空文字を返す。"""
+        keycodes = self.get_keycodes()
+        if index >= 0 and index < len(keycodes):
+            return keycodes[index]
+        return ""
+
     def set_hold(self, hold: bool) -> None:
         assert cw.cwpy.ydata
         if self.type == "BeastCard":
