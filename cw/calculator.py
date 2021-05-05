@@ -1888,7 +1888,7 @@ def _func_cardrarity(args: List[Callable[[], ValueType]], option: CalcOption, li
         return DecimalValue(-1, line, pos)
     elif header.premium == "Rare":
         return DecimalValue(1, line, pos)
-    elif header.premium == "Premier":
+    elif header.premium == "Premium":
         return DecimalValue(2, line, pos)
     else:
         return DecimalValue(0, line, pos)
