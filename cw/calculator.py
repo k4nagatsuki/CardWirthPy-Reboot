@@ -2043,6 +2043,28 @@ def _func_cardcount(args: List[Callable[[], ValueType]], option: CalcOption, lin
         return DecimalValue(header.uselimit, line, pos)
 
 
+def _func_findkeycode(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
+    """
+    カードのキーコードをpatternで検索して見つかった位置（1～）を返す。
+    キーコードが見つからない・カード情報が無効の場合は 0 を返す。
+    """
+    _chk_argscount2(args, 2, 3, "FINDKEYCODE", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "FINDKEYCODE", 0)
+    pattern = _chk_string(args_r[1], "FINDKEYCODE", 0)
+    if len(args_r) < 3:
+        startpos = 1
+    else:
+        startpos = int(_chk_minvalue(args_r[2], "FINDKEYCODE", 0))
+    startindex = startpos - 1
+    if header is None:
+        return DecimalValue(0, line, pos)
+
+    reg = re.compile(fnmatch.translate(pattern))
+    index = header.find_keycode_position(lambda name: bool(reg.match(name)), startindex)
+    return DecimalValue(index + 1, line, pos)
+
+
 def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], option: CalcOption, line: int,
                       pos: int) -> StructureValue:
     """構造体のインスタンスを生成する。"""
@@ -2112,6 +2134,7 @@ _functions = {
     "cardprice": _func_cardprice,
     "cardlevel": _func_cardlevel,
     "cardcount": _func_cardcount,
+    "findkeycode": _func_findkeycode,
 }
 
 
