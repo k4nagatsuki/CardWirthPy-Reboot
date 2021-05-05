@@ -1885,13 +1885,13 @@ def _func_cardrarity(args: List[Callable[[], ValueType]], option: CalcOption, li
     args_r = _all_eval(args)
     header = _header_from(args_r[0], "CARDRARITY", 0)
     if header is None:
-        return DecimalValue(0, line, pos)
+        return DecimalValue(-1, line, pos)
     elif header.premium == "Rare":
-        return DecimalValue(2, line, pos)
-    elif header.premium == "Premier":
-        return DecimalValue(3, line, pos)
-    else:
         return DecimalValue(1, line, pos)
+    elif header.premium == "Premier":
+        return DecimalValue(2, line, pos)
+    else:
+        return DecimalValue(0, line, pos)
 
 
 def _func_cardprice(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
