@@ -1709,6 +1709,13 @@ def _func_yadoname(args: List[Callable[[], ValueType]], option: CalcOption, line
     return StringValue(cw.cwpy.ydata.get_showingname(), line, pos)
 
 
+def _func_skintype(args: List[Callable[[], ValueType]], option: CalcOption, line: int,
+                   pos: int) -> StringValue:
+    """スキン種別の名称を返す。"""
+    _chk_argscount(args, 0, "SKINTYPE", line, pos)
+    return StringValue(cw.cwpy.setting.skintype, line, pos)
+
+
 def _func_battleround(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。"""
     _chk_argscount(args, 0, "BATTLEROUND", line, pos)
@@ -1982,6 +1989,7 @@ _functions = {
     "partymoney": _func_partymoney,
     "partynumber": _func_partynumber,
     "yadoname": _func_yadoname,
+    "skintype": _func_skintype,
     "battleround": _func_battleround,
     "castlevel": _func_castlevel,
     "couponvalue": _func_couponvalue,
