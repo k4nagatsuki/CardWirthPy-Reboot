@@ -1817,6 +1817,60 @@ def _func_statusvalue(args: List[Callable[[], ValueType]], option: CalcOption, l
     return DecimalValue(num, line, pos)
 
 
+def _func_statusround(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターの状態の残ラウンド数を返す。存在しない・指定した状態にない場合は 0 を返す。"""
+    _chk_argscount(args, 2, "STATUSROUND", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "STATUSROUND")
+    status_type = _chk_decimal(args_r[1], "STATUSROUND", 1)
+    if ccard is None:
+        return DecimalValue(0, line, pos)
+
+    num = 0
+    if status_type == 8:
+        num = ccard.poison
+    elif status_type == 9:
+        num = ccard.mentality_dur if ccard.is_sleep() else 0
+    elif status_type == 10:
+        num = ccard.bind
+    elif status_type == 11:
+        num = ccard.paralyze
+    elif status_type == 12:
+        num = ccard.mentality_dur if ccard.is_confuse() else 0
+    elif status_type == 13:
+        num = ccard.mentality_dur if ccard.is_overheat() else 0
+    elif status_type == 14:
+        num = ccard.mentality_dur if ccard.is_brave() else 0
+    elif status_type == 15:
+        num = ccard.mentality_dur if ccard.is_panic() else 0
+    elif status_type == 16:
+        num = ccard.silence
+    elif status_type == 17:
+        num = ccard.faceup
+    elif status_type == 18:
+        num = ccard.antimagic
+    elif status_type == 19:
+        num = ccard.enhance_act_dur if ccard.is_upaction() else 0
+    elif status_type == 20:
+        num = ccard.enhance_avo_dur if ccard.is_upavoid() else 0
+    elif status_type == 21:
+        num = ccard.enhance_res_dur if ccard.is_upresist() else 0
+    elif status_type == 22:
+        num = ccard.enhance_def_dur if ccard.is_updefense() else 0
+    elif status_type == 23:
+        num = ccard.enhance_act_dur if ccard.is_downaction() else 0
+    elif status_type == 24:
+        num = ccard.enhance_avo_dur if ccard.is_downavoid() else 0
+    elif status_type == 25:
+        num = ccard.enhance_res_dur if ccard.is_downresist() else 0
+    elif status_type == 26:
+        num = ccard.enhance_def_dur if ccard.is_downdefense() else 0
+
+    if num is None:
+        return DecimalValue(0, line, pos)
+    return DecimalValue(num, line, pos)
+
+
 def _func_selectedcard(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StructureValue:
     """選択カードがある場合はカード情報を返す。存在しない場合は無効なカード情報を返す。"""
     _chk_argscount(args, 0, "SELECTEDCARD", line, pos)
@@ -2050,6 +2104,7 @@ _functions = {
     "couponvalue": _func_couponvalue,
     "liferatio": _func_liferatio,
     "statusvalue": _func_statusvalue,
+    "statusround": _func_statusround,
     "selectedcard": _func_selectedcard,
     "cardname": _func_cardname,
     "cardtype": _func_cardtype,
