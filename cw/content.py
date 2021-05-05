@@ -308,7 +308,7 @@ def variant_error_msg(ex: "cw.calculator.ComputeException") -> str:
         return "関数 %s の %s 番目の引数がリストではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.arg_value)
     elif isinstance(ex, cw.calculator.ArgumentIsNotStructureException):
         return "関数 %s の %s 番目の引数が%sではありません(値=%s)" % (ex.func_name, ex.arg_index+1, ex.struct_name, ex.arg_value)
-    elif isinstance(ex, cw.calculator.PermissionError):
+    elif isinstance(ex, cw.calculator.ExprPermissionError):
         if ex.m:
             return "%s.%sは参照できません。" % (ex.info.name.upper(), ex.m.name.upper())
         else:
