@@ -2084,7 +2084,13 @@ def _func_keycodetext(args: List[Callable[[], ValueType]], option: CalcOption, l
     index = int(_chk_minvalue(args_r[1], "KEYCODETEXT", 0)) - 1
     if header is None:
         return StringValue("", line, pos)
-    return StringValue(header.get_keycode_at(index), line, pos)
+
+    keycode = ""
+    try:
+        keycode = header.get_keycode_at(index)
+    except IndexError:
+        pass
+    return StringValue(keycode, line, pos)
 
 
 def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], option: CalcOption, line: int,
