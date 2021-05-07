@@ -2046,6 +2046,7 @@ def _func_cardcount(args: List[Callable[[], ValueType]], option: CalcOption, lin
 def _func_findkeycode(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """
     カードのキーコードをpatternで検索して見つかった位置（1～）を返す。
+    キーコードが空文字列の場合は無視される。
     キーコードが見つからない・カード情報が無効の場合は 0 を返す。
     """
     _chk_argscount2(args, 2, 3, "FINDKEYCODE", line, pos)
@@ -2061,12 +2062,15 @@ def _func_findkeycode(args: List[Callable[[], ValueType]], option: CalcOption, l
         return DecimalValue(0, line, pos)
 
     reg = re.compile(fnmatch.translate(pattern))
-    index = header.find_keycode_position(lambda name: bool(reg.match(name)), startindex)
+    index = header.find_keycode_position_excluding_empty(lambda name: bool(reg.match(name)), startindex)
     return DecimalValue(index + 1, line, pos)
 
 
 def _func_keycodetext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
-    """カードのキーコード名を位置番号指定で返す。位置指定が無効の場合は空文字を返す。"""
+    """
+    カードのキーコード名を位置番号指定で返す。空文字列のキーコードがある位置は無視される。
+    位置指定が無効の場合は空文字を返す。
+    """
     _chk_argscount(args, 2, "KEYCODETEXT", line, pos)
     args_r = _all_eval(args)
     header = _header_from(args_r[0], "KEYCODETEXT", 0)
@@ -2076,7 +2080,7 @@ def _func_keycodetext(args: List[Callable[[], ValueType]], option: CalcOption, l
 
     keycode = ""
     try:
-        keycode = header.get_keycode_at(index)
+        keycode = header.get_keycode_at_excluding_empty(index)
     except IndexError:
         pass
     return StringValue(keycode, line, pos)
