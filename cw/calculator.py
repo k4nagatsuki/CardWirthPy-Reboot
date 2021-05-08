@@ -1807,21 +1807,13 @@ def _func_statusvalue(args: List[Callable[[], ValueType]], option: CalcOption, l
     elif status_type == 18:
         num = ccard.antimagic
     elif status_type == 19:
-        num = ccard.enhance_act if ccard.is_upaction() else 0
+        num = ccard.enhance_act
     elif status_type == 20:
-        num = ccard.enhance_avo if ccard.is_upavoid() else 0
+        num = ccard.enhance_avo
     elif status_type == 21:
-        num = ccard.enhance_res if ccard.is_upresist() else 0
+        num = ccard.enhance_res
     elif status_type == 22:
-        num = ccard.enhance_def if ccard.is_updefense() else 0
-    elif status_type == 23:
-        num = -ccard.enhance_act if ccard.is_downaction() else 0
-    elif status_type == 24:
-        num = -ccard.enhance_avo if ccard.is_downavoid() else 0
-    elif status_type == 25:
-        num = -ccard.enhance_res if ccard.is_downresist() else 0
-    elif status_type == 26:
-        num = -ccard.enhance_def if ccard.is_downdefense() else 0
+        num = ccard.enhance_def
 
     if num is None:
         return DecimalValue(0, line, pos)
@@ -1861,21 +1853,13 @@ def _func_statusround(args: List[Callable[[], ValueType]], option: CalcOption, l
     elif status_type == 18:
         num = ccard.antimagic
     elif status_type == 19:
-        num = ccard.enhance_act_dur if ccard.is_upaction() else 0
+        num = ccard.enhance_act_dur
     elif status_type == 20:
-        num = ccard.enhance_avo_dur if ccard.is_upavoid() else 0
+        num = ccard.enhance_avo_dur
     elif status_type == 21:
-        num = ccard.enhance_res_dur if ccard.is_upresist() else 0
+        num = ccard.enhance_res_dur
     elif status_type == 22:
-        num = ccard.enhance_def_dur if ccard.is_updefense() else 0
-    elif status_type == 23:
-        num = ccard.enhance_act_dur if ccard.is_downaction() else 0
-    elif status_type == 24:
-        num = ccard.enhance_avo_dur if ccard.is_downavoid() else 0
-    elif status_type == 25:
-        num = ccard.enhance_res_dur if ccard.is_downresist() else 0
-    elif status_type == 26:
-        num = ccard.enhance_def_dur if ccard.is_downdefense() else 0
+        num = ccard.enhance_def_dur
 
     if num is None:
         return DecimalValue(0, line, pos)
