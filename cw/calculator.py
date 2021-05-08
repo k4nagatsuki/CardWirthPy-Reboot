@@ -2107,6 +2107,21 @@ _symbols = {
     "beast": decimal.Decimal(3),
     "rare": decimal.Decimal(1),
     "premier": decimal.Decimal(2),
+    "poison": decimal.Decimal(8),
+    "sleep": decimal.Decimal(9),
+    "bind": decimal.Decimal(10),
+    "paralyze": decimal.Decimal(11),
+    "confuse": decimal.Decimal(12),
+    "overheat": decimal.Decimal(13),
+    "brave": decimal.Decimal(14),
+    "panic": decimal.Decimal(15),
+    "silence": decimal.Decimal(16),
+    "faceup": decimal.Decimal(17),
+    "antimagic": decimal.Decimal(18),
+    "enhaction": decimal.Decimal(19),
+    "enhavoid": decimal.Decimal(20),
+    "enhresist": decimal.Decimal(21),
+    "enhdefense": decimal.Decimal(22),
 }
 
 
@@ -2404,6 +2419,22 @@ assert _assert_b("ENEMY > SKILL", True)
 assert _assert_d("ENEMY + SKILL + PREMIER", 5)
 assert _assert_s("MID(\"_test_\", enemy, Friend)", "tes")
 assert _assert_b("LIST(FRIEND - RARE, \"X\" ~ PREMIER ~ PLAYER) = LIST(2, \"X21\")", True)
+
+assert _assert_d("POISON", 8)
+assert _assert_d("SLEEP", 9)
+assert _assert_d("BIND", 10)
+assert _assert_d("PARALYZE", 11)
+assert _assert_d("CONFUSE", 12)
+assert _assert_d("OVERHEAT", 13)
+assert _assert_d("BRAVE", 14)
+assert _assert_d("PANIC", 15)
+assert _assert_d("SILENCE", 16)
+assert _assert_d("FACEUP", 17)
+assert _assert_d("ANTIMAGIC", 18)
+assert _assert_d("ENHACTION", 19)
+assert _assert_d("ENHAVOID", 20)
+assert _assert_d("ENHRESIST", 21)
+assert _assert_d("ENHDEFENSE", 22)
 
 
 def main() -> None:
