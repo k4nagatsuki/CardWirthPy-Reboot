@@ -1201,7 +1201,7 @@ class Setting(object):
             if os.path.isfile(skinpath):
                 self.skindirname = optskin
 
-        self.skindir = cw.util.join_paths("Data/Skin", self.skindirname)
+        self.skindir: str = cw.util.join_paths("Data/Skin", self.skindirname)
         if self.auto_update_files:
             cw.update.update_files(self.skindir, self.skindirname)
         if not os.path.isdir(self.skindir):
@@ -1806,11 +1806,11 @@ class Resource(object):
         self._init = True
         self.setting = weakref.ref(setting)
         # 現在選択しているスキンのディレクトリ
-        self.skindir = setting.skindir
+        self.skindir: str = setting.skindir
         # 各種データの拡張子
-        self.ext_img = cw.M_IMG
-        self.ext_bgm = cw.M_MSC
-        self.ext_snd = cw.M_SND
+        self.ext_img: int = cw.M_IMG
+        self.ext_bgm: int = cw.M_MSC
+        self.ext_snd: int = cw.M_SND
         # システムフォントテーブルの設定
         self.fontpaths = self.get_fontpaths()
         self.fontnames, self.fontnames_init = self.set_systemfonttable()

@@ -41,7 +41,7 @@ class Bill(object):
 
         w = size[0] + self._xp_noscale*2
         h = size[1] + self._yp_noscale*2
-        self.rect_noscale = pygame.rect.Rect((cw.SIZE_AREA[0]-w) // 2, (cw.SIZE_AREA[1]-h) // 2, w, h)
+        self.rect_noscale: pygame.rect.Rect = pygame.rect.Rect((cw.SIZE_AREA[0]-w) // 2, (cw.SIZE_AREA[1]-h) // 2, w, h)
 
     def create_image(self) -> Tuple[pygame.surface.Surface, pygame.rect.Rect]:
         up_scr = cw.UP_SCR

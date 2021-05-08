@@ -15,7 +15,7 @@ from cw.util import synclock
 
 from typing import Callable, Dict, Iterable, List, Sequence, Set, Tuple, Union, Optional
 
-mutex = threading.Lock()
+mutex: threading.Lock = threading.Lock()
 
 
 # ID

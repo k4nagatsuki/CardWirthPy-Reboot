@@ -1801,9 +1801,9 @@ class Character(object):
             data: Tuple[int, cw.data.CWPyElement] = self.coupons[name]
             return data[0]
         else:
-            data = self.coupons.get(name, None)
-            if data:
-                return data[0]
+            data_o = self.coupons.get(name, None)
+            if data_o:
+                return data_o[0]
             else:
                 return None
 

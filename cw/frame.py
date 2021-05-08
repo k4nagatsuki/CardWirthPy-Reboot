@@ -56,7 +56,7 @@ class Frame(wx.Frame):
 
         self.is_iconized = False
         self.kill_list: List[wx.Dialog] = []
-        self.db = None
+        self.db: Optional[cw.scenariodb.Scenariodb] = None
 
         self._cardholder: Optional[cw.dialog.cardcontrol.SelectCard] = None
         self._handview: Optional[cw.dialog.cardcontrol.HandView] = None

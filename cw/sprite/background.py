@@ -73,10 +73,10 @@ class BackGround(base.CWPySprite):
         self.foregroundlist: List[Tuple[int, _BlitData, str, int]] = []
         # 冒険の再開などで背景の状態を変更しないために
         # 直に配置されたJPDCイメージがあれば操作可能になった時点で再読込する
-        self.reload_jpdcimage = True
+        self.reload_jpdcimage: bool = True
         self.has_jpdcimage = False
 
-        self.use_excache = False
+        self.use_excache: bool = False
 
         self.curtained = False
         self._curtains: List[cw.sprite.background.Curtain] = []
