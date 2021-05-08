@@ -1775,7 +1775,7 @@ def _func_liferatio(args: List[Callable[[], ValueType]], option: CalcOption, lin
 
 def _func_statusvalue(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """キャラクター番号からキャラクターの状態の強度・修正値を返す。存在しない・指定した状態にない場合は 0 を返す。
-       強度・修正値を持たない状態にあっては 1 を返す。"""
+       強度・修正値を持たない状態にあっては残ラウンド数を返す。"""
     _chk_argscount(args, 2, "STATUSVALUE", line, pos)
     args_r = _all_eval(args)
     ccard = _ccard_from(args_r[0], "STATUSVALUE")
@@ -1787,25 +1787,25 @@ def _func_statusvalue(args: List[Callable[[], ValueType]], option: CalcOption, l
     if status_type == 8:
         num = ccard.poison
     elif status_type == 9:
-        num = 1 if ccard.is_sleep() else 0
+        num = ccard.mentality_dur if ccard.is_sleep() else 0
     elif status_type == 10:
-        num = min(ccard.bind, 1)
+        num = ccard.bind
     elif status_type == 11:
         num = ccard.paralyze
     elif status_type == 12:
-        num = 1 if ccard.is_confuse() else 0
+        num = ccard.mentality_dur if ccard.is_confuse() else 0
     elif status_type == 13:
-        num = 1 if ccard.is_overheat() else 0
+        num = ccard.mentality_dur if ccard.is_overheat() else 0
     elif status_type == 14:
-        num = 1 if ccard.is_brave() else 0
+        num = ccard.mentality_dur if ccard.is_brave() else 0
     elif status_type == 15:
-        num = 1 if ccard.is_panic() else 0
+        num = ccard.mentality_dur if ccard.is_panic() else 0
     elif status_type == 16:
-        num = min(ccard.silence, 1)
+        num = ccard.silence
     elif status_type == 17:
-        num = min(ccard.faceup, 1)
+        num = ccard.faceup
     elif status_type == 18:
-        num = min(ccard.antimagic, 1)
+        num = ccard.antimagic
     elif status_type == 19:
         num = ccard.enhance_act if ccard.is_upaction() else 0
     elif status_type == 20:
