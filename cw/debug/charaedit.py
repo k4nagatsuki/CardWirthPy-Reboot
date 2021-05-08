@@ -14,6 +14,8 @@ from typing import Iterable, List, Optional, Set, Tuple, Union
 # ------------------------------------------------------------------------------
 
 class CharacterEditDialog(wx.Dialog):
+    fpath: str
+
     def __init__(self, parent: wx.TopLevelWindow, selected: int = -1, create: bool = False) -> None:
         wx.Dialog.__init__(self, parent, -1, "キャラクターの情報の編集",
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -426,12 +428,12 @@ class CharaInfo(object):
     def _calc_params(self) -> None:
         # 能力値の再計算
         race = self.race
-        self.maxdex = race.dex + 6
-        self.maxagl = race.agl + 6
-        self.maxint = race.int + 6
-        self.maxstr = race.str + 6
-        self.maxvit = race.vit + 6
-        self.maxmin = race.min + 6
+        self.maxdex: int = race.dex + 6
+        self.maxagl: int = race.agl + 6
+        self.maxint: int = race.int + 6
+        self.maxstr: int = race.str + 6
+        self.maxvit: int = race.vit + 6
+        self.maxmin: int = race.min + 6
         if self.type:
             self.agl: float = race.agl + self.type.aglbonus
             self.dex: float = race.dex + self.type.dexbonus

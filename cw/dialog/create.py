@@ -467,6 +467,8 @@ def create_description(talent: str, attrs: Union[List[str], Set[str]], desc: str
 
 
 class AdventurerCreater(wx.Dialog):
+    fpath: str
+
     def __init__(self, parent: wx.TopLevelWindow) -> None:
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
                            style=wx.CAPTION | wx.SYSTEM_MENU | wx.CLOSE_BOX | wx.MINIMIZE_BOX)
@@ -2371,7 +2373,7 @@ class YadoCreater(wx.Dialog):
         """
         cw.fsync.sync()
         self.create = yadodir is None
-        self.yadodir = yadodir
+        self.yadodir: Optional[str] = yadodir
 
         s = cw.cwpy.msgs["create_base_title"] if self.create else cw.cwpy.msgs["edit_base_title"]
         wx.Dialog.__init__(self, parent, -1, s, size=(318, 180),

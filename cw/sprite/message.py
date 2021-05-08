@@ -78,7 +78,7 @@ class MessageWindow(base.CWPySprite):
         self.specialchars_used: Set[str] = set()
 
         # メッセージの選択結果
-        self.result = result
+        self.result: Optional[Union[int, cw.event.EffectBreakError]] = result
         self.showing_result = showing_result
         # data
         self.names = names
@@ -111,7 +111,7 @@ class MessageWindow(base.CWPySprite):
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs(init=True)
         # メッセージ描画中か否かのフラグ
-        self.is_drawing = True
+        self.is_drawing: bool = True
         # SelectionBarインスタンスリスト
         self.selections: List[SelectionBar] = []
         # frame
@@ -145,7 +145,7 @@ class MessageWindow(base.CWPySprite):
             wincolour = cw.cwpy.setting.mwincolour
         self.image.fill(wincolour)
         # rect
-        self.rect_noscale = pygame.rect.Rect(pos_noscale, size_noscale)
+        self.rect_noscale: pygame.rect.Rect = pygame.rect.Rect(pos_noscale, size_noscale)
         self.rect = cw.s(self.rect_noscale)
         self.top_noscale = size_noscale[1]
         self.bottom_noscale = 0
@@ -905,7 +905,7 @@ class SelectWindow(MessageWindow):
         # frame
         self.frame = 0
         # メッセージ描画中か否かのフラグ
-        self.is_drawing = True
+        self.is_drawing: bool = True
         # SelectionBarインスタンスリスト
         self.selections = []
         # メッセージ全て表示
@@ -930,7 +930,7 @@ class SelectWindow(MessageWindow):
         self.image = pygame.surface.Surface(cw.s(size_noscale)).convert_alpha()
         self.image.fill(colour)
         # rect
-        self.rect_noscale = pygame.rect.Rect(pos_noscale, size_noscale)
+        self.rect_noscale: pygame.rect.Rect = pygame.rect.Rect(pos_noscale, size_noscale)
         self.rect = cw.s(self.rect_noscale)
         self.top_noscale = size_noscale[1]
         self.bottom_noscale = 0
@@ -988,7 +988,7 @@ class SelectionBar(base.SelectableSprite):
         self.rect = self._image.get_rect()
         self.pos_noscale = pos_noscale
         self.rect.topleft = cw.s(self.pos_noscale)
-        self.rect_noscale = pygame.rect.Rect(self.pos_noscale, self.size_noscale)
+        self.rect_noscale: pygame.rect.Rect = pygame.rect.Rect(self.pos_noscale, self.size_noscale)
         # image
         self.image = self._image
         # status
@@ -1145,7 +1145,7 @@ class BacklogData(object):
         self.names_log = base.names_log
         self.imgpaths = base.imgpaths
         self.talker_name = base.talker_name
-        self.rect_noscale = base.rect_noscale
+        self.rect_noscale: pygame.rect.Rect = base.rect_noscale
         self.top_noscale = base.top_noscale
         self.bottom_noscale = base.bottom_noscale
         self.name_table = base.name_table

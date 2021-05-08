@@ -767,7 +767,7 @@ class PlayerCard(CWPyCard, character.Player):
         # CharacterCard初期化
         character.Player.__init__(self, data)
         # カード画像
-        self.imgpaths = []
+        self.imgpaths: List[cw.image.ImageInfo] = []
         for info in cw.image.get_imageinfos(self.data.find_exists("Property")):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, path), base=info))
@@ -1133,7 +1133,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self._init = True
 
         # イベントデータ
-        self.events = cw.event.EventEngine(self.mcarddata.getfind("Events"))
+        self.events: cw.event.EventEngine = cw.event.EventEngine(self.mcarddata.getfind("Events"))
         # CWPyElementTreeインスタンス
         e = cw.cwpy.sdata.get_castdata(self.mcarddata.getint("Property/Id"), nocache=True)
         if e is None:
@@ -1142,7 +1142,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             cw.cwpy.mcards_expandspchars.discard(self)
             cw.cwpy.file_updates.discard(self)
             return False
-        self.data = cw.data.xml2etree(element=e)
+        self.data: cw.data.CWPyElementTree = cw.data.xml2etree(element=e)
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Enemy.__init__(self, self.data)
@@ -1157,7 +1157,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             override_name = ""
 
         # カード画像
-        self.imgpaths = []
+        self.imgpaths: List[cw.image.ImageInfo] = []
         for info in cw.image.get_imageinfos(self.data.find_exists("Property")):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
@@ -1311,15 +1311,15 @@ class FriendCard(CWPyCard, character.Friend):
 
         if isinstance(data, cw.data.CWPyElement):
             data = cw.data.xml2etree(element=data)
-        self.data = data
-        self.id = self.data.getint("Property/Id", 1)
+        self.data: cw.data.CWPyElementTree = data
+        self.id: int = self.data.getint("Property/Id", 1)
 
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Friend.__init__(self, data)
         self.deck.set(self, draw=False)
         # カード画像
-        self.imgpaths = []
+        self.imgpaths: List[cw.image.ImageInfo] = []
         for info in cw.image.get_imageinfos(self.data.find_exists("Property")):
             path = info.path
             self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
@@ -1480,7 +1480,7 @@ class MenuCard(CWPyCard):
         self.update_name()
 
         # イベント
-        self.events = cw.event.EventEngine(self._data.getfind("Events"))
+        self.events: cw.event.EventEngine = cw.event.EventEngine(self._data.getfind("Events"))
 
         is_scenariocard = 0 <= cw.cwpy.areaid and cw.cwpy.is_playingscenario()
         infos = cw.image.get_imageinfos(self._data.find_exists("Property"), pcnumber=True)

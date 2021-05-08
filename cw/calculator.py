@@ -126,7 +126,7 @@ class ListIndexOutOfRangeException(ComputeException):
         self.list_len = list_len
 
 
-class PermissionError(ComputeException):
+class ExprPermissionError(ComputeException):
     """アクセスできないメンバにアクセスしようとした。"""
     def __init__(self, msg: str, info: "StructureInfo", m: Optional["StructureMember"], line: int, pos: int) -> None:
         ComputeException.__init__(self, msg, line, pos)
@@ -378,9 +378,9 @@ class Operator(object):
             mindex = struct_info.index_of(rhs_symbol.symbol)
             m = struct_info.members[mindex]
             if not m.is_public and option.evaltype != "Test":
-                raise PermissionError("Structure member %s.%s is not accesible." % (struct_info.name.upper(),
-                                                                                    m.name.upper()),
-                                      struct_info, m, self.line, self.pos)
+                raise ExprPermissionError("Structure member %s.%s is not accesible." % (struct_info.name.upper(),
+                                                                                        m.name.upper()),
+                                          struct_info, m, self.line, self.pos)
             if mindex == -1:
                 raise SemanticsException("structure %s has not been %s." % (lhs_struct.name, rhs_symbol.symbol),
                                          rhs.line, rhs.pos)
@@ -493,6 +493,9 @@ class Token(object):
 class ValueType(object):
     line: int
     pos: int
+
+    def to_value_obj(self) -> "ValueType":
+        return self
 
     def to_str(self) -> str:
         return ""
@@ -752,6 +755,13 @@ class Symbol(object):
         self.line = line
         self.pos = pos
 
+    def to_value_obj(self) -> ValueType:
+        ls = self.symbol.lower()
+        if ls in _symbols:
+            return _variantvalue_to_valuetype(_symbols[ls], self.line, self.pos)
+        else:
+            raise SemanticsException("Unknown symbol: %s" % self.symbol.upper(), self.line, self.pos)
+
 
 def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]]:
     """文字列sを式として解析し、スタックを生成する。"""
@@ -925,7 +935,7 @@ def parse(s: str) -> List[Union[ValueType, Function, UnaryOperator, Operator, Sy
                     i, args = parse_arguments(tokens, i)
                     num.append(Function(t, line, pos, args))
                 else:
-                    # 構造体メンバ名
+                    # シンボル・構造体メンバ名
                     num.append(Symbol(t, line, pos))
                     i += 1
                 isop = False
@@ -981,7 +991,7 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbo
             if not op:
                 raise SemanticsException("Invalid semantics.", t.line, t.pos)
             rhs = op.pop()
-            v = t.call(rhs)
+            v = t.call(rhs.to_value_obj())
         elif isinstance(t, Operator):
             # 二項演算子
             if not op:
@@ -990,6 +1000,9 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbo
             if not op:
                 raise SemanticsException("Invalid semantics.", t.line, t.pos)
             lhs = op.pop()
+            lhs = lhs.to_value_obj()
+            if t.operator != ".":
+                rhs = rhs.to_value_obj()
             v = t.call(lhs, rhs, option)
         else:
             # 数値・文字列・真偽値・シンボル
@@ -998,9 +1011,7 @@ def calculate(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbo
     if not op:
         raise SemanticsException("Invalid semantics.", 0, 0)
     t = op.pop(-1)
-    if isinstance(t, Symbol):
-        raise SemanticsException("Unknown symbol: %s" % t.symbol, t.line, t.pos)
-    return t
+    return t.to_value_obj()
 
 
 def eval_expr(st: List[Union[ValueType, Function, UnaryOperator, Operator, Symbol]],
@@ -1974,13 +1985,13 @@ def _func_cardrarity(args: List[Callable[[], ValueType]], option: CalcOption, li
     args_r = _all_eval(args)
     header = _header_from(args_r[0], "CARDRARITY", 0)
     if header is None:
-        return DecimalValue(0, line, pos)
+        return DecimalValue(-1, line, pos)
     elif header.premium == "Rare":
-        return DecimalValue(2, line, pos)
-    elif header.premium == "Premier":
-        return DecimalValue(3, line, pos)
-    else:
         return DecimalValue(1, line, pos)
+    elif header.premium == "Premium":
+        return DecimalValue(2, line, pos)
+    else:
+        return DecimalValue(0, line, pos)
 
 
 def _func_cardprice(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
@@ -2075,7 +2086,7 @@ def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], 
     """構造体のインスタンスを生成する。"""
     uname = info.name.upper()
     if not info.is_public and option.evaltype not in ("Debugger", "Test"):
-        raise PermissionError("Structure %s is not accesible." % uname, info, None, line, pos)
+        raise ExprPermissionError("Structure %s is not accesible." % uname, info, None, line, pos)
     _chk_argscount2(args, info.required_member_num, len(info.members), uname, line, pos)
 
     args2: List[Union[ValueType, Callable[[], ValueType]]] = []
@@ -2084,6 +2095,34 @@ def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], 
         args2.append(_variantvalue_to_valuetype(m.defvalue, line, pos))
 
     return StructureValue(info.name, args2, line, pos)
+
+
+_symbols = {
+    # Wsn.5
+    "player": decimal.Decimal(1),
+    "enemy": decimal.Decimal(2),
+    "friend": decimal.Decimal(3),
+    "skill": decimal.Decimal(1),
+    "item": decimal.Decimal(2),
+    "beast": decimal.Decimal(3),
+    "rare": decimal.Decimal(1),
+    "premier": decimal.Decimal(2),
+    "poison": decimal.Decimal(8),
+    "sleep": decimal.Decimal(9),
+    "bind": decimal.Decimal(10),
+    "paralyze": decimal.Decimal(11),
+    "confuse": decimal.Decimal(12),
+    "overheat": decimal.Decimal(13),
+    "brave": decimal.Decimal(14),
+    "panic": decimal.Decimal(15),
+    "silence": decimal.Decimal(16),
+    "faceup": decimal.Decimal(17),
+    "antimagic": decimal.Decimal(18),
+    "enhaction": decimal.Decimal(19),
+    "enhavoid": decimal.Decimal(20),
+    "enhresist": decimal.Decimal(21),
+    "enhdefense": decimal.Decimal(22),
+}
 
 
 _functions = {
@@ -2144,116 +2183,131 @@ _functions = {
 }
 
 
-def _assert_s(val: ValueType, n: str) -> bool:
+def _assert_s(expr: str, n: str) -> bool:
+    val = calculate(parse(expr), CalcOption("Test", False))
+    return _assert_s_val(val, n)
+
+
+def _assert_s_val(val: ValueType, n: str) -> bool:
     assert isinstance(val, StringValue)
     return val.value == n
 
 
-def _assert_d(val: ValueType, n: Union[int, decimal.Decimal]) -> bool:
+def _assert_d(expr: str, n: Union[int, decimal.Decimal]) -> bool:
+    val = calculate(parse(expr), CalcOption("Test", False))
+    return _assert_d_val(val, n)
+
+
+def _assert_d_val(val: ValueType, n: Union[int, decimal.Decimal]) -> bool:
     assert isinstance(val, DecimalValue)
     return val.value == n
 
 
-def _assert_b(val: ValueType, n: bool) -> bool:
+def _assert_b(expr: str, n: bool) -> bool:
+    val = calculate(parse(expr), CalcOption("Test", False))
+    return _assert_b_val(val, n)
+
+
+def _assert_b_val(val: ValueType, n: bool) -> bool:
     assert isinstance(val, BooleanValue)
     return val.value is n
 
 
-assert _assert_d(calculate(parse("--5")), 5)
-assert _assert_d(calculate(parse("---5")), -5)
-assert _assert_d(calculate(parse("-(--5)")), -5)
-assert _assert_d(calculate(parse("-- min(100,23)+5")), 28)
-assert _assert_d(calculate(parse("+-Min(100,23)+ - 5")), -28)
-assert _assert_d(calculate(parse("max (45, 42, 100.5,  23 ) + 0.123")), decimal.Decimal("100.623"))
-assert _assert_b(calculate(parse("mAX(45,42,100.5,23)+0.123 = 100.623")), True)
-assert _assert_b(calculate(parse("max(45,42,100.5,23)+0.123 <> 100.623")), False)
-assert _assert_b(calculate(parse("true or false")), True)
-assert _assert_b(calculate(parse("tRUe and faLSE")), False)
-assert _assert_b(calculate(parse("true and true or false and false")), True)
-assert _assert_b(calculate(parse("((true and true) or false) and false")), False)
-assert _assert_b(calculate(parse("not false and true or false and false")), True)
-assert _assert_b(calculate(parse("not false or false")), True)
-assert _assert_b(calculate(parse("not not (false or false)")), False)
-assert _assert_b(calculate(parse("not not not true")), False)
-assert _assert_b(calculate(parse("not 1 = 2")), True)
-assert _assert_b(calculate(parse("not 1 + 2 = 3")), False)
-assert _assert_b(calculate(parse("nOT False And tRUe oR FALSE aND faLse")), True)
-assert _assert_b(calculate(parse("NOT 1 + 2 = 3")), False)
-assert _assert_b(calculate(parse("nOt 1 + 2 = 3")), False)
-assert _assert_s(calculate(parse("(not true) ~ \"&\" ~ (not true)")), "FALSE&FALSE")
-assert _assert_d(calculate(parse("(5+8) % 3")), 1)
-assert _assert_d(calculate(parse("5 + 8%3")), 7)
-assert _assert_d(calculate(parse("-2+22*2")), 42)
-assert _assert_d(calculate(parse("9/3")), 3)
-assert _assert_b(calculate(parse("4<=5")), True)
-assert _assert_b(calculate(parse("4<=4")), True)
-assert _assert_b(calculate(parse("4<=3")), False)
-assert _assert_b(calculate(parse("5>=4")), True)
-assert _assert_b(calculate(parse("4>=4")), True)
-assert _assert_b(calculate(parse("3>=4")), False)
-assert _assert_b(calculate(parse("4<5")), True)
-assert _assert_b(calculate(parse("4<4")), False)
-assert _assert_b(calculate(parse("4<3")), False)
-assert _assert_b(calculate(parse("5>4")), True)
-assert _assert_b(calculate(parse("4>4")), False)
-assert _assert_b(calculate(parse("3>4")), False)
-assert _assert_b(calculate(parse("5=4")), False)
-assert _assert_b(calculate(parse("4=4")), True)
-assert _assert_b(calculate(parse("3=4")), False)
-assert _assert_b(calculate(parse("5<>4")), True)
-assert _assert_b(calculate(parse("4<>4")), False)
-assert _assert_b(calculate(parse("3<>4")), True)
-assert _assert_d(calculate(parse("LEN(\"TESTあいうえお\")")), 9)
-assert _assert_d(calculate(parse("FIND(\"対象文字列\", \"対象文字列\")")), 1)
-assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\")")), 3)
-assert _assert_d(calculate(parse("FIND(\"文じ\", \"対象文字列\")")), 0)
-assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\", 3)")), 3)
-assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\", 4)")), 0)
-assert _assert_d(calculate(parse("FIND(\"文字\", \"対象文字列\", 0)")), 0)
-assert _assert_d(calculate(parse("FIND(\"列\", \"対象文字列\", 5)")), 5)
-assert _assert_d(calculate(parse("FIND(\"列\", \"対象文字列\", 6)")), 0)
-assert _assert_d(calculate(parse("FIND(\"\", \"対象文字列\")")), 1)
-assert _assert_d(calculate(parse("FIND(\"\", \"対象文字列\", 5)")), 5)
-assert _assert_d(calculate(parse("FIND(\"\", \"対象文字列\", 6)")), 0)
-assert _assert_d(calculate(parse("FIND(\"字\", \"A象B文C字D列\")")), 6)
-assert _assert_d(calculate(parse("FIND(\"字\", \"A象B文C字D列\", 6)")), 6)
-assert _assert_d(calculate(parse("FIND(\"字\", \"A象B文C字D列\", 7)")), 0)
-assert _assert_d(calculate(parse("FIND(\"\", \"\")")), 0)
-assert _assert_d(calculate(parse("find(\"列\", \"対象文字列\", 5)")), 5)
-assert _assert_d(calculate(parse("fIND(\"列\", \"対象文字列\", 5)")), 5)
-assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 0)")), "")
-assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 3)")), "あいう")
-assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 8)")), "あいうえお")
-assert _assert_s(calculate(parse("LEFT(\"あいうえお\", 8)")), "あいうえお")
-assert _assert_s(calculate(parse("Left(\"あいうえお\", 8)")), "あいうえお")
-assert _assert_s(calculate(parse("RIGHT(\"あいうえお\", 0)")), "")
-assert _assert_s(calculate(parse("RIGHT(\"あいうえお\", 3)")), "うえお")
-assert _assert_s(calculate(parse("RIGHT(\"あいうえお\", 8)")), "あいうえお")
-assert _assert_s(calculate(parse("right(\"あいうえお\", 8)")), "あいうえお")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 2, 3)")), "いうえ")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 5, 3)")), "お")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 6, 3)")), "")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 3)")), "うえお")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 5)")), "お")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 6)")), "")
-assert _assert_s(calculate(parse("MID(\"あいうえお\", 7)")), "")
-assert _assert_s(calculate(parse("mId(\"あいうえお\", 7)")), "")
-assert _assert_s(calculate(parse("STR(\"あいうえお\")")), "あいうえお")
-assert _assert_s(calculate(parse("STR(42)")), "42")
-assert _assert_s(calculate(parse("STR(42.42 + 5)")), "47.42")
-assert _assert_s(calculate(parse("sTR(42.42 + 5)")), "47.42")
-assert _assert_d(calculate(parse("VALUE(42.42 + 5)")), decimal.Decimal("47.42"))
-assert _assert_d(calculate(parse("VALUE(42)")), 42)
-assert _assert_d(calculate(parse("VALUE(\"42\")")), 42)
-assert _assert_d(calculate(parse("VALUE(\"42.123\")")), decimal.Decimal("42.123"))
-assert _assert_d(calculate(parse("VAluE(\"42.123\")")), decimal.Decimal("42.123"))
-assert _assert_d(calculate(parse("INT(\"42.123\")")), 42)
-assert _assert_d(calculate(parse("INT(\"42.9\")")), 42)
-assert _assert_d(calculate(parse("INT(\" -42.9  \")")), -42)
-assert _assert_d(calculate(parse("int(\" -42.9  \")")), -42)
-assert _assert_d(calculate(parse("IF(1=2,99,88)")), 88)
-assert _assert_d(calculate(parse("IF(2=2,99,88)")), 99)
-assert _assert_d(calculate(parse("If(2=2,99,88)")), 99)
+assert _assert_d("--5", 5)
+assert _assert_d("---5", -5)
+assert _assert_d("-(--5)", -5)
+assert _assert_d("-- min(100,23)+5", 28)
+assert _assert_d("+-Min(100,23)+ - 5", -28)
+assert _assert_d("max (45, 42, 100.5,  23 ) + 0.123", decimal.Decimal("100.623"))
+assert _assert_b("mAX(45,42,100.5,23)+0.123 = 100.623", True)
+assert _assert_b("max(45,42,100.5,23)+0.123 <> 100.623", False)
+assert _assert_b("true or false", True)
+assert _assert_b("tRUe and faLSE", False)
+assert _assert_b("true and true or false and false", True)
+assert _assert_b("((true and true) or false) and false", False)
+assert _assert_b("not false and true or false and false", True)
+assert _assert_b("not false or false", True)
+assert _assert_b("not not (false or false)", False)
+assert _assert_b("not not not true", False)
+assert _assert_b("not 1 = 2", True)
+assert _assert_b("not 1 + 2 = 3", False)
+assert _assert_b("nOT False And tRUe oR FALSE aND faLse", True)
+assert _assert_b("NOT 1 + 2 = 3", False)
+assert _assert_b("nOt 1 + 2 = 3", False)
+assert _assert_s("(not true) ~ \"&\" ~ (not true)", "FALSE&FALSE")
+assert _assert_d("(5+8) % 3", 1)
+assert _assert_d("5 + 8%3", 7)
+assert _assert_d("-2+22*2", 42)
+assert _assert_d("9/3", 3)
+assert _assert_b("4<=5", True)
+assert _assert_b("4<=4", True)
+assert _assert_b("4<=3", False)
+assert _assert_b("5>=4", True)
+assert _assert_b("4>=4", True)
+assert _assert_b("3>=4", False)
+assert _assert_b("4<5", True)
+assert _assert_b("4<4", False)
+assert _assert_b("4<3", False)
+assert _assert_b("5>4", True)
+assert _assert_b("4>4", False)
+assert _assert_b("3>4", False)
+assert _assert_b("5=4", False)
+assert _assert_b("4=4", True)
+assert _assert_b("3=4", False)
+assert _assert_b("5<>4", True)
+assert _assert_b("4<>4", False)
+assert _assert_b("3<>4", True)
+assert _assert_d("LEN(\"TESTあいうえお\")", 9)
+assert _assert_d("FIND(\"対象文字列\", \"対象文字列\")", 1)
+assert _assert_d("FIND(\"文字\", \"対象文字列\")", 3)
+assert _assert_d("FIND(\"文じ\", \"対象文字列\")", 0)
+assert _assert_d("FIND(\"文字\", \"対象文字列\", 3)", 3)
+assert _assert_d("FIND(\"文字\", \"対象文字列\", 4)", 0)
+assert _assert_d("FIND(\"文字\", \"対象文字列\", 0)", 0)
+assert _assert_d("FIND(\"列\", \"対象文字列\", 5)", 5)
+assert _assert_d("FIND(\"列\", \"対象文字列\", 6)", 0)
+assert _assert_d("FIND(\"\", \"対象文字列\")", 1)
+assert _assert_d("FIND(\"\", \"対象文字列\", 5)", 5)
+assert _assert_d("FIND(\"\", \"対象文字列\", 6)", 0)
+assert _assert_d("FIND(\"字\", \"A象B文C字D列\")", 6)
+assert _assert_d("FIND(\"字\", \"A象B文C字D列\", 6)", 6)
+assert _assert_d("FIND(\"字\", \"A象B文C字D列\", 7)", 0)
+assert _assert_d("FIND(\"\", \"\")", 0)
+assert _assert_d("find(\"列\", \"対象文字列\", 5)", 5)
+assert _assert_d("fIND(\"列\", \"対象文字列\", 5)", 5)
+assert _assert_s("LEFT(\"あいうえお\", 0)", "")
+assert _assert_s("LEFT(\"あいうえお\", 3)", "あいう")
+assert _assert_s("LEFT(\"あいうえお\", 8)", "あいうえお")
+assert _assert_s("LEFT(\"あいうえお\", 8)", "あいうえお")
+assert _assert_s("Left(\"あいうえお\", 8)", "あいうえお")
+assert _assert_s("RIGHT(\"あいうえお\", 0)", "")
+assert _assert_s("RIGHT(\"あいうえお\", 3)", "うえお")
+assert _assert_s("RIGHT(\"あいうえお\", 8)", "あいうえお")
+assert _assert_s("right(\"あいうえお\", 8)", "あいうえお")
+assert _assert_s("MID(\"あいうえお\", 2, 3)", "いうえ")
+assert _assert_s("MID(\"あいうえお\", 5, 3)", "お")
+assert _assert_s("MID(\"あいうえお\", 6, 3)", "")
+assert _assert_s("MID(\"あいうえお\", 3)", "うえお")
+assert _assert_s("MID(\"あいうえお\", 5)", "お")
+assert _assert_s("MID(\"あいうえお\", 6)", "")
+assert _assert_s("MID(\"あいうえお\", 7)", "")
+assert _assert_s("mId(\"あいうえお\", 7)", "")
+assert _assert_s("STR(\"あいうえお\")", "あいうえお")
+assert _assert_s("STR(42)", "42")
+assert _assert_s("STR(42.42 + 5)", "47.42")
+assert _assert_s("sTR(42.42 + 5)", "47.42")
+assert _assert_d("VALUE(42.42 + 5)", decimal.Decimal("47.42"))
+assert _assert_d("VALUE(42)", 42)
+assert _assert_d("VALUE(\"42\")", 42)
+assert _assert_d("VALUE(\"42.123\")", decimal.Decimal("42.123"))
+assert _assert_d("VAluE(\"42.123\")", decimal.Decimal("42.123"))
+assert _assert_d("INT(\"42.123\")", 42)
+assert _assert_d("INT(\"42.9\")", 42)
+assert _assert_d("INT(\" -42.9  \")", -42)
+assert _assert_d("int(\" -42.9  \")", -42)
+assert _assert_d("IF(1=2,99,88)", 88)
+assert _assert_d("IF(2=2,99,88)", 99)
+assert _assert_d("If(2=2,99,88)", 99)
 try:
     assert calculate(parse("5 / (2-1-1)"))
     assert False
@@ -2273,9 +2327,9 @@ except ArgumentsCountException:
 _test_list1 = calculate(parse("LIST(\"STR\", 42, TRUE)"))
 assert isinstance(_test_list1, ListValue)
 assert len(_test_list1.value) == 3
-assert _assert_s(_test_list1.eval(0), "STR")
-assert _assert_d(_test_list1.eval(1), 42)
-assert _assert_b(_test_list1.eval(2), True)
+assert _assert_s_val(_test_list1.eval(0), "STR")
+assert _assert_d_val(_test_list1.eval(1), 42)
+assert _assert_b_val(_test_list1.eval(2), True)
 
 _test_list2 = calculate(parse("LIST(LIST(1, 2, 3), LIST(3, 4, 5))"))
 assert isinstance(_test_list2, ListValue)
@@ -2283,76 +2337,104 @@ assert len(_test_list2.value) == 2
 _test_list2_0 = _test_list2.eval(0)
 assert isinstance(_test_list2_0, ListValue)
 assert len(_test_list2_0.value) == 3
-assert _assert_d(_test_list2_0.eval(0), 1)
-assert _assert_d(_test_list2_0.eval(1), 2)
-assert _assert_d(_test_list2_0.eval(2), 3)
+assert _assert_d_val(_test_list2_0.eval(0), 1)
+assert _assert_d_val(_test_list2_0.eval(1), 2)
+assert _assert_d_val(_test_list2_0.eval(2), 3)
 _test_list2_1 = _test_list2.eval(1)
 assert isinstance(_test_list2_1, ListValue)
 assert len(_test_list2_1.value) == 3
-assert _assert_d(_test_list2_1.eval(0), 3)
-assert _assert_d(_test_list2_1.eval(1), 4)
-assert _assert_d(_test_list2_1.eval(2), 5)
+assert _assert_d_val(_test_list2_1.eval(0), 3)
+assert _assert_d_val(_test_list2_1.eval(1), 4)
+assert _assert_d_val(_test_list2_1.eval(2), 5)
 
-assert _assert_b(calculate(parse("LIST(1, 2, 3) = LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) = LIST(1, \"2\", 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) = LIST(1, 2)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2) = LIST(1, 2, 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) <> LIST(1, 2, 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) <> LIST(1, \"2\", 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) <> LIST(1, 2)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2) <> LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) < LIST(1, 2, 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) < LIST(1, 2)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) < LIST(1, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2) < LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) <= LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) <= LIST(1, 2)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) <= LIST(1, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2) <= LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) > LIST(1, 2, 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) > LIST(1, 2)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2) > LIST(1, 2, 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 3) > LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) >= LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) >= LIST(1, 2)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2) >= LIST(1, 2, 3)")), False)
-assert _assert_b(calculate(parse("LIST(1, 3) >= LIST(1, 2, 3)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) ~ LIST(4, 5, 6) = LIST(1, 2, 3, 4, 5, 6)")), True)
-assert _assert_b(calculate(parse("LIST(1, 2, 3) ~ LIST(4, 5, 6) ~ LIST(7) = LIST(1, 2, 3, 4, 5, 6, 7)")), True)
+assert _assert_b("LIST(1, 2, 3) = LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) = LIST(1, \"2\", 3)", False)
+assert _assert_b("LIST(1, 2, 3) = LIST(1, 2)", False)
+assert _assert_b("LIST(1, 2) = LIST(1, 2, 3)", False)
+assert _assert_b("LIST(1, 2, 3) <> LIST(1, 2, 3)", False)
+assert _assert_b("LIST(1, 2, 3) <> LIST(1, \"2\", 3)", True)
+assert _assert_b("LIST(1, 2, 3) <> LIST(1, 2)", True)
+assert _assert_b("LIST(1, 2) <> LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) < LIST(1, 2, 3)", False)
+assert _assert_b("LIST(1, 2, 3) < LIST(1, 2)", False)
+assert _assert_b("LIST(1, 2, 3) < LIST(1, 3)", True)
+assert _assert_b("LIST(1, 2) < LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) <= LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) <= LIST(1, 2)", False)
+assert _assert_b("LIST(1, 2, 3) <= LIST(1, 3)", True)
+assert _assert_b("LIST(1, 2) <= LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) > LIST(1, 2, 3)", False)
+assert _assert_b("LIST(1, 2, 3) > LIST(1, 2)", True)
+assert _assert_b("LIST(1, 2) > LIST(1, 2, 3)", False)
+assert _assert_b("LIST(1, 3) > LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) >= LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) >= LIST(1, 2)", True)
+assert _assert_b("LIST(1, 2) >= LIST(1, 2, 3)", False)
+assert _assert_b("LIST(1, 3) >= LIST(1, 2, 3)", True)
+assert _assert_b("LIST(1, 2, 3) ~ LIST(4, 5, 6) = LIST(1, 2, 3, 4, 5, 6)", True)
+assert _assert_b("LIST(1, 2, 3) ~ LIST(4, 5, 6) ~ LIST(7) = LIST(1, 2, 3, 4, 5, 6, 7)", True)
 
-assert _assert_b(calculate(parse("AT(LIST(TRUE, 42, \"STR\"), 1)")), True)
-assert _assert_d(calculate(parse("AT(LIST(TRUE, 42, \"STR\"), 2)")), 42)
-assert _assert_s(calculate(parse("AT(LIST(TRUE, 42, \"STR\"), 3)")), "STR")
-assert _assert_d(calculate(parse("LLEN(LIST(1, 2, 3))")), 3)
-assert _assert_b(calculate(parse("LLEFT(LIST(1, 2, 3), 2) = LIST(1, 2)")), True)
-assert _assert_b(calculate(parse("LRIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)")), True)
-assert _assert_b(calculate(parse("LMID(LIST(1, 2, 3, 4), 2, 2) = LIST(2, 3)")), True)
-assert _assert_d(calculate(parse("LFIND(3, LIST(1, 2, 3, 4))")), 3)
-assert _assert_d(calculate(parse("LFIND(5, LIST(1, 2, 3, 4))")), 0)
-assert _assert_d(calculate(parse("LFIND(\"TEST\", LIST(1, 2, \"TEST\", 4))")), 3)
-assert _assert_d(calculate(parse("LFIND(LIST(99), LIST(1, 2, LIST(99), 4))")), 3)
-assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 4, 42), 3)")), 4)
-assert _assert_d(calculate(parse("LFIND(42, LIST(42, 42, 42, 4), 3)")), 3)
+assert _assert_b("AT(LIST(TRUE, 42, \"STR\"), 1)", True)
+assert _assert_d("AT(LIST(TRUE, 42, \"STR\"), 2)", 42)
+assert _assert_s("AT(LIST(TRUE, 42, \"STR\"), 3)", "STR")
+assert _assert_d("LLEN(LIST(1, 2, 3))", 3)
+assert _assert_b("LLEFT(LIST(1, 2, 3), 2) = LIST(1, 2)", True)
+assert _assert_b("LRIGHT(LIST(1, 2, 3), 2) = LIST(2, 3)", True)
+assert _assert_b("LMID(LIST(1, 2, 3, 4), 2, 2) = LIST(2, 3)", True)
+assert _assert_d("LFIND(3, LIST(1, 2, 3, 4))", 3)
+assert _assert_d("LFIND(5, LIST(1, 2, 3, 4))", 0)
+assert _assert_d("LFIND(\"TEST\", LIST(1, 2, \"TEST\", 4))", 3)
+assert _assert_d("LFIND(LIST(99), LIST(1, 2, LIST(99), 4))", 3)
+assert _assert_d("LFIND(42, LIST(42, 42, 4, 42), 3)", 4)
+assert _assert_d("LFIND(42, LIST(42, 42, 42, 4), 3)", 3)
 
-assert _assert_d(calculate(parse("CARDINFO(4, 2).CASTINDEX"), CalcOption("Test", False)), 4)
-assert _assert_d(calculate(parse("CARDINFO(4, 2).CARDINDEX"), CalcOption("Test", False)), 2)
-assert _assert_d(calculate(parse("-CARDINFO(4, 2).CASTINDEX"), CalcOption("Test", False)), -4)
-assert _assert_d(calculate(parse("---CARDINFO(4, 2).CASTINDEX"), CalcOption("Test", False)), -4)
-assert _assert_b(calculate(parse("CARDINFO(4, 2).CASTINDEX = 4"), CalcOption("Test", False)), True)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 2)"), CalcOption("Test", False)), True)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 2)"), CalcOption("Test", False)), False)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(5, 2)"), CalcOption("Test", False)), False)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(5, 2)"), CalcOption("Test", False)), True)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) = CARDINFO(4, 3)"), CalcOption("Test", False)), False)
-assert _assert_b(calculate(parse("CARDINFO(4, 2) <> CARDINFO(4, 3)"), CalcOption("Test", False)), True)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 2))"),
-                           CalcOption("Test", False)), True)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))"),
-                           CalcOption("Test", False)), False)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))"),
-                           CalcOption("Test", False)), False)
-assert _assert_b(calculate(parse("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))"),
-                           CalcOption("Test", False)), True)
+assert _assert_d("CARDINFO(4, 2).CASTINDEX", 4)
+assert _assert_d("CARDINFO(4, 2).CARDINDEX", 2)
+assert _assert_d("-CARDINFO(4, 2).CASTINDEX", -4)
+assert _assert_d("---CARDINFO(4, 2).CASTINDEX", -4)
+assert _assert_b("CARDINFO(4, 2).CASTINDEX = 4", True)
+assert _assert_b("CARDINFO(4, 2) = CARDINFO(4, 2)", True)
+assert _assert_b("CARDINFO(4, 2) <> CARDINFO(4, 2)", False)
+assert _assert_b("CARDINFO(4, 2) = CARDINFO(5, 2)", False)
+assert _assert_b("CARDINFO(4, 2) <> CARDINFO(5, 2)", True)
+assert _assert_b("CARDINFO(4, 2) = CARDINFO(4, 3)", False)
+assert _assert_b("CARDINFO(4, 2) <> CARDINFO(4, 3)", True)
+assert _assert_b("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 2))", True)
+assert _assert_b("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 2))", False)
+assert _assert_b("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) = LIST(CARDINFO(4, 2), CARDINFO(4, 3))", False)
+assert _assert_b("LIST(CARDINFO(4, 2), CARDINFO(4, 2)) <> LIST(CARDINFO(4, 2), CARDINFO(4, 3))", True)
+
+assert _assert_d("PLAYER", 1)
+assert _assert_d("ENEMY", 2)
+assert _assert_d("FRIEND", 3)
+assert _assert_d("SKILL", 1)
+assert _assert_d("ITEM", 2)
+assert _assert_d("BEAST", 3)
+assert _assert_d("RARE", 1)
+assert _assert_d("PREMIER", 2)
+assert _assert_d("-PREMIER", -2)
+assert _assert_d("-+--PREMIER + PLAYER", -1)
+assert _assert_b("PLAYER = SKILL", True)
+assert _assert_b("ENEMY > SKILL", True)
+assert _assert_d("ENEMY + SKILL + PREMIER", 5)
+assert _assert_s("MID(\"_test_\", enemy, Friend)", "tes")
+assert _assert_b("LIST(FRIEND - RARE, \"X\" ~ PREMIER ~ PLAYER) = LIST(2, \"X21\")", True)
+
+assert _assert_d("POISON", 8)
+assert _assert_d("SLEEP", 9)
+assert _assert_d("BIND", 10)
+assert _assert_d("PARALYZE", 11)
+assert _assert_d("CONFUSE", 12)
+assert _assert_d("OVERHEAT", 13)
+assert _assert_d("BRAVE", 14)
+assert _assert_d("PANIC", 15)
+assert _assert_d("SILENCE", 16)
+assert _assert_d("FACEUP", 17)
+assert _assert_d("ANTIMAGIC", 18)
+assert _assert_d("ENHACTION", 19)
+assert _assert_d("ENHAVOID", 20)
+assert _assert_d("ENHRESIST", 21)
+assert _assert_d("ENHDEFENSE", 22)
 
 
 def main() -> None:

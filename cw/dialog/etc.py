@@ -711,8 +711,8 @@ class ConvertYadoDialog(wx.Dialog):
         w, _h, _lh = dc.GetFullMultiLineTextExtent(self.message)
         self.SetClientSize((w + cw.wins(50), cw.wins(156)))
 
-        self.targetengine = 1.50
-        self.dstpath = cw.cwpy.setting.unconvert_targetfolder
+        self.targetengine: float = 1.50
+        self.dstpath: str = cw.cwpy.setting.unconvert_targetfolder
 
         self.folder = wx.TextCtrl(self, size=(-1, -1))
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
