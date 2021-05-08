@@ -1801,7 +1801,7 @@ class Character(object):
             data: Tuple[int, cw.data.CWPyElement] = self.coupons[name]
             return data[0]
         else:
-            data_o = self.coupons.get(name, None)
+            data_o: Optional[Tuple[int, cw.data.CWPyElement]] = self.coupons.get(name, None)
             if data_o:
                 return data_o[0]
             else:
