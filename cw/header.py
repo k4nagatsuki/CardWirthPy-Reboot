@@ -16,7 +16,7 @@ import cw
 
 import wx
 
-from typing import BinaryIO, Union, Optional, Dict, List, Tuple
+from typing import BinaryIO, Callable, Union, Optional, Dict, List, Tuple
 
 
 def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List["cw.image.ImageInfo"]:
@@ -959,6 +959,30 @@ class CardHeader(object):
             return self.keycodes[:-1]
         else:
             return self.keycodes
+
+    def find_keycode_position_excluding_empty(self, matcher: Callable[[str], bool], startindex: int) -> int:
+        """
+        matcher(name)がTrueになるキーコードを
+        startindexの位置から検索し、見つかった位置を返す。空文字列は除外する。
+        """
+        keycodes = self.get_keycodes()
+        if "" in keycodes:
+            keycodes.remove("")
+        if keycodes is not None:
+            for i, keycode in enumerate(keycodes[startindex:]):
+                if matcher(keycode):
+                    return i + startindex
+        return -1
+
+    def get_keycode_at_excluding_empty(self, index: int) -> str:
+        """
+        指定位置のキーコードを返す。添字が範囲外の場合は考慮せず例外を送出する。
+        空文字列は除外する。
+        """
+        keycodes = self.get_keycodes()
+        if "" in keycodes:
+            keycodes.remove("")
+        return keycodes[index]
 
     def set_hold(self, hold: bool) -> None:
         assert cw.cwpy.ydata

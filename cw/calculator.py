@@ -1709,6 +1709,13 @@ def _func_yadoname(args: List[Callable[[], ValueType]], option: CalcOption, line
     return StringValue(cw.cwpy.ydata.get_showingname(), line, pos)
 
 
+def _func_skintype(args: List[Callable[[], ValueType]], option: CalcOption, line: int,
+                   pos: int) -> StringValue:
+    """スキン種別の名称を返す。"""
+    _chk_argscount(args, 0, "SKINTYPE", line, pos)
+    return StringValue(cw.cwpy.setting.skintype, line, pos)
+
+
 def _func_battleround(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
     """現バトルのラウンド数を返す。バトル中ではない場合は -1 を返す。"""
     _chk_argscount(args, 0, "BATTLEROUND", line, pos)
@@ -1753,6 +1760,99 @@ def _func_liferatio(args: List[Callable[[], ValueType]], option: CalcOption, lin
         return DecimalValue(ccard.life / ccard.maxlife, line, pos)
     else:
         return DecimalValue(-1, line, pos)
+
+
+def _func_statusvalue(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターの状態の強度・修正値を返す。存在しない・指定した状態にない場合は 0 を返す。
+       強度・修正値を持たない状態にあっては残ラウンド数を返す。"""
+    _chk_argscount(args, 2, "STATUSVALUE", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "STATUSVALUE")
+    status_type = _chk_decimal(args_r[1], "STATUSVALUE", 1)
+    if ccard is None:
+        return DecimalValue(0, line, pos)
+
+    num = 0
+    if status_type == 8:
+        num = ccard.poison
+    elif status_type == 9:
+        num = ccard.mentality_dur if ccard.is_sleep() else 0
+    elif status_type == 10:
+        num = ccard.bind
+    elif status_type == 11:
+        num = ccard.paralyze
+    elif status_type == 12:
+        num = ccard.mentality_dur if ccard.is_confuse() else 0
+    elif status_type == 13:
+        num = ccard.mentality_dur if ccard.is_overheat() else 0
+    elif status_type == 14:
+        num = ccard.mentality_dur if ccard.is_brave() else 0
+    elif status_type == 15:
+        num = ccard.mentality_dur if ccard.is_panic() else 0
+    elif status_type == 16:
+        num = ccard.silence
+    elif status_type == 17:
+        num = ccard.faceup
+    elif status_type == 18:
+        num = ccard.antimagic
+    elif status_type == 19:
+        num = ccard.enhance_act
+    elif status_type == 20:
+        num = ccard.enhance_avo
+    elif status_type == 21:
+        num = ccard.enhance_res
+    elif status_type == 22:
+        num = ccard.enhance_def
+
+    if num is None:
+        return DecimalValue(0, line, pos)
+    return DecimalValue(num, line, pos)
+
+
+def _func_statusround(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
+    """キャラクター番号からキャラクターの状態の残ラウンド数を返す。存在しない・指定した状態にない場合は 0 を返す。"""
+    _chk_argscount(args, 2, "STATUSROUND", line, pos)
+    args_r = _all_eval(args)
+    ccard = _ccard_from(args_r[0], "STATUSROUND")
+    status_type = _chk_decimal(args_r[1], "STATUSROUND", 1)
+    if ccard is None:
+        return DecimalValue(0, line, pos)
+
+    num = 0
+    if status_type == 8:
+        num = ccard.poison
+    elif status_type == 9:
+        num = ccard.mentality_dur if ccard.is_sleep() else 0
+    elif status_type == 10:
+        num = ccard.bind
+    elif status_type == 11:
+        num = ccard.paralyze
+    elif status_type == 12:
+        num = ccard.mentality_dur if ccard.is_confuse() else 0
+    elif status_type == 13:
+        num = ccard.mentality_dur if ccard.is_overheat() else 0
+    elif status_type == 14:
+        num = ccard.mentality_dur if ccard.is_brave() else 0
+    elif status_type == 15:
+        num = ccard.mentality_dur if ccard.is_panic() else 0
+    elif status_type == 16:
+        num = ccard.silence
+    elif status_type == 17:
+        num = ccard.faceup
+    elif status_type == 18:
+        num = ccard.antimagic
+    elif status_type == 19:
+        num = ccard.enhance_act_dur
+    elif status_type == 20:
+        num = ccard.enhance_avo_dur
+    elif status_type == 21:
+        num = ccard.enhance_res_dur
+    elif status_type == 22:
+        num = ccard.enhance_def_dur
+
+    if num is None:
+        return DecimalValue(0, line, pos)
+    return DecimalValue(num, line, pos)
 
 
 def _func_selectedcard(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StructureValue:
@@ -1927,6 +2027,49 @@ def _func_cardcount(args: List[Callable[[], ValueType]], option: CalcOption, lin
         return DecimalValue(header.uselimit, line, pos)
 
 
+def _func_findkeycode(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> DecimalValue:
+    """
+    カードのキーコードをpatternで検索して見つかった位置（1～）を返す。
+    キーコードが空文字列の場合は無視される。
+    キーコードが見つからない・カード情報が無効の場合は 0 を返す。
+    """
+    _chk_argscount2(args, 2, 3, "FINDKEYCODE", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "FINDKEYCODE", 0)
+    pattern = _chk_string(args_r[1], "FINDKEYCODE", 0)
+    if len(args_r) < 3:
+        startpos = 1
+    else:
+        startpos = int(_chk_minvalue(args_r[2], "FINDKEYCODE", 0))
+    startindex = startpos - 1
+    if header is None:
+        return DecimalValue(0, line, pos)
+
+    reg = re.compile(fnmatch.translate(pattern))
+    index = header.find_keycode_position_excluding_empty(lambda name: bool(reg.match(name)), startindex)
+    return DecimalValue(index + 1, line, pos)
+
+
+def _func_keycodetext(args: List[Callable[[], ValueType]], option: CalcOption, line: int, pos: int) -> StringValue:
+    """
+    カードのキーコード名を位置番号指定で返す。空文字列のキーコードがある位置は無視される。
+    位置指定が無効の場合は空文字を返す。
+    """
+    _chk_argscount(args, 2, "KEYCODETEXT", line, pos)
+    args_r = _all_eval(args)
+    header = _header_from(args_r[0], "KEYCODETEXT", 0)
+    index = int(_chk_minvalue(args_r[1], "KEYCODETEXT", 0)) - 1
+    if header is None:
+        return StringValue("", line, pos)
+
+    keycode = ""
+    try:
+        keycode = header.get_keycode_at_excluding_empty(index)
+    except IndexError:
+        pass
+    return StringValue(keycode, line, pos)
+
+
 def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], option: CalcOption, line: int,
                       pos: int) -> StructureValue:
     """構造体のインスタンスを生成する。"""
@@ -1982,10 +2125,13 @@ _functions = {
     "partymoney": _func_partymoney,
     "partynumber": _func_partynumber,
     "yadoname": _func_yadoname,
+    "skintype": _func_skintype,
     "battleround": _func_battleround,
     "castlevel": _func_castlevel,
     "couponvalue": _func_couponvalue,
     "liferatio": _func_liferatio,
+    "statusvalue": _func_statusvalue,
+    "statusround": _func_statusround,
     "selectedcard": _func_selectedcard,
     "cardname": _func_cardname,
     "cardtype": _func_cardtype,
@@ -1993,6 +2139,8 @@ _functions = {
     "cardprice": _func_cardprice,
     "cardlevel": _func_cardlevel,
     "cardcount": _func_cardcount,
+    "findkeycode": _func_findkeycode,
+    "keycodetext": _func_keycodetext,
 }
 
 
