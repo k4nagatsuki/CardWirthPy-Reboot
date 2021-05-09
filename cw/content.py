@@ -1312,6 +1312,9 @@ class BranchSelectContent(BranchContent):
                 pcard = cw.cwpy.dice.choice(pcards)
                 cw.cwpy.event.set_selectedmember(pcard)
                 index = 0
+            else:
+                # BUG: CardWirthでは選択可能なメンバがいなければメンバ選択が解除される
+                cw.cwpy.event.clear_selectedmember()
         elif self.method == "Valued":
             # 評価条件による選択(Wsn.1)
             pcard = self.get_valuedmember(mode)
