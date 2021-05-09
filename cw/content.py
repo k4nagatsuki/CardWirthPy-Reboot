@@ -1780,6 +1780,9 @@ class BranchKeyCodeContent(BranchContent):
         header = None
         success = False
 
+        if not self.keycode:
+            return self.get_boolean_index(success)
+
         if self.targetkc == "SelectedCard":
             # 選択カードのキーコードを判定(Wsn.3)
             selcard = cw.cwpy.event.get_selectedcard()
