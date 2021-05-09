@@ -1888,8 +1888,7 @@ def _func_selectedcard(args: List[Callable[[], ValueType]], option: CalcOption, 
         castindex = -1
         cardindex = cw.cwpy.ydata.party.backpack.index(header_orig) + 1
         actioncardid = -2
-    else:
-        assert isinstance(owner, cw.character.Character)
+    elif isinstance(owner, cw.character.Character):
         castindex = _ccard_index(owner)
         if header_orig.type == "ActionCard":
             cardindex = 0
@@ -1901,6 +1900,13 @@ def _func_selectedcard(args: List[Callable[[], ValueType]], option: CalcOption, 
             for i in range(0, pocket):
                 cardindex += len(owner.cardpocket[i])
             actioncardid = -2
+    else:
+        # 消滅済みのカード
+        assert owner is None
+        castindex = 0
+        cardindex = 0
+        actioncardid = -2
+
     args2 = [
         DecimalValue(decimal.Decimal(castindex), line, pos),
         DecimalValue(decimal.Decimal(cardindex), line, pos),
