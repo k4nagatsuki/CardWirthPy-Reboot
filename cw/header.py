@@ -16,7 +16,7 @@ import cw
 
 import wx
 
-from typing import BinaryIO, Callable, Union, Optional, Dict, List, Tuple
+from typing import BinaryIO, Callable, Union, Optional, Dict, List, Set, Tuple
 
 
 def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List["cw.image.ImageInfo"]:
@@ -2126,6 +2126,7 @@ class GetName(object):
 
         self.tagname = tagname
         self.name: str = ""
+        self.attrs: Dict[Optional[str], Dict[str, str]] = {}
         self.stack: List[str] = []
 
         parser = xml.parsers.expat.ParserCreate()
@@ -2141,7 +2142,15 @@ class GetName(object):
             f.close()
 
     def start_element(self, name: str, attrs: Dict[str, str]) -> None:
+        if 0 == len(self.stack):
+            # ルート要素の属性
+            self.attrs[None] = attrs
+
         self.stack.append(name)
+        if 3 == len(self.stack) and self.stack[1] == "Property":
+            self.attrs[name] = attrs
+        elif 2 == len(self.stack) and name == "Property":
+            self.attrs["."] = attrs
 
     def end_element(self, name: str) -> None:
         if self.stack[1:] == ["Property"]:
@@ -2157,7 +2166,8 @@ class GetName(object):
 
 class GetProperty(object):
     """XMLファイル中のProperty以下の内容を読む。"""
-    def __init__(self, fpath: str = "", stream: Optional[BinaryIO] = None) -> None:
+    def __init__(self, fpath: str = "", stream: Optional[BinaryIO] = None,
+                 tag: Optional[Union[str, Set[str]]] = None) -> None:
         if fpath and cw.fsync.is_waiting(fpath):
             cw.fsync.sync()
 
@@ -2165,6 +2175,10 @@ class GetProperty(object):
         self.attrs: Dict[Optional[str], Dict[str, str]] = {}
         self.stack: List[str] = []
         self.third: Dict[str, List[Tuple[str, Dict[str, str], str]]] = {}
+        if tag is None or isinstance(tag, set):
+            self.tag = tag
+        else:
+            self.tag = {tag}
 
         parser = xml.parsers.expat.ParserCreate()
         parser.StartElementHandler = self.start_element
@@ -2202,6 +2216,9 @@ class GetProperty(object):
 
     def end_element(self, name: str) -> None:
         if self.stack[1:] == ["Property"]:
+            raise Exception()
+        if self.tag is not None and len(self.stack[1:]) == 2 and self.stack[1:][0] == "Property" and\
+                self.stack[1:][1] in self.tag:
             raise Exception()
         self.stack.pop()
 
