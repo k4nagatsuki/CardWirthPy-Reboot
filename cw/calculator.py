@@ -2111,6 +2111,7 @@ _symbols = {
     "skill": decimal.Decimal(1),
     "item": decimal.Decimal(2),
     "beast": decimal.Decimal(3),
+    "actioncard": decimal.Decimal(-1),
     "rare": decimal.Decimal(1),
     "premier": decimal.Decimal(2),
     "poison": decimal.Decimal(8),
@@ -2416,6 +2417,7 @@ assert _assert_d("FRIEND", 3)
 assert _assert_d("SKILL", 1)
 assert _assert_d("ITEM", 2)
 assert _assert_d("BEAST", 3)
+assert _assert_d("ACTIONCARD", -1)
 assert _assert_d("RARE", 1)
 assert _assert_d("PREMIER", 2)
 assert _assert_d("-PREMIER", -2)

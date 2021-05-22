@@ -20,8 +20,24 @@
     * `SKILL(1)`
     * `ITEM(2)`
     * `BEAST(3)`
+    * `ACTIONCARD(-1)`
     * `RARE(1)`
     * `PREMIER(2)`
+    * `POISON(8)`
+    * `SLEEP(9)`
+    * `BIND(10)`
+    * `PARALYZE(11)`
+    * `CONFUSE(12)`
+    * `OVERHEAT(13)`
+    * `BRAVE(14)`
+    * `PANIC(15)`
+    * `SILENCE(16)`
+    * `FACEUP(17)`
+    * `ANTIMAGIC(18)`
+    * `ENHACTION(19)`
+    * `ENHAVOID(20)`
+    * `ENHRESIST(21)`
+    * `ENHDEFENSE(22)`
 
 ### WSNシナリオ形式の仕様変更(Wsn.5)
 
