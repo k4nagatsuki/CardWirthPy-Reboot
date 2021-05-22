@@ -1952,6 +1952,12 @@ class PartySelect(MultiViewSelect[cw.header.PartyHeader]):
             self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
 
+        self._image_cache: Dict[str, Tuple[List[wx.Bitmap],
+                                           List[wx.Bitmap],
+                                           List[wx.Bitmap],
+                                           Optional[cw.header.ScenarioHeader],
+                                           List[cw.image.ImageInfo]]] = {}
+
         self.draw(True)
 
     def save_views(self, multi: bool) -> None:
@@ -2269,6 +2275,11 @@ class PartySelect(MultiViewSelect[cw.header.PartyHeader]):
                                                               Optional[cw.header.ScenarioHeader],
                                                               List[cw.image.ImageInfo]]:
             assert cw.cwpy.ydata
+
+            t = self._image_cache.get(header.fpath, None)
+            if t is not None:
+                return t
+
             sceheader = header.get_sceheader()
 
             if sceheader:
@@ -2302,7 +2313,7 @@ class PartySelect(MultiViewSelect[cw.header.PartyHeader]):
                 fpath = paths[0]
                 fpath = cw.util.get_yadofilepath(fpath)
                 if os.path.isfile(fpath):
-                    prop = cw.header.GetProperty(fpath)
+                    prop = cw.header.GetProperty(fpath, tag={"ImagePath", "ImagePaths"})
                     paths2 = cw.image.get_imageinfos_p(prop)
                     for info in paths2:
                         info.path = cw.util.join_yadodir(info.path)
@@ -2328,6 +2339,7 @@ class PartySelect(MultiViewSelect[cw.header.PartyHeader]):
                                 if maskcolour:
                                     bmp4.maskcolour = maskcolour
                                 bmp2.append((bmp3, bmp4, info))
+            self._image_cache[header.fpath] = (bmp, bmp_noscale, bmp2, sceheader, imgpaths)
             return bmp, bmp_noscale, bmp2, sceheader, imgpaths
 
         if self.views == 1:
