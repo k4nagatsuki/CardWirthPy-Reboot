@@ -28,8 +28,8 @@ BG_PC = 3
 
 ImageCellData = Tuple[str, bool, bool, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]
 TextCellData = Tuple[str, Optional[Sequence["cw.sprite.message.NameListItem"]], str, int, Tuple[int, int, int], bool,
-                     bool, bool, bool, bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Tuple[int, int],
-                     Tuple[int, int], str, bool, int, str]
+                     bool, bool, bool, bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str,
+                     Optional[Tuple[str, str]], Tuple[int, int], Tuple[int, int], str, bool, int, str]
 ColorCellData = Tuple[str, Tuple[int, int, int, int], str, Tuple[int, int, int, int], Tuple[int, int], Tuple[int, int],
                       str, bool, int, str]
 PCCellData = Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]
@@ -576,6 +576,18 @@ class BackGround(base.CWPySprite):
         btype = e.getattr("Bordering", "type", "None")
         bcolor: Optional[Tuple[int, int, int]] = BackGround._getcolor(e, "Bordering/Color", 255, 255, 255, 255)[:3]
         bwidth = e.getint("Bordering", "width", 1)
+        if e.find("Scenario") is not None and e.find("Author") is not None:
+            scenario = e.gettext("Scenario", "")
+            author = e.gettext("Author", "")
+            scenarioinfo: Optional[Tuple[str, str]] = (scenario, author)
+        elif cw.cwpy.event.in_inusecardevent and cw.cwpy.event.get_inusecard():
+            inusecard = cw.cwpy.event.get_inusecard()
+            assert inusecard
+            scenarioinfo = (inusecard.scenario, inusecard.author)
+        elif cw.cwpy.is_playingscenario():
+            scenarioinfo = (cw.cwpy.sdata.name, cw.cwpy.sdata.author)
+        else:
+            scenarioinfo = None
         t, hasvisible = self._create_bgbasedata(e)
         if hasvisible:
             # visible属性を持つ場合はシナリオではなくScenarioLogの情報。
@@ -654,7 +666,7 @@ class BackGround(base.CWPySprite):
                 namelist = []
 
         return (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
-                btype, bcolor, bwidth, loaded, updatetype) + t
+                btype, bcolor, bwidth, loaded, updatetype, scenarioinfo) + t
 
     def _create_colorcelldata(self, e: cw.data.CWPyElement, ignoreeffectbooster: bool = False) -> ColorCellData:
         # カラーセル
@@ -818,11 +830,11 @@ class BackGround(base.CWPySprite):
             elif bgtype == BG_TEXT:
                 # テキストセル
                 assert d
-                assert len(d) == 22
+                assert len(d) == 23
                 # BUG: error: Argument 4 to "_add_textcell" of "BackGround" has incompatible type <union: 5 items>;
                 #      expected "Tuple[str, Optional[List[NameListItem]], str, int, Tuple[int, int, int], bool, bool,
-                #      bool, bool, bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Tuple[int, int],
-                #      Tuple[int, int], str, bool, int, str]" (mypy 0.790)
+                #      bool, bool, bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str,
+                #      Optional[Tuple[str, str]], Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
                 d = typing.cast(TextCellData, d)
                 if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
                     forcedraw = True
@@ -1021,7 +1033,7 @@ class BackGround(base.CWPySprite):
                       bgs: List[Tuple[int, Optional[CellData]]], oldbgs: List[Tuple[int, Optional[CellData]]],
                       d: TextCellData, nocheckvisible: bool = False) -> bool:
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
-            btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
+            btype, bcolor, bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible and namelist:
             if updatetype == "All":
                 namelist = None
@@ -1038,19 +1050,15 @@ class BackGround(base.CWPySprite):
         if flagvalue and not loaded:
             # テキストセルは最初の表示で内容が固定される
             text2 = cw.util.decodewrap(text)
-            # テキストセルではローカル変数やイメージ表示の特殊文字は使用しないので
-            # 使用時イベント内でも使用時イベント外と同じように動かす
-            in_inusecardevent = cw.cwpy.event.in_inusecardevent
-            cw.cwpy.event.in_inusecardevent = False
             text2, namelist = cw.sprite.message.rpl_specialstr(text2, basenamelist=namelist,
-                                                               updatetype=updatetype, localvariables=False)
-            cw.cwpy.event.in_inusecardevent = in_inusecardevent
+                                                               updatetype=updatetype, localvariables=False,
+                                                               scenarioinfo=scenarioinfo)
             # 2.0以降はloadedパラメータは使用しない
             # loaded = True
         else:
             text2 = text
         d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
-             btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, flagvalue, layer, cellname)
+             btype, bcolor, bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, flagvalue, layer, cellname)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能

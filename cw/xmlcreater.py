@@ -1153,14 +1153,14 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
 
         elif bgtype == cw.sprite.background.BG_TEXT:
             assert d
-            assert len(d) == 22
+            assert len(d) == 23
             # BUG: error: Argument 4 to "_add_textcell" of "BackGround" has incompatible type <union: 5 items>; expected
             #      "Tuple[str, Optional[List[NameListItem]], str, int, Tuple[int, int, int], bool, bool, bool, bool,
-            #      bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Tuple[int, int], Tuple[int, int],
-            #      str, bool, int, str]" (mypy 0.790)
+            #      bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Optional[Tuple[str, str]],
+            #      Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
             d = typing.cast(cw.sprite.background.TextCellData, d)
-            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
-                btype, bcolor, bwidth, loaded, updatetype, size, pos, flag, visible, layer, cellname = d
+            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias, btype, bcolor,\
+                bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, visible, layer, cellname = d
             attrs = {"visible": str(visible),
                      "loaded": str(loaded)}
             if cellname:
@@ -1183,6 +1183,11 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             e_bgimg.append(e)
             e = cw.data.make_element("UpdateType", updatetype)
             e_bgimg.append(e)
+            if scenarioinfo and scenarioinfo[0] is not None and scenarioinfo[1] is not None:
+                e = cw.data.make_element("Scenario", scenarioinfo[0])
+                e_bgimg.append(e)
+                e = cw.data.make_element("Author", scenarioinfo[1])
+                e_bgimg.append(e)
 
             if btype != "None":
                 assert bcolor

@@ -729,7 +729,7 @@ class MessageWindow(base.CWPySprite):
                       name_table: Dict[str, _NameData],
                       basenamelist: Optional[Sequence["NameListItem"]], startindex: int, spcharinfo: Optional[Set[int]],
                       namelist: Optional[List["NameListItem"]], namelistindex: int,
-                      stack: int) -> Tuple[Optional[str], int]:
+                      scenarioinfo: Optional[Tuple[str, str]], stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.step_table:
                 v = self.step_table[key]
@@ -751,14 +751,14 @@ class MessageWindow(base.CWPySprite):
             s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table,
                                                      self.get_stepvalue, self.get_flagvalue, self.get_variantvalue,
                                                      basenamelist, startindex, spcharinfo,
-                                                     namelist, namelistindex, stack+1)
+                                                     namelist, namelistindex, scenarioinfo, stack+1)
         return s, namelistindex
 
     def get_flagvalue(self, key: str, full: int, updatetype: str,
                       name_table: Dict[str, _NameData],
                       basenamelist: Optional[Sequence["NameListItem"]], startindex: int, spcharinfo: Optional[Set[int]],
                       namelist: Optional[List["NameListItem"]], namelistindex: int,
-                      stack: int) -> Tuple[Optional[str], int]:
+                      scenarioinfo: Optional[Tuple[str, str]], stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.flag_table:
                 v = self.flag_table[key]
@@ -778,21 +778,22 @@ class MessageWindow(base.CWPySprite):
             s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table,
                                                      self.get_stepvalue, self.get_flagvalue, self.get_variantvalue,
                                                      basenamelist, startindex, spcharinfo,
-                                                     namelist, namelistindex, stack+1)
+                                                     namelist, namelistindex, scenarioinfo, stack+1)
         return s, namelistindex
 
     def get_variantvalue(self, key: str, full: int, updatetype: str,
                          name_table: Dict[str, _NameData],
                          basenamelist: Optional[Sequence["NameListItem"]], startindex: int,
                          spcharinfo: Optional[Set[int]], namelist: Optional[List["NameListItem"]], namelistindex: int,
-                         stack: int) -> Tuple[Optional[str], int]:
+                         scenarioinfo: Optional[Tuple[str, str]], stack: int) -> Tuple[Optional[str], int]:
         if self.backlog:
             if key in self.variant_table:
                 v = self.variant_table[key]
             else:
                 return None, namelistindex
         else:
-            v2 = cw.cwpy.sdata.find_variant(key, _is_differentscenario(), cw.cwpy.event.get_nowrunningevent())
+            v2 = cw.cwpy.sdata.find_variant(key, _is_differentscenario(scenarioinfo),
+                                            cw.cwpy.event.get_nowrunningevent())
             if v2 is None:
                 return None, namelistindex
             v = v2
@@ -1424,7 +1425,8 @@ def get_pointlist(size: Tuple[int, int], pos: Tuple[int, int] = (0, 0)) -> Tuple
 
 def rpl_specialstr(s: str, basenamelist: Optional[Sequence["NameListItem"]] = None, expandsharps: bool = True,
                    updatetype: str = "All", localvariables: bool = True,
-                   show_cardname: bool = True) -> Tuple[str, Sequence["NameListItem"]]:
+                   show_cardname: bool = True,
+                   scenarioinfo: Optional[Tuple[str, str]] = None) -> Tuple[str, Sequence["NameListItem"]]:
     """
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
@@ -1437,11 +1439,11 @@ def rpl_specialstr(s: str, basenamelist: Optional[Sequence["NameListItem"]] = No
         full |= _SP_CARD_NAME
     try:
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
-                            basenamelist=basenamelist)
+                            basenamelist=basenamelist, scenarioinfo=scenarioinfo)
     except Exception:
         cw.util.print_ex()
         r = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue, _get_variantvalue,
-                            basenamelist=None)
+                            basenamelist=None, scenarioinfo=scenarioinfo)
     return r[0], r[2]
 
 
@@ -1551,7 +1553,8 @@ def _create_nametable(full: int, talker: Optional[Union[cw.character.Character, 
 def _get_stepvalue(key: str, full: int, updatetype: str,
                    name_table: Dict[str, _NameData],
                    basenamelist: Optional[Sequence[NameListItem]], startindex: int, spcharinfo: Optional[Set[int]],
-                   namelist: Optional[List[NameListItem]], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
+                   namelist: Optional[List[NameListItem]], namelistindex: int, scenarioinfo: Optional[Tuple[str, str]],
+                   stack: int) -> Tuple[Optional[str], int]:
     # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
     v = cw.cwpy.sdata.find_step(key, False,
                                 cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
@@ -1579,7 +1582,7 @@ def _get_stepvalue(key: str, full: int, updatetype: str,
         # 特殊文字の展開(Wsn.2)
         s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue,
                                                  _get_variantvalue, basenamelist, startindex, spcharinfo, namelist,
-                                                 namelistindex, stack+1)
+                                                 namelistindex, scenarioinfo, stack+1)
     return s, namelistindex
 
 
@@ -1644,7 +1647,8 @@ def _get_spstep(name: str, full: int, updatetype: str, basenamelist: Optional[Se
 def _get_flagvalue(key: str, full: int, updatetype: str,
                    name_table: Dict[str, _NameData],
                    basenamelist: Optional[Sequence[NameListItem]], startindex: int, spcharinfo: Optional[Set[int]],
-                   namelist: Optional[List[NameListItem]], namelistindex: int, stack: int) -> Tuple[Optional[str], int]:
+                   namelist: Optional[List[NameListItem]], namelistindex: int, scenarioinfo: Optional[Tuple[str, str]],
+                   stack: int) -> Tuple[Optional[str], int]:
     # BUG: CardWirthでは状態変数値の表示で異なるシナリオかのチェックは行われない
     v = cw.cwpy.sdata.find_flag(key, False,
                                 cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
@@ -1670,7 +1674,7 @@ def _get_flagvalue(key: str, full: int, updatetype: str,
         # 特殊文字の展開(Wsn.2)
         s, _, _, namelistindex = _rpl_specialstr(full, updatetype, s, name_table, _get_stepvalue, _get_flagvalue,
                                                  _get_variantvalue, basenamelist, startindex, spcharinfo, namelist,
-                                                 namelistindex, stack+1)
+                                                 namelistindex, scenarioinfo, stack+1)
     return s, namelistindex
 
 
@@ -1678,8 +1682,8 @@ def _get_variantvalue(key: str, full: int, updatetype: str,
                       name_table: Dict[str, _NameData],
                       basenamelist: Optional[Sequence[NameListItem]], startindex: int, spcharinfo: Optional[Set[int]],
                       namelist: Optional[List[NameListItem]], namelistindex: int,
-                      stack: int) -> Tuple[Optional[str], int]:
-    v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(),
+                      scenarioinfo: Optional[Tuple[str, str]], stack: int) -> Tuple[Optional[str], int]:
+    v = cw.cwpy.sdata.find_variant(key, _is_differentscenario(scenarioinfo),
                                    cw.cwpy.event.get_nowrunningevent() if (full & _SP_LOCAL_VARIABLES) != 0 else None)
     if v is not None:
         if basenamelist is not None:
@@ -1702,11 +1706,13 @@ def _get_variantvalue(key: str, full: int, updatetype: str,
     return s, namelistindex
 
 
-def _is_differentscenario() -> bool:
+def _is_differentscenario(scenarioinfo: Optional[Tuple[str, str]]) -> bool:
     if cw.cwpy.is_playingscenario():
         inusecard = cw.cwpy.event.get_inusecard()
         if cw.cwpy.event.in_inusecardevent and inusecard:
-            return inusecard.scenario != cw.cwpy.sdata.name or inusecard.author != cw.cwpy.sdata.author
+            if scenarioinfo is None:
+                scenarioinfo = (inusecard.scenario, inusecard.author)
+            return (cw.cwpy.sdata.name, cw.cwpy.sdata.author) != scenarioinfo
         else:
             return False
     else:
@@ -1724,19 +1730,20 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
                     name_table: Dict[str, _NameData],
                     get_step: Callable[[str, int, str, Dict[str, _NameData],
                                         Optional[Sequence[NameListItem]], int, Optional[Set[int]],
-                                        Optional[List[NameListItem]], int, int],
+                                        Optional[List[NameListItem]], int, Optional[Tuple[str, str]], int],
                                        Tuple[Optional[str], int]],
                     get_flag: Callable[[str, int, str, Dict[str, _NameData],
                                         Optional[Sequence[NameListItem]], int, Optional[Set[int]],
-                                        Optional[List[NameListItem]], int, int],
+                                        Optional[List[NameListItem]], int, Optional[Tuple[str, str]], int],
                                        Tuple[Optional[str], int]],
                     get_variant: Callable[[str, int, str, Dict[str, _NameData],
                                            Optional[Sequence[NameListItem]], int, Optional[Set[int]],
-                                           Optional[List[NameListItem]], int, int],
+                                           Optional[List[NameListItem]], int, Optional[Tuple[str, str]], int],
                                           Tuple[Optional[str], int]],
                     basenamelist: Optional[Sequence[NameListItem]] = None,
                     startindex: int = 0, spcharinfo: Optional[Set[int]] = None,
                     namelist: Optional[List[NameListItem]] = None, namelistindex: int = 0,
+                    scenarioinfo: Optional[Tuple[str, str]] = None,
                     stack: int = 0) -> Tuple[str, Set[int], Sequence[NameListItem], int]:
     """
     特殊文字列(#, $)を置換した文字列を返す。
@@ -1764,6 +1771,7 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
                                         Optional[Set[int]],
                                         Optional[List[NameListItem]],
                                         int,
+                                        Optional[Tuple[str, str]],
                                         int],
                                        Tuple[Optional[str], int]],
                          c: str, namelistindex: int) -> Tuple[int, int]:
@@ -1774,7 +1782,7 @@ def _rpl_specialstr(full: int, updatetype: str, s: str,
                 return 0, namelistindex
             fl = s[i+1:i+1+nextpos]
             val, namelistindex = get(fl, full, updatetype, name_table, basenamelist, buflen, spcharinfo, namelist,
-                                     namelistindex, stack)
+                                     namelistindex, scenarioinfo, stack)
             if val is None:
                 if (full & _SP_FULL) == 0 and c in ('$', '%'):
                     # BUG: 存在しない状態変数を表示しようとすると
