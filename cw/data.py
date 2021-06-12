@@ -3591,7 +3591,7 @@ class YadoData(object):
         cw.util.remove(self.tempdir)
 
         # BUG: 環境によってファイルやフォルダの削除が失敗する事がある
-        #      (WindowsError: [Error 5] アクセスが拒否されました)。
+        #      (OSError: [Error 5] アクセスが拒否されました)。
         #      そうしたファイルは削除リストに残しておき、後で削除する。
         for path in delfailurepaths:
             self.deletedpaths.add(path)

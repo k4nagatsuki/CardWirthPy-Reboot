@@ -2360,7 +2360,7 @@ def remove_file(path: str, retry: int = 0, trashbox: bool = False) -> None:
             send_trashbox(path)
         else:
             os.remove(path)
-    except WindowsError as err:
+    except OSError as err:
         if err.errno == 13 and retry < 5:
             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
             remove_file(path, retry + 1, trashbox=trashbox)
@@ -2383,7 +2383,7 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
             send_trashbox(treepath)
         else:
             shutil.rmtree(treepath)
-    except WindowsError as err:
+    except OSError as err:
         if err.errno == 13 and retry < 5 and not noretry:
             for dpath, dnames, fnames in os.walk(treepath):
                 for dname in dnames:
@@ -2391,7 +2391,7 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
                     if os.path.isdir(path):
                         try:
                             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                        except WindowsError:
+                        except OSError:
                             print_ex()
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
@@ -2402,7 +2402,7 @@ def remove_tree(treepath: str, retry: int = 0, noretry: bool = False, trashbox: 
                     if os.path.isfile(path):
                         try:
                             os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                        except WindowsError:
+                        except OSError:
                             print_ex()
                             time.sleep(1)
                             remove_tree2(treepath, trashbox=trashbox)
