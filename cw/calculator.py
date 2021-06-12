@@ -339,6 +339,14 @@ class Operator(object):
             return o == "="
 
         if not in_list and (isinstance(lhs, StringValue) or isinstance(rhs, StringValue)):
+            if isinstance(lhs, ListValue):
+                raise SemanticsException("rhs [%s] is not list." % rhs.to_str(), rhs.line, rhs.pos)
+            elif isinstance(lhs, StructureValue):
+                raise SemanticsException("rhs [%s] is not structure." % (rhs.to_str()), rhs.line, rhs.pos)
+            elif isinstance(rhs, ListValue):
+                raise SemanticsException("lhs [%s] is not list." % lhs.to_str(), lhs.line, lhs.pos)
+            elif isinstance(rhs, StructureValue):
+                raise SemanticsException("lhs [%s] is not structure." % (lhs.to_str()), lhs.line, lhs.pos)
             r = lhs.to_str() == rhs.to_str()
         elif isinstance(lhs, StringValue):
             if in_list and not isinstance(rhs, StringValue):
