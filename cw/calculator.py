@@ -1235,6 +1235,9 @@ def _func_str(args: List[Callable[[], ValueType]], option: CalcOption, line: int
     """引数を文字列に変換する。"""
     _chk_argscount(args, 1, "STR", line, pos)
     args_r = _all_eval(args)
+    for i, a in enumerate(args_r):
+        if isinstance(a, ListValue) or isinstance(a, StructureValue):
+            raise InvalidArgumentException("Invalid argument: %s" % a.to_str(), "STR", i, a.to_str(), a.line, a.pos)
     return StringValue(args_r[0].to_str(), line, pos)
 
 
