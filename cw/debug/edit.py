@@ -1682,14 +1682,16 @@ class VariantEditDialog(wx.Dialog):
             except Exception:
                 self.value_num.SetValue("0")
             self.value_num.Enable()
-        elif isinstance(value, str):
+        elif isinstance(value, str) and "\n" not in value:
+            # 改行なし文字列
             self.type_str.SetValue(True)
             self.value_str.SetValue(cw.data.Variant.value_to_str(value))
             self.value_str.Enable()
         else:
-            assert isinstance(value, (list, cw.data.StructVal))
+            # 改行あり文字列・リスト・構造体は式として展開・設定する
+            assert isinstance(value, (str, list, cw.data.StructVal))
             self.type_expr.SetValue(True)
-            self.value_expr.SetValue(cw.data.Variant.value_to_str(value))
+            self.value_expr.SetValue(cw.data.Variant.value_to_str(value, splitlines=True))
             self.value_expr.Enable()
 
         # btn

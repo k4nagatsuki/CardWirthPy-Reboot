@@ -2552,12 +2552,12 @@ class Variant(object):
             raise ValueError("Invalid variant type: %s" % vtype)
 
     @staticmethod
-    def value_to_str(value: VariantValueType) -> str:
+    def value_to_str(value: VariantValueType, splitlines: bool = False) -> str:
         def to_str(val: VariantValueType) -> str:
-            if isinstance(val, str):
+            if isinstance(val, str) and not (splitlines and "\n" in val):
                 return "\"" + val.replace("\"", "\"\"") + "\""
             else:
-                return Variant.value_to_str(val)
+                return Variant.value_to_str(val, splitlines=splitlines)
 
         if isinstance(value, bool):
             return str(value).upper()
@@ -2567,7 +2567,10 @@ class Variant(object):
                 s = "0"
             return s
         elif isinstance(value, str):
-            return value
+            if splitlines and "\n" in value:
+                return " ~ NEWLINE ~ ".join(map(lambda s: to_str(s), value.splitlines()))
+            else:
+                return value
         elif isinstance(value, StructVal):
             members = cw.calculator.cut_optionalmembers(value.name, value.members)
             return value.name.upper() + "(" + ", ".join(map(to_str, members)) + ")"

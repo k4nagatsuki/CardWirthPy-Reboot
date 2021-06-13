@@ -2105,7 +2105,7 @@ class VariableListCtrl(wx.ListCtrl):
         elif isinstance(i, cw.data.Step):
             return i.get_valuename()
         elif isinstance(i, cw.data.Variant):
-            return i.string_value()
+            return cw.data.Variant.value_to_str(i.value, splitlines=True)
         else:
             return ""
 

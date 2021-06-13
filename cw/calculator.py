@@ -9,7 +9,7 @@ import fnmatch
 import cw
 
 import typing
-from typing import Callable, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 
 class ComputeException(Exception):
@@ -2114,8 +2114,9 @@ def _create_structure(info: StructureInfo, args: List[Callable[[], ValueType]], 
     return StructureValue(info.name, args2, line, pos)
 
 
-_symbols = {
+_symbols: Dict[str, cw.data.VariantValueType] = {
     # Wsn.5
+    "newline": "\n",
     "player": decimal.Decimal(1),
     "enemy": decimal.Decimal(2),
     "friend": decimal.Decimal(3),
@@ -2431,6 +2432,8 @@ assert _assert_d("BEAST", 3)
 assert _assert_d("ACTIONCARD", -1)
 assert _assert_d("RARE", 1)
 assert _assert_d("PREMIER", 2)
+assert _assert_s("NEWLINE", "\n")
+
 assert _assert_d("-PREMIER", -2)
 assert _assert_d("-+--PREMIER + PLAYER", -1)
 assert _assert_b("PLAYER = SKILL", True)
@@ -2438,6 +2441,7 @@ assert _assert_b("ENEMY > SKILL", True)
 assert _assert_d("ENEMY + SKILL + PREMIER", 5)
 assert _assert_s("MID(\"_test_\", enemy, Friend)", "tes")
 assert _assert_b("LIST(FRIEND - RARE, \"X\" ~ PREMIER ~ PLAYER) = LIST(2, \"X21\")", True)
+assert _assert_s("\"A\" ~ newline ~ \"B\"", "A\nB")
 
 assert _assert_d("POISON", 8)
 assert _assert_d("SLEEP", 9)
