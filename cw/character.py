@@ -2369,18 +2369,7 @@ class Character(object):
         vit = max(1, int(self.physical["vit"]))
         minval = max(1, int(self.physical["min"]))
 
-        coeff = self.data.getfloat("Property/Life", "coefficient", 0.0)
-        if coeff <= 0.0:
-            maxlife = calc_maxlife(vit, minval, self.level)
-            if int(maxlife) == self.maxlife:
-                coeff = 1
-            else:
-                # 最大HP10でレベル10のキャラクタのレベルを9に下げたら
-                # 最大HPが90に増えてしまった、というような問題を
-                # 避けるため、計算上の体力と実際の最大体力が食い違う
-                # 場合は計算用係数を付与する
-                coeff = float(self.maxlife) / int(maxlife)
-                self.data.edit("Property/Life", str(coeff), "coefficient")
+        coeff = calc_lifecoefficient(self.data, self.level, self.maxlife, vit, minval)
 
         self.level = value
         self.data.edit("Property/Level", str(self.level))
@@ -3482,6 +3471,22 @@ def calc_maxlife(vit: int, minval: int, level: int) -> int:
 
 assert calc_maxlife(8, 5, 10) == 90
 assert calc_maxlife(9, 5, 10) == 96
+
+
+def calc_lifecoefficient(data: cw.data.CWPyElementTree, level: int, maxlife: int, vit: int, minval: int) -> float:
+    coeff = data.getfloat("Property/Life", "coefficient", 0.0)
+    if coeff <= 0.0:
+        maxlife2 = calc_maxlife(vit, minval, level)
+        if maxlife2 == maxlife:
+            coeff = 1
+        else:
+            # 最大HP10でレベル10のキャラクタのレベルを9に下げたら
+            # 最大HPが90に増えてしまった、というような問題を
+            # 避けるため、計算上の体力と実際の最大体力が食い違う
+            # 場合は計算用係数を付与する
+            coeff = float(maxlife) / maxlife2
+            data.edit("Property/Life", str(coeff), "coefficient")
+    return coeff
 
 
 class Enemy(Character):

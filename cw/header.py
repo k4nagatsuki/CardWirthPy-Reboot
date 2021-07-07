@@ -1387,6 +1387,13 @@ class AdventurerHeader(object):
         advdata.brave = m.getfloat(".", "brave", 0.0)
         advdata.cautious = m.getfloat(".", "cautious", 0.0)
         advdata.trickish = m.getfloat(".", "trickish", 0.0)
+
+        # 生命点計算用の係数
+        maxlife = data.getint("Property/Life", "max")
+        vit = max(1, advdata.vit)
+        minval = max(1, advdata.min)
+        coeff = cw.character.calc_lifecoefficient(data, self.level, maxlife, vit, minval)
+
         race = self.get_race()
         advdata.maxdex = race.dex + 6
         advdata.maxagl = race.agl + 6
@@ -1398,6 +1405,14 @@ class AdventurerHeader(object):
         cw.cwpy.setting.periods[index].demodulate(advdata, mental=False)
         cw.cwpy.setting.periods[index + 1].modulate(advdata, mental=False)
         cw.features.wrap_ability(advdata)
+
+        vit = max(1, advdata.vit)
+        minval = max(1, advdata.min)
+        maxlife = cw.character.calc_maxlife(vit, minval, self.level)
+        if coeff != 1.0:
+            maxlife = round(maxlife * coeff)
+        data.edit("Property/Life", str(maxlife))
+        data.edit("Property/Life", str(maxlife), "max")
 
         p.set("dex", str(int(advdata.dex)))
         p.set("agl", str(int(advdata.agl)))
