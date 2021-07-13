@@ -127,6 +127,7 @@ class BattleEngine(object):
         """戦闘行動を開始する。1ラウンド分の処理。"""
         cw.cwpy.clear_selection()
         cw.cwpy.clear_fcardsprites()
+        assert all(map(lambda fcard: fcard.status == "hidden", cw.cwpy.get_fcards()))
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
             self.end(f9=True)
@@ -175,6 +176,7 @@ class BattleEngine(object):
             assert not cw.cwpy.event.in_cardeffectmotion
             assert not cw.cwpy.event.in_inusecardevent
             assert cw.cwpy.event.get_inusecard() is None
+            assert member.status == "hidden" if isinstance(member, cw.sprite.card.FriendCard) else True
 
             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                 self.end(f9=True)
@@ -284,6 +286,8 @@ class BattleEngine(object):
         cw.cwpy.disposition_pcards()
         if cw.cwpy.is_debugmode() and cw.cwpy.setting.show_fcardsinbattle:
             cw.cwpy.add_fcardsprites(status="normal", alpha=192)
+        else:
+            assert all(map(lambda fcard: fcard.status == "hidden", cw.cwpy.get_fcards()))
         if redraw:
             self._ready = True
             cw.cwpy.statusbar.change()
@@ -301,6 +305,7 @@ class BattleEngine(object):
 
     def update_showfcards(self) -> None:
         cw.cwpy.clear_fcardsprites()
+        assert all(map(lambda fcard: fcard.status == "hidden", cw.cwpy.get_fcards()))
         if cw.cwpy.is_debugmode() and\
                 cw.cwpy.setting.show_fcardsinbattle and\
                 self.is_ready():
@@ -312,6 +317,7 @@ class BattleEngine(object):
         """
         assert cw.cwpy.sdata.events
         cw.cwpy.clear_fcardsprites()
+        assert all(map(lambda fcard: fcard.status == "hidden", cw.cwpy.get_fcards()))
         self.clear_playersaction()
         event = cw.cwpy.sdata.events.check_keynum(2)
         self._ranaway = True
@@ -323,6 +329,7 @@ class BattleEngine(object):
             try:
                 cw.cwpy.clear_selection()
                 cw.cwpy.clear_fcardsprites()
+                assert all(map(lambda fcard: fcard.status == "hidden", cw.cwpy.get_fcards()))
                 self._ready = False
                 self._running = True
                 cw.cwpy.sdata.start_event(keynum=2)
