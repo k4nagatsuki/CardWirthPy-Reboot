@@ -396,6 +396,12 @@ class Effect(object):
             cw.cwpy.play_sound("bind", True)
             override_dealspeed = cw.cwpy.override_dealspeed
             force_dealspeed = cw.cwpy.force_dealspeed
+            if isinstance(absorbto, cw.sprite.card.FriendCard):
+                cw.add_layer(cw.cwpy.cardgrp, absorbto, layer=cw.layer_val(absorbto.tlayer))
+                newlife = absorbto.life
+                absorbto.life = userlife
+                cw.animation.animate_sprite(absorbto, "deal", battlespeed=self.battlespeed)
+                absorbto.life = newlife
             try:
                 if self.cardspeed != -1:
                     if self.overridecardspeed:
@@ -408,6 +414,11 @@ class Effect(object):
                 absorbto.update_image()
                 cw.animation.animate_sprite(absorbto, "deal", battlespeed=self.battlespeed)
             finally:
+                if isinstance(absorbto, cw.sprite.card.FriendCard):
+                    waitrate = (self._get_cardspeed(target)+1) * 2
+                    cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                    cw.animation.animate_sprite(absorbto, "hide", battlespeed=self.battlespeed)
+                    cw.cwpy.cardgrp.remove(absorbto)
                 cw.cwpy.override_dealspeed = override_dealspeed
                 cw.cwpy.force_dealspeed = force_dealspeed
 

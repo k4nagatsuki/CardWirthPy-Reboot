@@ -1015,6 +1015,7 @@ class Character(object):
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
+                assert self.status == "hidden"
             else:
                 # カード消去
                 cw.cwpy.clear_inusecardimg(self)
@@ -1025,6 +1026,7 @@ class Character(object):
                     cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                     self.clear_zoomimgs()
                     cw.cwpy.cardgrp.remove(self)
+                    assert self.status == "hidden"
                 else:
                     removeafter = True
         else:
@@ -1082,6 +1084,7 @@ class Character(object):
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 self.clear_zoomimgs()
                 cw.cwpy.cardgrp.remove(self)
+                assert self.status == "hidden"
             if (not is_scenariocard or e_mates is not None) and cw.cwpy.is_playingscenario():
                 # 特殊文字を元に戻す
                 cw.cwpy.rsrc.specialchars = specialchars
@@ -1135,6 +1138,7 @@ class Character(object):
                         continue
 
                     self.use_card(targets_b, header_b)
+                    assert self.status == "hidden" if isinstance(self, cw.sprite.card.FriendCard) else True
 
                     # 戦闘勝利チェック
                     if cw.cwpy.is_battlestatus() and cw.cwpy.battle.check_win():
@@ -1159,6 +1163,7 @@ class Character(object):
                         self.use_card(targets, header)
                     finally:
                         # usedは画面スケール変更等で差し変わっている場合があるためここで再取得する
+                        assert self.status == "hidden" if isinstance(self, cw.sprite.card.FriendCard) else True
                         used = self.deck.get_used()
                         if used:
                             self.deck.use(used)

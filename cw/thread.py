@@ -4902,6 +4902,8 @@ class CWPy(threading.Thread):
                 pcard.inusecardimg = None
             for mcard in self.get_mcards():
                 mcard.inusecardimg = None
+            for fcard in self.get_fcards():
+                fcard.inusecardimg = None
 
             for inusecard in self.inusecards:
                 inusecard.group.remove(inusecard)
