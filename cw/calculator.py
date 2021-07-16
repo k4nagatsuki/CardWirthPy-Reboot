@@ -1309,20 +1309,20 @@ def _func_var(args: List[Callable[[], ValueType]], option: CalcOption, line: int
         raise VariantNotFoundException("Variant \"%s\" is not found.", path, args_r[0].line, args_r[0].pos)
 
     if variant.type == "Boolean":
-        assert isinstance(variant.value, bool)
+        assert isinstance(variant.value, bool), variant.value
         return BooleanValue(variant.value, line, pos)
     elif variant.type == "Number":
-        assert isinstance(variant.value, decimal.Decimal)
+        assert isinstance(variant.value, decimal.Decimal), variant.value
         return DecimalValue(variant.value, line, pos)
     elif variant.type == "String":
-        assert isinstance(variant.value, str)
+        assert isinstance(variant.value, str), variant.value
         return StringValue(variant.value, line, pos)
     elif variant.type == "List":
-        assert isinstance(variant.value, list)
+        assert isinstance(variant.value, list), variant.value
         return _variantvalue_to_valuetype(variant.value, line, pos)
     else:
-        assert variant.type == "Structure"
-        assert isinstance(variant.value, cw.data.StructVal)
+        assert variant.type == "Structure", variant.type
+        assert isinstance(variant.value, cw.data.StructVal), variant.value
         return _variantvalue_to_valuetype(variant.value, line, pos)
 
 
