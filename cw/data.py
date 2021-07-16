@@ -295,7 +295,9 @@ class SystemData(object):
                 name = e_name.text
             if name in self.variants:
                 v_value = Variant.value_from_element(e)
-                self.variants[name].value = v_value
+                v = self.variants[name]
+                v.type = Variant.value_to_type(v_value)
+                v.value = v_value
 
     def reset_variables(self) -> None:
         """すべての状態変数を初期化する。"""
