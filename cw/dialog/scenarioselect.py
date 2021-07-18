@@ -2321,7 +2321,7 @@ class ScenarioSelect(select.Select[Union[cw.header.ScenarioHeader, str, "FindRes
         while upi <= cw.UP_WIN:
             up.append(upi)
             upi *= 2
-        if cw.UP_WIN in up and False:
+        if cw.UP_WIN in up:
             dest = cw.util.copy_wxbmp(bmp, usebuffer=True)
             dc = wx.MemoryDC(dest)
         else:
