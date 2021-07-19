@@ -1323,7 +1323,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
         if self.callname in ("STOREHOUSE", "BACKPACK"):
             assert isinstance(self, CardHolder)
             sendto = self.combo.GetSelection()
-            if sendto in self._combo_cast:
+            if sendto in self._combo_cast or sendto in self._combo_personal:
                 y -= cw.wins(16)
 
         return wx.Rect(x-cw.wins(5), y-cw.wins(5), sw+cw.wins(10), sh+cw.wins(10)), x, y
