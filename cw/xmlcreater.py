@@ -1199,7 +1199,6 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             if namelist:
                 e = cw.data.make_element("Names")
                 for item in namelist:
-                    assert item.name is not None
                     s = str(item.name) if not isinstance(item.data, cw.data.Variant) else ""
                     e_name = cw.data.make_element("Name", s)
                     if isinstance(item.data, cw.data.YadoData):
@@ -1221,10 +1220,12 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                         e_name.set("variant", item.data.name)
                         if isinstance(item.name, list):
                             cw.data.Variant.value_to_element(item.name, e_name, typeattr="valuetype")
-                        else:
+                        elif isinstance(item.name, bool) or not isinstance(item.name, int):
                             assert isinstance(item.name, bool) or not isinstance(item.name, int)
                             e_name.set("valuetype", cw.data.Variant.value_to_type(item.name))
                             e_name.text = cw.data.Variant.value_to_str(item.name)
+                        else:
+                            assert item.name is not None
                     elif item.data == "Number":
                         e_name.set("type", "Number")
                     e.append(e_name)
