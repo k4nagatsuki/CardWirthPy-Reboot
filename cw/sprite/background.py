@@ -619,7 +619,7 @@ class BackGround(base.CWPySprite):
             try:
                 for e_name in e_names:
                     vtype = e_name.getattr(".", "type", "")
-                    name: Union[int, bool, cw.data.VariantValueType] = e_name.text
+                    name: Optional[Union[int, bool, cw.data.VariantValueType]] = e_name.text
                     assert isinstance(name, str)
                     data: Optional[Union[cw.data.YadoData, cw.data.Party, cw.character.Player,
                                          cw.data.Flag, cw.data.Step, cw.data.Variant, str]]
