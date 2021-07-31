@@ -1218,14 +1218,13 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                     elif isinstance(item.data, cw.data.Variant):
                         e_name.set("type", "Variant")
                         e_name.set("variant", item.data.name)
-                        if isinstance(item.name, list):
+                        if isinstance(item.name, list) or isinstance(item.name, cw.data.StructVal):
                             cw.data.Variant.value_to_element(item.name, e_name, typeattr="valuetype")
-                        elif isinstance(item.name, bool) or not isinstance(item.name, int):
-                            if item.name is not None:
-                                e_name.set("valuetype", cw.data.Variant.value_to_type(item.name))
-                                e_name.text = cw.data.Variant.value_to_str(item.name)
+                        elif item.name is not None:
+                            e_name.set("valuetype", cw.data.Variant.value_to_type(item.name))
+                            e_name.text = cw.data.Variant.value_to_str(item.name)
                         else:
-                            assert item.name is not None
+                            assert item.name is None
                     elif item.data == "Number":
                         e_name.set("type", "Number")
                     e.append(e_name)
