@@ -1221,8 +1221,16 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
                         if isinstance(item.name, list) or isinstance(item.name, cw.data.StructVal):
                             cw.data.Variant.value_to_element(item.name, e_name, typeattr="valuetype")
                         elif item.name is not None:
-                            e_name.set("valuetype", cw.data.Variant.value_to_type(item.name))
-                            e_name.text = cw.data.Variant.value_to_str(item.name)
+                            # BUG: cw\xmlcreater.py:1224: error: Argument 1 to "value_to_type" of "Variant" has
+                            #      incompatible type "Union[int, str, Decimal]"; expected "Union[str, Decimal, bool,
+                            #      List[Union[str, Decimal, bool]], StructVal]"
+                            #      cw\xmlcreater.py:1225: error: Argument 1 to "value_to_str" of "Variant" has
+                            #      incompatible type "Union[int, str, Decimal]"; expected "Union[str, Decimal, bool,
+                            #      List[Union[str, Decimal, bool]], StructVal]"
+                            #      (mypy 0.910)
+                            item_name = typing.cast(cw.data.VariantValueType, item.name)
+                            e_name.set("valuetype", cw.data.Variant.value_to_type(item_name))
+                            e_name.text = cw.data.Variant.value_to_str(item_name)
                         else:
                             assert item.name is None
                     elif item.data == "Number":
