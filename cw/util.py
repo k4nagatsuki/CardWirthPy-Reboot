@@ -2743,8 +2743,6 @@ def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
                     z.close()
                     remove(dstdir)
                     return ""
-        if isinstance(info, lhafile.LhaInfo) and info.compress_type == b"-lhd-":
-            continue
         name = decode_zipfilename(zname, info)
         normpath = os.path.normpath(name)
         if os.path.isabs(normpath):
@@ -2801,11 +2799,16 @@ def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
                 else:
                     continue
             else:
-                data = z.read(zname)
-                with open(fpath, "wb") as f:
-                    f.write(data)
-                    f.flush()
-                    f.close()
+                try:
+                    data = z.read(zname)
+                    with open(fpath, "wb") as f:
+                        f.write(data)
+                        f.flush()
+                        f.close()
+                except Exception:
+                    if isinstance(info, lhafile.LhaInfo) and info.compress_type == b"-lhd-":
+                        continue
+                    raise
 
             os.utime(fpath, (os.path.getatime(fpath), mtime))
 
