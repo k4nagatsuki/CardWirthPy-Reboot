@@ -2743,6 +2743,8 @@ def decompress_zip(path: str, dstdir: str, dname: str = "", startup: Optional[Ca
                     z.close()
                     remove(dstdir)
                     return ""
+        if isinstance(info, lhafile.LhaInfo) and info.compress_type == b"-lhd-":
+            continue
         name = decode_zipfilename(zname, info)
         normpath = os.path.normpath(name)
         if os.path.isabs(normpath):
