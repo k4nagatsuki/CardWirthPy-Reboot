@@ -2887,7 +2887,9 @@ class Character(object):
                 elif bgtype == cw.sprite.background.BG_TEXT:
                     assert d
                     namelist = d[1]
-                    assert isinstance(namelist, list)
+                    if namelist is None:
+                        continue
+                    assert isinstance(namelist, list), str(d)
                     for item in namelist:
                         if item.data is self:
                             # テキストセルに表示中の名前
