@@ -3351,9 +3351,8 @@ class HandView(CardControl[cw.header.CardHeader]):
         self.redeal.Show(cw.cwpy.is_debugmode())
 
         # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
-        if len(self.list2) == 1:
-            self.rightbtn.Disable()
-            self.leftbtn.Disable()
+        self.rightbtn.Enable(1 < len(self.list2))
+        self.leftbtn.Enable(1 < len(self.list2))
 
     def _do_layout(self) -> None:
         CardControl._do_layout(self)
