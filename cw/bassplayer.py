@@ -109,9 +109,9 @@ STREAM_SOUND2 = 4  # 4
 
 CC111 = 111
 
-_bass = None
-_bassmidi = None
-_bassfx = None
+_bass: Optional[ctypes.CDLL] = None
+_bassmidi: Optional[ctypes.CDLL] = None
+_bassfx: Optional[ctypes.CDLL] = None
 _sfonts = b""
 _paused = False
 
@@ -172,11 +172,13 @@ def _loop(handle: c_HSYNC, channel: c_DWORD, data: c_DWORD, streamindex: Optiona
     assert _bass
     if streamindex is None:
         streamindex = 0
-    fadeouting = _fadeoutstreams[streamindex] and _fadeoutstreams[streamindex][0] == channel
+    t = _fadeoutstreams[streamindex]
+    fadeouting = t and t[0] == channel
     if fadeouting:
         # フェードアウト中のチャンネル
-        loops = _fadeoutstreams[streamindex][1]
-        pos = _fadeoutstreams[streamindex][2]
+        assert t is not None
+        loops = t[1]
+        pos = t[2]
     else:
         loops = _loopcounts[streamindex]
         pos = _loopstarts[streamindex]
@@ -692,10 +694,24 @@ def dispose_bass() -> None:
             _bass.BASS_Free()
         dev += 1
 
-    del _bass
-    del _bassmidi
+    import _ctypes
+    if sys.platform == "win32":
+        if _bass:
+            _ctypes.FreeLibrary(_bass._handle)
+        if _bassmidi:
+            _ctypes.FreeLibrary(_bassmidi._handle)
+        if _bassfx:
+            _ctypes.FreeLibrary(_bassfx._handle)
+    else:
+        if _bass:
+            _ctypes.dlclose(_bass._handle)
+        if _bassmidi:
+            _ctypes.dlclose(_bassmidi._handle)
+        if _bassfx:
+            _ctypes.dlclose(_bassfx._handle)
     _bass = None
     _bassmidi = None
+    _bassfx = None
 
 
 def play_bgm(fpath: str, volume: float = 1.0, loopcount: int = 0, channel: int = 0, fade: int = 0) -> bool:
