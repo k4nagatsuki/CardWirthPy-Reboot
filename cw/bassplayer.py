@@ -694,6 +694,8 @@ def dispose_bass() -> None:
 
     del _bass
     del _bassmidi
+    _bass = None
+    _bassmidi = None
 
 
 def play_bgm(fpath: str, volume: float = 1.0, loopcount: int = 0, channel: int = 0, fade: int = 0) -> bool:
