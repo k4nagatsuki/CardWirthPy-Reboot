@@ -1,4 +1,4 @@
-﻿CardWirthPy Reboot Version.5.0β2
+﻿CardWirthPy Reboot Version.5.0β3
 =================================
 
 Reboot版作者
