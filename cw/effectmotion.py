@@ -820,12 +820,13 @@ class EffectMotion(object):
         """
         if value == 0:
             return 0
-        enhance_def = target.get_enhance_def()
-        if 10 <= enhance_def:
-            return 0
-        elif enhance_def <= -10:
-            return value * 4
-        return max(1, (value * (100 - enhance_def * 10)) // 100)
+        for enhance_def in target.get_enhance_def():
+            if 10 <= enhance_def:
+                return 0
+            elif enhance_def <= -10:
+                return value * 4
+            value = max(1, (value * (100 - enhance_def * 10)) // 100)
+        return value
 
     def is_noeffect(self, target: "cw.character.Character") -> bool:
         """
@@ -1498,6 +1499,8 @@ class EffectMotion(object):
             return False
         cw.cwpy.advlog.cancelaction_motion(target, cw.cwpy.is_battlestatus())
         if target.actiondata:
+            if target.actiondata[1] is not None:
+                target.deck.set_used(target.actiondata[1])
             target.clear_action()
             return True
         return True

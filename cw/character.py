@@ -1615,12 +1615,18 @@ class Character(object):
         """
         return cw.util.numwrap(self.enhance_act, -10, 10)
 
-    def get_enhance_def(self) -> int:
+    def get_enhance_def(self) -> Sequence[int]:
         """
         初期・状態・カードによる防御力修正の計算結果を返す。
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
-        return self._get_enhance_impl("defense", self.enhance_def, 2)
+        seq = []
+        for btype in (Character._BTYPE_SKILL, Character._BTYPE_ITEM_USE, Character._BTYPE_ITEM, Character._BTYPE_BEAST,
+                      Character._BTYPE_ACTION, Character._BTYPE_CAST, Character._BTYPE_STATUS):
+            value = self._get_enhance_impl("defense", self.enhance_def, 2, btype=btype)
+            if value != 0:
+                seq.append(value)
+        return seq
 
     def get_enhance_res(self) -> int:
         """
@@ -1634,7 +1640,15 @@ class Character(object):
         """
         return self._get_enhance_impl("avoid", self.enhance_avo, 0)
 
-    def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int) -> int:
+    _BTYPE_SKILL = 0
+    _BTYPE_ITEM_USE = 1
+    _BTYPE_ITEM = 2
+    _BTYPE_BEAST = 3
+    _BTYPE_ACTION = 4
+    _BTYPE_CAST = 5
+    _BTYPE_STATUS = 6
+
+    def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> int:
         """
         現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
         デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
@@ -1644,7 +1658,11 @@ class Character(object):
         val1 = cw.util.numwrap(val1, -10, 10)
         val2 = int(initvalue)
         val2 = cw.util.numwrap(val2, -10, 10)
-        seq = [val1, val2]
+        seq = []
+        if btype is None or btype == Character._BTYPE_CAST:
+            seq.append(val1)
+        if btype is None or btype == Character._BTYPE_STATUS:
+            seq.append(val2)
         pvals = []
 
         def add_pval(val: int) -> None:
@@ -1664,6 +1682,8 @@ class Character(object):
             val2 = val
             if header.type == "SkillCard":
                 # 特殊技能使用
+                if btype is not None and btype != Character._BTYPE_SKILL:
+                    return
                 assert using
                 if val < 10:
                     level = header.get_vocation_level(self, enhance_act=False)
@@ -1673,9 +1693,13 @@ class Character(object):
                 val = val2
             elif header.type == "ItemCard" and using:
                 # アイテム使用
+                if btype is not None and btype != Character._BTYPE_ITEM_USE:
+                    return
                 add_pval(val)
             elif header.type == "ItemCard":
                 # アイテム所持
+                if btype is not None and btype != Character._BTYPE_ITEM:
+                    return
                 if val < 10:
                     level = header.get_vocation_level(self, enhance_act=False)
                     if val < 0:
@@ -1691,9 +1715,13 @@ class Character(object):
                 add_pval(val)
             elif header.type == "BeastCard":
                 # 召喚獣所持
+                if btype is not None and btype != Character._BTYPE_BEAST:
+                    return
                 add_pval(val)
             else:
                 assert header.type == "ActionCard"
+                if btype is not None and btype != Character._BTYPE_ACTION:
+                    return
                 add_pval(val)
             val = int(val)
             seq.append(wrap_enhval(val, val2))
@@ -1714,8 +1742,10 @@ class Character(object):
             val3 = header.get_enhance_val()[enhindex]
             addval(header, val3)
 
-        add_pval(val1)
-        add_pval(val2)
+        if btype is None or btype == Character._BTYPE_CAST:
+            add_pval(val1)
+        if btype is None or btype == Character._BTYPE_STATUS:
+            add_pval(val2)
 
         a = 0.0
         b = 0.0
