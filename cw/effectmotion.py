@@ -820,13 +820,16 @@ class EffectMotion(object):
         """
         if value == 0:
             return 0
-        for enhance_def in target.get_enhance_def():
+        defs = target.get_enhance_def()
+        fvalue = float(value)
+        for enhance_def in defs:
             if 10 <= enhance_def:
                 return 0
             elif enhance_def <= -10:
-                return value * 4
-            value = max(1, (value * (100 - enhance_def * 10)) // 100)
-        return value
+                fvalue *= 4
+            else:
+                fvalue = max(1, (fvalue * (100 - enhance_def * 10)) / 100)
+        return int(fvalue)
 
     def is_noeffect(self, target: "cw.character.Character") -> bool:
         """

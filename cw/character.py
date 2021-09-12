@@ -1615,16 +1615,19 @@ class Character(object):
         """
         return cw.util.numwrap(self.enhance_act, -10, 10)
 
-    def get_enhance_def(self) -> Sequence[int]:
+    def get_enhance_def(self) -> Sequence[float]:
         """
         初期・状態・カードによる防御力修正の計算結果を返す。
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         seq = []
+        if 10 <= self._get_enhance_impl_i("defense", self.enhance_def, 2):
+            return (10.0,)
         for btype in (Character._BTYPE_SKILL, Character._BTYPE_ITEM_USE, Character._BTYPE_ITEM, Character._BTYPE_BEAST,
                       Character._BTYPE_ACTION, Character._BTYPE_CAST, Character._BTYPE_STATUS):
-            value = self._get_enhance_impl("defense", self.enhance_def, 2, btype=btype)
+            value = self._get_enhance_impl_f("defense", self.enhance_def, 2, btype=btype)
             if value != 0:
+                value = cw.util.numwrap(value, -10.0, 9.0)
                 seq.append(value)
         return seq
 
@@ -1632,13 +1635,13 @@ class Character(object):
         """
         初期・状態・カードによる抵抗力修正の計算結果を返す。
         """
-        return self._get_enhance_impl("resist", self.enhance_res, 1)
+        return self._get_enhance_impl_i("resist", self.enhance_res, 1)
 
     def get_enhance_avo(self) -> int:
         """
         初期・状態・カードによる回避力修正の計算結果を返す。
         """
-        return self._get_enhance_impl("avoid", self.enhance_avo, 0)
+        return self._get_enhance_impl_i("avoid", self.enhance_avo, 0)
 
     _BTYPE_SKILL = 0
     _BTYPE_ITEM_USE = 1
@@ -1648,7 +1651,26 @@ class Character(object):
     _BTYPE_CAST = 5
     _BTYPE_STATUS = 6
 
-    def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> int:
+    def _get_enhance_impl_f(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> float:
+        a, b, max10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
+        value = b - a
+        if 0 < max10:
+            return 10.0
+        else:
+            # ボーナスは単体の+10がない限り最大で+9になる
+            return cw.util.numwrap(value, -10.0, 9.0)
+
+    def _get_enhance_impl_i(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> int:
+        a, b, max10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
+        value = int(b) - int(a)
+        if 0 < max10:
+            return 10
+        else:
+            # ボーナスは単体の+10がない限り最大で+9になる
+            return cw.util.numwrap(value, -10, 9)
+
+    def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int,
+                          btype: Optional[int] = None) -> Tuple[float, float, bool]:
         """
         現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
         デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
@@ -1801,14 +1823,7 @@ class Character(object):
             # ただし+30以上は無効化不可
             max10 -= max10counter
 
-        value = int(b) - int(a)
-        if 0 < max10:
-            value = 10
-        else:
-            # ボーナスは単体の+10がない限り最大で+9になる
-            value = cw.util.numwrap(value, -10, 9)
-
-        return value
+        return a, b, 0 < max10
 
     # --------------------------------------------------------------------------
     # クーポン関連
