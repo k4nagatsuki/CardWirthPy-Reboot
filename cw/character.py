@@ -1621,13 +1621,16 @@ class Character(object):
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         seq = []
-        if 10 <= self._get_enhance_impl_i("defense", self.enhance_def, 2):
+        ivalue = self._get_enhance_impl_i("defense", self.enhance_def, 2)
+        if 10 <= ivalue:
             return (10.0,)
+        elif ivalue <= -10:
+            return (-10.0,)
         for btype in (Character._BTYPE_SKILL, Character._BTYPE_ITEM_USE, Character._BTYPE_ITEM, Character._BTYPE_BEAST,
                       Character._BTYPE_ACTION, Character._BTYPE_CAST, Character._BTYPE_STATUS):
             value = self._get_enhance_impl_f("defense", self.enhance_def, 2, btype=btype)
             if value != 0:
-                value = cw.util.numwrap(value, -10.0, 9.0)
+                value = cw.util.numwrap(value, -9.0, 9.0)
                 seq.append(value)
         return seq
 
@@ -1652,25 +1655,29 @@ class Character(object):
     _BTYPE_STATUS = 6
 
     def _get_enhance_impl_f(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> float:
-        a, b, max10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
+        a, b, max10, min10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
         value = b - a
-        if 0 < max10:
+        if max10:
             return 10.0
+        elif min10:
+            return -10.0
         else:
             # ボーナスは単体の+10がない限り最大で+9になる
-            return cw.util.numwrap(value, -10.0, 9.0)
+            return cw.util.numwrap(value, -9.0, 9.0)
 
     def _get_enhance_impl_i(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> int:
-        a, b, max10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
+        a, b, max10, min10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
         value = int(b) - int(a)
-        if 0 < max10:
+        if max10:
             return 10
+        elif min10:
+            return -10
         else:
             # ボーナスは単体の+10がない限り最大で+9になる
-            return cw.util.numwrap(value, -10, 9)
+            return cw.util.numwrap(value, -9, 9)
 
     def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int,
-                          btype: Optional[int] = None) -> Tuple[float, float, bool]:
+                          btype: Optional[int] = None) -> Tuple[float, float, bool, bool]:
         """
         現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
         デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
@@ -1707,7 +1714,7 @@ class Character(object):
                 if btype is not None and btype != Character._BTYPE_SKILL:
                     return
                 assert using
-                if val < 10:
+                if -10 < val < 10:
                     level = header.get_vocation_level(self, enhance_act=False)
                     if 2 <= level:
                         val = int(val * 120 / 100.0)
@@ -1722,7 +1729,7 @@ class Character(object):
                 # アイテム所持
                 if btype is not None and btype != Character._BTYPE_ITEM:
                     return
-                if val < 10:
+                if -10 < val < 10:
                     level = header.get_vocation_level(self, enhance_act=False)
                     if val < 0:
                         if 3 <= level:
@@ -1777,6 +1784,8 @@ class Character(object):
         minval = 0
         max10 = 0
         max10counter = 0
+        min10 = 0
+        min10counter = 0
         for val in seq:
             if val < 0:
                 if a == 0.0:
@@ -1786,6 +1795,7 @@ class Character(object):
                 ac += 1
                 minval = min(minval, val)
                 max10counter += -val//6 + 1
+                min10 += -val // 10
             elif 0 < val:
                 if b == 0.0:
                     b = (10 - val)
@@ -1794,6 +1804,7 @@ class Character(object):
                 bc += 1
                 maxval = max(maxval, val)
                 max10 += val // 10
+                min10counter += val//6 + 1
 
         if ac:
             a /= math.pow(10, ac-1)
@@ -1817,13 +1828,25 @@ class Character(object):
             # ただし適性による変動がある
             max10 += 1
 
+        pvalr = 100
+        for pval in reversed(pvals):
+            pvalr *= 10
+            pvalr *= 10-(-pval)
+            pvalr //= 100
+
+        if pvalr < 1:
+            min10 += 1
+
         if max10 < 3:
             # 防御修正で+10があると完全にダメージが無くなるが、
             # -1～5で1回、-6以上で2回分、+10効果を打ち消すことができる
             # ただし+30以上は無効化不可
             max10 -= max10counter
 
-        return a, b, 0 < max10
+        if min10 < 3:
+            min10 -= min10counter
+
+        return a, b, 0 < max10, 0 < min10
 
     # --------------------------------------------------------------------------
     # クーポン関連
