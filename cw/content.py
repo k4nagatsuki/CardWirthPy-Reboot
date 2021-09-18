@@ -2773,15 +2773,12 @@ class EffectContent(EventContentBase):
                     tevent.clear_eventcoupons()
                     if e_effectevent:
                         for t in e_targets:
-                            assert t in e_effectevent.coupon_owners
                             if isinstance(t, cw.character.Character):
                                 t.set_coupon("＠効果対象", 0)
                         for t in e_outoftargets:
-                            assert t in e_effectevent.coupon_owners
                             if isinstance(t, cw.character.Character):
                                 t.set_coupon("＠効果対象外", 0)
                         if e_eventtarget:
-                            assert e_eventtarget in e_effectevent.coupon_owners
                             if isinstance(e_eventtarget, cw.character.Character):
                                 e_eventtarget.set_coupon("＠イベント対象", 0)
                         cw.cwpy.event.effectevent = e_effectevent
