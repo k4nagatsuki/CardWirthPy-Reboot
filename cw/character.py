@@ -1456,6 +1456,14 @@ class Character(object):
                     bonus = b
 
         if bonus == -2147483647:
+            targets2: List[cw.sprite.card.CWPyCard] = []
+            for motion in motions:
+                # 先に配置された効果の対象を優先する
+                for targ in targets:
+                    if targ.is_effective(header, motion):
+                        targets2.append(targ)
+                if targets2:
+                    return 0, targets2
             return 0, targets
         return bonus, targets if header.allrange else maxbonustargs
 
