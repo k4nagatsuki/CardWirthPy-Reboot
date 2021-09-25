@@ -1357,20 +1357,7 @@ class Character(object):
         targets, header2 = self.decide_usecard(headers)
 
         if header2 and not header2.allrange and len(targets) > 1:
-            # 効果ごとにtargetsから適用可能な対象を抽出し、
-            # 適用可能な対象が存在する効果が見つかったら
-            # その対象群から実際の対象を選択する
-            for motion in self._get_motions(header2):
-                seq = []
-                for target in targets:
-                    assert isinstance(target, cw.character.Character)
-                    if target.is_effective(header2, motion):
-                        seq.append(target)
-                if seq:
-                    targets = [cw.cwpy.dice.choice_exists(seq)]
-                    break
-            else:
-                targets = [cw.cwpy.dice.choice_exists(targets)]
+            targets = [cw.cwpy.dice.choice_exists(targets)]
 
         # 行動設定
         self.set_action(targets, header2, beasts, True)
@@ -1460,6 +1447,7 @@ class Character(object):
             for motion in motions:
                 # 先に配置された効果の対象を優先する
                 for targ in targets:
+                    assert isinstance(targ, cw.character.Character)
                     if targ.is_effective(header, motion):
                         targets2.append(targ)
                 if targets2:
