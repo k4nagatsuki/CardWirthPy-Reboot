@@ -559,7 +559,7 @@ class CardHeader(object):
                 if owner.deck:
                     owner.deck.update_skillcardimage(header)
         # アイテムカード。
-        elif header.type == "ItemCard" and not header.maxuselimit == 0:
+        elif header.type == "ItemCard" and (header.uselimit or header.maxuselimit):
             assert header.carddata is not None
             header.uselimit += value
             header.uselimit = cw.util.numwrap(header.uselimit, 0, 999)
@@ -1039,9 +1039,11 @@ class CardHeader(object):
         else:
             price = int(self.price * 0.75)
 
-        if self.type == "ItemCard" and 0 < self.maxuselimit:
-            # 使用回数がある場合は使うほど売値が減る
-            price = price * self.uselimit // self.maxuselimit
+        if self.type == "ItemCard":
+            if 0 < self.maxuselimit:
+                # 使用回数がある場合は使うほど売値が減る
+                # BUG: まれに最大使用回数が0なのに使用回数が設定されているカードがあり、その場合は価格は減少しない
+                price = price * self.uselimit // self.maxuselimit
 
         return price
 
