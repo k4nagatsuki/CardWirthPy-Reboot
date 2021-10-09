@@ -1617,7 +1617,7 @@ class Character(object):
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         seq = []
-        ivalue: int, max10 = self._get_enhance_impl_i("defense", self.enhance_def, 2)
+        ivalue, max10 = self._get_enhance_impl_i("defense", self.enhance_def, 2)
         if 10 <= ivalue or ivalue <= -10:
             return (float(ivalue),)
         if max10 > 0:
@@ -1661,7 +1661,8 @@ class Character(object):
             # ボーナスは単体の+10がない限り最大で+9になる
             return cw.util.numwrap(value, -9.0, 9.0)
 
-    def _get_enhance_impl_i(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> int:
+    def _get_enhance_impl_i(self, name: str, initvalue: int, enhindex: int,
+                            btype: Optional[int] = None) -> Tuple[int, int]:
         a, b, max10, min10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
         if max10 > 0:
             fixed = (max10-1) * 5
@@ -1671,7 +1672,7 @@ class Character(object):
         return value, max10
 
     def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int,
-                          btype: Optional[int] = None) -> Tuple[float, float, bool, bool]:
+                          btype: Optional[int] = None) -> Tuple[float, float, int, bool]:
         """
         現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
         デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
