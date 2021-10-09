@@ -1617,11 +1617,11 @@ class Character(object):
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         seq = []
-        ivalue = self._get_enhance_impl_i("defense", self.enhance_def, 2)
-        if 10 <= ivalue:
-            return (10.0,)
-        elif ivalue <= -10:
-            return (-10.0,)
+        ivalue: int, max10 = self._get_enhance_impl_i("defense", self.enhance_def, 2)
+        if 10 <= ivalue or ivalue <= -10:
+            return (float(ivalue),)
+        if max10 > 0:
+            return (float(ivalue),)
         for btype in (Character._BTYPE_SKILL, Character._BTYPE_ITEM_USE, Character._BTYPE_ITEM, Character._BTYPE_BEAST,
                       Character._BTYPE_ACTION, Character._BTYPE_CAST, Character._BTYPE_STATUS):
             value = self._get_enhance_impl_f("defense", self.enhance_def, 2, btype=btype)
@@ -1634,13 +1634,13 @@ class Character(object):
         """
         初期・状態・カードによる抵抗力修正の計算結果を返す。
         """
-        return self._get_enhance_impl_i("resist", self.enhance_res, 1)
+        return self._get_enhance_impl_i("resist", self.enhance_res, 1)[0]
 
     def get_enhance_avo(self) -> int:
         """
         初期・状態・カードによる回避力修正の計算結果を返す。
         """
-        return self._get_enhance_impl_i("avoid", self.enhance_avo, 0)
+        return self._get_enhance_impl_i("avoid", self.enhance_avo, 0)[0]
 
     _BTYPE_SKILL = 0
     _BTYPE_ITEM_USE = 1
@@ -1663,14 +1663,12 @@ class Character(object):
 
     def _get_enhance_impl_i(self, name: str, initvalue: int, enhindex: int, btype: Optional[int] = None) -> int:
         a, b, max10, min10 = self._get_enhance_impl(name, initvalue, enhindex, btype)
-        value = int(b) - int(a)
-        if max10:
-            return 10
-        elif min10:
-            return -10
+        if max10 > 0:
+            fixed = (max10-1) * 5
+            value = int(b - a) + fixed
         else:
-            # ボーナスは単体の+10がない限り最大で+9になる
-            return cw.util.numwrap(value, -9, 9)
+            value = int(b - a)
+        return value, max10
 
     def _get_enhance_impl(self, name: str, initvalue: int, enhindex: int,
                           btype: Optional[int] = None) -> Tuple[float, float, bool, bool]:
@@ -1693,6 +1691,8 @@ class Character(object):
         def add_pval(val: int) -> None:
             if 0 < val and val < 10:
                 pvals.append(int(val))
+            elif val == 10:
+                del pvals[:]
 
         def wrap_enhval(val: int, orig_val: int) -> int:
             if orig_val < 0:
@@ -1779,7 +1779,6 @@ class Character(object):
         maxval = 0
         minval = 0
         max10 = 0
-        max10counter = 0
         min10 = 0
         min10counter = 0
         for val in seq:
@@ -1790,7 +1789,6 @@ class Character(object):
                     a *= (10 + val)
                 ac += 1
                 minval = min(minval, val)
-                max10counter += -val//6 + 1
                 min10 += -val // 10
             elif 0 < val:
                 if b == 0.0:
@@ -1833,16 +1831,13 @@ class Character(object):
         if pvalr < 1:
             min10 += 1
 
-        if max10 < 3:
-            # 防御修正で+10があると完全にダメージが無くなるが、
-            # -1～5で1回、-6以上で2回分、+10効果を打ち消すことができる
-            # ただし+30以上は無効化不可
-            max10 -= max10counter
+        if 0 < max10 and b < 10:
+            b = 10
 
         if min10 < 3:
             min10 -= min10counter
 
-        return a, b, 0 < max10, 0 < min10
+        return a, b, max10, 0 < min10
 
     # --------------------------------------------------------------------------
     # クーポン関連
