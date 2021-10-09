@@ -1617,13 +1617,11 @@ class Character(object):
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         seq = []
-        ivalue, max10 = self._get_enhance_impl_i("defense", self.enhance_def, 2)
-        if 10 <= ivalue:
-            return (ivalue,)
-        elif ivalue <= -10:
-            return (ivalue,)
+        ivalue: int, max10 = self._get_enhance_impl_i("defense", self.enhance_def, 2)
+        if 10 <= ivalue or ivalue <= -10:
+            return (float(ivalue),)
         if max10 > 0:
-            return (ivalue,)
+            return (float(ivalue),)
         for btype in (Character._BTYPE_SKILL, Character._BTYPE_ITEM_USE, Character._BTYPE_ITEM, Character._BTYPE_BEAST,
                       Character._BTYPE_ACTION, Character._BTYPE_CAST, Character._BTYPE_STATUS):
             value = self._get_enhance_impl_f("defense", self.enhance_def, 2, btype=btype)
