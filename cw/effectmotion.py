@@ -826,7 +826,7 @@ class EffectMotion(object):
         elif enhance_def <= -10:
             return value * 4
         else:
-            return max(1, (value * (100 - enhance_def * 10)) // 100)
+            return int(max(1, (value * (100 - enhance_def * 10)) // 100))
 
     def is_noeffect(self, target: "cw.character.Character") -> bool:
         """
