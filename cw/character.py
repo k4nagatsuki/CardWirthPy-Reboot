@@ -1687,13 +1687,18 @@ class Character(object):
             seq.append(val1)
         if btype is None or btype == Character._BTYPE_STATUS:
             seq.append(val2)
-        pvals = []
+        pvals_p = []
+        pvals_m = []
 
         def add_pval(val: int) -> None:
             if 0 < val and val < 10:
-                pvals.append(int(val))
+                pvals_p.append(int(val))
             elif val == 10:
-                del pvals[:]
+                del pvals_p[:]
+            elif -10 < val and val < 0:
+                pvals_m.append(int(val))
+            elif val == -10:
+                del pvals_m[:]
 
         def wrap_enhval(val: int, orig_val: int) -> int:
             if orig_val < 0:
@@ -1811,7 +1816,7 @@ class Character(object):
             b = max(maxval, b)
 
         pvalr = 100
-        for pval in reversed(pvals):
+        for pval in reversed(pvals_p):
             pvalr *= 10
             pvalr *= 10-pval
             pvalr //= 100
@@ -1824,7 +1829,7 @@ class Character(object):
             max10 += 1
 
         pvalr = 100
-        for pval in reversed(pvals):
+        for pval in reversed(pvals_m):
             pvalr *= 10
             pvalr *= 10-(-pval)
             pvalr //= 100
