@@ -774,7 +774,7 @@ class EffectMotion(object):
 
         # 効果値から実数値を計算
         n = value // 5
-        out_value = max(0, cw.cwpy.dice.roll(n, 10)-1)
+        out_value = max(0, cw.cwpy.dice.roll(n, 10))
         n = value % 5 * 2
 
         if 0 < value and n:
@@ -826,7 +826,7 @@ class EffectMotion(object):
         elif enhance_def <= -10:
             return value * 4
         else:
-            return int(max(1, (value * (100 - enhance_def * 10)) // 100))
+            return max(1, (value * int(100 - enhance_def * 10)) // 100)
 
     def is_noeffect(self, target: "cw.character.Character") -> bool:
         """
