@@ -1670,8 +1670,8 @@ class Character(object):
         if max10:
             return 10.0
         else:
-            # ボーナスは単体の+10がない限り最大で+9になる
-            return cw.util.numwrap(value, -10.0, 9.0)
+            # ボーナスは単体の+10がない限り最大で+9.9になる
+            return cw.util.numwrap(value, -10.0, 9.9)
 
     def _get_enhance_impl_i(self, name: str, initvalue: int, enhindex: int,
                             btype: Optional[int] = None) -> Tuple[int, int]:
@@ -1700,7 +1700,7 @@ class Character(object):
             seq.append(val2)
         pvals_p = []
 
-        def add_pval(val: int) -> None:
+        def add_pval(val: float) -> None:
             if 0 < val and val < 10:
                 pvals_p.append(int(val))
             elif val == 10:
@@ -1714,9 +1714,9 @@ class Character(object):
             else:
                 return 0
 
-        def addval(header: cw.header.CardHeader, val: int, using: bool = False) -> None:
-            val = int(val)
-            val2 = val
+        def addval(header: cw.header.CardHeader, ival: int, using: bool = False) -> None:
+            val = float(ival)
+            val2 = ival
             if header.type == "SkillCard":
                 # 特殊技能使用
                 if btype is not None and btype != Character._BTYPE_SKILL:
@@ -1725,9 +1725,9 @@ class Character(object):
                 if -10 < val < 10:
                     level = header.get_vocation_level(self, enhance_act=False)
                     if 2 <= level:
-                        val = int(val * 120 / 100.0)
+                        val *= 1.2
                 add_pval(val)
-                val = val2
+                val = float(val2)
             elif header.type == "ItemCard" and using:
                 # アイテム使用
                 if btype is not None and btype != Character._BTYPE_ITEM_USE:
@@ -1739,16 +1739,18 @@ class Character(object):
                     return
                 if -10 < val < 10:
                     level = header.get_vocation_level(self, enhance_act=False)
-                    if val < 0:
+                    if -10 < val < 0:
                         if 3 <= level:
-                            val = int(val * 80 / 100.0)
+                            val *= 0.8
                         elif level <= 0:
-                            val = int(val * 120 / 100.0)
-                    elif 0 < val:
+                            val *= 1.2
+                        val = cw.util.numwrap(val, -9.0, -1.0)
+                    elif 0 < val < 10:
                         if level <= 0:
-                            val = int(val * 50 / 100.0)
+                            val *= 0.5
                         elif level <= 1:
-                            val = int(val * 80 / 100.0)
+                            val *= 0.8
+                        val = cw.util.numwrap(val, 1.0, 9.0)
                 add_pval(val)
             elif header.type == "BeastCard":
                 # 召喚獣所持
@@ -1760,8 +1762,8 @@ class Character(object):
                 if btype is not None and btype != Character._BTYPE_ACTION:
                     return
                 add_pval(val)
-            val = int(val)
-            seq.append(wrap_enhval(val, val2))
+            ival = int(val)
+            seq.append(wrap_enhval(ival, val2))
 
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
