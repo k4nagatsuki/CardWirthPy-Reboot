@@ -75,7 +75,7 @@ class CharaInfo(wx.Dialog, Generic[_T]):
                                      BeastPanel]] = []
 
         # titlepanel
-        self.titlepanel = TitlePanel(self, self.notebook)
+        self.titlepanel: TitlePanel[_T] = TitlePanel[_T](self, self.notebook)
 
         # 解説
         self.descpanel: DescPanel[_T] = DescPanel[_T](self.notebook, self.ccard, editable)
@@ -2208,8 +2208,10 @@ def apply_bgcolor(currentpanel: wx.Window, ccard: Union[cw.character.Character, 
     """
     colour = get_bgcolor(ccard)
     currentpanel.SetBackgroundColour(colour)
-    currentpanel.Parent.Parent.titlepanel.SetBackgroundColour(colour)
-    currentpanel.Parent.Parent.titlepanel.draw(True)
+    parent = currentpanel.Parent.Parent
+    assert isinstance(parent, CharaInfo)
+    parent.titlepanel.SetBackgroundColour(colour)
+    parent.titlepanel.draw(True)
 
 
 def main() -> None:
