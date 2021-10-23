@@ -181,10 +181,10 @@ class Character(object):
 
         # 状態の正規化
         if self.is_unconscious():
-            # 最初から意識不明の場合、基本的に全てのステータスが
-            # クリアされるが、唯一、回数制限つきの付帯能力だけは、
+            # 最初から意識不明の場合、
+            # 精神状態・能力変化・暴露・沈黙・魔法無効化・回数制限つきの付帯能力は、
             # 後から意識不明になった時と違ってクリアされない(CardWirth 1.50)
-            self.set_unconsciousstatus(clearbeast=False)
+            self.set_bind(0)
 
         # 適性検査用のCardHeader。
         self.test_aptitude: Optional[cw.header.CardHeader] = None
@@ -802,15 +802,15 @@ class Character(object):
         elif mtype == "Silence":
             return not self.is_unconscious() and not self.is_silence()
         elif mtype == "DisSilence":
-            return self.is_silence()
+            return not self.is_unconscious() and self.is_silence()
         elif mtype == "FaceUp":
             return not self.is_unconscious() and not self.is_faceup()
         elif mtype == "FaceDown":
-            return self.is_faceup()
+            return not self.is_unconscious() and self.is_faceup()
         elif mtype == "AntiMagic":
             return not self.is_unconscious() and not self.is_antimagic()
         elif mtype == "DisAntiMagic":
-            return self.is_antimagic()
+            return not self.is_unconscious() and self.is_antimagic()
         elif mtype == "EnhanceAction":
             # 能力ボーナスは時間を見ず、値のみを見て判定する
             if self.is_unconscious():
@@ -2655,7 +2655,7 @@ class Character(object):
     # 状態変更用
     # --------------------------------------------------------------------------
 
-    def set_unconsciousstatus(self, clearbeast: bool = True) -> None:
+    def set_unconsciousstatus(self) -> None:
         """
         意識不明に伴う状態回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
@@ -2670,8 +2670,7 @@ class Character(object):
         self.set_enhance_avo(0, 0)
         self.set_enhance_res(0, 0)
         self.set_enhance_def(0, 0)
-        if clearbeast:
-            self.adjust_beast()
+        self.adjust_beast()
 
     def adjust_beast(self) -> None:
         for header in self.get_pocketcards(cw.POCKET_BEAST)[::-1]:
