@@ -182,9 +182,9 @@ class Character(object):
         # 状態の正規化
         if self.is_unconscious():
             # 最初から意識不明の場合、
-            # 能力変化・暴露・沈黙・魔法無効化・回数制限つきの付帯能力は、
+            # 精神状態・能力変化・暴露・沈黙・魔法無効化・回数制限つきの付帯能力は、
             # 後から意識不明になった時と違ってクリアされない(CardWirth 1.50)
-            self.set_unconsciousstatus(clearbeast=False)
+            self.set_bind(0)
 
         # 適性検査用のCardHeader。
         self.test_aptitude: Optional[cw.header.CardHeader] = None
@@ -2655,7 +2655,7 @@ class Character(object):
     # 状態変更用
     # --------------------------------------------------------------------------
 
-    def set_unconsciousstatus(self, clearbeast: bool = True) -> None:
+    def set_unconsciousstatus(self) -> None:
         """
         意識不明に伴う状態回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
@@ -2663,15 +2663,14 @@ class Character(object):
         """
         self.set_mentality("Normal", 0)
         self.set_bind(0)
-        if clearbeast:
-            self.set_silence(0)
-            self.set_faceup(0)
-            self.set_antimagic(0)
-            self.set_enhance_act(0, 0)
-            self.set_enhance_avo(0, 0)
-            self.set_enhance_res(0, 0)
-            self.set_enhance_def(0, 0)
-            self.adjust_beast()
+        self.set_silence(0)
+        self.set_faceup(0)
+        self.set_antimagic(0)
+        self.set_enhance_act(0, 0)
+        self.set_enhance_avo(0, 0)
+        self.set_enhance_res(0, 0)
+        self.set_enhance_def(0, 0)
+        self.adjust_beast()
 
     def adjust_beast(self) -> None:
         for header in self.get_pocketcards(cw.POCKET_BEAST)[::-1]:
