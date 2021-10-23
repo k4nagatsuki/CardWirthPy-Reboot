@@ -181,8 +181,8 @@ class Character(object):
 
         # 状態の正規化
         if self.is_unconscious():
-            # 最初から意識不明の場合、基本的に全てのステータスが
-            # クリアされるが、唯一、回数制限つきの付帯能力だけは、
+            # 最初から意識不明の場合、
+            # 能力変化・暴露・沈黙・魔法無効化・回数制限つきの付帯能力は、
             # 後から意識不明になった時と違ってクリアされない(CardWirth 1.50)
             self.set_unconsciousstatus(clearbeast=False)
 
@@ -2663,14 +2663,14 @@ class Character(object):
         """
         self.set_mentality("Normal", 0)
         self.set_bind(0)
-        self.set_silence(0)
-        self.set_faceup(0)
-        self.set_antimagic(0)
-        self.set_enhance_act(0, 0)
-        self.set_enhance_avo(0, 0)
-        self.set_enhance_res(0, 0)
-        self.set_enhance_def(0, 0)
         if clearbeast:
+            self.set_silence(0)
+            self.set_faceup(0)
+            self.set_antimagic(0)
+            self.set_enhance_act(0, 0)
+            self.set_enhance_avo(0, 0)
+            self.set_enhance_res(0, 0)
+            self.set_enhance_def(0, 0)
             self.adjust_beast()
 
     def adjust_beast(self) -> None:
