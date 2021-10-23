@@ -74,6 +74,9 @@ class CharaInfo(wx.Dialog, Generic[_T]):
         self.bottompanel: List[Union[DescPanel[_T], HistoryPanel[_T], StatusPanel, EditPanel, SkillPanel, ItemPanel,
                                      BeastPanel]] = []
 
+        # titlepanel
+        self.titlepanel: TitlePanel[_T] = TitlePanel[_T](self, self.notebook)
+
         # 解説
         self.descpanel: DescPanel[_T] = DescPanel[_T](self.notebook, self.ccard, editable)
         self.bottompanel.append(self.descpanel)
@@ -118,9 +121,6 @@ class CharaInfo(wx.Dialog, Generic[_T]):
 
         # toppanel
         self.toppanel = TopPanel(self, self.ccard, redrawfunc)
-
-        # titlepanel
-        self.titlepanel = TitlePanel(self, self.notebook)
 
         # layout
         self._do_layout()
@@ -2208,12 +2208,10 @@ def apply_bgcolor(currentpanel: wx.Window, ccard: Union[cw.character.Character, 
     """
     colour = get_bgcolor(ccard)
     currentpanel.SetBackgroundColour(colour)
-
-    def func(panel: wx.Panel) -> None:
-        if panel:
-            panel.Parent.Parent.titlepanel.SetBackgroundColour(colour)
-            panel.Parent.Parent.titlepanel.draw(True)
-    cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, currentpanel)
+    parent = currentpanel.Parent.Parent
+    assert isinstance(parent, CharaInfo)
+    parent.titlepanel.SetBackgroundColour(colour)
+    parent.titlepanel.draw(True)
 
 
 def main() -> None:
