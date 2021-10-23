@@ -802,15 +802,15 @@ class Character(object):
         elif mtype == "Silence":
             return not self.is_unconscious() and not self.is_silence()
         elif mtype == "DisSilence":
-            return self.is_silence()
+            return not self.is_unconscious() and self.is_silence()
         elif mtype == "FaceUp":
             return not self.is_unconscious() and not self.is_faceup()
         elif mtype == "FaceDown":
-            return self.is_faceup()
+            return not self.is_unconscious() and self.is_faceup()
         elif mtype == "AntiMagic":
             return not self.is_unconscious() and not self.is_antimagic()
         elif mtype == "DisAntiMagic":
-            return self.is_antimagic()
+            return not self.is_unconscious() and self.is_antimagic()
         elif mtype == "EnhanceAction":
             # 能力ボーナスは時間を見ず、値のみを見て判定する
             if self.is_unconscious():
