@@ -1430,8 +1430,8 @@ class Character(object):
 
         # 最大ボーナスを取得
         bonus = -2147483647
-        maxbonustargs: Set[cw.sprite.card.CWPyCard] = []
-        motions = self._get_motions(header)
+        maxbonustargs: Set[cw.sprite.card.CWPyCard] = set()
+        motions: Sequence[cw.data.CWPyElement] = self._get_motions(header)
         motions2 = []  # 最大ボーナスの効果の対象リスト
         for motion in motions:
             mtype = motion.get("type", "")
