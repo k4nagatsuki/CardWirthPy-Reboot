@@ -1426,36 +1426,53 @@ class Character(object):
 
     def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"])\
             -> Tuple[int, List["cw.sprite.card.CWPyCard"]]:
-        bonus = -2147483647
-        maxbonustargs: List[cw.sprite.card.CWPyCard] = []
+        orig_targets = targets
+
         # 最大ボーナスを取得
+        bonus = -2147483647
+        maxbonustargs: Set[cw.sprite.card.CWPyCard] = []
         motions = self._get_motions(header)
+        motions2 = []  # 最大ボーナスの効果の対象リスト
         for motion in motions:
             mtype = motion.get("type", "")
             if not self._is_bonusedmtype(mtype):
                 continue
+            upd_bonus = False
+            some_bonus = False
             for targ in targets:
                 assert isinstance(targ, cw.character.Character)
                 b = targ.get_targetingbonus(mtype)
                 if bonus == b:
-                    maxbonustargs.append(targ)
+                    maxbonustargs.add(targ)
+                    some_bonus = True
                 elif bonus < b:
-                    maxbonustargs = [targ]
+                    maxbonustargs = set([targ])
                     bonus = b
+                    upd_bonus = True
+            if upd_bonus:
+                motions2 = [motion]
+            elif some_bonus:
+                motions2.append(motion)
 
         if bonus == -2147483647:
-            if not header.allrange:
-                targets2: List[cw.sprite.card.CWPyCard] = []
-                for motion in motions:
-                    # 先に配置された効果の対象を優先する
-                    for targ in targets:
-                        assert isinstance(targ, cw.character.Character)
-                        if targ.is_effective(header, motion):
-                            targets2.append(targ)
-                    if targets2:
-                        return 0, targets2
-            return 0, targets
-        return bonus, targets if header.allrange else maxbonustargs
+            bonus = 0
+        else:
+            targets = list(maxbonustargs)
+            motions = motions2
+
+        if header.allrange:
+            return bonus, orig_targets
+
+        targets2: List[cw.sprite.card.CWPyCard] = []
+        for motion in motions:
+            # 先に配置された効果の対象を優先する
+            for targ in targets:
+                assert isinstance(targ, cw.character.Character)
+                if targ.is_effective(header, motion):
+                    targets2.append(targ)
+            if targets2:
+                return bonus, targets2
+        return bonus, targets
 
     # --------------------------------------------------------------------------
     # 状態取得用
