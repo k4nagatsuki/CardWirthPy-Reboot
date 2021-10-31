@@ -273,8 +273,8 @@ class BattleEngine(object):
         # 山札からカードをドロー
         for member in self.members:
             member.deck.draw(member)
-        self.set_actionorder()
         self.set_action()
+        self.set_actionorder()
 
         if cw.cwpy.is_autospread():
             ecards = cw.cwpy.get_mcards("flagtrue")
