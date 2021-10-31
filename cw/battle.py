@@ -495,6 +495,7 @@ class BattleEngine(object):
             ecard.decide_action()
         #beastも含めて復元する
         self.priorityacts = pcardpr + fcardpr + self.priorityacts_beast + self.priorityacts
+        self.priorityacts_beast = []
 
     def clear_priorityacts(self) -> None:
         self.priorityacts = []
