@@ -1427,8 +1427,8 @@ class Character(object):
     def _is_bonusedmtype(self, mtype: str) -> bool:
         return mtype in ("Runaway", "Heal")
 
-    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"], beast:bool = False)\
-            -> Tuple[int, List["cw.sprite.card.CWPyCard"]]:
+    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"],
+                                        beast: bool = False) -> Tuple[int, List["cw.sprite.card.CWPyCard"]]:
         orig_targets = targets
 
         # 最大ボーナスを取得
