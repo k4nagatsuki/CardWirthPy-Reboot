@@ -1444,8 +1444,8 @@ class Character(object):
                 assert isinstance(targ, cw.character.Character)
                 if not targ.is_effective(header, motion):
                     continue
-                if self._is_bonusedmtype(mtype, beast):
-                    b = targ.get_targetingbonus(mtype)
+                if self._is_bonusedmtype(mtype):
+                    b = targ.get_targetingbonus(mtype, beast)
                 else:
                     b = 0
                 if bonus == b:
