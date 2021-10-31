@@ -277,6 +277,7 @@ class BattleEngine(object):
         self.round = cw.util.numwrap(self.round, 1, 999999)
         # 戦闘参加メンバセット・行動順にソート・手札自動選択
         self.priorityacts = []
+        self.priorityacts_beast = []
         self.set_members()
         # 山札からカードをドロー
         for member in self.members:
@@ -484,16 +485,16 @@ class BattleEngine(object):
         """戦闘参加メンバ全員、行動自動選択。"""
         for pcard in self.pmembers:
             pcard.decide_action()
-        pcardpr = self.priorityacts
+        pcardpr = self.priorityacts_beast + self.priorityacts
         self.clear_priorityacts()
         for fcard in self.fmembers:
             fcard.decide_action()
-        fcardpr = self.priorityacts
+        fcardpr = self.priorityacts_beast + self.priorityacts
         self.clear_priorityacts()
         for ecard in self.emembers:
             ecard.decide_action()
-        #復元
-        self.priorityacts = pcardpr + fcardpr + self.priorityacts
+        #beastも含めて復元する
+        self.priorityacts = pcardpr + fcardpr + self.priorityacts_beast + self.priorityacts
 
     def clear_priorityacts(self) -> None:
         self.priorityacts = []
