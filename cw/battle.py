@@ -484,12 +484,16 @@ class BattleEngine(object):
         """戦闘参加メンバ全員、行動自動選択。"""
         for pcard in self.pmembers:
             pcard.decide_action()
+        pcardpr = self.priorityacts
         self.clear_priorityacts()
         for fcard in self.fmembers:
             fcard.decide_action()
+        fcardpr = self.priorityacts
         self.clear_priorityacts()
         for ecard in self.emembers:
             ecard.decide_action()
+        #復元
+        self.priorityacts = pcardpr + fcardpr + self.priorityacts
 
     def clear_priorityacts(self) -> None:
         self.priorityacts = []
