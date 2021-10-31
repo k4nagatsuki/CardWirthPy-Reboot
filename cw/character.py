@@ -1435,18 +1435,21 @@ class Character(object):
         motions2 = []  # 最大ボーナスの効果の対象リスト
         for motion in motions:
             mtype = motion.get("type", "")
-            if not self._is_bonusedmtype(mtype):
-                continue
             upd_bonus = False
             some_bonus = False
             for targ in targets:
                 assert isinstance(targ, cw.character.Character)
-                b = targ.get_targetingbonus(mtype)
+                if not targ.is_effective(header, motion):
+                    continue
+                if self._is_bonusedmtype(mtype):
+                    b = targ.get_targetingbonus(mtype)
+                else:
+                    b = 0
                 if bonus == b:
                     maxbonustargs.add(targ)
                     some_bonus = True
                 elif bonus < b:
-                    maxbonustargs = set([targ])
+                    maxbonustargs = {targ}
                     bonus = b
                     upd_bonus = True
             if upd_bonus:
