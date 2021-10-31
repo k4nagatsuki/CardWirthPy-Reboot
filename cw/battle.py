@@ -48,11 +48,17 @@ class BattleEngine(object):
 
         self.priorityacts: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
                                       cw.character.Character]] = []
+        self.priorityacts_beast: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
+                                      cw.character.Character]] = []
 
         # ラウンド数
         self.round = 0
         # 戦闘参加メンバ
         self.members: List[cw.character.Character] = []
+        # 行動順決定順位
+        self.pmembers: List[cw.character.Character] = []
+        self.emembers: List[cw.character.Character] = []
+        self.fmembers: List[cw.character.Character] = []
         # 戦闘開始の準備完了フラグ
         self._ready = False
         # 戦闘行動中フラグ
@@ -269,6 +275,7 @@ class BattleEngine(object):
         self.round = cw.util.numwrap(self.round, 1, 999999)
         # 戦闘参加メンバセット・行動順にソート・手札自動選択
         self.priorityacts = []
+        self.priorityacts_beast = []
         self.set_members()
         # 山札からカードをドロー
         for member in self.members:
@@ -451,11 +458,10 @@ class BattleEngine(object):
         """戦闘参加メンバを設定する。
         行動可能でないものは除外。
         """
-        members: List[cw.character.Character] = []
-        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_pcards("unreversed")))
-        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_ecards("unreversed")))
-        members.extend(filter(lambda ccard: ccard.is_entered_battle, cw.cwpy.get_fcards("unreversed")))
-        self.members = members
+        self.pmembers = [ccard for ccard in cw.cwpy.get_pcards("unreversed") if ccard.is_entered_battle]
+        self.emembers = [ccard for ccard in cw.cwpy.get_ecards("unreversed") if ccard.is_entered_battle]
+        self.fmembers = [ccard for ccard in cw.cwpy.get_fcards("unreversed") if ccard.is_entered_battle]
+        self.members = self.pmembers + self.emembers + self.fmembers
 
     def set_actionorder(self) -> None:
         """行動順を決める値を算出し、
@@ -475,8 +481,23 @@ class BattleEngine(object):
 
     def set_action(self) -> None:
         """戦闘参加メンバ全員、行動自動選択。"""
-        for member in self.members:
-            member.decide_action()
+        for pcard in self.pmembers:
+            pcard.decide_action()
+        pcardpr = self.priorityacts_beast + self.priorityacts
+        self.clear_priorityacts()
+        for fcard in self.fmembers:
+            fcard.decide_action()
+        fcardpr = self.priorityacts_beast + self.priorityacts
+        self.clear_priorityacts()
+        for ecard in self.emembers:
+            ecard.decide_action()
+        # beastも含めて復元する
+        self.priorityacts = pcardpr + fcardpr + self.priorityacts_beast + self.priorityacts
+        self.priorityacts_beast = []
+
+    def clear_priorityacts(self) -> None:
+        self.priorityacts = []
+        self.priorityacts_beast = []
 
     def clear_playersaction(self) -> None:
         """PlayerCard, FriendCardの行動をクリアする。"""
