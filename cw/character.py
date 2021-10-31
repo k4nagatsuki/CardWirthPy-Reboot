@@ -1209,7 +1209,10 @@ class Character(object):
                 if not self._is_bonusedmtype(t):
                     continue
                 if t:
-                    cw.cwpy.battle.priorityacts.append((t, target, self))
+                    if h.type == "BeastCard"
+                        cw.cwpy.battle.priorityacts_beast.append((t, target, self))
+                    else:
+                        cw.cwpy.battle.priorityacts.append((t, target, self))
 
     def adjust_action(self) -> None:
         """
@@ -1328,7 +1331,7 @@ class Character(object):
 
                 if effectivetargets:
                     # 優先度の高いターゲットが存在する場合はそちらを優先選択する
-                    bonus, effectivetargets = self._get_targetingbonus_and_targets(header, effectivetargets)
+                    bonus, effectivetargets = self._get_targetingbonus_and_targets(header, effectivetargets, beast=True)
 
                     if not header.allrange and len(targets) > 1:
                         targets = [cw.cwpy.dice.choice_exists(effectivetargets)]
@@ -1424,7 +1427,7 @@ class Character(object):
     def _is_bonusedmtype(self, mtype: str) -> bool:
         return mtype in ("Runaway", "Heal")
 
-    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"])\
+    def _get_targetingbonus_and_targets(self, header: cw.header.CardHeader, targets: List["cw.sprite.card.CWPyCard"], beast:bool = False)\
             -> Tuple[int, List["cw.sprite.card.CWPyCard"]]:
         orig_targets = targets
 
@@ -1441,7 +1444,7 @@ class Character(object):
                 assert isinstance(targ, cw.character.Character)
                 if not targ.is_effective(header, motion):
                     continue
-                if self._is_bonusedmtype(mtype):
+                if self._is_bonusedmtype(mtype, beast):
                     b = targ.get_targetingbonus(mtype)
                 else:
                     b = 0
@@ -1481,7 +1484,7 @@ class Character(object):
     # 状態取得用
     # --------------------------------------------------------------------------
 
-    def get_targetingbonus(self, mtype: str) -> int:
+    def get_targetingbonus(self, mtype: str, beast: bool = False) -> int:
         """
         効果のターゲットとして選ばれやすくなるボーナス値を返す。
         現在は"Heal"タイプに対する体力減時ボーナスと
@@ -1533,7 +1536,11 @@ class Character(object):
             # すでにその行動のターゲットになっている場合はボーナスを入れず、
             # ターゲット回数分をペナルティとする(選択されにくくなる)
             targeting = 0
-            for s, tarr, _user in cw.cwpy.battle.priorityacts:
+            if beast:
+                priorityacts = cw.cwpy.battle.priorityacts_beast
+            else:
+                priorityacts = cw.cwpy.battle.priorityacts
+            for s, tarr, _user in priorityacts:
                 if mtype == s:
                     if isinstance(tarr, cw.character.Character):
                         if tarr == self:
