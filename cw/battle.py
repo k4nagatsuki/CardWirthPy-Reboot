@@ -40,11 +40,6 @@ class BattleEngine(object):
         初期化時に自動的にready()を実行する。
         """
 
-        self.priorityacts: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
-                                      cw.character.Character]] = []
-        self.priorityacts_beast: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
-                                      cw.character.Character]] = []
-
         # PlayerCard・FriendCardの戦闘用デッキを構築
         for pcard in cw.cwpy.get_pcards():
             pcard.deck.set(pcard, draw=False)
@@ -52,6 +47,10 @@ class BattleEngine(object):
         for fcard in cw.cwpy.get_fcards():
             fcard.deck.set(fcard, draw=False)
 
+        self.priorityacts: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
+                                      cw.character.Character]] = []
+        self.priorityacts_beast: List[Tuple[str, Union[cw.sprite.card.CWPyCard, List[cw.sprite.card.CWPyCard]],
+                                      cw.character.Character]] = []
 
         # ラウンド数
         self.round = 0
@@ -493,7 +492,7 @@ class BattleEngine(object):
         self.clear_priorityacts()
         for ecard in self.emembers:
             ecard.decide_action()
-        #beastも含めて復元する
+        # beastも含めて復元する
         self.priorityacts = pcardpr + fcardpr + self.priorityacts_beast + self.priorityacts
         self.priorityacts_beast = []
 
