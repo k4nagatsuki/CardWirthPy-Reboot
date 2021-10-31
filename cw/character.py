@@ -1209,7 +1209,7 @@ class Character(object):
                 if not self._is_bonusedmtype(t):
                     continue
                 if t:
-                    if h.type == "BeastCard"
+                    if h.type == "BeastCard":
                         cw.cwpy.battle.priorityacts_beast.append((t, target, self))
                     else:
                         cw.cwpy.battle.priorityacts.append((t, target, self))
