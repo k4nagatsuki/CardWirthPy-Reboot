@@ -39,7 +39,6 @@ class BattleEngine(object):
         戦闘関係のデータ・処理をまとめたクラス。
         初期化時に自動的にready()を実行する。
         """
-
         # PlayerCard・FriendCardの戦闘用デッキを構築
         for pcard in cw.cwpy.get_pcards():
             pcard.deck.set(pcard, draw=False)
