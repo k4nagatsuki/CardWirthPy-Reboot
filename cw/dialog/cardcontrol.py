@@ -1280,7 +1280,8 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
     def _show_star(self, header: cw.header.CardHeader) -> bool:
         if self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "CARDPOCKET"):
             return False
-        if self.callname == "CARDPOCKET" and not isinstance(header.get_owner(), cw.character.Player):
+        if self.callname == "CARDPOCKET" and not (isinstance(header.get_owner(), cw.character.Player) or
+                                                  (self.is_showpersonal() and header.personal_owner)):
             return False
         if header not in self._drawlist:
             return False
@@ -1364,7 +1365,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             if header2.type != header.type:
                 return wx.Rect(0, 0, 0, 0), 0, 0
 
-        if self.sortwithstar and self.sortwithstar.GetToggle():
+        if self.sortwithstar and self.sortwithstar.GetToggle() and self.callname != "CARDPOCKET":
             header2 = headers[headers.index(header)+1]
             assert isinstance(header, cw.header.CardHeader)
             assert isinstance(header2, cw.header.CardHeader)
