@@ -1192,6 +1192,8 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             bheaders = self.get_beforepageheaders()
             for header in itertools.chain(bheaders[-1:] if bheaders else [], self.get_headers()):
                 assert isinstance(header, cw.header.CardHeader)
+                if header.type not in ("SkillCard", "ItemCard", "BeastCard"):
+                    continue
                 rect, x, y = self._get_replsrect(header)
                 if rect.Width == 0:
                     continue
