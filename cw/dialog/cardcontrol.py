@@ -2163,7 +2163,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
                 self.index = (len(self.list)+9) // 10 - 1
                 if self.index < 0:
                     self.index = 0
-        self.draw_cards()
+        self._update_sortattr(draw=True)
 
         # キャストの手札カード用のコントロール
         # 情報カードダイアログの場合は切り替えが無いため不要
@@ -3714,6 +3714,8 @@ class InfoView(CardHolder[cw.header.InfoCardHeader]):
         return False
 
     def _update_sortattr(self, draw: bool = True) -> bool:
+        if draw:
+            self.draw_cards()
         return False
 
     def OnLeftUp(self, event: wx.MouseEvent) -> None:
