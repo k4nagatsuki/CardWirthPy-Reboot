@@ -294,10 +294,19 @@ class SystemData(object):
                 # 値がリストか構造体の場合は<Name>要素が存在している
                 name = e_name.text
             if name in self.variants:
-                v_value = Variant.value_from_element(e)
-                v = self.variants[name]
-                v.type = Variant.value_to_type(v_value)
-                v.value = v_value
+                try:
+                    v_value = Variant.value_from_element(e)
+                    v = self.variants[name]
+                    v.type = Variant.value_to_type(v_value)
+                    v.value = v_value
+                except Exception:
+                    cw.util.print_ex(file=sys.stderr)
+                    s = "コモン「%s」の値が正しくありません。\n"\
+                        "このエラーが発生した場合、誤って使用中のCardWirthPyのバージョンに対応していない"\
+                        "シナリオやスキンを使用したか、シナリオやスキンに手動で編集したことによる不具合が発生している可能性があります。\n"\
+                        "いずれにも該当していない場合はCardWirthPyの開発者へお知らせください。" % name
+                    sys.stderr.write(s + "\n\n")
+                    cw.cwpy.call_modaldlg("ERROR", text=s)
 
     def reset_variables(self) -> None:
         """すべての状態変数を初期化する。"""
