@@ -99,6 +99,7 @@ BASS_ATTRIB_MUSIC_VOL_CHAN = 0x200  # + channel No.
 BASS_ATTRIB_MUSIC_VOL_INST = 0x300  # + instrument No.
 BASS_STREAM_DECODE = 0x200000
 BASS_FX_FREESOURCE = 0x10000
+BASS_UNICODE = 0x80000000
 
 MAX_BGM_CHANNELS = 2
 MAX_SOUND_CHANNELS = 2
@@ -212,6 +213,16 @@ def is_alivablewithpath(path: str) -> bool:
         return is_alivable()
 
 
+def _encode_fpath(fpath: str) -> bytes:
+    if sys.byteorder == "big":
+        encoding = "utf-16-be"
+    else:
+        assert sys.byteorder == "little"
+        encoding = "utf-16-le"
+    fpath += "\0"
+    return fpath.encode(encoding)
+
+
 def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
     """
     BASS AudioのDLLをロードし、再生のための初期化を行う。
@@ -293,7 +304,7 @@ def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
     _bass.BASS_Pause.restype = c_BOOL
     _bass.BASS_Start.argtypes = []
     _bass.BASS_Start.restype = c_BOOL
-    _bass.BASS_StreamCreateFile.argtypes = [c_BOOL, c_char_p, c_QWORD, c_QWORD, c_DWORD]
+    _bass.BASS_StreamCreateFile.argtypes = [c_BOOL, c_void_p, c_QWORD, c_QWORD, c_DWORD]
     _bass.BASS_StreamCreateFile.restype = c_HSTREAM
     _bass.BASS_StreamFree.argtypes = [c_HSTREAM]
     _bass.BASS_StreamFree.restype = c_BOOL
@@ -321,13 +332,13 @@ def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
     _bass.BASS_ChannelSetSync.restype = c_HSYNC
     _bass.BASS_ChannelSetDevice.argtypes = [c_DWORD, c_DWORD]
     _bass.BASS_ChannelSetDevice.restype = c_BOOL
-    _bassmidi.BASS_MIDI_FontInit.argtypes = [c_char_p, c_DWORD]
+    _bassmidi.BASS_MIDI_FontInit.argtypes = [c_void_p, c_DWORD]
     _bassmidi.BASS_MIDI_FontInit.restype = c_HSOUNDFONT
     _bassmidi.BASS_MIDI_FontSetVolume.argtypes = [c_HSOUNDFONT, c_float]
     _bassmidi.BASS_MIDI_FontSetVolume.restype = c_BOOL
     _bassmidi.BASS_MIDI_FontFree.argtypes = [c_HSOUNDFONT]
     _bassmidi.BASS_MIDI_FontFree.restype = c_BOOL
-    _bassmidi.BASS_MIDI_StreamCreateFile.argtypes = [c_BOOL, c_char_p, c_QWORD, c_QWORD, c_DWORD, c_DWORD]
+    _bassmidi.BASS_MIDI_StreamCreateFile.argtypes = [c_BOOL, c_void_p, c_QWORD, c_QWORD, c_DWORD, c_DWORD]
     _bassmidi.BASS_MIDI_StreamCreateFile.restype = c_HSTREAM
     _bassmidi.BASS_MIDI_StreamSetFonts.argtypes = [c_HSTREAM, c_char_p, c_DWORD]
     _bassmidi.BASS_MIDI_StreamSetFonts.restype = c_BOOL
@@ -342,10 +353,9 @@ def init_bass(soundfonts: List[Tuple[str, float]]) -> bool:
 
     # サウンドフォントのロード
     _sfonts = b""
-    encoding = cw.filesystem_encoding
     if _bassmidi:
         for soundfont, volume in soundfonts:
-            sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
+            sfont = _bassmidi.BASS_MIDI_FontInit(_encode_fpath(soundfont), BASS_UNICODE)
             if not sfont:
                 print("BASS_MIDI_FontInit() failure: %s" % (soundfont))
                 return False
@@ -370,9 +380,8 @@ def change_soundfonts(soundfonts: Iterable[Tuple[str, float]]) -> bool:
             _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
         _sfonts = b""
-        encoding = cw.filesystem_encoding
         for soundfont, volume in soundfonts:
-            sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
+            sfont = _bassmidi.BASS_MIDI_FontInit(_encode_fpath(soundfont), BASS_UNICODE)
             if not sfont:
                 print("BASS_MIDI_FontInit() failure: %s" % (soundfont))
                 return False
@@ -454,7 +463,6 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
     assert _bass
     assert _bassmidi
     assert _bassfx
-    encoding = cw.filesystem_encoding
     # BUG: BASS 2.4.13.8でBGMが無い時に"システム・改ページ.wav"等を鳴らすと
     #      鳴り出しでノイズと遅延が発生する。
     #      過去にBASS_STREAM_DECODEを使用するとループ時にノイズが発生する
@@ -472,6 +480,7 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
         flag |= BASS_STREAM_DECODE
     if cw.cwpy.setting.bassmidi_sample32bit:
         flag |= BASS_SAMPLE_FLOAT
+    flag |= BASS_UNICODE
 
     ismidi = False
     if os.path.isfile(fpath) and 4 <= os.path.getsize(fpath):
@@ -482,7 +491,7 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
     if ismidi:
         if not is_alivablemidi():
             return c_HSYNC(0)
-        stream: c_HSYNC = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag, 44100)
+        stream: c_HSYNC = _bassmidi.BASS_MIDI_StreamCreateFile(False, _encode_fpath(fpath), 0, 0, flag, 44100)
         if stream:
             if _sfonts:
                 if not _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) // (4*3)):
@@ -493,7 +502,7 @@ def _play(fpath: str, volume: float, loopcount: int, streamindex: int, fade: int
             raise ValueError("_play() failure: %s, %s" % (fpath, _bass.BASS_ErrorGetCode()))
 
     else:
-        stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), 0, 0, flag)
+        stream = _bass.BASS_StreamCreateFile(False, _encode_fpath(fpath), 0, 0, flag)
         if not stream:
             raise ValueError("_play() failure: %s, %s" % (fpath, _bass.BASS_ErrorGetCode()))
 
