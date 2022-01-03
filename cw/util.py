@@ -2647,7 +2647,8 @@ _zip_mutex = threading.Lock()
 
 
 @synclock(_zip_mutex)
-def zip_file(path: str, mode: str) -> Union[zipfile.ZipFile, _LhafileWrapper]:
+def zip_file(path: str, mode: Union[Literal['r'], Literal['w'], Literal['x'], Literal['a']]) ->\
+        Union[zipfile.ZipFile, _LhafileWrapper]:
     """zipfile.ZipFileのインスタンスを生成する。
     FIXME: Python 2.7のzipfile.ZipFileはアーカイブ内の
     ファイル名にあるディレクトリセパレータを'/'に置換してしまうため、
