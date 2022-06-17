@@ -443,7 +443,8 @@ class BackGround(base.CWPySprite):
                     continue
                 try:
                     animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, imagecell,
-                                                                       self._doanime, nocheckvisible=nocheckvisible)
+                                                                       self._doanime, nocheckvisible=nocheckvisible,
+                                                                       is_reload=False)
                     animated |= animated2
                     bginhrt &= bginhrt2
                     update |= update2
@@ -454,21 +455,21 @@ class BackGround(base.CWPySprite):
                 # テキストセル
                 textcell = self._create_textcelldata(e)
                 if self._add_textcell(blitlist, self.bgs, oldbgs, textcell,
-                                      nocheckvisible=nocheckvisible):
+                                      nocheckvisible=nocheckvisible, is_reload=False):
                     forcedraw = True
 
             elif e.tag == "ColorCell":
                 # カラーセル
                 colorcell = self._create_colorcelldata(e)
                 if self._add_colorcell(blitlist, self.bgs, oldbgs, colorcell,
-                                       nocheckvisible=nocheckvisible):
+                                       nocheckvisible=nocheckvisible, is_reload=False):
                     forcedraw = True
 
             elif e.tag == "PCCell":
                 # PCイメージセル
                 pccell = self._create_pccelldata(e)
                 if self._add_pccell(blitlist, self.bgs, oldbgs, pccell,
-                                    nocheckvisible=nocheckvisible):
+                                    nocheckvisible=nocheckvisible, is_reload=False):
                     forcedraw = True
 
             elif e.tag == "Redisplay":
@@ -819,7 +820,8 @@ class BackGround(base.CWPySprite):
                 d = typing.cast(ImageCellData, d)
                 try:
                     animated2, update2, bginhrt2 = self._add_imagecell(blitlist, bgs, oldbgs, d, self._doanime,
-                                                                       nocheckvisible=nocheckvisible)
+                                                                       nocheckvisible=nocheckvisible,
+                                                                       is_reload=True)
                     animated |= animated2
                     update |= update2
                     bginhrt &= bginhrt2
@@ -839,7 +841,7 @@ class BackGround(base.CWPySprite):
                 #      bool, bool, bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str,
                 #      Optional[Tuple[str, str]], Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
                 d = typing.cast(TextCellData, d)
-                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
+                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible, is_reload=True):
                     forcedraw = True
 
             elif bgtype == BG_COLOR:
@@ -850,7 +852,7 @@ class BackGround(base.CWPySprite):
                 #      expected "Tuple[str, Tuple[int, int, int, int], str, Tuple[int, int, int, int], Tuple[int, int],
                 #      Tuple[int, int], str, bool, int, str]" (mypy 0.790)
                 d = typing.cast(ColorCellData, d)
-                if self._add_colorcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
+                if self._add_colorcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible, is_reload=True):
                     forcedraw = True
 
             elif bgtype == BG_PC:
@@ -861,7 +863,7 @@ class BackGround(base.CWPySprite):
                 #      expected "Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]"
                 #      (mypy 0.790)
                 d = typing.cast(PCCellData, d)
-                if self._add_pccell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
+                if self._add_pccell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible, is_reload=True):
                     forcedraw = True
 
             else:
@@ -977,7 +979,7 @@ class BackGround(base.CWPySprite):
     def _add_imagecell(self, blitlist: List[Tuple[int, _BlitData, str, int]],
                        bgs: List[Tuple[int, Optional[CellData]]], oldbgs: List[Tuple[int, Optional[CellData]]],
                        d: ImageCellData, doanime: cw.effectbooster.AnimationCounter,
-                       nocheckvisible: bool = False) -> Tuple[bool, bool, bool]:
+                       nocheckvisible: bool = False, is_reload: bool = False) -> Tuple[bool, bool, bool]:
         path, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
         basepath = path
         bginhrt = True
@@ -1017,6 +1019,8 @@ class BackGround(base.CWPySprite):
             flagvalue = visible
         else:
             flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
+        if not is_reload:
+            layer = _add_splayerval(layer)
         if image and image.get_size() != (0, 0):
             self.store_filepath(path)
             d2 = (image, size, pos, 0)
@@ -1034,7 +1038,7 @@ class BackGround(base.CWPySprite):
 
     def _add_textcell(self, blitlist: List[Tuple[int, _BlitData, str, int]],
                       bgs: List[Tuple[int, Optional[CellData]]], oldbgs: List[Tuple[int, Optional[CellData]]],
-                      d: TextCellData, nocheckvisible: bool = False) -> bool:
+                      d: TextCellData, nocheckvisible: bool = False, is_reload: bool = False) -> bool:
         text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
             btype, bcolor, bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible and namelist:
@@ -1060,6 +1064,8 @@ class BackGround(base.CWPySprite):
             # loaded = True
         else:
             text2 = text
+        if not is_reload:
+            layer = _add_splayerval(layer)
         d = (text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,
              btype, bcolor, bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, flagvalue, layer, cellname)
         if visible:
@@ -1088,7 +1094,7 @@ class BackGround(base.CWPySprite):
 
     def _add_colorcell(self, blitlist: List[Tuple[int, _BlitData, str, int]],
                        bgs: List[Tuple[int, Optional[CellData]]], oldbgs: List[Tuple[int, Optional[CellData]]],
-                       d: ColorCellData, nocheckvisible: bool = False) -> bool:
+                       d: ColorCellData, nocheckvisible: bool = False, is_reload: bool = False) -> bool:
         blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
@@ -1097,6 +1103,8 @@ class BackGround(base.CWPySprite):
             flagvalue = visible
         else:
             flagvalue = cw.cwpy.sdata.get_flagvalue(flag)
+        if not is_reload:
+            layer = _add_splayerval(layer)
         d = blend, color1, gradient, color2, size, pos, flag, flagvalue, layer, cellname
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
@@ -1121,7 +1129,7 @@ class BackGround(base.CWPySprite):
 
     def _add_pccell(self, blitlist: List[Tuple[int, _BlitData, str, int]],
                     bgs: List[Tuple[int, Optional[CellData]]], oldbgs: List[Tuple[int, Optional[CellData]]],
-                    d: PCCellData, nocheckvisible: bool = False) -> bool:
+                    d: PCCellData, nocheckvisible: bool = False, is_reload: bool = False) -> bool:
         if not cw.cwpy.ydata:
             return False
         if not cw.cwpy.ydata.party:
@@ -1130,6 +1138,8 @@ class BackGround(base.CWPySprite):
         if not nocheckvisible:
             visible = cw.cwpy.sdata.get_flagvalue(flag) and size != (0, 0) and\
                 bool(self.rect.colliderect(cw.s(pygame.rect.Rect(pos, size))))
+        if not is_reload:
+            layer = _add_splayerval(layer)
         if visible:
             # PCのイメージを表示
             if pcnumber in self.pc_cache:
@@ -1283,6 +1293,13 @@ class BackGround(base.CWPySprite):
         return blitlist2, transition
 
 
+def _add_splayerval(layer: int) -> int:
+    splayer = cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP
+    if splayer and layer != cw.LAYER_BACKGROUND:
+        layer += cw.LAYER_SP_LAYER
+    return layer
+
+
 def _equals_bgs(bgs1: Iterable[Tuple[int, Optional[CellData]]], bgs2: Iterable[Tuple[int, Optional[CellData]]],
                 visibleonly: bool) -> bool:
     bgs1 = filter(lambda t: t[1], bgs1)
@@ -1372,10 +1389,6 @@ class BgCell(base.CWPySprite):
         self.bgtype = bgtype
         self.d = d
         self.flag = flag
-
-        splayer = cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP
-        if splayer and layer != cw.LAYER_BACKGROUND:
-            layer += cw.LAYER_SP_LAYER
         self.tlayer = (layer, cw.LTYPE_BACKGROUND, index, 0)
 
         if bgtype in (BG_IMAGE, BG_COLOR):
