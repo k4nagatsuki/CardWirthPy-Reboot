@@ -726,8 +726,7 @@ class Debugger(wx.Frame):
     def OnRedisplayTool(self, event: wx.CommandEvent) -> None:
         def func() -> None:
             cw.cwpy.play_sound("harvest")
-            nocheckvisible = cw.cwpy.background.curtain_all or cw.cwpy.areaid in cw.AREAS_SP
-            cw.cwpy.background.reload(nocheckvisible=nocheckvisible)
+            cw.cwpy.background.reload()
             cw.cwpy.add_lazydraw(clip=cw.cwpy.background.rect)
         cw.cwpy.exec_func(func)
 
