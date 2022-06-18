@@ -1027,7 +1027,8 @@ class Font(object):
 
     def get_bold(self) -> bool:
         if self.font:
-            return self.font.get_bold()
+            b: bool = self.font.get_bold()
+            return b
         else:
             return self.bold
 
@@ -1056,7 +1057,8 @@ class Font(object):
 
     def get_italic(self) -> bool:
         if self.font:
-            return self.font.get_italic()
+            b: bool = self.font.get_italic()
+            return b
         else:
             return self.italic
 
@@ -1083,7 +1085,8 @@ class Font(object):
 
     def get_underline(self) -> bool:
         if self.font:
-            return self.font.get_underline()
+            b: bool = self.font.get_underline()
+            return b
         else:
             return self.underline
 
@@ -1112,7 +1115,8 @@ class Font(object):
 
     def get_height(self) -> int:
         if self.font:
-            return self.font.get_height()
+            i: int = self.font.get_height()
+            return i
         elif sys.platform == "win32":
             if self.pixels < 0:
                 return -self.pixels
@@ -1123,7 +1127,8 @@ class Font(object):
 
     def get_linesize(self) -> int:
         if self.font:
-            return self.font.get_linesize()
+            i: int = self.font.get_linesize()
+            return i
         else:
             assert self.fontinfo is not None
             if sys.platform == "darwin":
@@ -1138,7 +1143,8 @@ class Font(object):
 
     def size(self, text: str) -> Tuple[int, int]:
         if self.font:
-            return self.font.size(text)
+            ii: Tuple[int, int] = self.font.size(text)
+            return ii
         else:
             assert self.fontinfo is not None
             if sys.platform == "darwin":
@@ -1154,7 +1160,8 @@ class Font(object):
     def size_withoutoverhang(self, text: str) -> Tuple[int, int]:
         if self.font:
             assert self.font_notitalic
-            return self.font_notitalic.size(text)
+            ii: Tuple[int, int] = self.font_notitalic.size(text)
+            return ii
         else:
             assert self.fontinfo is not None
             if sys.platform == "darwin":
