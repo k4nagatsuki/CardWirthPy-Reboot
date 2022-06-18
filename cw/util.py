@@ -2612,7 +2612,7 @@ class _LhafileWrapper(lhafile.Lhafile):
         # 冒頭に入っていることがある。
         # その場合は末尾にも余計なデータもあるため、冒頭で指定された
         # サイズにファイルを切り詰めなくてはならない。
-        f = open(path, "rb")
+        f: BinaryIO = open(path, "rb")
         b = f.read(1)
         seq = []
         while b in (b"0123456789abcdefABCDEF"):
@@ -3871,9 +3871,9 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
                     #      二重にファイルを読む処理よりなお10倍も遅い
                     image = wx.Image(name)
                 else:
-                    with io.BytesIO(data) as f2:
-                        image = wx.Image(f2, wx.BITMAP_TYPE_ANY, -1)
-                        f2.close()
+                    with io.BytesIO(data) as f3:
+                        image = wx.Image(f3, wx.BITMAP_TYPE_ANY, -1)
+                        f3.close()
             except Exception:
                 print_ex()
                 print("画像が読み込めません(load_wxbmp)", name)

@@ -1302,25 +1302,29 @@ def _add_splayerval(layer: int) -> int:
 
 def _equals_bgs(bgs1: Iterable[Tuple[int, Optional[CellData]]], bgs2: Iterable[Tuple[int, Optional[CellData]]],
                 visibleonly: bool) -> bool:
-    bgs1 = filter(lambda t: t[1], bgs1)
-    bgs2 = filter(lambda t: t[1], bgs2)
+    bgs1_t = filter(lambda t: t[1], bgs1)
+    bgs2_t = filter(lambda t: t[1], bgs2)
     if visibleonly:
         def is_visible(t: Tuple[int, Optional[CellData]]) -> bool:
             t2 = t[1]
             assert t2
             return t2[-3]
 
-        bgs1 = filter(is_visible, bgs1)
-        bgs2 = filter(is_visible, bgs2)
+        bgs1_t = filter(is_visible, bgs1_t)
+        bgs2_t = filter(is_visible, bgs2_t)
 
-    for t1, t2 in itertools.zip_longest(bgs1, bgs2):
+    for t1, t2 in itertools.zip_longest(bgs1_t, bgs2_t):
         if t1 is None or t2 is None:
             return False
         bgtype = t1[0]
         if bgtype != t2[0]:
             return False
-        l1 = list(t1[1])
-        l2 = list(t2[1])
+        t1_t = t1[1]
+        assert t1_t is not None
+        t2_t = t2[1]
+        assert t2_t is not None
+        l1 = list(t1_t)
+        l2 = list(t2_t)
         if bgtype == BG_IMAGE:
             # ファイルパスの拡張子を取り除き、ケースを正規化
             l1[0] = cw.util.splitext(l1[0])[0].lower()

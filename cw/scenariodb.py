@@ -12,6 +12,9 @@ import cw
 from cw.util import synclock
 
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
+# BUG: error: Missing type parameters for generic type "Row" (mypy 0.961)
+import typing
+sqlite3_Row = typing.Any
 
 _lock = threading.Lock()
 
@@ -295,7 +298,7 @@ class Scenariodb(object):
         data = self.cur.fetchall()
         dbpaths = []
 
-        def update_path(t: sqlite3.Row, spath: str, path: str) -> None:
+        def update_path(t: sqlite3_Row, spath: str, path: str) -> None:
             if os.path.getmtime(spath) > t[2]:
                 # 情報を更新
                 self._insert_scenario(path, False, skintype=skintype)
@@ -453,7 +456,7 @@ class Scenariodb(object):
         else:
             return False
 
-    def create_header(self, data: Optional[sqlite3.Row], skintype: str = "",
+    def create_header(self, data: Optional[sqlite3_Row], skintype: str = "",
                       update: bool = True) -> Optional["cw.header.ScenarioHeader"]:
         """
         データベース内のシナリオ情報からヘッダ部分を返す。
@@ -520,7 +523,7 @@ class Scenariodb(object):
 
         return header
 
-    def create_headers(self, data: List[sqlite3.Row], skintype: str = "",
+    def create_headers(self, data: List[sqlite3_Row], skintype: str = "",
                        update: bool = True) -> Tuple[List["cw.header.ScenarioHeader"], Set[str]]:
         """
         データベース内のシナリオ群のヘッダを返す。
