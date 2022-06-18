@@ -368,7 +368,7 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         # BUG: error: Returning Any from function declared to return "Tuple[int, int]"
         #      error: Returning Any from function declared to return "Tuple[int, int, int, int]"
         #      (mypy 0.961)
-        return typing.cast(Scalable, pygame.rect.Rect(x, y, w, h))
+        return typing.cast(Scalable, typing.cast(typing.Any, pygame.rect.Rect(x, y, w, h)))
 
     elif isinstance(num, tuple):
         if len(num) == 4:
