@@ -11,7 +11,7 @@ import types
 
 import cw
 
-from typing import Iterable, List, Literal, Optional, TextIO, Type, Iterator
+from typing import Iterable, List, Optional, TextIO, Type, Iterator
 
 put_errorlog = ""
 
