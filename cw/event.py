@@ -790,7 +790,11 @@ class Event(object):
         # 実行後に互換性情報を書き戻す必要があれば設定
         self._versionhint_base: Optional[Tuple[int, Optional[Tuple[str, str, bool, bool, bool]]]] = None
 
-        self._stored_specialchars: Optional[cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]]] = None
+        # イベント実行時に実行前の状態を保存する
+        # run_scenarioevent()は効果イベントにより入れ子構造で呼び出される可能性があるのでキューにする
+        self._stored_in_cardeffectmotion: List[bool] = []
+        self._stored_in_inusecardevent: List[bool] = []
+        self._stored_specialchars: List[cw.setting.ResourceTable[str, Tuple[pygame.surface.Surface, bool]]] = []
 
         # ローカル変数(Wsn.4)
         self.flags: Dict[str, cw.data.Flag] = {}
@@ -856,21 +860,20 @@ class Event(object):
         if selectuser and isinstance(self, CardEvent):
             cw.cwpy.event.set_selectedmember(self.user)
             cw.cwpy.event.set_inusecard(self.inusecard)
-        self._stored_in_cardeffectmotion = cw.cwpy.event.in_cardeffectmotion
+        self._stored_in_cardeffectmotion.append(cw.cwpy.event.in_cardeffectmotion)
         cw.cwpy.event.in_cardeffectmotion = False
-        self._stored_in_inusecardevent = cw.cwpy.event.in_inusecardevent
+        self._stored_in_inusecardevent.append(cw.cwpy.event.in_inusecardevent)
         cw.cwpy.event.in_inusecardevent = False
-        self._stored_specialchars = cw.cwpy.rsrc.specialchars
+        self._stored_specialchars.append(cw.cwpy.rsrc.specialchars)
         cw.cwpy.rsrc.specialchars = cw.cwpy.sdata.specialchars
 
     def restore_inusedata(self) -> None:
-        cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion
-        self._stored_in_cardeffectmotion = False
-        cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent
-        self._stored_in_inusecardevent = False
+        assert self._stored_in_cardeffectmotion
+        assert self._stored_in_inusecardevent
         assert self._stored_specialchars
-        cw.cwpy.rsrc.specialchars = self._stored_specialchars
-        self._stored_specialchars = None
+        cw.cwpy.event.in_cardeffectmotion = self._stored_in_cardeffectmotion.pop()
+        cw.cwpy.event.in_inusecardevent = self._stored_in_inusecardevent.pop()
+        cw.cwpy.rsrc.specialchars = self._stored_specialchars.pop()
 
     def start(self) -> None:
         try:
