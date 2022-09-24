@@ -3850,8 +3850,7 @@ class YadoData(object):
                     name = e.gettext("Property/Name", "noname")
                     name = cw.util.repl_dischar(name)
                     # 素材ファイルコピー
-                    dstdir = cw.util.join_paths(self.yadodir,
-                                                "Material", cardtype, name if name else"noname")
+                    dstdir = cw.util.join_paths(self.yadodir, "Material", cardtype, name if name else "noname")
                     dstdir = cw.util.dupcheck_plus(dstdir)
                     can_loaded_scaledimage = e.getbool(".", "scaledimage", False)
                     cw.cwpy.copy_materials(e, dstdir, can_loaded_scaledimage=can_loaded_scaledimage)

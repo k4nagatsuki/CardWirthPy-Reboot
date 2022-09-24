@@ -199,6 +199,11 @@ def build_exe():
 
     # BUG: lib以下に不要なpython38.dll等が生成される
     rmfiles = (
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
         # "MSVCRT.dll",
         "lib/VCRUNTIME140.dll",
         "lib/python38.dll",
