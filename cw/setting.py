@@ -15,8 +15,6 @@ import threading
 import copy
 import configparser
 import time
-import functools
-import operator
 import wx
 import pygame
 import pygame.surface
@@ -2874,8 +2872,7 @@ class Resource(object):
         rect = pygame.rect.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
-        sum_val = functools.reduce(operator.add, buf)
-        rgb = sum_val // len(buf)
+        rgb = sum(buf) // len(buf)
         return rgb
 
     def calc_wxcardnamecolorhint(self, wxbmp: wx.Bitmap) -> int:
