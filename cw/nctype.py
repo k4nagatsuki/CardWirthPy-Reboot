@@ -237,24 +237,24 @@ _an = (NC_ASCII_NUMBER, set("0123456789"))
 
 
 if __name__ == '__main__':
-    assert(nctype("　") == "Symbol")
-    assert(nctype("〇") == "Symbol")
-    assert(nctype("υ") == "Greek")
-    assert(nctype("з") == "Cyrillic")
-    assert(nctype("新") == "JIS Kanji 1")
-    assert(nctype("宵") == "JIS Kanji 1")
-    assert(nctype("腕") == "JIS Kanji 1")
-    assert(nctype("熙") == "JIS Kanji 2")
-    assert(nctype("亠") == "JIS Kanji 2")
-    assert(nctype("樕") == "JIS Kanji 3")
-    assert(nctype("㟽") == "JIS Kanji 4")
-    assert(nctype("あ") == "Hiragana")
-    assert(nctype("カ") == "Katakana")
-    assert(nctype("ｶ") == "Half Width Katakana")
-    assert(nctype("５") == "Number")
-    assert(nctype("ｂ") == "Latin")
-    assert(nctype("1") == "ASCII Number")
-    assert(nctype("p") == "ASCII Latin")
-    assert(nctype("(") == "ASCII Symbol")
-    assert(nctype(" ") == "ASCII Symbol")
-    assert(nctype("]") == "ASCII Symbol")
+    assert nctype("　") == "Symbol"
+    assert nctype("〇") == "Symbol"
+    assert nctype("υ") == "Greek"
+    assert nctype("з") == "Cyrillic"
+    assert nctype("新") == "JIS Kanji 1"
+    assert nctype("宵") == "JIS Kanji 1"
+    assert nctype("腕") == "JIS Kanji 1"
+    assert nctype("熙") == "JIS Kanji 2"
+    assert nctype("亠") == "JIS Kanji 2"
+    assert nctype("樕") == "JIS Kanji 3"
+    assert nctype("㟽") == "JIS Kanji 4"
+    assert nctype("あ") == "Hiragana"
+    assert nctype("カ") == "Katakana"
+    assert nctype("ｶ") == "Half Width Katakana"
+    assert nctype("５") == "Number"
+    assert nctype("ｂ") == "Latin"
+    assert nctype("1") == "ASCII Number"
+    assert nctype("p") == "ASCII Latin"
+    assert nctype("(") == "ASCII Symbol"
+    assert nctype(" ") == "ASCII Symbol"
+    assert nctype("]") == "ASCII Symbol"
