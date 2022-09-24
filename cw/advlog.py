@@ -121,6 +121,9 @@ class AdventurerLogger(object):
                 else:
                     self.end_scenario(False, False)
 
+    def force_quit(self) -> None:
+        self._logger.queue.put_nowait(None)
+
     def end_scenario(self, end: bool, completestamp: bool) -> None:
         if self._logger:
             if end:
