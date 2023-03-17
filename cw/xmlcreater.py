@@ -253,10 +253,7 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
             setting.vol_bgm_midi != setting.vol_bgm_midi_init:
         n = int(setting.vol_bgm * 100)
         n2 = int(setting.vol_bgm_midi * 100)
-        if n != n2:
-            e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
-        else:
-            e = cw.data.make_element("BgmVolume", str(n))
+        e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
         element.append(e)
     # 効果音のボリューム(0～1.0)
     if setting.vol_sound != setting.vol_sound_init:
