@@ -2450,7 +2450,7 @@ class Character(object):
                         カード置場へ入る。
         """
         assert cw.cwpy.ydata
-        assert isinstance(self, cw.sprite.card.PlayerCard)
+        assert isinstance(self, cw.character.Player)
         # 調節前のレベル
         limit = self._get_limitlevel()
         if regulate:
