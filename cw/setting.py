@@ -2872,7 +2872,7 @@ class Resource(object):
         rect = pygame.rect.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
         sub = bmp.subsurface(rect)
         buf = pygame.image.tostring(sub, "RGB")
-        rgb = sum(buf) // len(buf)
+        rgb: int = sum(buf) // len(buf)
         return rgb
 
     def calc_wxcardnamecolorhint(self, wxbmp: wx.Bitmap) -> int:
