@@ -3436,6 +3436,36 @@ class HandView(CardControl[cw.header.CardHeader]):
             return
         cw.cwpy.play_sound("dump")
 
+        """
+        # カード配付確率のテスト用コード
+        # 1000回再配付してカウントする事でデータを取る
+        count = {
+            -1:0,
+            0:0,
+            1:0,
+            2:0,
+            3:0,
+            4:0,
+            5:0,
+            6:0,
+            7:0
+        }
+        for _ in range(0, 1000):
+            self.selection.deck.throwaway()
+            self.selection.deck.draw(self.selection)
+            for header in self.selection.deck.hand:
+                if header.type == "ActionCard":
+                    count[header.id] = count[header.id] + 1
+                else:
+                    count[0] = count[0] + 1
+        print(self.selection.get_name(), sum(count.values()))
+        for id, count in count.items():
+            if id == 0:
+                print("スキル", count)
+            else:
+                print(cw.cwpy.rsrc.actioncards[id].name, count)
+        """
+
         self.selection.deck.throwaway()
         self.selection.deck.draw(self.selection)
 
