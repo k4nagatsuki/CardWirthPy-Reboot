@@ -890,7 +890,9 @@ class EffectMotion(object):
             return False
 
         methodname = self.type.lower() + "_motion"
-        method: Callable[[cw.character.Character, bool], bool] = getattr(self, methodname, None)
+        method: Optional[Callable[[cw.character.Character, bool], bool]] = getattr(self,
+                                                                                   methodname,
+                                                                                   None)
 
         if method:
             return method(target, success_res)

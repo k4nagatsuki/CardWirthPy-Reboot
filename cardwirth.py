@@ -11,7 +11,7 @@ import types
 
 import cw
 
-from typing import Iterable, List, Literal, Optional, TextIO, Type, Iterator
+from typing import Iterable, List, Optional, TextIO, Type, Iterator
 
 put_errorlog = ""
 
@@ -180,9 +180,8 @@ class WriteError(TextIO):
         return TextIO.__enter__(self)
 
     def __exit__(self, t: Optional[Type[BaseException]], value: Optional[BaseException],
-                 traceback: Optional[types.TracebackType]) -> Literal[False]:
+                 traceback: Optional[types.TracebackType]) -> None:
         self.close()
-        return False
 
 
 if getattr(sys, 'frozen', False):

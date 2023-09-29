@@ -74,7 +74,7 @@ tempdir_init = "Data/Temp/Global"
 tempdir = tempdir_init
 
 # アプリケーション情報
-APP_VERSION = (5, "0 Beta 4")
+APP_VERSION = (5, "1")
 APP_NAME = "CardWirthPy"
 
 # CardWirthの標準文字コード
@@ -365,7 +365,10 @@ def _s_impl(num: Scalable, up_scr: float) -> Scalable:
         y = int(rect.y * up_scr)
         w = int(rect.width * up_scr)
         h = int(rect.height * up_scr)
-        return pygame.rect.Rect(x, y, w, h)
+        # BUG: error: Returning Any from function declared to return "Tuple[int, int]"
+        #      error: Returning Any from function declared to return "Tuple[int, int, int, int]"
+        #      (mypy 0.961)
+        return typing.cast(Scalable, typing.cast(typing.Any, pygame.rect.Rect(x, y, w, h)))
 
     elif isinstance(num, tuple):
         if len(num) == 4:

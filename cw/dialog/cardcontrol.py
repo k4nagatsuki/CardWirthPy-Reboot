@@ -1192,6 +1192,8 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             bheaders = self.get_beforepageheaders()
             for header in itertools.chain(bheaders[-1:] if bheaders else [], self.get_headers()):
                 assert isinstance(header, cw.header.CardHeader)
+                if header.type not in ("SkillCard", "ItemCard", "BeastCard"):
+                    continue
                 rect, x, y = self._get_replsrect(header)
                 if rect.Width == 0:
                     continue
@@ -1278,7 +1280,8 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
     def _show_star(self, header: cw.header.CardHeader) -> bool:
         if self.callname not in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "CARDPOCKET"):
             return False
-        if self.callname == "CARDPOCKET" and not isinstance(header.get_owner(), cw.character.Player):
+        if self.callname == "CARDPOCKET" and not (isinstance(header.get_owner(), cw.character.Player) or
+                                                  (self.is_showpersonal() and header.personal_owner)):
             return False
         if header not in self._drawlist:
             return False
@@ -1362,7 +1365,7 @@ class CardControl(wx.Dialog, Generic[CardHeaderType]):
             if header2.type != header.type:
                 return wx.Rect(0, 0, 0, 0), 0, 0
 
-        if self.sortwithstar and self.sortwithstar.GetToggle():
+        if self.sortwithstar and self.sortwithstar.GetToggle() and self.callname != "CARDPOCKET":
             header2 = headers[headers.index(header)+1]
             assert isinstance(header, cw.header.CardHeader)
             assert isinstance(header2, cw.header.CardHeader)
@@ -2160,7 +2163,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
                 self.index = (len(self.list)+9) // 10 - 1
                 if self.index < 0:
                     self.index = 0
-        self.draw_cards()
+        self._update_sortattr(draw=True)
 
         # キャストの手札カード用のコントロール
         # 情報カードダイアログの場合は切り替えが無いため不要
@@ -3433,6 +3436,36 @@ class HandView(CardControl[cw.header.CardHeader]):
             return
         cw.cwpy.play_sound("dump")
 
+        """
+        # カード配付確率のテスト用コード
+        # 1000回再配付してカウントする事でデータを取る
+        count = {
+            -1:0,
+            0:0,
+            1:0,
+            2:0,
+            3:0,
+            4:0,
+            5:0,
+            6:0,
+            7:0
+        }
+        for _ in range(0, 1000):
+            self.selection.deck.throwaway()
+            self.selection.deck.draw(self.selection)
+            for header in self.selection.deck.hand:
+                if header.type == "ActionCard":
+                    count[header.id] = count[header.id] + 1
+                else:
+                    count[0] = count[0] + 1
+        print(self.selection.get_name(), sum(count.values()))
+        for id, count in count.items():
+            if id == 0:
+                print("スキル", count)
+            else:
+                print(cw.cwpy.rsrc.actioncards[id].name, count)
+        """
+
         self.selection.deck.throwaway()
         self.selection.deck.draw(self.selection)
 
@@ -3711,6 +3744,8 @@ class InfoView(CardHolder[cw.header.InfoCardHeader]):
         return False
 
     def _update_sortattr(self, draw: bool = True) -> bool:
+        if draw:
+            self.draw_cards()
         return False
 
     def OnLeftUp(self, event: wx.MouseEvent) -> None:

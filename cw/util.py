@@ -2612,7 +2612,7 @@ class _LhafileWrapper(lhafile.Lhafile):
         # 冒頭に入っていることがある。
         # その場合は末尾にも余計なデータもあるため、冒頭で指定された
         # サイズにファイルを切り詰めなくてはならない。
-        f = open(path, "rb")
+        f: BinaryIO = open(path, "rb")
         b = f.read(1)
         seq = []
         while b in (b"0123456789abcdefABCDEF"):
@@ -2647,7 +2647,8 @@ _zip_mutex = threading.Lock()
 
 
 @synclock(_zip_mutex)
-def zip_file(path: str, mode: str) -> Union[zipfile.ZipFile, _LhafileWrapper]:
+def zip_file(path: str, mode: Union[Literal['r'], Literal['w'], Literal['x'], Literal['a']]) ->\
+        Union[zipfile.ZipFile, _LhafileWrapper]:
     """zipfile.ZipFileのインスタンスを生成する。
     FIXME: Python 2.7のzipfile.ZipFileはアーカイブ内の
     ファイル名にあるディレクトリセパレータを'/'に置換してしまうため、
@@ -3870,9 +3871,9 @@ def load_wxbmp(name: str = "", mask: bool = False, image: wx.Image = None,
                     #      二重にファイルを読む処理よりなお10倍も遅い
                     image = wx.Image(name)
                 else:
-                    with io.BytesIO(data) as f2:
-                        image = wx.Image(f2, wx.BITMAP_TYPE_ANY, -1)
-                        f2.close()
+                    with io.BytesIO(data) as f3:
+                        image = wx.Image(f3, wx.BITMAP_TYPE_ANY, -1)
+                        f3.close()
             except Exception:
                 print_ex()
                 print("画像が読み込めません(load_wxbmp)", name)

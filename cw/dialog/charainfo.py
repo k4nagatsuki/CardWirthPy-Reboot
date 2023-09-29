@@ -97,7 +97,8 @@ class CharaInfo(wx.Dialog, Generic[_T]):
             self.bottompanel.append(self.editpanel)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
-            plist = [pcard for pcard in self.list if isinstance(pcard, cw.character.Player)]
+            plist = [pcard for pcard in self.list if isinstance(pcard, (cw.header.AdventurerHeader,
+                                                                        cw.character.Player))]
             assert isinstance(self.ccard, cw.character.Player)
             self.editpanel = EditPanel(self.notebook, plist, self.ccard)
             self.bottompanel.append(self.editpanel)
@@ -1218,7 +1219,8 @@ class EditButton():
 
 
 class EditPanel(wx.Panel):
-    def __init__(self, parent: aui.AuiNotebook, mlist: List[cw.character.Player], ccard: cw.character.Player) -> None:
+    def __init__(self, parent: aui.AuiNotebook, mlist: List[Union[cw.header.AdventurerHeader, cw.character.Player]],
+                 ccard: cw.character.Player) -> None:
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(173)), style=wx.SUNKEN_BORDER)
         self._destroy: bool = False
         self.SetDoubleBuffered(True)
@@ -1332,17 +1334,22 @@ class EditPanel(wx.Panel):
     def update_charalist(self, mlist: List[cw.character.Player]) -> None:
         """編集結果をヘッダ等に反映する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            def func(parentheaders: List[_N], mlist: List[cw.character.Player]) -> None:
+            def func(parentheaders: List[Union[cw.header.AdventurerHeader, cw.character.Player]],
+                     mlist: List[cw.character.Player]) -> None:
                 for i, header in enumerate(parentheaders):
+                    assert isinstance(header, cw.header.AdventurerHeader)
                     ccard = mlist[i]
                     ccard.data.write_xml()
                     header.level = ccard.level
             cw.cwpy.exec_func(func, self.list, mlist)
         elif isinstance(self.Parent.Parent, StandbyCharaInfo):
-            def func2(index: int, headers: List[_N], mlist: List[cw.character.Player]) -> None:
+            def func2(index: int, headers: List[Union[cw.header.AdventurerHeader, cw.character.Player]],
+                      mlist: List[cw.character.Player]) -> None:
                 ccard = mlist[0]
                 ccard.data.write_xml()
-                headers[index].level = ccard.level
+                header = headers[index]
+                assert isinstance(header, cw.header.AdventurerHeader)
+                header.level = ccard.level
             cw.cwpy.exec_func(func2, self.Parent.Parent.index, self.list, mlist)
 
     def OnPaint(self, event: wx.PaintEvent) -> None:

@@ -106,7 +106,6 @@ class Deck(object):
             for header in self.talon:
                 if header.type == "SkillCard":
                     break
-
             else:
                 return False
 
@@ -332,32 +331,41 @@ class Deck(object):
             self.hand.extend(ccard.get_pocketcards(cw.POCKET_ITEM))
             self._throwaway = False
 
+        skill_num = sum(1 for header in self.talon if header.type == "SkillCard") if ccard.is_brave() else 0
         while len(self.hand) < maxn and self.talon:
             if self.nextcards:
                 if not self._set_nextcard(ccard, self.nextcards.pop()):
-                    self.check_mind(ccard)
+                    skill_num = self.check_mind(ccard, skill_num)
             else:
-                self.check_mind(ccard)
+                skill_num = self.check_mind(ccard, skill_num)
 
             header = self.talon.pop()
             header_copy = header.copy()
 
             if header.type == "ActionCard":
                 header_copy.set_owner(ccard)
+            elif 0 < skill_num:
+                skill_num -= 1
 
             self.hand.append(header_copy)
 
         while maxn < len(self.hand):
             self._remove(self.hand[-1])
 
-    def check_mind(self, ccard: "cw.character.Character") -> None:
+    def check_mind(self, ccard: "cw.character.Character", skill_num: int) -> int:
         """
         特殊な精神状態の場合、次にドローするカードを変更。
         """
+        assert 0 < len(self.talon)
         if ccard.is_panic():
             acts = [5, 6, 7]
         elif ccard.is_brave():
-            acts = [0, 1, 2, 3]
+            # 勇敢状態は攻撃・渾身の一撃・会心の一撃が等確率で配付されると共に
+            # 特殊技能は元の確率で配付される
+            if cw.cwpy.dice.roll(1, len(self.talon)) <= skill_num:
+                acts = [0]
+            else:
+                acts = [1, 2, 3]
         elif ccard.is_overheat():
             acts = [2]
         elif ccard.is_confuse():
@@ -365,13 +373,14 @@ class Deck(object):
             if cw.cwpy.dice.roll(1, 3) > 1:
                 acts = [-1]
             else:
-                return
+                return skill_num
         else:
-            return
+            return skill_num
         assert isinstance(ccard, cw.sprite.card.CWPyCard)
         acts = list(filter(lambda cid: cid == 0 or ccard.actions.get(cid, True), acts))
         if acts:
             self._set_nextcard(ccard, cw.cwpy.dice.choice_exists(acts))
+        return skill_num
 
     def set_used(self, header: cw.header.CardHeader) -> None:
         """使用したカードをそのラウンド中記憶する。"""

@@ -599,7 +599,14 @@ class Character(object):
 
     @staticmethod
     def calc_heavyinjured(life: int, maxlife: int) -> bool:
-        return bool(Character.calc_lifeper(life, maxlife) <= 20 and 0 < life)
+        # CardWirthでは負傷・重傷の境界は生命点のパーセンテージとは関係ない事に注意
+        # (20%でも負傷と重傷の両ケースがある)
+        # 例:
+        #  200/1000 = 重傷(20%)
+        #  201/1000 = 負傷(20%)
+        #  209/1000 = 負傷(20%)
+        #  210/1000 = 負傷(21%)
+        return bool(life <= maxlife // 5 and 0 < life)
 
     def is_heavyinjured(self) -> bool:
         """
@@ -2443,7 +2450,7 @@ class Character(object):
                         カード置場へ入る。
         """
         assert cw.cwpy.ydata
-        assert isinstance(self, cw.sprite.card.PlayerCard)
+        assert isinstance(self, cw.character.Player)
         # 調節前のレベル
         limit = self._get_limitlevel()
         if regulate:

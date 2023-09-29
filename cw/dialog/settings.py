@@ -834,7 +834,7 @@ class SettingsPanel(wx.Panel):
             def func_updatebg() -> None:
                 if cw.cwpy.is_playingscenario():
                     cw.cwpy.sdata.resource_cache = {}
-                cw.cwpy.background.reload()
+                cw.cwpy.background.reload(False, nocheckvisible=True)
             cw.cwpy.exec_func(func_updatebg)
 
         # イメージの更新

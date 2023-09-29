@@ -16,10 +16,13 @@ import cw
 
 import wx
 
-from typing import BinaryIO, Callable, Union, Optional, Dict, List, Set, Tuple
+from typing import BinaryIO, Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
+# BUG: error: Missing type parameters for generic type "Row" (mypy 0.961)
+import typing
+sqlite3_Row = typing.Any
 
 
-def to_imgpaths(dbrec: sqlite3.Row, imgdbrec: Optional[sqlite3.Cursor]) -> List["cw.image.ImageInfo"]:
+def to_imgpaths(dbrec: sqlite3_Row, imgdbrec: Optional[sqlite3.Cursor]) -> List["cw.image.ImageInfo"]:
     """1枚イメージの情報を持つDBレコードと
     複数イメージの情報を持つDBレコードを元に
     cw.image.ImageInfoのlistを生成する。
@@ -76,7 +79,7 @@ class CardHeader(object):
 
     def __init__(self, data: Optional[cw.data.CWPyElement] = None, owner: Optional["cw.character.Character"] = None,
                  carddata: Optional[cw.data.CWPyElement] = None, from_scenario: bool = False, scedir: str = "",
-                 put_db: bool = False, dbrec: Optional[sqlite3.Row] = None, imgdbrec: Optional[sqlite3.Cursor] = None,
+                 put_db: bool = False, dbrec: Optional[sqlite3_Row] = None, imgdbrec: Optional[sqlite3.Cursor] = None,
                  dbowner: str = "STOREHOUSE", bgtype: str = "") -> None:
         self.ref_original = weakref.ref(self)
         self.order = -1
@@ -1194,7 +1197,7 @@ class InfoCardHeader(object):
 
 class AdventurerHeader(object):
     def __init__(self, data: Optional[cw.data.CWPyElement] = None, album: bool = False,
-                 dbrec: Optional[sqlite3.Row] = None, imgdbrec: Optional[sqlite3.Cursor] = None,
+                 dbrec: Optional[sqlite3_Row] = None, imgdbrec: Optional[sqlite3.Cursor] = None,
                  fpath: str = "", rootattrs: Optional[Dict[str, str]] = None) -> None:
         """
         album: アルバム用の場合はTrueにする。
@@ -1531,8 +1534,8 @@ assert Gene([0, 1, 1, 0, 0, 0, 0, 0, 0, 1], 3).rotate_mother().get_str() == "010
 
 
 class ScenarioHeader(object):
-    def __init__(self, dbrec: Union[sqlite3.Row, Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]]],
-                 imgdbrec: Union[Optional[sqlite3.Cursor], List[Dict[str, Union[int, str, Optional[bytes]]]]]) -> None:
+    def __init__(self, dbrec: Union[sqlite3_Row, Dict[str, Union[Optional[str], int, float, bool, Optional[bytes]]]],
+                 imgdbrec: Optional[Iterable[Dict[str, Union[int, str, Optional[bytes]]]]]) -> None:
         self.dpath = enforce_str(dbrec["dpath"])
         self.type = enforce_int(dbrec["type"])
         self.fname = enforce_str(dbrec["fname"])
@@ -1559,7 +1562,7 @@ class ScenarioHeader(object):
         if image or imgpath:
             self.images[1] = [image]
             self.imgpaths.append(cw.image.ImageInfo(path=imgpath if imgpath else ""))
-        if imgdbrec:
+        if imgdbrec is not None:
             # 最大のindex
             maxorder = 0
             recs = []
@@ -1736,7 +1739,7 @@ class ScenarioHeader(object):
 
 class PartyHeader(object):
     def __init__(self, data: Optional[cw.data.CWPyElement] = None,
-                 dbrec: Optional[sqlite3.Row] = None) -> None:
+                 dbrec: Optional[sqlite3_Row] = None) -> None:
         """
         data: PartyのPropetyElement。
         dbrec: データベースから生成する場合は対象レコード。
@@ -1857,7 +1860,7 @@ class PartyHeader(object):
 
 class PartyRecordHeader(object):
     def __init__(self, fpath: Optional[str] = None,
-                 dbrec: Optional[sqlite3.Row] = None,
+                 dbrec: Optional[sqlite3_Row] = None,
                  partyrecord: Optional[cw.thread.StoredParty] = None) -> None:
         """
         fpath: ファイルから生成する場合はXMLファイルパス。
@@ -1970,7 +1973,7 @@ class SavedJPDCImageHeader(object):
     宿・シナリオごとにJPDCで生成されたファイルを保存する。
     """
     def __init__(self, fpath: Optional[str] = None,
-                 dbrec: Optional[sqlite3.Row] = None) -> None:
+                 dbrec: Optional[sqlite3_Row] = None) -> None:
         """
         fpath: ファイルから生成する場合はXMLファイルパス。
         dbrec: データベースから生成する場合は対象レコード。

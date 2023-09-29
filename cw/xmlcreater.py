@@ -253,10 +253,7 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
             setting.vol_bgm_midi != setting.vol_bgm_midi_init:
         n = int(setting.vol_bgm * 100)
         n2 = int(setting.vol_bgm_midi * 100)
-        if n != n2:
-            e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
-        else:
-            e = cw.data.make_element("BgmVolume", str(n))
+        e = cw.data.make_element("BgmVolume", str(n), {"midi": str(n2)})
         element.append(e)
     # 効果音のボリューム(0～1.0)
     if setting.vol_sound != setting.vol_sound_init:
@@ -1137,6 +1134,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             #      (mypy 0.790)
             d = typing.cast(cw.sprite.background.ImageCellData, d)
             fpath, inusecard, scaledimage, mask, smoothing, size, pos, flag, visible, layer, cellname = d
+            if cw.LAYER_SP_LAYER <= layer:
+                continue
             attrs = {"mask": str(mask), "visible": str(visible)}
             if cellname:
                 attrs["cellname"] = cellname
@@ -1161,6 +1160,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             d = typing.cast(cw.sprite.background.TextCellData, d)
             text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias, btype, bcolor,\
                 bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, visible, layer, cellname = d
+            if cw.LAYER_SP_LAYER <= layer:
+                continue
             attrs = {"visible": str(visible),
                      "loaded": str(loaded)}
             if cellname:
@@ -1246,6 +1247,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             #      Tuple[int, int], str, bool, int, str]" (mypy 0.790)
             d = typing.cast(cw.sprite.background.ColorCellData, d)
             blend, color1, gradient, color2, size, pos, flag, visible, layer, cellname = d
+            if cw.LAYER_SP_LAYER <= layer:
+                continue
             attrs = {"visible": str(visible)}
             if cellname:
                 attrs["cellname"] = cellname
@@ -1269,6 +1272,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             #      "Tuple[int, bool, str, Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
             d = typing.cast(cw.sprite.background.PCCellData, d)
             pcnumber, expand, smoothing, size, pos, flag, visible, layer, cellname = d
+            if cw.LAYER_SP_LAYER <= layer:
+                continue
             attrs = {"visible": str(visible),
                      "expand": str(expand)}
             if cellname:
@@ -1283,7 +1288,8 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
         else:
             assert bgtype == cw.sprite.background.BG_SEPARATOR
             e_bgimg = cw.data.make_element("Redisplay")
-            e_bgimgs.append(e_bgimg)
+            if len(e_bgimgs) and e_bgimgs[-1].tag != "Redisplay":
+                e_bgimgs.append(e_bgimg)
             continue
 
         e = cw.data.make_element("Flag", flag)
