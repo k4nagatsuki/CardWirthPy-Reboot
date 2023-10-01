@@ -234,12 +234,8 @@ class CharaInfo(wx.Dialog, Generic[_T]):
 
     def OnEnter(self, event: wx.CommandEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
-        if isinstance(page, CardPanel):
-            event = wx.PyCommandEvent(wx.wxEVT_LEFT_UP, wx.ID_UP)
-            page.ProcessEvent(event)
-        else:
-            event = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
-            page.ProcessEvent(event)
+        event = wx.PyCommandEvent(wx.wxEVT_LEFT_UP, wx.ID_UP)
+        page.ProcessEvent(event)
 
     def OnOpenInfo(self, event: wx.CommandEvent) -> None:
         page = self.notebook.GetPage(self.notebook.GetSelection())
