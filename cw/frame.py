@@ -1228,7 +1228,11 @@ class Frame(wx.Frame):
             use = True
 
         if use:
-            cw.cwpy.exec_func(owner.use_card, targets, header)
+            def use_card(owner: cw.character.Character,
+                         targets: Union[List["cw.sprite.card.CWPyCard"], "cw.sprite.card.CWPyCard"],
+                         header: cw.header.CardHeader) -> None:
+                owner.use_card(targets, header)
+            cw.cwpy.exec_func(use_card, owner, targets, header)
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_inusecardimg, owner)
             cw.cwpy.exec_func(cw.cwpy.clear_targetarrow)
