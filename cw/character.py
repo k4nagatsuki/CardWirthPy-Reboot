@@ -906,7 +906,7 @@ class Character(object):
     # --------------------------------------------------------------------------
 
     def use_card(self, targets: Union[List["cw.sprite.card.CWPyCard"], "cw.sprite.card.CWPyCard"],
-                 header: cw.header.CardHeader) -> None:
+                 header: cw.header.CardHeader) -> bool:
         """targetsにカードを使用する。"""
         assert isinstance(self, (cw.sprite.card.PlayerCard, cw.sprite.card.EnemyCard, cw.sprite.card.FriendCard))
         cw.fsync.sync()
@@ -1062,7 +1062,7 @@ class Character(object):
             cw.cwpy.event.in_inusecardevent = False
             header.set_uselimit(-1, animate=True)
             cw.cwpy.clear_specialarea()
-            return
+            return True
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
         e_mates = header.carddata.find("Property/Materials")
@@ -1080,10 +1080,11 @@ class Character(object):
                     for fname in os.listdir(dpath):
                         cw.cwpy.sdata.eat_spchar(dpath, fname, can_loaded_scaledimage)
 
+        e = data.find("Events/Event")
+        cardevent = cw.event.CardEvent(e, header, self, targets)
         try:
             # カードイベント開始
-            e = data.find("Events/Event")
-            cw.event.CardEvent(e, header, self, targets).start()
+            cardevent.start()
         finally:
             if removeafter:
                 # NPC消去
@@ -1097,6 +1098,9 @@ class Character(object):
                 # 特殊文字を元に戻す
                 cw.cwpy.rsrc.specialchars = specialchars
                 cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
+
+        # カードの消費がある場合はTrueを返す
+        return not isinstance(cardevent.error, cw.event.EffectBreakError) or cardevent.error.consumecard
 
     def throwaway_card(self, header: cw.header.CardHeader, from_event: bool = True, update_image: bool = True) -> None:
         """
@@ -1167,14 +1171,15 @@ class Character(object):
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status != "reversed":
                     self.deck.set_used(header)
+                    consumecard = True
                     try:
-                        self.use_card(targets, header)
+                        consumecard = self.use_card(targets, header)
                     finally:
                         # usedは画面スケール変更等で差し変わっている場合があるためここで再取得する
                         assert self.status == "hidden" if isinstance(self, cw.sprite.card.FriendCard) else True
                         used = self.deck.get_used()
                         if used:
-                            self.deck.use(used)
+                            self.deck.use(used, consumecard)
 
     def set_action(self, target: Optional[Union["cw.sprite.card.CWPyCard", List["cw.sprite.card.CWPyCard"]]],
                    header: Optional[cw.header.CardHeader],
