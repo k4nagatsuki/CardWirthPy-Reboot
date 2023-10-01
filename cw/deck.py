@@ -386,7 +386,7 @@ class Deck(object):
         """使用したカードをそのラウンド中記憶する。"""
         self._used = header
 
-    def use(self, header: cw.header.CardHeader) -> None:
+    def use(self, header: cw.header.CardHeader, consumecard: bool) -> None:
         """headerを使用する。
         アイテムカードまたはカード交換は手札に残る。
         スキルカードは1枚消失する。
@@ -395,9 +395,9 @@ class Deck(object):
         if header in self.hand and not header.type == "ItemCard" and\
                 not (header.type == "ActionCard" and header.id == 0):
             self.hand.remove(header)
-            if header.type == "ActionCard" and 0 <= header.id:
+            if not consumecard or (header.type == "ActionCard" and 0 <= header.id):
                 self.talon.insert(0, header)
-        elif header.type == "SkillCard" and header not in self.hand:
+        elif header.type == "SkillCard" and header not in self.hand and consumecard:
             # アイテムカード配付等で手札から押し出され、
             # 使用前に山札に戻されている場合がある
             # アクションカードはそのままでよいが特殊技能は必ず消費させる
