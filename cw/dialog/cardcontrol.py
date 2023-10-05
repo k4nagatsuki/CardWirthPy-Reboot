@@ -2699,6 +2699,10 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
         raise ValueError()
 
     def lclick_event(self, header: CardHeaderType) -> None:
+        if self.callname == "INFOVIEW":
+            self.rclick_event(header)
+            return
+
         assert isinstance(header, cw.header.CardHeader)
         header.negaflag = False
         owner = self.selection
