@@ -5289,7 +5289,7 @@ def create_mutex(dpath: str) -> bool:
                 dpath = os.path.dirname(name)
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
-            f = open(name, "wb")
+            f = open(name, "wb", 0)
             fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             _mutex.append((f, name))
             return True
