@@ -8,7 +8,7 @@ import ctypes
 import wx
 import pygame
 import pygame.surface
-from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SUB, BLEND_RGBA_ADD, BLEND_RGBA_SUB,\
+from pygame import BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_RGB_ADD, BLEND_RGB_SUB, BLEND_RGBA_ADD, BLEND_RGBA_SUB, \
                    BLEND_RGBA_MULT, RLEACCEL, SRCALPHA
 
 import cw

@@ -505,7 +505,7 @@ class EventInterface(object):
             if waittime:
                 tick = pygame.time.get_ticks()
                 stw = cw.sprite.base.StopTheWorld(tick, waittime * 100)
-                while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
+                while cw.cwpy.is_running() and cw.cwpy.is_showingdebugger() and\
                         stw.is_waiting() and not self.stoped:
                     event = self.get_event()
                     assert event
@@ -521,7 +521,7 @@ class EventInterface(object):
                     cnt += 1
 
             cnt = 0
-            while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
+            while cw.cwpy.is_running() and cw.cwpy.is_showingdebugger() and\
                     self.paused and not self.stoped:
                 if -1 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break

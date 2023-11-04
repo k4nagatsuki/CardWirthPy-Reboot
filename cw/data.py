@@ -19,7 +19,7 @@ import cw
 from cw.util import synclock
 
 import typing
-from typing import BinaryIO, Callable, Dict, Generator, ItemsView, Iterable, Iterator, KeysView, List, NoReturn,\
+from typing import BinaryIO, Callable, Dict, Generator, ItemsView, Iterable, Iterator, KeysView, List, NoReturn, \
     Optional, Sequence, Set, Tuple, Type, TypeVar, Union
 
 _lock = threading.Lock()

@@ -2967,7 +2967,7 @@ class CWPy(threading.Thread):
             self.rsrc.specialchars = self.rsrc.get_specialchars()
 
         # battle
-        if self.battle and self.battle.is_running:
+        if self.battle and self.battle.is_running():
             # バトルを強制終了
             self.battle.end(True, True)
             self.battle = None
@@ -3259,7 +3259,7 @@ class CWPy(threading.Thread):
                 self.event.stoped = True
 
             # バトルを強制終了
-            if self.battle and self.battle.is_running:
+            if self.battle and self.battle.is_running():
                 self.battle.end(True, True)
 
             self.exec_func(end_scenario)

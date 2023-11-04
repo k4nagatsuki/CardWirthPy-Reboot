@@ -1039,7 +1039,7 @@ class BackGround(base.CWPySprite):
     def _add_textcell(self, blitlist: List[Tuple[int, _BlitData, str, int]],
                       bgs: List[Tuple[int, Optional[CellData]]], oldbgs: List[Tuple[int, Optional[CellData]]],
                       d: TextCellData, nocheckvisible: bool = False, is_reload: bool = False) -> bool:
-        text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
+        text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias, \
             btype, bcolor, bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, visible, layer, cellname = d
         if not nocheckvisible and namelist:
             if updatetype == "All":
@@ -1368,9 +1368,9 @@ def _draw_bgcell(surface: pygame.surface.Surface, bgdata: Tuple[int, _BlitData],
         # 縁取り形式2以外のテキストセル
         assert len(d) == 13
         # BUG: error: Need more than 4 values to unpack (13 expected) (mypy 0.790)
-        # text, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
+        # text, face, tsize, color, bold, italic, underline, strike, vertical, antialias, \
         #     bcolor, size, pos = d
-        text, face, tsize, color, bold, italic, underline, strike, vertical, antialias,\
+        text, face, tsize, color, bold, italic, underline, strike, vertical, antialias, \
             bcolor, size, pos = typing.cast(Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool, bool,
                                                   bool, Tuple[int, int, int], Tuple[int, int], Tuple[int, int]], d)
         rect = cw.s(pygame.rect.Rect(pos, size))
@@ -1408,9 +1408,9 @@ class BgCell(base.CWPySprite):
             # 縁取り形式2以外のテキストセル
             assert len(d) == 13
             # BUG: error: Need more than 4 values to unpack (13 expected) (mypy 0.790)
-            # _text, _face, _tsize, _color, _bold, _italic, _underline, _strike, _vertical, _antialias,\
+            # _text, _face, _tsize, _color, _bold, _italic, _underline, _strike, _vertical, _antialias, \
             #     _bcolor, size, pos = d
-            _text, _face, _tsize, _color, _bold, _italic, _underline, _strike, _vertical, _antialias,\
+            _text, _face, _tsize, _color, _bold, _italic, _underline, _strike, _vertical, _antialias, \
                 _bcolor, size, pos = typing.cast(Tuple[str, str, int, Tuple[int, int, int], bool, bool, bool, bool,
                                                        bool, bool, Tuple[int, int, int], Tuple[int, int],
                                                        Tuple[int, int]], d)
@@ -1752,7 +1752,7 @@ class ClickableSprite(base.SelectableSprite):
     def update_scale(self) -> None:
         self._image = self._getimage()
         self._clickedimage = pygame.transform.rotozoom(self._image, 0, 0.9)
-        if self._getselimage:
+        if self._getselimage is not None:
             self._selimage = self._getselimage()
             self._selclickedimage = pygame.transform.rotozoom(self._selimage, 0, 0.9)
         else:
