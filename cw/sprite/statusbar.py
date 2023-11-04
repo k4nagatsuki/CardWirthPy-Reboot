@@ -1740,14 +1740,15 @@ class TouchMenuButton(StatusBarButton):
             icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_LCLICK"]
             lclick_btn = cw.sprite.touchbutton.SimplePointableTile(
                 icon, name, lclick,
-                lambda: touchbutton.can_selectsprite and cw.cwpy.index != -1,
+                lambda: touchbutton.can_selectsprite is not None and cw.cwpy.index != -1,
                 width=lclick_btn_w)
 
             name = cw.cwpy.msgs["touch_rclick"]
             icon = cw.cwpy.rsrc.pygamedialogs["TOUCH_RCLICK"]
             rclick_btn = cw.sprite.touchbutton.SimplePointableTile(
                 icon, name, rclick,
-                lambda: not cw.cwpy.is_showingmessage() and touchbutton.can_selectsprite and cw.cwpy.index != -1,
+                lambda: not cw.cwpy.is_showingmessage() and touchbutton.can_selectsprite is not None and
+                        cw.cwpy.index != -1,
                 width=rclick_btn_w)
 
             icon = cw.cwpy.rsrc.pygamedialogs["SWITCH_TO_RIGHT"]

@@ -1752,7 +1752,7 @@ class ClickableSprite(base.SelectableSprite):
     def update_scale(self) -> None:
         self._image = self._getimage()
         self._clickedimage = pygame.transform.rotozoom(self._image, 0, 0.9)
-        if self._getselimage:
+        if self._getselimage is not None:
             self._selimage = self._getselimage()
             self._selclickedimage = pygame.transform.rotozoom(self._selimage, 0, 0.9)
         else:

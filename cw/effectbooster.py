@@ -649,6 +649,7 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
+            assert isinstance(self, JpyBackGroundImage)
             assert self.width is not None
             imagesize = image.get_size()
             if self.width >= cw.s(0):

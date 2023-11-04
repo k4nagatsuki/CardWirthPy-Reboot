@@ -706,11 +706,14 @@ def dispose_bass() -> None:
     import _ctypes
     if sys.platform == "win32":
         if _bass:
-            _ctypes.FreeLibrary(_bass._handle)
+            # mypy 0.971: error: Module has no attribute "FreeLibrary"  [attr-defined]
+            _ctypes.FreeLibrary(_bass._handle)  # type: ignore
         if _bassmidi:
-            _ctypes.FreeLibrary(_bassmidi._handle)
+            # mypy 0.971: error: Module has no attribute "FreeLibrary"  [attr-defined]
+            _ctypes.FreeLibrary(_bassmidi._handle)  # type: ignore
         if _bassfx:
-            _ctypes.FreeLibrary(_bassfx._handle)
+            # mypy 0.971: error: Module has no attribute "FreeLibrary"  [attr-defined]
+            _ctypes.FreeLibrary(_bassfx._handle)  # type: ignore
     else:
         if _bass:
             _ctypes.dlclose(_bass._handle)

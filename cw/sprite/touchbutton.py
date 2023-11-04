@@ -19,9 +19,6 @@ class TouchButton(base.SelectableSprite):
 
     def __init__(self, icon: Optional[pygame.surface.Surface], name: str, desc: str, hotkey: str,
                  func: Callable[[], None], is_enabled: Callable[[], bool], width: int = 0) -> None:
-        assert func
-        assert is_enabled
-
         base.SelectableSprite.__init__(self)
         self.selectable_on_event = True
         self.is_statusctrl = True

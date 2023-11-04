@@ -2937,7 +2937,7 @@ def end_scenario(complete: bool) -> None:
         # 終了印追加
         cw.cwpy.ydata.set_compstamp(cw.cwpy.sdata.name)
 
-    if cw.cwpy.battle and cw.cwpy.battle.is_running:
+    if cw.cwpy.battle and cw.cwpy.battle.is_running():
         # バトルを強制終了
         cw.cwpy.battle.end(False, True)
 

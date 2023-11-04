@@ -3553,7 +3553,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]]
             def append_word_wrap(buf: List[Tuple[str, bool]], buflen: int,
                                  word: str) -> Tuple[List[Tuple[str, bool]], int, str]:
                 # wordを強制的に折り返しながら行に加える
-                assert get_width
+                assert get_width is not None
                 if is_spchar:
                     return buf, buflen, word
                 while width < buflen + get_width(word):
@@ -3570,7 +3570,7 @@ def _wordwrap_impl(s: str, width: int, get_width: Optional[Callable[[str], int]]
             def break_before_openchar(buf2: Sequence[Tuple[str, bool]], buf: List[Tuple[str, bool]], buflen: int,
                                       word: str) -> Tuple[List[Tuple[str, bool]], int, str]:
                 # 行末禁止文字の位置まで遡って折り返す
-                assert get_width
+                assert get_width is not None
                 while buf2 and match_op_last(buf2):
                     buf2 = buf2[:-1]
                 if buf2:
