@@ -46,7 +46,7 @@ import regex
 import cw
 
 import typing
-from typing import BinaryIO, Callable, Dict, Iterable, List, Literal, Optional, Sequence, Set, TextIO, Tuple, Type,\
+from typing import BinaryIO, Callable, Dict, Iterable, List, Literal, Optional, Sequence, Set, TextIO, Tuple, Type, \
     TypeVar, Union
 import abc
 
@@ -3334,7 +3334,7 @@ def txtwrap(s: str, mode: int, width: int = 30, wrapschars: str = "", encodedtex
             if index == len(seq):
                 spcharinfo2.append(seqlen)
             else:
-                spcharinfo2.append(reduce(lambda l, s: l + len(s), seq[:index], 0))
+                spcharinfo2.append(reduce(lambda ln, s: ln + len(s), seq[:index], 0))
 
     index = 0
     for char in graphemes(s):

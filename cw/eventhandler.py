@@ -7,9 +7,9 @@ import sys
 import time
 
 import pygame
-from pygame import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
-                   K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9,\
-                   K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
+from pygame import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, K_RIGHT, K_UP, K_DOWN, \
+                   K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9, \
+                   K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN, \
                    MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
 
 import cw

@@ -1158,7 +1158,7 @@ def create_scenariolog(sdata: cw.data.ScenarioData, path: str, recording: bool, 
             #      bool, bool, str, Optional[Tuple[int, int, int]], int, bool, str, Optional[Tuple[str, str]],
             #      Tuple[int, int], Tuple[int, int], str, bool, int, str]" (mypy 0.790)
             d = typing.cast(cw.sprite.background.TextCellData, d)
-            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias, btype, bcolor,\
+            text, namelist, face, tsize, color, bold, italic, underline, strike, vertical, antialias, btype, bcolor, \
                 bwidth, loaded, updatetype, scenarioinfo, size, pos, flag, visible, layer, cellname = d
             if cw.LAYER_SP_LAYER <= layer:
                 continue

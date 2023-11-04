@@ -22,7 +22,7 @@ import pygame.surface
 import cw
 
 import typing
-from typing import List, Literal, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Pattern,\
+from typing import List, Literal, Callable, Dict, KeysView, Generator, Generic, Iterable, NoReturn, Optional, Pattern, \
     Sequence, Set, Tuple, TypeVar, Union
 
 
