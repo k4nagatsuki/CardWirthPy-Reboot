@@ -315,6 +315,8 @@ def variant_error_msg(ex: "cw.calculator.ComputeException") -> str:
             return "%sは関数で生成しなければなりません。" % (ex.info.name.upper())
     elif isinstance(ex, cw.calculator.DifferentStructureException):
         return "異なる構造体を比較しようとしました(%s:%s)" % (ex.lhs_name, ex.rhs_name)
+    elif isinstance(ex, cw.calculator.ZeroDivisionException):
+        return "ゼロによる除算が発生しました(行:%s 位置:%s)" % (ex.line, ex.pos)
     else:
         assert False
 
