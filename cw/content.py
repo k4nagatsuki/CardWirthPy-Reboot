@@ -3761,6 +3761,8 @@ class LoseCastContent(LoseContent):
             if cw.cwpy.is_battlestatus() and cw.cwpy.battle and fcards[0] in cw.cwpy.battle.members:
                 cw.cwpy.battle.members.remove(fcards[0])
                 fcards[0].clear_action()
+            if fcards[0].inusecardimg:
+                cw.cwpy.clear_inusecardimg(fcards[0])
             cw.cwpy.sdata.friendcards.remove(fcards[0])
             fcards[0].set_vanished()
 
