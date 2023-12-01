@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 cx-freeze = "==6.1"
 flake8 = "==5.0.4"
+mypy = "==1.7.1"
 
 [packages]
 grapheme = "==0.6.0"
