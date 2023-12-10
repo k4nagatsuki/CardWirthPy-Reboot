@@ -1,4 +1,4 @@
-﻿CardWirthPy Reboot Version.5.1
+﻿CardWirthPy Reboot Version.5.2
 =================================
 
 Reboot版作者
@@ -218,14 +218,14 @@ CardWirthPyでプレイ中か判定するイベントを作る方法について
 
 現在のバージョンでは、称号所持分岐で、次の2つの称号の所持判定は、実際に所持しているかどうかによらず必ず成功します。
 
- * ＠CardWirthPy Version.5.1
- * ＠CardWirthPy Version.5.1 Only
+ * ＠CardWirthPy Version.5.2
+ * ＠CardWirthPy Version.5.2 Only
 
 このうち、「Only」がついている称号は、CardWirthPyのバージョンアップ時に削除され、新しいバージョン固有の称号に差し替えられます。「Only」がついていない称号は、バージョンアップ後も残ります。
 
-CardWirthPyでプレイ中か判定する時やバージョンが5.1以降であるか判定する時には、「＠CardWirthPy Version.5.1」を使用して称号判定分岐を行ってください。
+CardWirthPyでプレイ中か判定する時やバージョンが5.2以降であるか判定する時には、「＠CardWirthPy Version.5.2」を使用して称号判定分岐を行ってください。
 
-CardWirthPy 5.1固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.5.1 Only」を使用してください。
+CardWirthPy 5.2固有で将来修正される見込みのバグに対処したい場合などは、「＠CardWirthPy Version.5.2 Only」を使用してください。
 
 使用可能な過去のバージョンの称号のリストは以下の通りです。
 
@@ -249,6 +249,7 @@ CardWirthPy 5.1固有で将来修正される見込みのバグに対処した�
  * ＠CardWirthPy Version.4.3
  * ＠CardWirthPy Version.5.0
  * ＠CardWirthPy Version.5.1
+ * ＠CardWirthPy Version.5.2
 
 
 WSN形式の特定バージョンへの対応を示すクーポンについて

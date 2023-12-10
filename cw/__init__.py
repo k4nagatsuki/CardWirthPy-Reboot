@@ -74,7 +74,7 @@ tempdir_init = "Data/Temp/Global"
 tempdir = tempdir_init
 
 # アプリケーション情報
-APP_VERSION = (5, "1")
+APP_VERSION = (5, "2")
 APP_NAME = "CardWirthPy"
 
 # CardWirthの標準文字コード
