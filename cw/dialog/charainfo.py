@@ -3,7 +3,9 @@
 
 import sys
 import math
+import time
 import wx
+import wx._core
 import pygame
 
 import cw
@@ -61,8 +63,31 @@ class CharaInfo(wx.Dialog, Generic[_T]):
             self.rightbtn.Disable()
 
         # notebook
-        self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(203)),
-                                                           agwStyle=aui.AUI_NB_BOTTOM | aui.AUI_NB_TAB_FIXED_WIDTH)
+        # 希に以下のエラーが出る環境があるとの報告(issue #1110)
+        # 明らかにライブラリ内のエラーで、wxPythonのアップデートで解決する可能性あり？
+        # さしあたり1秒待機してリトライする事を5回まで行う処理を入れる
+        # Traceback (most recent call last):
+        #   File ".\cw\frame.py", line 1092, in OnCHARAINFO
+        #   File ".\cw\dialog\charainfo.py", line 565, in __init__
+        #   File ".\cw\dialog\charainfo.py", line 64, in __init__
+        #   File "C:\Program Files\Python38\lib\site-packages\wx\lib\agw\aui\auibook.py", line 3048, in __init__
+        #   File "C:\Program Files\Python38\lib\site-packages\wx\lib\agw\aui\framemanager.py", line 4190, in __init__
+        #   File "C:\Program Files\Python38\lib\site-packages\wx\lib\agw\aui\tabart.py", line 144, in __init__
+        #   File "C:\Program Files\Python38\lib\site-packages\wx\lib\agw\aui\aui_utilities.py", line 159, in BitmapFromBits
+        # wx._core.wxAssertionError: C++ assertion ""IsOk()"" failed at ..\..\src\common\image.cpp(1717) in wxImage::Replace(): invalid image
+        retry = 0
+        while True:
+            try:
+                self.notebook = wx.lib.agw.aui.auibook.AuiNotebook(self, -1, size=(self.width, cw.wins(203)),
+                                                                   agwStyle=aui.AUI_NB_BOTTOM | aui.AUI_NB_TAB_FIXED_WIDTH)
+                break
+            except wx._core.wxAssertionError as ex:
+                if 5 <= retry:
+                    raise
+                time.sleep(1)
+                cw.util.print_ex(file=sys.stderr)
+                retry += 1
+
         self.notebook.SetMinSize((self.width, cw.wins(199)))
         width = self.notebook.GetSize()[0]
         cut = width // 6 - 1
