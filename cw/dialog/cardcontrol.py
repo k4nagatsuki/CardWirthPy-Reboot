@@ -2087,6 +2087,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
                 self.index = 0
 
         else:
+            self.pre_pos = None
             for i in range(len(cw.cwpy.setting.show_cardtype)):
                 cw.cwpy.setting.show_cardtype[i] = True
                 cw.cwpy.setting.last_cardpocketbpage[i] = 0
@@ -2111,7 +2112,7 @@ class CardHolder(CardControl[CardHeaderType], Generic[CardHeaderType]):
             self.index2 = self.selection
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
-            assert isinstance(self.selection, cw.character.Character)
+            assert isinstance(self.selection, cw.character.Character), self.selection
             name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.bgcolour = wx.Colour(0, 0, 128)
             if self.areaid in cw.AREAS_TRADE:
@@ -3336,6 +3337,7 @@ class HandView(CardControl[cw.header.CardHeader]):
                 self.pre_pos = None
             self.selection = self.index2
         else:
+            self.pre_pos = None
             cw.cwpy.setting.card_narrow = ""
             self.selection = selection
             self.index2 = self.selection
