@@ -74,7 +74,7 @@ class CardEditDialog(wx.Dialog):
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
         self.cards = wx.ListCtrl(self, -1, size=cw.ppis((200, 250)),
-                                 style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                                 style=wx.LC_REPORT)
         self.cards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.cards.InsertColumn(0, "ID")
         self.cards.InsertColumn(1, "カード名")
