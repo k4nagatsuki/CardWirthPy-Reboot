@@ -673,9 +673,15 @@ class Frame(wx.Frame):
         cw.thread.post_pygameevent(evt)
 
     def OnDropFiles(self, event: wx.DropFilesEvent) -> None:
+        # リソースのロード中にドロップされる事があるため一旦CWPyスレッドを経由する
+        def func(paths: Iterable[str]):
+            cw.cwpy.frame.exec_func(cw.cwpy.frame._on_drop_files, paths)
+
+        cw.cwpy.exec_func(func, event.GetFiles())
+
+    def _on_drop_files(self, paths: Iterable[str]) -> None:
         if cw.cwpy.is_showingdlg():
             return
-        paths = event.GetFiles()
 
         for path in paths:
             # スキンの自動生成
