@@ -1120,6 +1120,8 @@ class Event(object):
 
         assert event.cur_content is not None
         cur: cw.data.CWPyElement = event.cur_content
+        nowrunningcontents = event.nowrunningcontents[:]
+        event.nowrunningcontents.clear()
         line_index = event.line_index
         event.nowrunningcontents.append((self, cur, event.line_index, versionhint_base))
         cw.cwpy.event.append_event(self)
@@ -1140,6 +1142,8 @@ class Event(object):
         finally:
             event.restore_inusedata()
             # 効果コンテントで実行されたケースのために処理の流れを戻す
+            assert not event.nowrunningcontents
+            event.nowrunningcontents.extend(nowrunningcontents)
             event.cur_content = cur
             event.line_index = line_index
 
