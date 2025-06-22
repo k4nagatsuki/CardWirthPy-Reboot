@@ -962,7 +962,7 @@ class Event(object):
                     cw.cwpy.event.pop_stackinfo()
                     if packevent:
                         if isinside:
-                            cw.cwpy.event.pop_event()
+                            packevent.run_exit_inside()
                         else:
                             packevent.run_exit()
                         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
@@ -980,12 +980,15 @@ class Event(object):
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
     def run_exit(self) -> None:
+        self.run_exit_inside()
+        self.clear()
+
+    def run_exit_inside(self) -> None:
         if self.base:
             self.copy_from_impl(self.base)
             self.base = None
 
         cw.cwpy.event.pop_event()
-        self.clear()
 
     def end(self) -> None:
         """共通終了処理。"""
@@ -1119,6 +1122,18 @@ class Event(object):
         assert cw.cwpy.event
         event = cw.cwpy.event.get_event()
         assert event
+
+        # パッケージのリンクまたはコールで
+        # イベント自体が書き換えられている可能性があるため
+        # 一時的に元に戻しておく
+        base = None
+        event_base = event.base
+        if event.base:
+            base = Event(None)
+            base.copy_from_impl(event)
+            event.copy_from_impl(event.base)
+            event.base = None
+
         versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
 
         assert event.cur_content is not None
@@ -1141,6 +1156,9 @@ class Event(object):
             event.run(isinside=isinsideevent)
         finally:
             event.restore_inusedata()
+            if base:
+                event.copy_from_impl(base)
+                event.base = event_base
 
     def clear(self) -> None:
         self.index = 0
