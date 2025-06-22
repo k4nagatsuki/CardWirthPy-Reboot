@@ -961,7 +961,10 @@ class Event(object):
                     packevent, self.cur_content, self.line_index, versionhint = self.nowrunningcontents.pop()
                     cw.cwpy.event.pop_stackinfo()
                     if packevent:
-                        packevent.run_exit()
+                        if isinside:
+                            cw.cwpy.event.pop_event()
+                        else:
+                            packevent.run_exit()
                         cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
                     if isinside and insidelevel == stack:
                         break
@@ -1111,7 +1114,7 @@ class Event(object):
         else:
             return None
 
-    def run_scenarioevent(self) -> None:
+    def run_scenarioevent(self, isinsideevent=True) -> None:
         """効果コンテントなどの実行中に他のイベントを割り込ませる。"""
         assert cw.cwpy.event
         event = cw.cwpy.event.get_event()
@@ -1120,9 +1123,6 @@ class Event(object):
 
         assert event.cur_content is not None
         cur: cw.data.CWPyElement = event.cur_content
-        nowrunningcontents = event.nowrunningcontents[:]
-        event.nowrunningcontents.clear()
-        line_index = event.line_index
         event.nowrunningcontents.append((self, cur, event.line_index, versionhint_base))
         cw.cwpy.event.append_event(self)
         self.parent = cw.cwpy.event.get_event()
@@ -1138,14 +1138,9 @@ class Event(object):
 
         event.store_inusedata(selectuser=True)
         try:
-            event.run(isinside=True)
+            event.run(isinside=isinsideevent)
         finally:
             event.restore_inusedata()
-            # 効果コンテントで実行されたケースのために処理の流れを戻す
-            assert not event.nowrunningcontents
-            event.nowrunningcontents.extend(nowrunningcontents)
-            event.cur_content = cur
-            event.line_index = line_index
 
     def clear(self) -> None:
         self.index = 0

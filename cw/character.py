@@ -3362,7 +3362,7 @@ class Character(object):
                     if fromevent:
                         event = events.check_keynum(1)
                         if event:
-                            event.run_scenarioevent()
+                            event.run_scenarioevent(isinsideevent=False)
                     else:
                         events.start(1, isinsideevent=False)
                 finally:
