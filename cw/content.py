@@ -3634,7 +3634,9 @@ class LoseContent(EventContentBase):
             if num == 0:
                 num = 0x7fffffff
 
-            for target in cw.cwpy.event.get_targetscope(self.scope):
+            # カード削除の時に限り、「フィールド全体」はリバースメンバも含む(CardWirth 1.50)
+            unreversed = (self.scope != "Field")
+            for target in cw.cwpy.event.get_targetscope(self.scope, unreversed=unreversed):
                 if isinstance(target, cw.character.Character):
                     target = target.get_pocketcards(index)
 
