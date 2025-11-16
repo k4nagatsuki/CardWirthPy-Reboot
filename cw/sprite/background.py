@@ -549,6 +549,10 @@ class BackGround(base.CWPySprite):
             imgpath = cw.util.get_inusecardmaterialpath(path, cw.M_IMG)
             inusecard = os.path.isfile(imgpath)
             scaledimage = cw.cwpy.sdata.can_loaded_scaledimage
+            if inusecard:
+                # 使用時イベント中なのでスケーリング情報をカードから取得
+                assert cw.cwpy.event.get_inusecard() is not None
+                scaledimage = cw.cwpy.event.get_inusecard().get_can_loaded_scaledimage()
 
         t, _ = self._create_bgbasedata(e)
         return (path, inusecard, scaledimage, mask, smoothing) + t
