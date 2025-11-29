@@ -1526,11 +1526,12 @@ class CardEvent(Event, Targeting):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
-        # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
-        if not isinstance(self.error, ScenarioEndError) and\
-                (cw.cwpy.setting.spend_noeffectcard or cw.cwpy.event.is_changestate):
-            if not isinstance(self.error, EffectBreakError) or self.error.consumecard:
-                self.inusecard.set_uselimit(-1, animate=True)
+        # カードの使用回数を減らす
+        if (cw.cwpy.setting.spend_noeffectcard or cw.cwpy.event.is_changestate) and\
+                (not isinstance(self.error, EffectBreakError) or self.error.consumecard) and \
+                not (self.inusecard.type == "SkillCard" and isinstance(self.error, ScenarioEndError)):
+            animate = not isinstance(self.error, ScenarioEndError)
+            self.inusecard.set_uselimit(-1, animate=animate)
         cw.cwpy.event.is_changestate = False
 
         # ローカル変数を更新する(Wsn.4)
