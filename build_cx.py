@@ -10,7 +10,7 @@ import zipfile
 
 from cx_Freeze import setup, Executable
 
-version = "5.2"
+version = "5.3"
 
 dist_dir = "CardWirthPy"
 script = "cardwirth.py"
