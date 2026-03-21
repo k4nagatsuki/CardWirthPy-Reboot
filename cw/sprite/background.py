@@ -1165,16 +1165,10 @@ class BackGround(base.CWPySprite):
                     bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage,
                                              use_excache=self.use_excache)
                     iw, ih = bmp.get_size()
-                    if isinstance(bmp, cw.util.Depth1Surface):
-                        scr_scale = bmp.scr_scale
-                    else:
-                        scr_scale = 1.0
-                    iw = int(iw // scr_scale)
-                    ih = int(ih // scr_scale)
                     baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
-                    image.blit(cw.s(bmp), (baserect.x, baserect.y))
+                    image.blit(cw.s(bmp), cw.s((baserect.x, baserect.y)))
 
                 smoothscale_bg = cw.cwpy.setting.smoothscale_bg
                 if smoothing != "Default":
@@ -1191,16 +1185,10 @@ class BackGround(base.CWPySprite):
                     bmp = cw.util.load_image(path, True, isback=False, can_loaded_scaledimage=can_loaded_scaledimage,
                                              use_excache=self.use_excache)
                     iw, ih = bmp.get_size()
-                    if isinstance(bmp, cw.util.Depth1Surface):
-                        scr_scale = bmp.scr_scale
-                    else:
-                        scr_scale = 1.0
-                    iw = int(iw // scr_scale)
-                    ih = int(ih // scr_scale)
                     baserect = info.calc_basecardposition((iw, ih), noscale=True,
                                                           basecardtype="LargeCard",
                                                           cardpostype="NotCard")
-                    image.blit(cw.s(bmp), (baserect.x, baserect.y))
+                    image.blit(cw.s(bmp), cw.s((baserect.x, baserect.y)))
 
             d2 = (image, size, pos, 0)
             blitlist.append((BG_IMAGE, d2, flag, layer))
