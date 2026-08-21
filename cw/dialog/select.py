@@ -3383,7 +3383,11 @@ class PlayerSelect(MultiViewSelect[cw.header.AdventurerHeader]):
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                     s = cw.cwpy.msgs["character_profile"]
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, cpos - w // 2, cw.wins(42))
+                    # 変更前
+                    # dc.DrawText(s, cpos - w // 2, cw.wins(42))
+                    # 変更後(wxPythonへのパラメータ wxPython側が整数を要求している
+                    dc.DrawText(s, int(cpos - w // 2), int(cw.wins(42)))
+                    
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(13)))
                     desc: List[str] = []
                     for s in cw.util.txtwrap(header.desc, 4).rstrip().splitlines():

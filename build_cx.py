@@ -130,14 +130,14 @@ def build_exe():
         chmfile = ""
 
     if sys.platform == "win32":
-        base = "Win32GUI"
-        targetName = "CardWirthPy.exe"
+        base = "gui"
+        target_name = "CardWirthPy.exe"
     else:
         base = None
-        targetName = "CardWirthPy"
+        target_name = "CardWirthPy"
 
     exe = Executable(script="cardwirth.py",
-                     targetName=targetName,
+                     target_name=target_name, # Cx-Freeze のバージョン8.6.4 では targetName → target_name に変更 6.1ならばその通りで。
                      base=base,
                      icon="CardWirthPy.ico")
 

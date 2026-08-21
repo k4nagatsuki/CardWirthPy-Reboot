@@ -18,6 +18,7 @@ from . import event
 from . import eventhandler
 from . import eventrelay
 from . import features
+from . import binary
 from . import scenariodb
 from . import setting
 from . import skin
@@ -33,7 +34,6 @@ from . import effectbooster
 from . import content
 from . import xmlcreater
 from . import bassplayer
-from . import binary
 from . import advlog
 from . import update
 from . import calculator

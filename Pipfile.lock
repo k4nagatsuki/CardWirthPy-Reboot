@@ -5,7 +5,7 @@
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.7"
+            "python_version": "3.13"
         },
         "sources": [
             {
@@ -27,14 +27,14 @@
                 "sha256:fb8c12f5814c1ce6383b86617ca6b2b83a169f9251f4e308e4f8d94b0c703f59"
             ],
             "index": "pypi",
-            "version": "==5.1.1"
+            "version": "==8.6.4"
         },
         "lhafile": {
             "hashes": [
                 "sha256:794763b52c386465921734bf83234d87731ba9cdc8808433c9c7fbf33fed1b9f"
             ],
             "index": "pypi",
-            "version": "==0.2.2"
+            "version": "==0.3.1"
         },
         "pillow": {
             "hashes": [
@@ -95,7 +95,7 @@
                 "sha256:fc8bda436482458412d01e595e7a88dd777416d422ff1e45b9a6d96287806255"
             ],
             "index": "pypi",
-            "version": "==1.9.5"
+            "version": "==2.6.1"
         },
         "pypiwin32": {
             "hashes": [
@@ -117,7 +117,7 @@
                 "sha256:9bd07746ce7f2198021a9fa187fa80df7b221ec5e4c234ab6f00ea355a3baf99"
             ],
             "index": "pypi",
-            "version": "==224"
+            "version": "==312"
         },
         "six": {
             "hashes": [
@@ -146,7 +146,7 @@
                 "sha256:f7f6ba15c1e1bf12668bd763dea1a81550619868f05b795dba945df3984fc8bc"
             ],
             "index": "pypi",
-            "version": "==4.0.4"
+            "version": "==4.3.1"
         }
     },
     "develop": {}
