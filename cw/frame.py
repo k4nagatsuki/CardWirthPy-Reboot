@@ -758,6 +758,8 @@ class Frame(wx.Frame):
                     if cw.cwpy.lastsound_system:
                         cw.cwpy.lastsound_system.set_mastervolume(False, 0)
             cw.cwpy.force_exec_func(func)
+            if self.debugger:
+                self.debugger.Hide()
         else:
             def func() -> None:
                 if not cw.cwpy:
@@ -777,6 +779,7 @@ class Frame(wx.Frame):
             cw.cwpy.force_exec_func(func)
             if self.debugger:
                 self.debugger.Iconize(False)
+                self.debugger.Show()
 
     def OnCloseFromFrame(self, event: wx.CloseEvent) -> None:
         # Escapeキー以外で閉じようとした

@@ -69,7 +69,7 @@ class Debugger(wx.Frame):
         wx.Frame.__init__(
             self, parent, -1, "CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.CLIP_CHILDREN | wx.CAPTION |
-            wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU)
+            wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.FRAME_NO_TASKBAR | wx.FRAME_FLOAT_ON_PARENT)
         self.cwpy_debug = True
         self.SetClientSize((cw.ppis(651), cw.cwpy.frame.GetClientSize()[1]))
         # set icon
