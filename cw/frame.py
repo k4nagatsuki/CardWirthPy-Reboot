@@ -745,7 +745,9 @@ class Frame(wx.Frame):
             style = self.debugger.GetWindowStyle()
             self.debugger.SetWindowStyle(style | wx.STAY_ON_TOP)
             self.debugger.SetWindowStyle(style)
-            self.Raise()
+            style = self.GetWindowStyle()
+            self.SetWindowStyle(style | wx.STAY_ON_TOP)
+            self.SetWindowStyle(style)
             event.Skip()
 
     def OnIconize(self, event: wx.IconizeEvent) -> None:

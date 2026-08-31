@@ -675,7 +675,9 @@ class Debugger(wx.Frame):
             style = self.Parent.GetWindowStyle()
             self.Parent.SetWindowStyle(style | wx.STAY_ON_TOP)
             self.Parent.SetWindowStyle(style)
-            self.Raise()
+            style = self.GetWindowStyle()
+            self.SetWindowStyle(style | wx.STAY_ON_TOP)
+            self.SetWindowStyle(style)
             event.Skip()
 
     @synclock(mutex)
