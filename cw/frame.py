@@ -249,6 +249,7 @@ class Frame(wx.Frame):
 
     def _bind(self) -> None:
         self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
+        self.Bind(wx.EVT_ACTIVATE, self.OnActivate)
         self.Bind(wx.EVT_ICONIZE, self.OnIconize)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
@@ -738,6 +739,15 @@ class Frame(wx.Frame):
 
         cw.util.t_print()
 
+    def OnActivate(self, event: wx.ActivateEvent) -> None:
+        if cw.cwpy.setting.raise_in_debugmode and event.GetActive() and self.debugger:
+            self.debugger.Show()
+            style = self.debugger.GetWindowStyle()
+            self.debugger.SetWindowStyle(style | wx.STAY_ON_TOP)
+            self.debugger.SetWindowStyle(style)
+            self.Raise()
+            event.Skip()
+
     def OnIconize(self, event: wx.IconizeEvent) -> None:
         """最小化イベント。最小化したときBGMの音も消す。"""
         self.is_iconized = event.IsIconized()
@@ -758,7 +768,7 @@ class Frame(wx.Frame):
                     if cw.cwpy.lastsound_system:
                         cw.cwpy.lastsound_system.set_mastervolume(False, 0)
             cw.cwpy.force_exec_func(func)
-            if self.debugger:
+            if cw.cwpy.setting.raise_in_debugmode and self.debugger:
                 self.debugger.Hide()
         else:
             def func() -> None:

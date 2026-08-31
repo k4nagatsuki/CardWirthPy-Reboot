@@ -69,7 +69,8 @@ class Debugger(wx.Frame):
         wx.Frame.__init__(
             self, parent, -1, "CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.CLIP_CHILDREN | wx.CAPTION |
-            wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.FRAME_NO_TASKBAR | wx.FRAME_FLOAT_ON_PARENT)
+            wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU |
+            (wx.FRAME_NO_TASKBAR if cw.cwpy.setting.raise_in_debugmode else 0))
         self.cwpy_debug = True
         self.SetClientSize((cw.ppis(651), cw.cwpy.frame.GetClientSize()[1]))
         # set icon
@@ -548,6 +549,7 @@ class Debugger(wx.Frame):
         self.sc_waittime.Bind(wx.EVT_SPINCTRL, self.OnWaitTime)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_ACTIVATE, self.OnActivate)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_MENU, self.OnAreaTool, id=ID_AREA)
         self.Bind(wx.EVT_MENU, self.OnSelectionTool, id=ID_SELECTION)
@@ -667,6 +669,14 @@ class Debugger(wx.Frame):
         def func(waittime: int) -> None:
             cw.cwpy.event.waittime = waittime
         cw.cwpy.force_exec_func(func, waittime)
+
+    def OnActivate(self, event: wx.ActivateEvent) -> None:
+        if cw.cwpy.setting.raise_in_debugmode and event.GetActive():
+            style = self.Parent.GetWindowStyle()
+            self.Parent.SetWindowStyle(style | wx.STAY_ON_TOP)
+            self.Parent.SetWindowStyle(style)
+            self.Raise()
+            event.Skip()
 
     @synclock(mutex)
     def OnClose(self, event: wx.CloseEvent) -> None:

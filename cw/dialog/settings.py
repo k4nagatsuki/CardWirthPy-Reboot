@@ -740,6 +740,9 @@ class SettingsPanel(wx.Panel):
         else:
             setting.wheelup_operation = cw.setting.WHEEL_SELECTION
 
+        value = self.pane_ui.cb_raise_in_debugmode.GetValue()
+        setting.raise_in_debugmode = value
+
         value = self.pane_ui.cb_show_btndesc.GetValue()
         setting.show_btndesc = value
         value = self.pane_ui.cb_statusbarmask.GetValue()
@@ -2830,6 +2833,8 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, "スターつきのカードの売却や破棄を禁止する")
         self.cb_protect_premiercard = wx.CheckBox(
             self, -1, "プレミアカードの売却や破棄を禁止する")
+        self.cb_raise_in_debugmode = wx.CheckBox(
+            self, -1, "デバッガ表示中にウィンドウをアクティブにした時は両方のウィンドウを最前面に表示する")
 
         self.panel_confirm_dumpcard = wx.Panel(self, -1)
         self.st_confirm_dumpcard = wx.StaticText(self.panel_confirm_dumpcard, -1,
@@ -2948,6 +2953,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard)
+        self.cb_raise_in_debugmode.SetValue(setting.raise_in_debugmode)
 
         if setting.confirm_dumpcard == cw.setting.CONFIRM_DUMPCARD_SENDTO:
             self.ch_confirm_dumpcard.SetSelection(1)
@@ -3003,6 +3009,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard_init)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard_init)
         # self.cb_spend_noeffectcard.SetValue(setting.spend_noeffectcard_init)
+        self.cb_raise_in_debugmode.SetValue(setting.raise_in_debugmode_init)
 
         if cw.setting.CONFIRM_DUMPCARD_SENDTO == setting.confirm_dumpcard_init:
             self.ch_confirm_dumpcard.SetSelection(1)
@@ -3089,6 +3096,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_control.Add(self.cb_can_clicksidesofcardcontrol, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
         bsizer_control.Add(self.cb_showlogwithwheelup, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
         bsizer_control.Add(self.panel_radius_notdetectmovement, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
+        bsizer_control.Add(self.cb_raise_in_debugmode, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, cw.ppis(3))
         sizer_2.Add(bsizer_control, 0, wx.BOTTOM | wx.EXPAND, cw.ppis(3))
 
         bsizer_confirm_and_description = wx.StaticBoxSizer(self.box_confirm_and_description, wx.VERTICAL)
