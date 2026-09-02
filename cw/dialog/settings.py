@@ -741,7 +741,13 @@ class SettingsPanel(wx.Panel):
             setting.wheelup_operation = cw.setting.WHEEL_SELECTION
 
         value = self.pane_ui.cb_raise_in_debugmode.GetValue()
-        setting.raise_in_debugmode = value
+        if value != setting.raise_in_debugmode:
+            setting.raise_in_debugmode = value
+            def update_debugger() -> None:
+                if cw.cwpy.frame.debugger:
+                    cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
+                    cw.cwpy.frame.exec_func(cw.cwpy.frame.show_debugger, True)
+            cw.cwpy.exec_func(update_debugger)
 
         value = self.pane_ui.cb_show_btndesc.GetValue()
         setting.show_btndesc = value
