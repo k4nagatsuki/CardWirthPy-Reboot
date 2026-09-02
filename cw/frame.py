@@ -748,7 +748,7 @@ class Frame(wx.Frame):
             style = self.GetWindowStyle()
             self.SetWindowStyle(style | wx.STAY_ON_TOP)
             self.SetWindowStyle(style)
-            event.Skip()
+        event.Skip()
 
     def OnIconize(self, event: wx.IconizeEvent) -> None:
         """最小化イベント。最小化したときBGMの音も消す。"""

@@ -678,7 +678,7 @@ class Debugger(wx.Frame):
             style = self.GetWindowStyle()
             self.SetWindowStyle(style | wx.STAY_ON_TOP)
             self.SetWindowStyle(style)
-            event.Skip()
+        event.Skip()
 
     @synclock(mutex)
     def OnClose(self, event: wx.CloseEvent) -> None:
