@@ -415,6 +415,8 @@ class Setting(object):
         self.debug_saved_init = self.debug_saved
         self.no_levelup_in_debugmode = False
         self.no_levelup_in_debugmode_init = self.no_levelup_in_debugmode
+        self.raise_in_debugmode = False
+        self.raise_in_debugmode_init = self.raise_in_debugmode
         self.play_bgm = True
         self.play_bgm_init = self.play_bgm
         self.play_sound = True
@@ -820,6 +822,8 @@ class Setting(object):
         self.enabled_timekeeper = data.getbool("EnabledTimekeepr", self.enabled_timekeeper_init)
         # デバッグ時はレベル上昇しない
         self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode_init)
+        # デバッガ表示中にウィンドウをアクティブにした時は両方のウィンドウを最前面に表示する
+        self.raise_in_debugmode = data.getbool("RaiseInDebugMode", self.raise_in_debugmode_init)
         # 音楽を再生する
         self.play_bgm = data.getbool("PlayBgm", self.play_bgm_init)
         # 効果音を再生する

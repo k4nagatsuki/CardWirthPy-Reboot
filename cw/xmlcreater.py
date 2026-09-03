@@ -230,6 +230,10 @@ def create_settings(setting: cw.setting.Setting, writeplayingdata: bool = True, 
     if setting.no_levelup_in_debugmode != setting.no_levelup_in_debugmode_init:
         e = cw.data.make_element("NoLevelUpInDebugMode", str(setting.no_levelup_in_debugmode))
         element.append(e)
+    # デバッガ表示中にウィンドウをアクティブにした時は両方のウィンドウを最前面に表示する
+    if setting.raise_in_debugmode != setting.raise_in_debugmode_init:
+        e = cw.data.make_element("RaiseInDebugMode", str(setting.raise_in_debugmode))
+        element.append(e)
     if writeplayingdata:
         # スキン
         if setting.skindirname != setting.skindirname_init:
