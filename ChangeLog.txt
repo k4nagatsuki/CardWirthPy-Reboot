@@ -10,7 +10,7 @@
 
 ### 変更
 
-Python 3.13 + pygame 2.6.1対応をCardWirthPy-Reboot本体へ提案する
+ * issue 新#5 / python 3.13.14 + pygame 2.6.1 対応に変更
 
 ### 修正
 
