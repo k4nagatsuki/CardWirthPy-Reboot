@@ -4054,8 +4054,10 @@ class CWPy(threading.Thread):
         if 0 <= oldareaid and self.ydata and self.is_playingscenario():
             self.ydata.changed()
 
-        # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
-        if eventstarting and oldareaid >= 0 and not self.is_updating_skin:
+        # エリアイベントを開始
+        # 特殊エリアからの帰還だったら開始しないが、パーティ解散(ID:-3)から宿のパーティ不在画面(ID:1)に
+        # 戻る場合(パーティ解散時)に限り実際のエリア移動なので開始する
+        if eventstarting and (oldareaid >= 0 or (areaid == 1 and oldareaid == -3)) and not self.is_updating_skin:
             if not self.wait_showcards:
                 self.deal_cards(quickdeal=quickdeal, startbattle=startbattle, silent=silent)
             self.force_dealspeed = force_dealspeed
