@@ -4,19 +4,19 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-cx-freeze = "==6.1"
-flake8 = "==5.0.4"
-mypy = "==1.7.1"
+cx-freeze = "==8.6.4"
+flake8 = "==7.3.0"
+mypy = "==2.3.1"
 
 [packages]
 grapheme = "==0.6.0"
-lhafile = "==0.3.0"
-pygame = {version = "==1.9.6", markers = "sys_platform == 'win32'"}
+lhafile = "==0.3.1"
+pygame = {version = "==2.6.1", markers = "sys_platform == 'win32'"}
 #pygame = {version = "==2.5.2", markers = "sys_platform == 'linux'"}
 pypiwin32 = {version = "==223", markers = "sys_platform == 'win32'"}
-pywin32 = {version = "==303", markers = "sys_platform == 'win32'"}
-regex = "==2022.9.13"
-wxpython = "==4.1.0"
+pywin32 = {version = "==312", markers = "sys_platform == 'win32'"}
+regex = "==2026.7.19"
+wxpython = "==4.3.1"
 
 [requires]
-python_version = "3.8"
+python_version = "3.13"

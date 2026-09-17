@@ -1483,7 +1483,10 @@ def validate_filepath(fpath: Optional[Union[str, List[Optional[str]]]]) -> Union
         from cw.binary.image import path_is_code
         if path_is_code(fpath):
             return fpath
-        if os.path.isabs(fpath):
+            
+        if (os.path.isabs(fpath)
+            or fpath.startswith("/")
+            or fpath.startswith("\\")):
             return ""
         else:
             n = join_paths(os.path.normpath(fpath))

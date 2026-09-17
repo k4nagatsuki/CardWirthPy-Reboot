@@ -1,9 +1,9 @@
-lhafile
-pygame == 1.9.6
+lhafile == 0.3.1
+pygame == 2.6.1
 #pypiwin32
 #pywin32
 #wxPython
-regex
-grapheme
-mypy
-flake8
+regex == 2026.7.19
+grapheme == 0.6.0
+mypy == 2.3.1
+flake8 == 7.3.0

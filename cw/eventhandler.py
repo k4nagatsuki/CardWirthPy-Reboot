@@ -757,7 +757,9 @@ class EventHandler(object):
             if cw.cwpy.is_lockmenucards(cw.cwpy.selection):
                 return
             cw.cwpy.has_inputevent = True
-            if not cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]:
+            if not (
+                cw.cwpy.keyevent.keyin.get(pygame.K_LCTRL, 0)
+                or cw.cwpy.keyevent.keyin.get(pygame.K_RCTRL, 0)):
                 cw.cwpy.selection.lclick_event()
             else:
                 cw.cwpy.selection.rclick_event()
@@ -780,7 +782,7 @@ class EventHandler(object):
         if not self.can_input_sys():
             return False
 
-        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+        ctrldown = cw.cwpy.keyevent.keyin.get(pygame.K_LCTRL, 0) or cw.cwpy.keyevent.keyin.get(pygame.K_RCTRL, 0)
 
         if ctrldown and key == ord('D'):
             if not cw.cwpy.is_showingdlg():
@@ -794,7 +796,7 @@ class EventHandler(object):
         if not self.can_input_sys():
             return False
 
-        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+        ctrldown = cw.cwpy.keyevent.keyin.get(pygame.K_LCTRL, 0) or cw.cwpy.keyevent.keyin.get(pygame.K_RCTRL, 0)
 
         if ctrldown and key == ord('P'):
             self.capture_screenshot()
@@ -802,7 +804,7 @@ class EventHandler(object):
         return True
 
     def capture_screenshot(self) -> None:
-        shiftdown = cw.cwpy.keyevent.keyin[pygame.K_LSHIFT] or cw.cwpy.keyevent.keyin[pygame.K_RSHIFT]
+        shiftdown = cw.cwpy.keyevent.keyin.get(pygame.K_LSHIFT, 0) or cw.cwpy.keyevent.keyin.get(pygame.K_RSHIFT, 0)
         if shiftdown:
             cw.util.card_screenshot()
         else:
@@ -1182,7 +1184,7 @@ class EventHandlerForMessageWindow(EventHandler):
         if not self.can_input():
             return False
 
-        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+        ctrldown = cw.cwpy.keyevent.keyin.get(pygame.K_LCTRL, 0) or cw.cwpy.keyevent.keyin.get(pygame.K_RCTRL, 0)
 
         if ctrldown and key == ord('C') and self.can_copytext():
             self.copy_text()
@@ -1697,7 +1699,7 @@ class EventHandlerForBacklog(EventHandler):
         if not EventHandler.keydown_event(self, key):
             return False
 
-        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+        ctrldown = cw.cwpy.keyevent.keyin.get(pygame.K_LCTRL, 0) or cw.cwpy.keyevent.keyin.get(pygame.K_RCTRL, 0)
         if ctrldown and key == ord('C') and self.can_copytext():
             self.copy_text()
             return False

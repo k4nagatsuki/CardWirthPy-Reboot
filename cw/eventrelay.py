@@ -10,7 +10,7 @@ from pygame import K_RETURN, K_ESCAPE, K_BACKSPACE, K_BACKSLASH, K_LEFT, K_RIGHT
                    K_LSHIFT, K_LCTRL, K_PRINT, K_SPACE, KEYUP, KEYDOWN, MOUSEBUTTONUP, \
                    K_PAGEUP, K_PAGEDOWN, K_HOME, K_END
 
-from typing import Optional, Tuple
+from typing import Optional
 
 
 class KeyEventRelay(object):
@@ -50,7 +50,7 @@ class KeyEventRelay(object):
             ord('P'): ord('P'),  # スクリーンショット
             ord('C'): ord('C')}  # メッセージのコピー
         # キー入力(pygame用)
-        self.keyin = [0 for _cnt in range(322)]
+        self.keyin = {}
         # マウス入力。EventHandlerから受信
         self.mousein = [0, 0, 0]
         # マウスが押下状態か
@@ -69,7 +69,7 @@ class KeyEventRelay(object):
         self.flick_start_time = 0.0
 
     def clear(self) -> None:
-        self.keyin = [0 for _cnt in range(322)]
+        self.keyin.clear()
         self.mousein = [0, 0, 0]
         self.nokeyupevent = False
 
@@ -88,41 +88,48 @@ class KeyEventRelay(object):
             else:
                 cw.thread.post_pygameevent(e)
 
+                    
     def keydown(self, keycode: int) -> None:
         key = self.keymap.get(keycode, None)
 
         if key:
-            if self.keyin[key] == 0:
+            count = self.keyin.get(key, 0)
+
+            if count == 0:
                 event = pygame.event.Event(KEYDOWN, key=key)
                 cw.thread.post_pygameevent(event)
 
-            if self.keyin[key] <= self.threshold + 1:
-                self.keyin[key] += 1
+            if count <= self.threshold + 1:
+                self.keyin[key] = count + 1
 
     def keyup(self, keycode: int) -> None:
         key = self.keymap.get(keycode, None)
 
-        if key:
+        if key is not None:
             event = pygame.event.Event(KEYUP, key=key)
             cw.thread.post_pygameevent(event)
-            self.keyin[key] = 0
+            self.keyin.pop(key, None)
             self.nokeyupevent = False
 
-    def get_pressed(self) -> Tuple[int, ...]:
-        return tuple(self.keyin)
+    def get_pressed(self) -> dict:
+        return self.keyin
 
     def is_keyin(self, keycode: int) -> bool:
-        if self.threshold + 1 == self.keyin[keycode]:
+        count = self.keyin.get(keycode, 0)
+        if self.threshold + 1 == count:
             # 連続押下は最初の1回のみKeyUpしたかのように動作する
             if not cw.cwpy.setting.autoenter_on_sprite and not self.nokeyupevent:
                 event = pygame.event.Event(KEYUP, key=keycode)
                 cw.thread.post_pygameevent(event)
-            self.keyin[keycode] += 1
-        if self.threshold < self.keyin[keycode]:
+
+            self.keyin[keycode] = count + 1
+            count += 1
+            
+        if  count > self.threshold:
             self.nokeyupevent = False
             return True
-        else:
-            return False
+        
+        return False
 
     def is_mousein(self, button: Optional[int] = None) -> bool:
         if button is None:
